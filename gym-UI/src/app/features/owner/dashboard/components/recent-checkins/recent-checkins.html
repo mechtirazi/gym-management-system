@@ -1,0 +1,30 @@
+<div class="card activity-card">
+  <h2>Recent Check-ins</h2>
+
+  @if (isLoadingCheckins()) {
+  <div class="flex items-center justify-center p-8 text-slate-400">
+    <div class="loading-spinner"></div>
+  </div>
+  } @else if (checkinsError()) {
+  <div class="flex flex-col items-center justify-center p-8 text-red-500">
+    <p>{{ checkinsError() }}</p>
+    <button class="mt-2 text-sm underline" (click)="fetchRecentCheckins()">Retry</button>
+  </div>
+  } @else if (recentCheckins().length === 0) {
+  <div class="flex items-center justify-center p-8 text-slate-400">
+    <p>No recent check-ins found.</p>
+  </div>
+  } @else {
+  <ul class="activity-list">
+    @for (checkin of recentCheckins(); track checkin.id) {
+    <li>
+      <div class="avatar">{{ checkin.initials }}</div>
+      <div class="activity-info">
+        <p class="name">{{ checkin.memberName }}</p>
+        <p class="time">{{ checkin.timeAgo }}</p>
+      </div>
+    </li>
+    }
+  </ul>
+  }
+</div>

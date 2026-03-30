@@ -1,0 +1,87 @@
+<div class="courses-container animate-fade-in">
+  <!-- Premium Header Section -->
+  <header class="courses-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <div class="text-content">
+          <h1>Course Management</h1>
+          <p class="subtitle">Schedule and oversee group classes and training programs.</p>
+        </div>
+      </div>
+      <button class="add-course-btn" (click)="showAddModal.set(true)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Add New Course
+      </button>
+    </div>
+
+    <div class="courses-controls">
+      <div class="search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
+          placeholder="Search by course name or trainer...">
+      </div>
+
+      <div class="type-filter">
+        @for (type of availableTypes(); track type) {
+          <button class="filter-chip" [class.active]="selectedType() === (type === 'All Courses' ? 'All' : type)" (click)="selectedType.set(type === 'All Courses' ? 'All' : type)">
+            {{ type }}
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="courses-content">
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Syncing gym courses...</p>
+    </div>
+    } @else if (error()) {
+    <div class="error-state">
+      <div class="icon-warning">⚠️</div>
+      <p>{{ error() }}</p>
+      <button class="retry-btn" (click)="loadCourses()">Reload Courses</button>
+    </div>
+    } @else if (filteredCourses().length === 0) {
+    <div class="empty-state">
+      <div class="icon-empty">🗓️</div>
+      <h3>No courses found</h3>
+      <p>Try refining your search or adding a new class to the schedule.</p>
+    </div>
+    } @else {
+    <div class="courses-grid">
+      @for (course of filteredCourses(); track course.id_course) {
+      <app-course-card [course]="course" (deleteClick)="onDeleteCourse($event)" (editClick)="onEditCourse($event)" (manageClick)="onManageClasses($event)">
+      </app-course-card>
+      }
+    </div>
+    }
+  </main>
+
+  @if (showAddModal()) {
+  <app-add-course-modal [editCourse]="selectedCourseForEdit()" (close)="showAddModal.set(false); selectedCourseForEdit.set(null)" (courseAdded)="loadCourses()">
+  </app-add-course-modal>}
+  @if (showSessionsModal()) {
+  <app-sessions-modal [course]="selectedCourseForSessions()" (close)="showSessionsModal.set(false)"
+    (sessionsUpdated)="loadCourses()">
+  </app-sessions-modal>
+  }
+</div>

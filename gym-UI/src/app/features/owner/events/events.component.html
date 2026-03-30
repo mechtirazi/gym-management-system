@@ -1,0 +1,111 @@
+<div class="events-container animate-fade-in">
+  <!-- Premium Header Section -->
+  <header class="events-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <div class="text-content">
+          <h1>Event Management</h1>
+          <p class="subtitle">Schedule and oversee gym events and special activities.</p>
+        </div>
+      </div>
+      <button class="add-event-btn" (click)="openAddModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Add New Event
+      </button>
+    </div>
+
+    <div class="events-controls">
+      <div class="search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
+          placeholder="Search by event name or description...">
+      </div>
+
+      <div class="type-filter">
+        @for (type of ['All Events', 'Rewarded', 'Standard']; track type) {
+          <button class="filter-chip" [class.active]="selectedType() === (type === 'All Events' ? 'All' : type)" (click)="selectedType.set(type === 'All Events' ? 'All' : type)">
+            {{ type }}
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="events-content">
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Syncing gym events...</p>
+    </div>
+    } @else if (error()) {
+    <div class="error-state">
+      <div class="icon-warning">⚠️</div>
+      <p>{{ error() }}</p>
+      <button class="retry-btn" (click)="loadEvents()">Reload Events</button>
+    </div>
+    } @else if (filteredEvents().length === 0) {
+    <div class="empty-state">
+      <div class="icon-empty">🗓️</div>
+      <h3>No events found</h3>
+      <p>Try refining your search or adding a new event to the schedule.</p>
+    </div>
+    } @else {
+    <div class="events-grid">
+      @for (event of filteredEvents(); track event.id_event || $index) {
+      <app-event-card [eventModel]="event" (deleteClick)="onDeleteEvent($event)"
+        (editClick)="onEditEvent($event)"
+        (manageClick)="openAttendanceModal(event)">
+      </app-event-card>
+      }
+    </div>
+
+    <!-- ── Pagination Controls ── -->
+    @if (lastPage() > 1) {
+    <div class="pagination-controls">
+      <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Previous
+      </button>
+
+      <div class="page-info">
+        <span class="current">Page {{ currentPage() }}</span>
+        <span class="total">of {{ lastPage() }}</span>
+      </div>
+
+      <button class="page-btn" [disabled]="currentPage() === lastPage()" (click)="nextPage()">
+        Next
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
+    }
+    }
+  </main>
+
+  @if (showAddModal()) {
+  <app-add-event-modal [editEvent]="selectedEventForEdit()" (close)="closeAddModal()" (eventAdded)="loadEvents()">
+  </app-add-event-modal>
+  }
+
+  @if (showAttendanceModal() && selectedEvent()) {
+  <app-event-attendances-modal [eventModel]="selectedEvent()" (eventUpdated)="loadEvents()"
+    (close)="closeAttendanceModal()">
+  </app-event-attendances-modal>
+  }
+</div>

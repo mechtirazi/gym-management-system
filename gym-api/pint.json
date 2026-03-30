@@ -1,0 +1,22 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "@PSR12": true,
+        "array_syntax": {
+            "syntax": "short"
+        },
+        "class_definition": {
+            "multi_line_extends_each_single_line": true
+        },
+        "no_unused_imports": true,
+        "single_quote": true,
+        "binary_operator_spaces": {
+            "default": "align_single_space_minimal"
+        }
+    },
+    "exclude": [
+        "storage",
+        "vendor",
+        "node_modules"
+    ]
+}

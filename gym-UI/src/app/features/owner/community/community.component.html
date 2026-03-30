@@ -1,0 +1,143 @@
+<div class="community-container">
+  <div class="header-section">
+    <div>
+      <h1>Community Review</h1>
+      <p class="subtitle">See all reviews and feedback from your gym members.</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon reviews-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Total Reviews</span>
+        <span class="stat-value">{{ stats.totalReviews }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon rating-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+          </polygon>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Average Rating</span>
+        <span class="stat-value">{{ stats.averageRating }}/5.0</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon satisfaction-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path
+            d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
+          </path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Satisfaction Rate</span>
+        <span class="stat-value">{{ stats.positiveRate }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="filter-bar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" placeholder="Search reviews or members..." [(ngModel)]="searchTerm"
+          (ngModelChange)="applyFilter()">
+      </div>
+
+      <div class="filter-options">
+        <select [(ngModel)]="selectedFilter" (ngModelChange)="applyFilter()">
+          <option value="all">All Sentiments</option>
+          <option value="positive">Positive</option>
+          <option value="neutral">Neutral</option>
+          <option value="negative">Negative</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading member feedback...</p>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && filteredReviews.length === 0">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <h3>No Reviews Found</h3>
+      <p>There are no reviews matching your criteria.</p>
+    </div>
+
+    <div class="reviews-list" *ngIf="!isLoading && filteredReviews.length > 0">
+      <div class="review-card" *ngFor="let r of filteredReviews">
+        <div class="review-header">
+          <div class="user-info">
+            <div class="user-avatar">{{r.user?.name?.charAt(0) || 'U'}}</div>
+            <div class="user-details">
+              <h4>{{r.user?.name}} {{r.user?.last_name}}</h4>
+              <span class="review-date">{{ r.review_date | date:'MMM d, y' }}</span>
+            </div>
+          </div>
+          <div class="rating-display">
+            <div class="stars">
+              <svg *ngFor="let star of getStars(r)" viewBox="0 0 24 24" [class.filled]="star === 1">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+            </div>
+            <span class="sentiment-badge" [ngClass]="getSentimentClass(r)">
+              {{ getSentimentLabel(r) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="review-body">
+          <div class="event-tag" *ngIf="r.event">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            {{ r.event.title }}
+          </div>
+          <p class="comment-text">{{ r.comment }}</p>
+        </div>
+
+        <div class="review-footer" *ngIf="r.ai_sentiment_score">
+          <div class="sentiment-meter">
+            <span class="meter-label">AI Sentiment Score</span>
+            <div class="meter-bg">
+              <div class="meter-fill" [style.width.%]="(r.ai_sentiment_score || 0) * 100"
+                [ngClass]="getSentimentClass(r)"></div>
+            </div>
+            <span class="meter-value">{{ Math.round((r.ai_sentiment_score || 0) * 100) }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

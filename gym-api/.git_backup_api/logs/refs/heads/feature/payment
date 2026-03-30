@@ -1,0 +1,9 @@
+0000000000000000000000000000000000000000 12970a5c9d53085a2b2b896aaaf1534a22cb3f07 mechtirazi <mechtirazi@gmail.com> 1771886506 +0100	branch: Created from HEAD
+12970a5c9d53085a2b2b896aaaf1534a22cb3f07 eb42895ff2fe8578c3bc9c3c46955819076b517e mechtirazi <mechtirazi@gmail.com> 1771886554 +0100	commit: WIP: modification conception
+eb42895ff2fe8578c3bc9c3c46955819076b517e 9d937fd41f9d3fd3f5403f406eb042b22c04d03f mechtirazi <mechtirazi@gmail.com> 1771971447 +0100	commit: WIP: local updates on models and migrations
+9d937fd41f9d3fd3f5403f406eb042b22c04d03f b243e4948e565576d5624a38c43103cd72720d0a mechtirazi <mechtirazi@gmail.com> 1772057872 +0100	rebase (finish): refs/heads/feature/payment onto e1b9f82da7c8ea197824650b304e566a93c756be
+b243e4948e565576d5624a38c43103cd72720d0a 751f1216b0d868aee7ccc79259ad5ff053bdbd55 mechtirazi <mechtirazi@gmail.com> 1772154983 +0100	commit: refactor:course Authorization
+751f1216b0d868aee7ccc79259ad5ff053bdbd55 1cc224fdcaa97c3e0963e8a6e318305a97d67365 mechtirazi <mechtirazi@gmail.com> 1772399343 +0100	commit: drr
+1cc224fdcaa97c3e0963e8a6e318305a97d67365 7d2befb9b4ae5349fcc0844801accb9a91a7820e mechtirazi <mechtirazi@gmail.com> 1774130392 +0100	commit: feat: implement wallet system, AI service, and owner dashboard updates
+7d2befb9b4ae5349fcc0844801accb9a91a7820e c0f4bc5d0c4a5b1507037f2d77f095de275ddfea mechtirazi <mechtirazi@gmail.com> 1774133339 +0100	commit (merge): Merge remote-tracking branch 'origin/feature/payment' into feature/payment with local fixes
+c0f4bc5d0c4a5b1507037f2d77f095de275ddfea 99451b721ea8ced9f36bfd9a578d166b1f3ad015 mechtirazi <mechtirazi@gmail.com> 1774133462 +0100	commit: Fix: remove accidental conflict markers from merged files

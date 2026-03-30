@@ -1,0 +1,223 @@
+<div class="revenue-analytics-container">
+  <!-- Section Title -->
+  <header class="revenue-header">
+    <div class="admin-badge-mini">
+      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">insights</mat-icon>
+      Financial Intelligence
+    </div>
+    <h1>Revenue Analytics</h1>
+    <p>Real-time platform earnings and subscription health metrics</p>
+  </header>
+
+  <!-- KPI Grid -->
+  <section class="revenue-kpi-grid">
+    <!-- Total Platform MRR -->
+    <div class="metric-card style-blue">
+      <div class="metric-icon-box">
+        <mat-icon>payments</mat-icon>
+      </div>
+      <div class="metric-info">
+        <p class="label">Total Platform MRR</p>
+        <h2 class="value">{{ mrr() | currency:'USD':'symbol':'1.0-0' }}</h2>
+        <div class="sub-meta">
+          <span class="trend-tag" [ngStyle]="{'color': mrrGrowth() >= 0 ? 'var(--admin-accent-emerald)' : 'var(--admin-accent-rose)'}">
+            <mat-icon>{{ mrrGrowth() >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+            {{ mrrGrowth() > 0 ? '+' : '' }}{{ mrrGrowth() }}%
+          </span>
+          <span class="caption">vs last month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Subscriptions -->
+    <div class="metric-card style-fuchsia">
+      <div class="metric-icon-box">
+        <mat-icon>subscriptions</mat-icon>
+      </div>
+      <div class="metric-info">
+        <p class="label">Active Subscriptions</p>
+        <h2 class="value">{{ activeSubscriptions() }}</h2>
+        <div class="sub-meta">
+          <span class="caption">Across all onboarded gyms</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avg Revenue Per Gym -->
+    <div class="metric-card style-emerald">
+      <div class="metric-icon-box">
+        <mat-icon>auto_graph</mat-icon>
+      </div>
+      <div class="metric-info">
+        <p class="label">Average ARPU</p>
+        <h2 class="value">{{ arpu() | currency:'USD':'symbol':'1.0-0' }}</h2>
+        <div class="sub-meta">
+          <span class="caption">{{ isHealthyGrowth() ? 'Healthy platform growth' : 'Growth requires attention' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- At Risk Revenue -->
+    <div class="metric-card style-rose">
+      <div class="metric-icon-box">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="metric-info">
+        <p class="label">At Risk (7d)</p>
+        <h2 class="value" style="color: var(--admin-accent-rose);">{{ atRiskRevenue() | currency:'USD':'symbol':'1.0-0' }}</h2>
+        <div class="sub-meta">
+          <span class="caption">Expiring within 7 days</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Charts Row -->
+  <section class="charts-container">
+    <!-- Revenue Growth Chart -->
+    <div class="analytics-card">
+      <div class="card-header">
+        <div class="header-info">
+          <h3>Revenue Forecast</h3>
+          <p>Trailing 6 Months performance</p>
+        </div>
+        <div class="header-icon-box">
+          <mat-icon>show_chart</mat-icon>
+        </div>
+      </div>
+
+      <div class="chart-wrapper" style="height: 320px; position: relative;">
+        <!-- Loading State -->
+        <div *ngIf="loading()" class="admin-loader-overlay" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 10; border-radius: 1rem;">
+          <mat-icon class="is-spinning" style="color: var(--admin-accent-indigo); font-size: 2rem; width: 2rem; height: 2rem;">refresh</mat-icon>
+        </div>
+
+        <apx-chart
+          *ngIf="!loading() && !error()"
+          [series]="lineChartOptions.series"
+          [chart]="lineChartOptions.chart"
+          [xaxis]="lineChartOptions.xaxis"
+          [yaxis]="lineChartOptions.yaxis"
+          [dataLabels]="lineChartOptions.dataLabels"
+          [stroke]="lineChartOptions.stroke"
+          [colors]="lineChartOptions.colors"
+          [fill]="lineChartOptions.fill"
+          [grid]="lineChartOptions.grid"
+          [tooltip]="lineChartOptions.tooltip"
+        ></apx-chart>
+      </div>
+    </div>
+
+    <!-- Plan Split Chart -->
+    <div class="analytics-card">
+      <div class="card-header">
+        <div class="header-info">
+          <h3>Plan Distribution</h3>
+          <p>Market share by tier</p>
+        </div>
+        <div class="header-icon-box" style="color: var(--admin-accent-fuchsia); background: rgba(217, 70, 239, 0.1); border-color: rgba(217, 70, 239, 0.2);">
+          <mat-icon>pie_chart</mat-icon>
+        </div>
+      </div>
+
+      <div class="chart-wrapper" style="height: 250px; margin-bottom: 2rem;">
+        <apx-chart
+          *ngIf="!loading() && !error()"
+          [series]="donutChartOptions.series"
+          [chart]="donutChartOptions.chart"
+          [labels]="donutChartOptions.labels"
+          [colors]="donutChartOptions.colors"
+          [legend]="donutChartOptions.legend"
+          [plotOptions]="donutChartOptions.plotOptions"
+          [stroke]="donutChartOptions.stroke"
+          [tooltip]="donutChartOptions.tooltip"
+        ></apx-chart>
+      </div>
+
+      <div class="plan-info-list" *ngIf="!loading()">
+        <div class="plan-item">
+          <div class="plan-name-wrap">
+            <div class="indicator" style="color: #10b981;"></div>
+            <span class="name">Basic Plan</span>
+          </div>
+          <span class="count">{{ donutChartOptions.series[0] }} Nodes</span>
+        </div>
+        <div class="plan-item">
+          <div class="plan-name-wrap">
+            <div class="indicator" style="color: #c026d3;"></div>
+            <span class="name">Pro Plan</span>
+          </div>
+          <span class="count">{{ donutChartOptions.series[1] }} Nodes</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Expiring Table -->
+  <section class="expiring-table-card">
+    <div class="table-header">
+      <div class="title-group">
+        <h3>Critical Expirations</h3>
+        <p>Managed facilities requiring immediate renewal protocols</p>
+      </div>
+      <div class="status-pill status-unstable" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; background: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); border: 1px solid rgba(244, 63, 94, 0.2); font-size: 0.625rem; font-weight: 900; text-transform: uppercase;">
+        <mat-icon style="font-size: 14px; width: 14px; height: 14px;">priority_high</mat-icon>
+        Action Required
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Facility Node</th>
+            <th>Provider</th>
+            <th>Expiration Date</th>
+            <th>Time Remaining</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let gym of expiringGyms(); trackBy: trackByGymId">
+            <td>
+              <div class="gym-name-cell">
+                <div class="gym-avatar">{{ gym.name.charAt(0) }}</div>
+                <div class="gym-info">
+                  <span class="name">{{ gym.name }}</span>
+                  <span class="owner">Node ID: {{ gym.id_gym.substring(0,8) }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span style="font-weight: 700; color: #cbd5e1;">{{ gym.owner?.name || 'System' }}</span>
+            </td>
+            <td>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ gym.expiry_date | date:'MMM d, yyyy' }}</span>
+            </td>
+            <td>
+              <span class="days-left-badge" [ngClass]="(gym.days_remaining || 0) <= 3 ? 'urgent' : 'warning'">
+                <mat-icon style="font-size: 10px; width: 10px; height: 10px; margin-right: 4px;">schedule</mat-icon>
+                {{ gym.days_remaining }} Days
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <button (click)="renewGym(gym.id_gym)" 
+                      [disabled]="actionLoading() === gym.id_gym"
+                      class="admin-btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.625rem;">
+                <mat-icon *ngIf="actionLoading() === gym.id_gym" class="is-spinning">refresh</mat-icon>
+                <mat-icon *ngIf="actionLoading() !== gym.id_gym">autorenew</mat-icon>
+                <span>{{ actionLoading() === gym.id_gym ? 'Processing' : 'Extend Node' }}</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="expiringGyms().length === 0">
+            <td colspan="5" style="text-align: center; padding: 5rem; color: #475569; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+              <mat-icon style="display: block; font-size: 3rem; width: 3rem; height: 3rem; margin: 0 auto 1rem; color: rgba(255,255,255,0.05);">verified_user</mat-icon>
+              All platform nodes are currently healthy
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

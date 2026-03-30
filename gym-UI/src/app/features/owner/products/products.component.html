@@ -1,0 +1,104 @@
+<div class="products-container animate-fade-in">
+  <!-- Premium Header Section -->
+  <header class="products-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <div class="text-content">
+          <h1>Store & Products</h1>
+          <p class="subtitle">Manage your gym's storefront inventory and incoming orders.</p>
+        </div>
+      </div>
+      <button class="add-product-btn" (click)="openAddModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Add New Product
+      </button>
+    </div>
+
+    <div class="products-controls">
+      <div class="search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
+          placeholder="Search by product name...">
+      </div>
+
+      <div class="category-filter">
+        <button class="filter-chip" [class.active]="selectedFilter() === 'All'" (click)="selectedFilter.set('All')">
+          All
+        </button>
+        @for (category of filterOptions(); track category) {
+        <button class="filter-chip" [class.active]="selectedFilter() === category"
+          (click)="selectedFilter.set(category)">
+          {{ category }}
+        </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="products-content">
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Syncing gym inventory...</p>
+    </div>
+    } @else if (error()) {
+    <div class="error-state">
+      <div class="icon-warning">⚠️</div>
+      <p>{{ error() }}</p>
+      <button class="retry-btn" (click)="loadProducts()">Reload Inventory</button>
+    </div>
+    } @else if (filteredProducts().length === 0) {
+    <div class="empty-state">
+      <div class="icon-empty">🛒</div>
+      <h3>No products found</h3>
+      <p>Try refining your search or adding a new store item.</p>
+    </div>
+    } @else {
+    <div class="products-grid">
+      @for (product of filteredProducts(); track $index) {
+      <app-product-card [product]="product" [product]="product" (deleteClick)="onDeleteProduct($event)"
+        (editClick)="openEditModal($event)" (ordersClick)="openOrdersModal($event)"
+        (addOrderClick)="openAddOrderModal($event)">
+      </app-product-card>
+      }
+    </div>
+    }
+  </main>
+
+  @if (showAddModal()) {
+  <app-add-product-modal (close)="closeAddModal()" (productAdded)="loadProducts()">
+  </app-add-product-modal>
+  }
+
+  @if (showEditModal() && selectedProduct()) {
+  <app-edit-product-modal [productData]="selectedProduct()!" (close)="closeEditModal()"
+    (productUpdated)="loadProducts()">
+  </app-edit-product-modal>
+  }
+
+  @if (showOrdersModal() && selectedProduct()) {
+  <app-product-orders-modal [product]="selectedProduct()!" (close)="closeOrdersModal()">
+  </app-product-orders-modal>
+  }
+
+  @if (showAddOrderModal() && selectedProduct()) {
+  <app-add-order-modal [product]="selectedProduct()!" (close)="closeAddOrderModal()" (orderCreated)="onOrderCreated()">
+  </app-add-order-modal>
+  }
+</div>

@@ -1,0 +1,206 @@
+<div class="subscriptions-container">
+  <div class="header-section">
+    <div>
+      <h1>Subscriptions Management</h1>
+      <p class="subtitle">Manage user memberships, track renewals, and view subscription stats.</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card total-subscriptions">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Total Subscriptions</span>
+        <span class="stat-value">{{ stats().total }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card active-subscriptions">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Active Members</span>
+        <span class="stat-value">{{ stats().active }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card monthly-revenue">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Monthly Revenue (Est.)</span>
+        <span class="stat-value">${{ stats().revenue | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="toolbar">
+      <div class="tabs">
+        <button [class.active]="activeTab() === 'all'" (click)="setTab('all')">All</button>
+        <button [class.active]="activeTab() === 'active'" (click)="setTab('active')">Active</button>
+        <button [class.active]="activeTab() === 'expired'" (click)="setTab('expired')">Expired</button>
+        <button [class.active]="activeTab() === 'cancelled'" (click)="setTab('cancelled')">Cancelled</button>
+      </div>
+
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+          placeholder="Search members or emails...">
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="isLoading()">
+      <div class="spinner"></div>
+      <p>Fetching active memberships...</p>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading() && filteredSubscriptions().length === 0">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
+          stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+          <line x1="1" y1="10" x2="23" y2="10"></line>
+        </svg>
+      </div>
+      <h3>No subscriptions found</h3>
+      <p>Try matching with another filter or search term.</p>
+    </div>
+
+    <div class="subscriptions-table-container" *ngIf="!isLoading() && filteredSubscriptions().length > 0">
+      <table class="subscriptions-table">
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Gym</th>
+            <th>Joined Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of filteredSubscriptions()">
+            <td class="member-column">
+              <div class="member-profile">
+                <div class="member-avatar">{{ getInitials(s.user) }}</div>
+                <div class="member-info">
+                  <span class="member-name">{{ s.user?.name }} {{ s.user?.last_name }}</span>
+                  <span class="member-email">{{ s.user?.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="gym-badge">{{ s.gym?.name || 'Main Gym' }}</span>
+            </td>
+            <td>
+              <span class="date-text">{{ s.subscribe_date | date:'MMM d, y' }}</span>
+            </td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(s.status)">
+                {{ s.status }}
+              </span>
+            </td>
+            <td class="actions-column">
+              <button class="action-btn cancel" (click)="cancelSubscription(s)" *ngIf="s.status !== 'cancelled'">
+                Cancel
+              </button>
+              <button class="action-btn view" (click)="viewDetail(s)">View Detail</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Cancel Confirmation Modal -->
+  <div class="custom-modal animate-fade-in" *ngIf="showConfirmModal()">
+    <div class="modal-content glass-card confirm-content">
+      <div class="modal-icon warning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <h3>Cancel Membership?</h3>
+      <p>Are you sure you want to cancel this subscription? The user will no longer be active, but their historical
+        records will be retained.</p>
+      <div class="modal-actions">
+        <button class="secondary-btn" (click)="closeCancelConfirm()">No, Keep it</button>
+        <button class="danger-btn" (click)="confirmCancel()">Yes, Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Details Modal -->
+  <div class="custom-modal animate-fade-in" *ngIf="showViewModal()">
+    <div class="modal-content glass-card view-content">
+      <div class="modal-header">
+        <div class="header-title">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <h2>Subscription Details</h2>
+        </div>
+        <button class="close-btn" (click)="closeViewModal()">&times;</button>
+      </div>
+
+      <div class="detail-body" *ngIf="subscriptionToView() as sub">
+        <div class="profile-summary">
+          <div class="avatar">{{ getInitials(sub.user) }}</div>
+          <div class="info">
+            <h4>{{ sub.user?.name }} {{ sub.user?.last_name }}</h4>
+            <p>{{ sub.user?.email }}</p>
+          </div>
+          <span class="status-badge large" [ngClass]="getStatusClass(sub.status)">{{ sub.status }}</span>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Assigned Gym</span>
+            <span class="value">{{ sub.gym?.name || 'Main Gym' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Subscription Date</span>
+            <span class="value">{{ sub.subscribe_date | date:'longDate' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Subscription ID</span>
+            <span class="value code">{{ sub.id_subscribe }}</span>
+          </div>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button class="primary-btn outline" (click)="closeViewModal()">Close Details</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

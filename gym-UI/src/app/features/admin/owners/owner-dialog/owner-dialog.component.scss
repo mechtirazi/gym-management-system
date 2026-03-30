@@ -1,0 +1,15 @@
+@import '../../admin-shared.scss';
+
+:host {
+  display: block;
+}
+
+.two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}

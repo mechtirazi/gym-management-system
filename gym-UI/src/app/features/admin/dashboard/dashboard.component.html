@@ -1,0 +1,218 @@
+<div class="admin-page-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="admin-header">
+      <div class="admin-badge-mini">
+        <mat-icon style="font-size: 14px; width: 14px; height: 14px;">bolt</mat-icon>
+        Super Admin
+      </div>
+      <h1>Platform Command</h1>
+      <p>Real-time intelligence across all gyms, owners, and operations</p>
+    </div>
+
+    <div class="header-actions">
+      <button (click)="openCreateOwner()" class="admin-btn btn-primary">
+        <mat-icon>person_add</mat-icon>
+        <span>Create Owner</span>
+      </button>
+      <button (click)="refreshData()" class="admin-btn">
+        <mat-icon [class.is-spinning]="loading()">refresh</mat-icon>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="dashboard-grid-layout">
+    <!-- Platform Metrics Grid -->
+    <section class="metrics-grid">
+      <!-- Total Revenue (MRR) -->
+      <div class="metric-card style-emerald">
+        <div class="metric-icon-box">
+          <mat-icon>payments</mat-icon>
+        </div>
+        <div class="metric-info">
+          <p class="label">Total MRR</p>
+          <div *ngIf="!loadingMetrics(); else loadingState">
+            <h2 class="value">{{ mrr() | currency:'USD':'symbol':'1.0-0' }}</h2>
+          </div>
+          <div class="sub-meta">
+            <span class="trend-tag">
+              <mat-icon>trending_up</mat-icon>
+              Healthy
+            </span>
+            <span class="caption">Monthly recurring</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Gyms -->
+      <div class="metric-card style-blue">
+        <div class="metric-icon-box">
+          <mat-icon>fitness_center</mat-icon>
+        </div>
+        <div class="metric-info">
+          <p class="label">Active Gyms</p>
+          <div *ngIf="!loadingMetrics(); else loadingState">
+            <h2 class="value">{{ activeGyms() }}</h2>
+          </div>
+          <div class="sub-meta">
+            <span class="caption">Onboarded facilities</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Members -->
+      <div class="metric-card style-fuchsia">
+        <div class="metric-icon-box">
+          <mat-icon>groups</mat-icon>
+        </div>
+        <div class="metric-info">
+          <p class="label">Total Members</p>
+          <div *ngIf="!loadingMetrics(); else loadingState">
+            <h2 class="value">{{ activeMembers() | number }}</h2>
+          </div>
+          <div class="sub-meta">
+            <span class="caption">Active platform users</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Health -->
+      <div class="metric-card" [ngClass]="apiHealth() === 'Reachable' ? 'style-emerald' : 'style-rose'">
+        <div class="metric-icon-box">
+          <mat-icon>{{ apiHealth() === 'Reachable' ? 'cloud_done' : 'cloud_off' }}</mat-icon>
+        </div>
+        <div class="metric-info">
+          <p class="label">System Health</p>
+          <div *ngIf="!loadingHealth(); else loadingState">
+            <h2 class="value" style="font-size: 1.5rem;">{{ apiHealth() }}</h2>
+          </div>
+          <div class="sub-meta">
+            <span class="caption truncate">{{ healthDetail() }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error Alerts -->
+    <div *ngIf="errorMetrics()" class="admin-alert mb-0" 
+         style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose);">
+      <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
+        <mat-icon>error</mat-icon>
+      </div>
+      <div class="alert-content">
+        <span class="alert-tag" style="color: var(--admin-accent-rose);">Platform Error</span>
+        <p style="color: var(--admin-accent-rose); font-weight: 800;">{{ errorMetrics() }}</p>
+      </div>
+      <button (click)="loadPlatformMetrics()" class="admin-btn" 
+              style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.625rem; background: rgba(244, 63, 94, 0.1);">Retry</button>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="main-content-split">
+      <!-- Quick Stats Card -->
+      <div class="status-control-card">
+        <div class="card-header-flex">
+          <div class="icon-box">
+            <mat-icon>shield</mat-icon>
+          </div>
+          <h3>Security Protocol</h3>
+        </div>
+        
+        <div class="status-row">
+          <div class="status-info">
+            <p class="label">Total Managed Owners</p>
+            <div class="value">{{ loading() ? '...' : totalOwners() }}</div>
+          </div>
+          <div class="status-tag">
+            <mat-icon>warning</mat-icon>
+            {{ unverifiedOwners() }} Unverified
+          </div>
+        </div>
+      </div>
+
+      <!-- Compact Feed -->
+      <div class="system-event-feed">
+        <div class="feed-header">
+          <h2>System Events</h2>
+          <div (click)="goToNotifications()" class="action-link">FULL AUDIT</div>
+        </div>
+
+        <div class="feed-list" *ngIf="notifications().length > 0">
+          <div *ngFor="let n of notifications()" class="feed-item">
+            <div class="feed-icon">
+              <mat-icon>mail</mat-icon>
+            </div>
+            <div class="feed-content">
+              <p class="text">{{ n.text }}</p>
+              <p class="date">{{ n.created_at | date:'MMM d, h:mm a' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="notifications().length === 0 && !loading()" class="empty-feed">
+          <mat-icon>inbox</mat-icon>
+          <p>No recent activity detected</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Administrative Boards -->
+    <section class="command-boards">
+      <!-- Broadcast Form -->
+      <div class="status-control-card" style="height: auto;">
+        <div class="card-header-flex">
+          <div class="icon-box" style="color: var(--admin-accent-indigo);">
+            <mat-icon>campaign</mat-icon>
+          </div>
+          <h3>Broadcast Center</h3>
+        </div>
+
+        <form [formGroup]="broadcastForm" (ngSubmit)="sendBroadcast()" class="admin-form-group">
+          <div class="form-field">
+            <label>Global Announcement</label>
+            <textarea formControlName="message" placeholder="Type your system-wide announcement here..."></textarea>
+          </div>
+          <button type="submit" [disabled]="broadcastForm.invalid || broadcasting()" class="admin-btn btn-primary">
+            <mat-icon *ngIf="!broadcasting()">send</mat-icon>
+            <mat-icon *ngIf="broadcasting()" class="is-spinning">refresh</mat-icon>
+            <span>{{ broadcasting() ? 'Broadcasting...' : 'Broadcast to All' }}</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Targeted Alert Form -->
+      <div class="status-control-card" style="height: auto;">
+        <div class="card-header-flex">
+          <div class="icon-box" style="color: var(--admin-accent-emerald);">
+            <mat-icon>notification_important</mat-icon>
+          </div>
+          <h3>Targeted Command</h3>
+        </div>
+
+        <form [formGroup]="targetedForm" (ngSubmit)="sendTargeted()" class="admin-form-group">
+          <div class="form-field">
+            <label>Recipient Owner</label>
+            <select formControlName="ownerId">
+              <option value="" disabled selected>Select an Owner</option>
+              <option *ngFor="let o of owners()" [value]="o.id_user">{{ o.name }} {{ o.last_name }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Direct Alert</label>
+            <textarea formControlName="message" style="min-height: 80px;" placeholder="Type your direct alert for this owner..."></textarea>
+          </div>
+          <button type="submit" [disabled]="targetedForm.invalid || sendingTargeted()" class="admin-btn btn-primary">
+            <mat-icon *ngIf="!sendingTargeted()">mail</mat-icon>
+            <mat-icon *ngIf="sendingTargeted()" class="is-spinning">refresh</mat-icon>
+            <span>{{ sendingTargeted() ? 'Dispatching...' : 'Send Direct Alert' }}</span>
+          </button>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-skeleton"></div>
+</ng-template>

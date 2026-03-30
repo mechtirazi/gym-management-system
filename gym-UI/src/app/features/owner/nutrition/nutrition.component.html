@@ -1,0 +1,162 @@
+<div class="nutrition-container animate-fade-in">
+  <!-- Premium Header Section -->
+  <header class="nutrition-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 1 8a7 7 0 0 1-9 10Z"></path>
+            <path d="M11 20L11 12"></path>
+          </svg>
+        </div>
+        <div class="text-content">
+          <h1>Nutrition Management</h1>
+          <p class="subtitle">Manage dietary and nutrition plans for members.</p>
+        </div>
+      </div>
+      <button class="add-plan-btn" (click)="onAddPlan()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Create Plan
+      </button>
+    </div>
+
+    <div class="nutrition-controls">
+      <div class="search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
+          placeholder="Search by member name or goal...">
+      </div>
+
+      <div class="status-filter">
+        @for (status of filterOptions; track status) {
+          <button class="filter-chip" [class.active]="selectedFilter() === (status === 'All Plans' ? 'All' : status)" (click)="onFilterChange(status === 'All Plans' ? 'All' : status)">
+            {{ status }}
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ modalMode() === 'add' ? 'Create Nutrition Plan' : 'Edit Dietary Plan' }}</h3>
+        
+        <form (ngSubmit)="submitPlan()" class="modal-form">
+          <div class="form-grid">
+            <label>
+              Plan Goal
+              <input [(ngModel)]="planForm().goal" name="goal" placeholder="e.g., Weight Loss, Muscle Gain" required />
+            </label>
+
+            <label>
+              Price ($)
+              <input type="number" [(ngModel)]="planForm().price" name="price" min="0" required />
+            </label>
+            
+            <label>
+              Start Date
+              <input type="date" [(ngModel)]="planForm().start_date" name="start_date" required />
+            </label>
+            
+            <label>
+              End Date
+              <input type="date" [(ngModel)]="planForm().end_date" name="end_date" required />
+            </label>
+            
+            <label>
+              Assign Members
+              <select [(ngModel)]="planForm().id_members" name="id_members" multiple required class="multi-select">
+                @for (member of members(); track member.id_user) {
+                  <option [value]="member.id_user">{{ member.name }} {{ member.last_name }}</option>
+                }
+              </select>
+              <small>Hold Ctrl (Cmd) to select multiple members</small>
+            </label>
+            
+            <label>
+              Assign Nutritionist
+              <select [(ngModel)]="planForm().id_nutritionist" name="id_nutritionist" required>
+                <option value="" disabled>Select a nutritionist</option>
+                @for (nutri of nutritionists(); track nutri.id_user) {
+                  <option [value]="nutri.id_user">{{ nutri.name }} {{ nutri.last_name }}</option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="submit-btn">{{ modalMode() === 'add' ? 'Create Plan' : 'Update Plan' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (notification()) {
+    <div class="notification" [class.success]="notification()?.type === 'success'" [class.error]="notification()?.type === 'error'" [class.info]="notification()?.type === 'info'">
+      {{ notification()?.text }}
+    </div>
+  }
+
+  <main class="nutrition-content">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Syncing nutrition plans...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <div class="icon-warning">⚠️</div>
+        <p>{{ error() }}</p>
+        <button class="retry-btn" (click)="loadPlans()">Reload Plans</button>
+      </div>
+    } @else if (filteredPlans().length === 0) {
+      <div class="empty-state">
+        <div class="icon-empty">🥗</div>
+        <h3>No nutrition plans found</h3>
+        <p>Try refining your search or adding a new dietary plan.</p>
+      </div>
+    } @else {
+      <div class="nutrition-grid">
+        @for (plan of filteredPlans(); track $index) {
+          <app-nutrition-card [plan]="plan" (deleteClick)="onDeletePlan($event)" (editClick)="onViewPlan(plan)">
+          </app-nutrition-card>
+        }
+      </div>
+
+      <!-- Pagination Controls -->
+      @if (totalPages() > 1) {
+        <div class="pagination-container">
+          <button class="pagination-btn" [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Prev
+          </button>
+          
+          <div class="page-numbers">
+            @for (p of [].constructor(totalPages()); track $index) {
+              <button class="page-num" [class.active]="$index + 1 === currentPage()" (click)="onPageChange($index + 1)">
+                {{ $index + 1 }}
+              </button>
+            }
+          </div>
+
+          <button class="pagination-btn" [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">
+            Next
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      }
+    }
+  </main>
+</div>

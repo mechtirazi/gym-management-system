@@ -1,0 +1,75 @@
+<div class="product-orders-modal animate-fade-in">
+  <div class="modal-content glass-card">
+    <div class="modal-header">
+      <div class="header-title">
+        <div class="icon-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <div class="title-text">
+          <h2>Product Orders</h2>
+          <p class="subtitle">History for {{ product().name }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="close.emit()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Fetching sales history...</p>
+        </div>
+      } @else if (orders().length === 0) {
+        <div class="empty-state">
+          <div class="icon">🛒</div>
+          <p>No orders found for this product yet.</p>
+        </div>
+      } @else {
+        <div class="orders-list">
+          @for (order of orders(); track order.id_order) {
+            <div class="order-card">
+              <div class="order-main">
+                <div class="member-info">
+                  <span class="member-name">{{ order.member?.name }} {{ order.member?.last_name }}</span>
+                  <span class="order-date">{{ order.order_date | date:'mediumDate' }}</span>
+                </div>
+                <div class="order-details">
+                  <span class="quantity">{{ order.pivot?.quantity || 1 }} Units</span>
+                  <span class="price">${{ order.pivot?.price || order.total_amount }}</span>
+                </div>
+              </div>
+              <div class="order-footer">
+                <div class="status-group">
+                  <span class="status-badge" [class]="order.status">
+                    {{ order.status }}
+                  </span>
+                  <span class="order-id">#{{ order.id_order.substring(0,8) }}</span>
+                </div>
+                <div class="order-actions">
+                  <button class="action-btn print-btn" (click)="printTicket(order)" aria-label="Print ticket" title="Print ticket">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                      <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                  </button>
+                  <button class="action-btn delete-btn" (click)="deleteOrder(order.id_order)" aria-label="Delete order" title="Delete order">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

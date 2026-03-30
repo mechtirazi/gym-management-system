@@ -1,0 +1,60 @@
+<div class="nested-gyms-wrap">
+  <div class="nested-header">
+    <h3>
+      <mat-icon>storefront</mat-icon>
+      Governed Nodes: {{ ownerName }}
+    </h3>
+    <button (click)="openAddGymDialog()" class="admin-btn" style="padding: 0.5rem 1rem; font-size: 0.625rem;">
+      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">add</mat-icon> Provision New Gym
+    </button>
+  </div>
+
+  <div *ngIf="loading()" class="py-12 flex justify-center items-center">
+    <div class="admin-spinner"></div>
+  </div>
+
+  <div *ngIf="error()" class="admin-alert mb-0" 
+       style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose);">
+    <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 12px;">error_outline</mat-icon> 
+    {{ error() }}
+  </div>
+
+  <div *ngIf="!loading() && !error() && gyms().length === 0" class="empty-nested">
+    <mat-icon>gym</mat-icon>
+    <p>No gyms assigned to this provider node</p>
+    <div class="sub">Provision a new facility to begin governance</div>
+  </div>
+
+  <div *ngIf="!loading() && !error() && gyms().length > 0" class="nested-gym-grid animate-in zoom-in-95 duration-500">
+    <div *ngFor="let gym of gyms(); trackBy: trackByGymId" class="mini-gym-card">
+      <div class="card-top">
+        <h4>{{ gym.name }}</h4>
+        <span class="mini-badge" [ngClass]="gym.status === 'active' ? 'active' : 'suspended'">
+          {{ gym.status }}
+        </span>
+      </div>
+      
+      <div class="card-meta">
+        <div class="meta-item">
+          <mat-icon>people</mat-icon>
+          {{ gym.members_count || 0 }} members
+        </div>
+        <div class="meta-item" *ngIf="gym.created_at">
+          <mat-icon>calendar_today</mat-icon>
+          {{ gym.created_at | date:'MMM d, y' }}
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button *ngIf="gym.status === 'active'" (click)="openSuspendDialog(gym)" class="admin-btn" 
+                style="padding: 0.4rem 0.75rem; font-size: 0.625rem; background: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); border-color: rgba(244, 63, 94, 0.2);">
+          <mat-icon style="font-size: 14px; width: 14px; height: 14px;">block</mat-icon> Suspend
+        </button>
+        <button *ngIf="gym.status === 'suspended'" (click)="activateGym(gym)" class="admin-btn btn-primary" 
+                style="padding: 0.4rem 0.75rem; font-size: 0.625rem;">
+          <mat-icon style="font-size: 14px; width: 14px; height: 14px;">check_circle</mat-icon> Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

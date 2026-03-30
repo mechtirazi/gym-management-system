@@ -1,0 +1,109 @@
+<div class="membership-container animate-fade-in">
+  <!-- Reusable Header with Add Button -->
+  <app-page-header title="Active Memberships" subtitle="Manage subscriptions and enrollment plans across your gyms."
+    buttonText="Add New Membership" (addClick)="openAddModal()">
+
+    <div header-icon>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" x2="22" y1="10" y2="10" />
+      </svg>
+    </div>
+
+    <!-- Filter and Search controls moved inside the header ng-content if desired, 
+         but here we'll keep them as is for now or use the header slot. -->
+    <div class="membership-controls">
+      <div class="search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" [value]="searchQuery()" (input)="onSearchChange($any($event.target).value)"
+          placeholder="Search by member name or email...">
+      </div>
+
+      <div class="status-filter">
+        @for (status of ['All Memberships', 'Active', 'Cancelled', 'Expired']; track status) {
+        <button class="filter-chip"
+          [class.active]="selectedStatus() === (status === 'All Memberships' ? 'All' : status)"
+          (click)="onStatusChange(status === 'All Memberships' ? 'All' : status)">
+          {{ status }}
+        </button>
+        }
+      </div>
+    </div>
+  </app-page-header>
+
+  <main class="membership-content">
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Fetching subscription data...</p>
+    </div>
+    } @else if (error()) {
+    <div class="error-state">
+      <div class="icon-warning">⚠️</div>
+      <p>{{ error() }}</p>
+      <button (click)="refreshSubscriptions()" class="retry-btn">Try Re-syncing</button>
+    </div>
+    } @else if (memberships().length === 0) {
+    <div class="empty-state">
+      <div class="icon-empty">💳</div>
+      <h3>No memberships found</h3>
+      <p>Try refining your search or filtering by a different status.</p>
+    </div>
+    } @else {
+    <div class="membership-grid">
+      @for (item of memberships(); track item.id_subscribe || item.id_enrollment || item.id || $index) {
+      <app-membership-card [membership]="item" (cancelClick)="onCancelMembership($event)"
+        (viewClick)="onViewDetails($event)" (editClick)="onEditMember($event)">
+      </app-membership-card>
+      }
+    </div>
+
+    <!-- ── Pagination Controls ── -->
+    @if (lastPage() > 1) {
+    <div class="pagination-controls">
+      <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Previous
+      </button>
+
+      <div class="page-info">
+        <span class="current">Page {{ currentPage() }}</span>
+        <span class="total">of {{ lastPage() }}</span>
+      </div>
+
+      <button class="page-btn" [disabled]="currentPage() === lastPage()" (click)="nextPage()">
+        Next
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+    }
+    }
+  </main>
+
+  @if (isAddModalOpen()) {
+  <app-add-membership-modal (close)="closeAddModal()" (membershipAdded)="onMembershipAdded()">
+  </app-add-membership-modal>
+  }
+
+  @if (viewedMembership()) {
+  <app-view-membership-modal [membership]="viewedMembership()" (close)="closeViewModal()">
+  </app-view-membership-modal>
+  }
+
+  @if (editingMembership()) {
+  <app-edit-membership-modal [membership]="editingMembership()" (close)="closeEditModal()"
+    (updated)="onMembershipUpdated()">
+  </app-edit-membership-modal>
+  }
+</div>

@@ -1,0 +1,306 @@
+<div class="owner-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <div class="icon-box">
+        <span class="material-symbols-rounded">analytics</span>
+      </div>
+      <div>
+        <h1>GYM OWNER'S OVERVIEW DASHBOARD</h1>
+        <p>owner: {{ ownerName }}</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="bell-icon">
+        <span class="material-symbols-rounded">notifications</span>
+        <div class="notification-dot"></div>
+      </div>
+      <div class="profile-avatar border-gray-200"
+        style="background-image: url('https://ui-avatars.com/api/?name=Owner&background=random');"></div>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    <!-- Left Column -->
+    <div class="dashboard-main">
+
+      <!-- Top 3 Circular Stats -->
+      <div class="kpi-row">
+        <!-- MEMBERSHIP HEALTH -->
+        <div class="dashboard-card kpi-card">
+          <h2 class="kpi-title">Membership Health</h2>
+          <div class="kpi-circle-wrap"
+            [style.background]="'conic-gradient(#0ea5e9 0% ' + (stats()?.activeMembers > 0 ? 88 : 0) + '%, #d946ef ' + (stats()?.activeMembers > 0 ? 88 : 0) + '% 100%)'">
+            <div class="kpi-circle-inner text-white">
+              <span class="kpi-value text-4xl">{{ stats()?.activeMembers || 0 }}</span>
+              <span class="kpi-label">Active<br>Members</span>
+            </div>
+            <div class="kpi-glow glow-cyan"></div>
+          </div>
+          <div class="kpi-stats">
+            <div class="kpi-stat-item">
+              <span class="kpi-stat-val text-cyan-500">{{ stats()?.newMemberships || 0 }}</span>
+              <span class="kpi-stat-lbl">New This Month</span>
+            </div>
+            <div class="kpi-stat-item">
+              <span class="kpi-stat-val text-fuchsia-500">{{ stats()?.membersTrend > 0 ? '+' : '' }}{{
+                stats()?.membersTrend || 0 }}%</span>
+              <span class="kpi-stat-lbl">Trend</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FACILITY UTILIZATION -->
+        <div class="dashboard-card kpi-card">
+          <h2 class="kpi-title">Facility Utilization</h2>
+          <div class="kpi-circle-wrap"
+            [style.background]="'conic-gradient(#f59e0b 0% ' + (occupancy()?.percentage ?? 0) + '%, #ef4444 ' + (occupancy()?.percentage ?? 0) + '% 100%)'">
+            <div class="kpi-circle-inner text-white">
+              <span class="kpi-value text-4xl">{{ occupancy()?.percentage ?? 0 }}%</span>
+              <span class="kpi-label">Average<br>Use</span>
+            </div>
+            <div class="kpi-glow glow-amber"></div>
+          </div>
+          <div class="kpi-stats">
+            <div class="kpi-stat-item">
+              <span class="kpi-stat-lbl">CURRENT PRESENT</span>
+              <span class="kpi-stat-val text-amber-500">{{ occupancy()?.current ?? 0 }}</span>
+            </div>
+            <div class="kpi-stat-item">
+              <span class="kpi-stat-lbl">MAX CAPACITY</span>
+              <span class="kpi-stat-val text-emerald-500">{{ occupancy()?.capacity ?? 0 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- REVENUE GOALS -->
+        <div class="dashboard-card kpi-card">
+          <h2 class="kpi-title">Revenue Goals</h2>
+          <div class="kpi-circle-wrap" style="background: conic-gradient(#10b981 0% 91%, #d946ef 91% 100%);">
+            <div class="kpi-circle-inner text-white" style="padding: 0 10px;">
+              <span class="kpi-value text-2xl">{{ stats()?.totalRevenue || 0 | currency:'DT':'symbol':'1.0-0' }}</span>
+              <span class="kpi-label">Month<br>Revenue</span>
+            </div>
+            <div class="kpi-glow glow-emerald"></div>
+          </div>
+          <div class="kpi-stats">
+            <div class="kpi-stat-item">
+              <span class="kpi-stat-val text-emerald-500">{{ stats()?.revenueTrend > 0 ? '+' : '' }}{{
+                stats()?.revenueTrend || 0 }}%</span>
+              <span class="kpi-stat-lbl">Rev Trend</span>
+            </div>
+            <div class="kpi-stat-item">
+              <span class="kpi-stat-val text-fuchsia-500">{{ stats()?.activeTrainers || 0 }}</span>
+              <span class="kpi-stat-lbl">Trainers</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom charts row (Member Activity, Focus Areas) -->
+      <div class="bottom-row">
+        <!-- Main Chart Block -->
+        <div class="dashboard-card chart-card flex flex-col">
+          <div class="flex-between">
+            <h2 class="kpi-title" style="text-align: left; margin: 0;">Member Activity & Trends</h2>
+            <span class="material-symbols-rounded text-cyan-500" style="font-size: 16px;">equalizer</span>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="dot bg-cyan-500"></span> Daily Attendance</span>
+            <span class="legend-item"><span class="dot bg-amber-500"></span> New Sign-ups</span>
+            <span class="legend-item"><span class="dot bg-rose-500"></span> Cancelations</span>
+          </div>
+          <!-- Now using light-theme-chart -->
+          <div class="light-theme-chart flex-1" style="margin: 0 -12px;">
+            <app-revenue-chart></app-revenue-chart>
+          </div>
+        </div>
+
+        <div class="flex-col-gap">
+          <!-- Key Focus Areas -->
+          <div class="dashboard-card focus-areas-card">
+            <h2 class="kpi-title" style="text-align: left; margin-bottom: 1.25rem;">Key Focus Areas</h2>
+            <div class="focus-list">
+              <div class="focus-item">
+                <span class="focus-lbl">Retention Campaigns</span>
+                <div class="focus-bar-bg">
+                  <div class="focus-bar-fill bg-cyan-500"
+                    style="width: 85%; box-shadow: 0 0 10px rgba(14,165,233,0.3);"></div>
+                </div>
+              </div>
+              <div class="focus-item">
+                <span class="focus-lbl">New Member Onboarding</span>
+                <div class="focus-bar-bg">
+                  <div class="focus-bar-fill bg-teal-500"
+                    style="width: 65%; box-shadow: 0 0 10px rgba(20,184,166,0.3);"></div>
+                </div>
+              </div>
+              <div class="focus-item">
+                <span class="focus-lbl">Equipment Upgrades</span>
+                <div class="focus-bar-bg">
+                  <div class="focus-bar-fill bg-amber-500"
+                    style="width: 45%; box-shadow: 0 0 10px rgba(245,158,11,0.3);"></div>
+                </div>
+              </div>
+              <div class="focus-item">
+                <span class="focus-lbl">Staff Efficiency</span>
+                <div class="focus-bar-bg">
+                  <div class="focus-bar-fill bg-purple-500"
+                    style="width: 90%; box-shadow: 0 0 10px rgba(168,85,247,0.3);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Staff Snapshot -->
+          <div class="dashboard-card staff-card mt-6">
+            <h2 class="kpi-title" style="text-align: left; margin-bottom: 1rem;">Staff Snapshot</h2>
+            <table class="staff-table">
+              <thead>
+                <tr>
+                  <th>Current Shift Supervisors</th>
+                  <th style="text-align: center;">Metric</th>
+                  <th style="text-align: center;">Shift</th>
+                  <th style="text-align: right;">Coaches</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="flex-align-gap" style="gap: 0.75rem;">
+                      <img src="https://ui-avatars.com/api/?name=Sarah+A&background=random&size=24" class="avatar-sm">
+                      <span class="fw-bold">Sarah A. Supervisors</span>
+                    </div>
+                  </td>
+                  <td style="text-align: center;">90</td>
+                  <td style="text-align: center;">70</td>
+                  <td style="text-align: right; color: #0ea5e9; font-weight: 800;">2/28</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="flex-align-gap" style="gap: 0.75rem;">
+                      <img src="https://ui-avatars.com/api/?name=Mike+B&background=random&size=24" class="avatar-sm">
+                      <span class="fw-bold">Mike B. Team v</span>
+                    </div>
+                  </td>
+                  <td style="text-align: center;">75</td>
+                  <td style="text-align: center;">70</td>
+                  <td style="text-align: right; color: #0ea5e9; font-weight: 800;">2/28</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="dashboard-sidebar">
+
+      <!-- Quick Actions -->
+      <div class="dashboard-card">
+        <h2 class="kpi-title" style="text-align: left; margin-bottom: 1.25rem;">Quick Actions</h2>
+        <div class="flex-col-gap" style="gap: 0.75rem;">
+          <button class="quick-action-btn">
+            <span class="qa-title hover-cyan">Launch Retention Email</span>
+            <span class="qa-desc">Launch retention email</span>
+          </button>
+          <button class="quick-action-btn" routerLink="/owner/courses">
+            <span class="qa-title hover-emerald">Post Schedule Update</span>
+            <span class="qa-desc">Post schedule update</span>
+          </button>
+          <button class="quick-action-btn">
+            <span class="qa-title hover-amber">View Facility Alerts</span>
+            <span class="qa-desc">HVAC maintenance needed</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Check-in Feed -->
+      <div class="dashboard-card live-feed-card">
+        <div class="flex-between"
+          style="border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+          <h2 class="kpi-title" style="margin: 0; text-align: left;">Check-in Feed</h2>
+          <div class="live-badge">
+            <span class="pulse-dot"></span> Live
+          </div>
+        </div>
+        <div class="feed-scrollable list-scrollbar">
+          <table class="checkin-table">
+            <thead>
+              <tr>
+                <th style="width: 30px;">Menu</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th style="text-align: right;">Last Visit</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (checkin of recentCheckins(); track checkin.id) {
+              <tr>
+                <td>
+                  <div
+                    class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-600 font-bold"
+                    style="font-size: 9px;">
+                    {{ checkin.initials || '??' }}
+                  </div>
+                </td>
+                <td class="fw-bold">{{ checkin.memberName }}</td>
+                <td style="color: #10b981; font-weight: 800;">Online</td>
+                <td style="text-align: right;" class="text-muted">{{ checkin.timeAgo }}</td>
+              </tr>
+              } @empty {
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 1.5rem 0;" class="text-muted font-medium">No recent
+                  check-ins found.</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Alerts -->
+      <div class="dashboard-card mt-auto-card">
+        <div class="flex-between" style="margin-bottom: 1.25rem;">
+          <h2 class="kpi-title" style="margin: 0; text-align: left;">Recent Alerts</h2>
+          <span class="material-symbols-rounded" style="color: #f43f5e; font-size: 16px;">warning</span>
+        </div>
+        <div class="flex-col-gap" style="gap: 0.75rem;">
+
+          <!-- Inventory Alerts -->
+          @for (alert of inventoryAlerts(); track alert.name) {
+          <div class="alert-item">
+            <span class="material-symbols-rounded"
+              style="color: #fef3c7; font-size: 16px; background: #d97706; border-radius: 9999px; padding: 2px;">inventory_2</span>
+            <div style="line-height: 1.3;">
+              <span style="font-weight: 800; color: #b45309;">Low Stock: {{ alert.name }}</span> <span
+                style="color: #64748b;">Only {{ alert.stock }} left!</span>
+            </div>
+          </div>
+          }
+
+          <!-- Expiring Memberships -->
+          @for (sub of expiringMemberships(); track sub.memberName) {
+          <div class="alert-item">
+            <span class="material-symbols-rounded"
+              style="color: #fce7f3; font-size: 16px; background: #be123c; border-radius: 9999px; padding: 2px;">warning</span>
+            <div style="line-height: 1.3;">
+              <span style="font-weight: 800; color: #9f1239;">{{ sub.memberName }}</span> <span
+                style="color: #64748b;">Expires in {{ sub.daysLeft }} days!</span>
+            </div>
+          </div>
+          }
+
+          @if (inventoryAlerts().length === 0 && expiringMemberships().length === 0) {
+          <div class="text-center py-4 text-muted font-medium" style="font-size: 0.75rem;">
+            No alerts at this time.
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

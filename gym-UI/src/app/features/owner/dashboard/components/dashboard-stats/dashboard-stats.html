@@ -1,0 +1,26 @@
+@if (isLoadingStats()) {
+<div class="stats-grid">
+  <div class="stat-card skeleton" *ngFor="let i of [1,2,3,4]"></div>
+</div>
+} @else {
+<div class="stats-grid">
+  @for (stat of stats(); track stat.label) {
+  <div class="stat-card" [ngClass]="stat.color">
+    <div class="stat-icon-wrapper">
+      <span class="material-symbols-rounded">{{ stat.icon }}</span>
+    </div>
+    <div class="stat-content">
+      <div class="stat-top">
+        <h3 class="stat-label">{{ stat.label }}</h3>
+        <span class="stat-trend" [class.positive]="stat.isPositive" [class.negative]="!stat.isPositive">
+          <span class="material-symbols-rounded">{{ stat.isPositive ? 'trending_up' : 'trending_down' }}</span>
+          {{ stat.trend }}
+        </span>
+      </div>
+      <p class="stat-value">{{ stat.value }}</p>
+    </div>
+    <div class="stat-bg-decoration"></div>
+  </div>
+  }
+</div>
+}

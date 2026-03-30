@@ -1,0 +1,164 @@
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { GymProfileService } from './services/gym-profile.service';
+import { Gym } from '../../../shared/models/gym.model';
+import { GymProfileHeaderComponent } from './components/header/gym-profile-header.component';
+import { GymProfileFormComponent } from './components/form/gym-profile-form.component';
+import { AuthService } from '../../../core/services/auth.service';
+
+import { finalize } from 'rxjs/operators';
+
+@Component({
+  selector: 'app-gym-profile',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    GymProfileHeaderComponent,
+    GymProfileFormComponent
+  ],
+  templateUrl: './gym-profile.html',
+  styleUrl: './gym-profile.scss',
+})
+export class GymProfileComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private gymService = inject(GymProfileService);
+  private authService = inject(AuthService);
+
+
+  isEditing = signal<boolean>(false);
+  isSaving = signal<boolean>(false);
+  isLoading = signal<boolean>(true);
+  loadError = signal<string | null>(null);
+
+  currentGymId = signal<string | number | null>(null);
+  initialFormValues: any = null;
+  initialLogo: string | null = null;
+  currentLogo = signal<string | null>(null);
+  selectedFile: File | null = null;
+
+  gymForm = this.fb.group({
+    name: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    phone: ['', Validators.required],
+    address: ['', Validators.required],
+    description: [''],
+  });
+
+  ngOnInit() {
+    this.fetchOwnerGym();
+  }
+
+  fetchOwnerGym() {
+    this.isLoading.set(true);
+    this.loadError.set(null);
+
+    this.gymService.getAllGyms()
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (response: any) => {
+          // Structure based on backend: { success, data: Array(X), message }
+          const activeId = this.authService.connectedGymId();
+          let myGym = null;
+
+          if (Array.isArray(response.data)) {
+            myGym = activeId ? response.data.find((g: Gym) => g.id_gym === activeId || g.id_gym === String(activeId)) : response.data[0];
+            if (!myGym && response.data.length > 0) myGym = response.data[0];
+          } else {
+            myGym = response.data;
+          }
+
+          if (myGym) {
+            // Backend uses id_gym as the primary key
+            this.currentGymId.set(myGym.id_gym || null);
+            const loadedLogo = myGym.logo || myGym.logo_url || myGym.image || null;
+            this.initialLogo = loadedLogo;
+            this.currentLogo.set(loadedLogo);
+
+            const fetchedData = {
+              name: myGym.name || '',
+              // Contact email is often in owner object if not in root
+              email: myGym.email || myGym.owner?.email || '',
+              phone: myGym.phone || '',
+              // Backend has a typo (adress with one 'd')
+              address: myGym.adress || myGym.address || '',
+              description: myGym.description || ''
+            };
+
+            this.initialFormValues = { ...fetchedData };
+            this.gymForm.patchValue(fetchedData);
+          } else {
+            this.loadError.set('No gym profile found assigned to your account.');
+          }
+        },
+        error: (err) => {
+          console.error('Fetch Error:', err);
+          this.loadError.set('Unable to load gym profile.');
+        }
+      });
+  }
+
+  toggleEdit() {
+    if (this.isEditing() && this.initialFormValues) {
+      // We are discarding changes, revert form to initial values
+      this.gymForm.patchValue(this.initialFormValues);
+      this.selectedFile = null;
+      this.currentLogo.set(this.initialLogo);
+    }
+    this.isEditing.update(v => !v);
+  }
+
+  handleCoverPhoto(file: File) {
+    this.selectedFile = file;
+    // Create a local preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.currentLogo.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  saveProfile() {
+    const targetId = this.currentGymId();
+    if (this.gymForm.invalid || !targetId) return;
+
+    this.isSaving.set(true);
+    const rawValue = this.gymForm.getRawValue();
+
+    // Map the form data back to the server's expected keys (e.g., adress)
+    const payload = { ...rawValue } as any;
+    payload.adress = payload.address;
+    delete payload.address;
+
+    let finalPayload: any = payload;
+
+    // Use FormData if a file was selected
+    if (this.selectedFile) {
+      finalPayload = new FormData();
+      Object.keys(payload).forEach(key => {
+        if (payload[key] !== null && payload[key] !== undefined) {
+          finalPayload.append(key, payload[key]);
+        }
+      });
+      // Append the file (common parameter names: file, image, logo, cover)
+      finalPayload.append('logo', this.selectedFile); 
+    }
+
+    this.gymService.updateGym(targetId, finalPayload)
+      .pipe(finalize(() => this.isSaving.set(false)))
+      .subscribe({
+        next: () => {
+          this.initialFormValues = { ...rawValue };
+          this.initialLogo = this.currentLogo();
+          this.selectedFile = null;
+          this.isEditing.set(false);
+          // Future: Toast Notification for successful save
+        },
+        error: (err) => {
+          console.error('Failed to update gym:', err);
+          alert('Failed to save changes to backend. Please check your connection.');
+        }
+      });
+  }
+}

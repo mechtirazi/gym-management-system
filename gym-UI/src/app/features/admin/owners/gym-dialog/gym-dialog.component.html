@@ -1,0 +1,32 @@
+<div class="admin-dialog-container">
+  <div class="admin-dialog-header">
+    <div class="header-icon" style="color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
+      <mat-icon>business</mat-icon>
+    </div>
+    <div class="header-title-wrap">
+      <h2>Provision New Facility</h2>
+      <p>Assigning a new node to provider: <strong>{{ data.ownerName }}</strong></p>
+    </div>
+  </div>
+
+  <form [formGroup]="gymForm" (ngSubmit)="onSubmit()" class="admin-form-group">
+    <div *ngIf="errorMessage()" class="admin-alert mb-4" 
+         style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); min-height: auto; padding: 1rem;">
+      <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 8px;">error_outline</mat-icon>
+      <span style="font-size: 0.75rem; font-weight: 800;">{{ errorMessage() }}</span>
+    </div>
+
+    <div class="form-field">
+      <label>Facility Name</label>
+      <input formControlName="name" type="text" placeholder="e.g. Downtown Nexus Elite" autocomplete="off" />
+      <p style="font-size: 0.625rem; font-weight: 800; color: #475569; margin: 4px 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Public identifier for the facility</p>
+    </div>
+
+    <div class="admin-dialog-footer">
+      <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">Cancel</button>
+      <button type="submit" [disabled]="gymForm.invalid || loading()" class="admin-btn btn-primary">
+        {{ loading() ? 'Provisioning...' : 'Initialize Facility' }}
+      </button>
+    </div>
+  </form>
+</div>

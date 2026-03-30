@@ -1,0 +1,126 @@
+@import '../../admin-shared.scss';
+
+:host {
+  display: block;
+}
+
+.nested-gyms-wrap {
+  padding: 2.5rem;
+  background: rgba(10, 15, 30, 0.4);
+  
+  .nested-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 900;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      
+      mat-icon { color: var(--admin-accent-indigo); }
+    }
+  }
+}
+
+.nested-gym-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.mini-gym-card {
+  @include glass-panel;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    
+    h4 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 900;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      
+      mat-icon { font-size: 14px; width: 14px; height: 14px; }
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover .card-actions {
+    opacity: 1;
+  }
+}
+
+.empty-nested {
+  text-align: center;
+  padding: 4rem 0;
+  border: 1px dashed rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
+  
+  mat-icon { font-size: 32px; width: 32px; height: 32px; color: #334155; margin-bottom: 1rem; }
+  p { font-size: 0.875rem; font-weight: 700; color: #475569; margin: 0; }
+  .sub { font-size: 0.7rem; color: #334155; margin-top: 0.25rem; }
+}
+
+.mini-badge {
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.05);
+  color: #64748b;
+
+  &.active { background: rgba(16, 185, 129, 0.1); color: var(--admin-accent-emerald); }
+  &.suspended { background: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); }
+}

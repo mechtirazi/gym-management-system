@@ -1,0 +1,18 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+	autocrlf = true
+[remote "origin"]
+	url = https://gitlab.com/mechtirazi23-group/PFE_BACKEND.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[branch "feature/payment"]
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/feature/payment

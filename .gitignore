@@ -1,0 +1,23 @@
+# Frontend dependencies
+gym-UI/node_modules/
+gym-UI/.angular/
+gym-UI/dist/
+gym-UI/.vscode/
+
+# Backend dependencies / secrets
+gym-api/vendor/
+gym-api/.env
+gym-api/.phpunit.result.cache
+gym-api/storage/*.key
+gym-api/public/storage
+gym-api/public/hot
+gym-api/backup/
+gym-api/backup_20260321_emergency/
+gym-api/test_output.txt
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

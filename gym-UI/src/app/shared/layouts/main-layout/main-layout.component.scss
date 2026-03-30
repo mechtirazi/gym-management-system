@@ -1,0 +1,102 @@
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  position: relative;
+  overflow-x: hidden;
+
+  &.is-admin {
+    background-color: var(--admin-bg-main, #f1f5f9);
+    
+    .main-content {
+      margin-left: 88px;
+    }
+  }
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 88px;
+  /* Matches --sidebar-collapsed width */
+  transition: margin-left 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.page-content {
+  padding: 2rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+  position: relative;
+}
+
+/* Premium Admin Design: Animated Blobs */
+.admin-blobs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.08; // Softer blobs for light mode
+    animation: blob-float 10s infinite ease-in-out;
+
+    .dark & {
+      opacity: 0.12;
+    }
+  }
+
+  .blob-1 {
+    width: 500px;
+    height: 500px;
+    background: #0ea5e9;
+    top: -100px;
+    left: 20%;
+    animation-delay: 0s;
+  }
+
+  .blob-2 {
+    width: 450px;
+    height: 450px;
+    background: #6366f1;
+    bottom: -50px;
+    right: 10%;
+    animation-delay: -3s;
+  }
+
+  .blob-3 {
+    width: 350px;
+    height: 350px;
+    background: #ec4899;
+    top: 40%;
+    left: 10%;
+    animation-delay: -6s;
+  }
+}
+
+@keyframes blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -60px) scale(1.1); }
+  66% { transform: translate(-30px, 30px) scale(0.95); }
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 80px;
+    /* Collapsed sidebar width */
+  }
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: 1.5rem 1rem;
+  }
+}

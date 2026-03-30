@@ -1,0 +1,90 @@
+<div class="add-event-modal animate-fade-in">
+  <div class="modal-content glass-card">
+    <div class="modal-header">
+      <div class="header-title">
+        <div class="icon-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="16" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+          </svg>
+        </div>
+        <div class="title-text">
+          <h2>{{ isEditMode ? 'Edit Event' : 'Add New Event' }}</h2>
+          <p class="subtitle">{{ isEditMode ? 'Update event details' : 'Schedule a special activity for your gym' }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="cancelAdd()">&times;</button>
+    </div>
+
+    <form [formGroup]="addForm" (ngSubmit)="submitAddEvent()" class="add-event-form">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Event Title</label>
+          <input type="text" formControlName="title" placeholder="e.g. Summer Fitness Marathon">
+          @if (addForm.get('title')?.touched && addForm.get('title')?.invalid) {
+            <span class="error-text">Please enter at least 3 characters.</span>
+          }
+        </div>
+
+        <div class="form-group full-width">
+          <label>Description</label>
+          <textarea formControlName="description" rows="3" placeholder="Describe the event..."></textarea>
+          @if (addForm.get('description')?.touched && addForm.get('description')?.invalid) {
+            <span class="error-text">Description is required.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" formControlName="start_date">
+        </div>
+
+        <div class="form-group">
+          <label>End Date</label>
+          <input type="date" formControlName="end_date">
+        </div>
+
+        <div class="form-group">
+          <label>Max Participants</label>
+          <input type="number" formControlName="max_participants">
+        </div>
+
+        <div class="form-group">
+          <label>Reward Points (optional)</label>
+          <div class="reward-input-group">
+            <input type="number" formControlName="reward_amount">
+            <div class="checkbox-container">
+              <input type="checkbox" formControlName="is_rewarded" id="is_rewarded_add">
+              <label for="is_rewarded_add">Rewarded</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (addError()) {
+        <div class="error-msg card-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {{ addError() }}
+        </div>
+      }
+
+      <div class="form-footer">
+        <button type="button" class="cancel-btn" (click)="cancelAdd()">Cancel</button>
+        <button type="submit" class="submit-btn" [disabled]="isAdding()">
+          @if (isAdding()) { 
+            <span class="spinner-small"></span> 
+            Creating...
+          } @else {
+            {{ isEditMode ? 'Update Event' : 'Create Event' }}
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

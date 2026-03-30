@@ -1,0 +1,34 @@
+.min-h-screen {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+.bg-white {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.text-slate-900 {
+  color: var(--text-main) !important;
+}
+
+.text-slate-500, .text-slate-600 {
+  color: var(--text-muted) !important;
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.hover\:shadow-md:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.border-slate-100, .border-slate-200 {
+  border-color: var(--border-color) !important;
+}
+
+nav {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}

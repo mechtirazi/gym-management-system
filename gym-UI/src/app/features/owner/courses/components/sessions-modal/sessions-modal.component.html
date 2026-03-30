@@ -1,0 +1,170 @@
+<div class="sessions-modal animate-fade-in">
+  <div class="modal-content glass-card">
+    <div class="modal-header">
+      <div class="header-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        <div class="title-text">
+          <h2>Sessions for {{ course().name }}</h2>
+          <p class="subtitle">Manage the weekly schedule</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="add-toggle-btn" (click)="toggleAddForm()">
+          @if (showForm()) { Close Form } @else { + Add Session }
+        </button>
+        <button class="close-btn" (click)="close.emit()">&times;</button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <!-- Add/Edit Session Form (Conditional) -->
+      @if (showForm()) {
+      <section class="form-section animate-slide-down">
+        <div class="form-header">
+          <h3>{{ isEditing() ? 'Update' : 'Schedule New' }} Session</h3>
+        </div>
+
+        <div class="form-attendance-grid" [class.editing]="isEditing()">
+          <form [formGroup]="sessionForm" (ngSubmit)="submitForm()" class="add-form">
+            @if (submitError()) {
+            <div class="form-error-banner">
+              <span>⚠️</span>
+              <pre>{{ submitError() }}</pre>
+            </div>
+            }
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="date_session">Date <span class="required">*</span></label>
+                <input id="date_session" type="date" formControlName="date_session">
+              </div>
+
+              <div class="form-group">
+                <label for="id_trainer">Trainer <span class="required">*</span></label>
+                <select id="id_trainer" formControlName="id_trainer">
+                  <option value="" disabled selected>Select a trainer</option>
+                  @for (t of trainers(); track t.id_user) {
+                  <option [value]="t.user?.id_user || t.id_user">
+                    {{ t.user?.name || t.name }} {{ t.user?.last_name || t.last_name }}
+                  </option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="start_time">Start Time <span class="required">*</span></label>
+                <input id="start_time" type="time" step="1" formControlName="start_time" placeholder="HH:MM:SS">
+              </div>
+
+              <div class="form-group">
+                <label for="end_time">End Time <span class="required">*</span></label>
+                <input id="end_time" type="time" step="1" formControlName="end_time" placeholder="HH:MM:SS">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="status">Status <span class="required">*</span></label>
+                <select id="status" formControlName="status">
+                  <option value="upcoming">Upcoming</option>
+                  <option value="ongoing">Ongoing</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="cancel-btn" (click)="showForm.set(false)">Cancel</button>
+              <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
+                {{ isSubmitting() ? 'Saving...' : (isEditing() ? 'Save Changes' : 'Add Session') }}
+              </button>
+            </div>
+          </form>
+
+          <!-- Attendance Section -->
+          @if (isEditing()) {
+          <div class="attendance-container">
+            <div class="attendance-header">
+              <h4>👤 Enrolled Members</h4>
+              <span class="count-badge">{{ attendances().length }}</span>
+            </div>
+
+            <div class="attendance-list" [class.loading]="isLoadingAttendances()">
+              @if (isLoadingAttendances()) {
+                <div class="sync-loader">
+                  <div class="loading-spinner small"></div>
+                  <span>Syncing...</span>
+                </div>
+              } @else if (attendances().length === 0) {
+                <div class="empty-members">
+                  <p>No members registered for this session.</p>
+                </div>
+              } @else {
+                <div class="member-list-items">
+                  @for (att of attendances(); track att.id_attendance) {
+                    <div class="member-row">
+                      <div class="member-meta">
+                        <span class="name">{{ att.member?.name }} {{ att.member?.last_name }}</span>
+                        <span class="email">{{ att.member?.email }}</span>
+                      </div>
+                      <button type="button" 
+                        class="att-toggle-btn" 
+                        [class]="att.status"
+                        (click)="toggleAttendanceStatus(att)">
+                        {{ att.status }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </section>
+      }
+
+      <!-- Current Sessions List -->
+      <section class="sessions-list">
+        <h3>Current Schedule</h3>
+        @if (isLoading()) {
+        <div class="loading-inline">
+          <div class="loading-spinner small"></div>
+          <span>Syncing calendar...</span>
+        </div>
+        } @else if (sessions().length === 0) {
+        <div class="empty-sessions">
+          <p>This course has no sessions scheduled yet.</p>
+          <button class="empty-btn" (click)="toggleAddForm()">Create the First Session</button>
+        </div>
+        } @else {
+        <div class="sessions-grid">
+          @for (s of sessions(); track s.id_session) {
+          <div class="session-item glass-card clickable" (click)="editSession(s)">
+            <div class="session-info">
+              <span class="session-date">{{ s.date_session | date:'EEE, MMM d, y' }}</span>
+              <span class="session-time">{{ s.start_time.substring(0,5) }} - {{ s.end_time.substring(0,5) }}</span>
+              <span class="session-trainer">👨‍🏫 {{ s.trainer?.user?.name || s.trainer?.name || 'Assigned Trainer' }}</span>
+              <span class="badge" [class]="s.status">{{ s.status }}</span>
+            </div>
+            <button class="icon-btn remove-btn" (click)="$event.stopPropagation(); deleteSession(s.id_session)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </button>
+          </div>
+          }
+        </div>
+        }
+      </section>
+    </div>
+  </div>
+</div>

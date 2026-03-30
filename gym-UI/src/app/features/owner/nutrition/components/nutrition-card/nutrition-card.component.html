@@ -1,0 +1,49 @@
+<article class="nutrition-card glass-card hover-elevate">
+  <div class="card-header">
+    <div class="nutrition-icon" role="img" aria-label="Nutrition icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 1 8a7 7 0 0 1-9 10Z"></path>
+        <path d="M11 20L11 12"></path>
+      </svg>
+    </div>
+    <div class="nutrition-info">
+      <h2 class="nutrition-title">{{ plan().goal }}</h2>
+      <div class="badges-row">
+        <span class="badge pricing-badge">${{ plan().price }}</span>
+      </div>
+    </div>
+    <div class="card-status active">Active</div>
+  </div>
+
+  <p class="nutrition-description">Nutritionist: {{ plan().nutritionist?.name || '' }} {{ plan().nutritionist?.last_name || 'Unassigned' }}</p>
+
+  <div class="details-grid">
+    <div class="detail-item">
+      <span class="label">Members</span>
+      <span class="value">{{ plan().members?.length || 0 }} Assigned</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">Duration</span>
+      <span class="value">{{ plan().start_date | date:'MMM d' }} - {{ plan().end_date | date:'MMM d' }}</span>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="created-at">Created {{ plan().created_at | date:'shortDate' }}</div>
+    <div class="action-buttons">
+      <button class="icon-btn remove-btn" (click)="deleteClick.emit(plan().id_plan)" aria-label="Delete plan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+      </button>
+      <button class="icon-btn edit-btn" (click)="editClick.emit(plan())" title="Update Nutrition Plan" aria-label="Edit plan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+      </button>
+      <button class="primary-btn small-btn" (click)="editClick.emit(plan())">Edit Plan</button>
+    </div>
+  </div>
+</article>

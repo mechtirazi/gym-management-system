@@ -1,0 +1,48 @@
+<div class="member-container animate-fade-in">
+  <app-member-header title="Manage Your Members"
+    subtitle="Efficiently oversee gym members, subscriptions, and enrollment status." (addClick)="openAddModal()">
+
+    <app-member-controls [searchQuery]="searchQuery()" (searchChange)="searchQuery.set($event)"
+      searchPlaceholder="Search by name, email or status..." [selectedStatus]="selectedStatus()"
+      (statusChange)="onStatusChange($event)">
+    </app-member-controls>
+  </app-member-header>
+
+  <main class="member-content">
+    <app-member-stats [data]="stats()"></app-member-stats>
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Fetching your gym members...</p>
+    </div>
+    } @else if (error()) {
+    <div class="error-state">
+      <div class="icon-warning">⚠️</div>
+      <p>{{ error() }}</p>
+      <button (click)="refreshMembers()" class="retry-btn">Try Re-syncing Data</button>
+    </div>
+    } @else if (members().length === 0) {
+    <div class="empty-state">
+      <div class="icon-empty">👤</div>
+      <h3>No members found</h3>
+      <p>Try refining your search or filtering by a different status.</p>
+    </div>
+    } @else {
+    <div class="member-grid">
+      @for (member of members(); track member.id) {
+      <app-member-card [member]="member" (profileClick)="openProfileModal(member)" (editMember)="openEdit($event)" (removeClick)="deleteMember($event)">
+      </app-member-card>
+      }
+    </div>
+    }
+  </main>
+
+  @if (isAddModalOpen()) {
+  <app-add-member-modal (close)="closeAddModal()" (memberAdded)="onMemberAdded()"></app-add-member-modal>
+  }
+
+  @if (isProfileModalOpen() && selectedMember()) {
+  <app-member-profile-modal [member]="selectedMember()!" [initialEditMode]="isEditMode()" (close)="closeProfileModal()" (updated)="triggerRefresh(); closeProfileModal()">
+  </app-member-profile-modal>
+  }
+</div>

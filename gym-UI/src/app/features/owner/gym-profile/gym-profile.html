@@ -1,0 +1,27 @@
+<div class="profile-container">
+
+  @if (isLoading()) {
+  <div class="loading-state">
+    <div class="spinner-pro"></div>
+    <p class="pulse">Syncing Gym Dashboard...</p>
+  </div>
+  } @else if (loadError()) {
+  <div class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p class="error-title">{{ loadError() }}</p>
+    <p class="error-msg">We couldn't link your account to a gym profile. Please check your credentials or contact
+      support.</p>
+    <button class="retry-btn" (click)="fetchOwnerGym()">Re-authenticate</button>
+  </div>
+  } @else {
+  <!-- Hero Profile Header -->
+  <app-gym-profile-header [name]="gymForm.get('name')?.value || ''" [address]="gymForm.get('address')?.value || ''"
+    [logo]="currentLogo()" [isEditing]="isEditing()" [isSaving]="isSaving()" [canSave]="gymForm.valid && !isSaving()"
+    (onToggleEdit)="toggleEdit()" (onSave)="saveProfile()" (onCoverFotoSelected)="handleCoverPhoto($event)">
+  </app-gym-profile-header>
+
+  <!-- Main Form Content -->
+  <app-gym-profile-form [formGroup]="gymForm" [isEditing]="isEditing()">
+  </app-gym-profile-form>
+  }
+</div>

@@ -1,0 +1,33 @@
+<div class="stats-row animate-slide-down">
+  <div class="stat-card total glass-card">
+    <div class="stat-icon blue">👥</div>
+    <div class="stat-info">
+      <span class="label">Total Members</span>
+      <h4 class="value">{{ data().total }}</h4>
+    </div>
+  </div>
+  
+  <div class="stat-card active glass-card">
+    <div class="stat-icon green">✨</div>
+    <div class="stat-info">
+      <span class="label">Active Now</span>
+      <h4 class="value">{{ data().active }}</h4>
+    </div>
+  </div>
+
+  <div class="stat-card pending glass-card">
+    <div class="stat-icon orange">⏳</div>
+    <div class="stat-info">
+      <span class="label">Pending</span>
+      <h4 class="value">{{ data().pending }}</h4>
+    </div>
+  </div>
+
+  <div class="stat-card expired glass-card">
+    <div class="stat-icon grey">🚫</div>
+    <div class="stat-info">
+      <span class="label">Expired</span>
+      <h4 class="value">{{ data().expired }}</h4>
+    </div>
+  </div>
+</div>

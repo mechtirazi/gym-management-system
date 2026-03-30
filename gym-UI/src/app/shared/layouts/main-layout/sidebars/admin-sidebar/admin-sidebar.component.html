@@ -1,0 +1,50 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 4h12M6 20h12M9 4v16M15 4v16M12 4v16M18 8h3v8h-3M6 8H3v8h3" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span>GYM<span class="text-primary">UI</span></span>
+        <div class="role-badge">Super Admin</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (item of navItems; track item.label) {
+    @if (item.isHeader) {
+    <div class="nav-header">{{ item.label }}</div>
+    } @else {
+    <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" [attr.title]="item.label">
+      <span class="nav-icon" [innerHTML]="getIcon(item.icon!)"></span>
+      <span class="nav-label">{{ item.label }}</span>
+      @if (item.badge) {
+      <span class="nav-badge" [class.badge-live]="item.badge === 'Live'">{{ item.badge }}</span>
+      }
+    </a>
+    }
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="support-card">
+      <div class="support-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" width="24" height="24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <div class="support-content">
+        <p class="support-title">Owner support</p>
+        <p class="support-desc">24/7 priority line</p>
+      </div>
+      <button class="support-btn">
+        <span>Contact Support</span>
+      </button>
+    </div>
+  </div>
+</aside>
