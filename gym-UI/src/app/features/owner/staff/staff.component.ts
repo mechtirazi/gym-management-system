@@ -5,10 +5,10 @@ import { StaffService } from './services/staff.service';
 import { StaffMember } from '../../../shared/models/staff-member.model';
 import { finalize } from 'rxjs';
 
-// New Component Imports
 import { StaffCardComponent } from './components/staff-card/staff-card.component';
 import { HireStaffModalComponent } from './components/hire-staff-modal/hire-staff-modal.component';
 import { StaffProfileModalComponent } from './components/staff-profile-modal/staff-profile-modal.component';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-staff-management',
@@ -25,6 +25,7 @@ import { StaffProfileModalComponent } from './components/staff-profile-modal/sta
 })
 export class StaffManagementComponent implements OnInit {
   private staffService = inject(StaffService);
+  private confirmService = inject(ConfirmDialogService);
 
   private allStaff = signal<StaffMember[]>([]);
 
@@ -173,10 +174,21 @@ export class StaffManagementComponent implements OnInit {
 
   // ─── Delete ───────────────────────────────────────────────────────────────
   deleteStaffMember(id: string) {
-    if (!id || !confirm('Permanently remove this staff member?')) return;
-    this.staffService.deleteStaff(id).subscribe({
-      next: () => this.refreshStaff(),
-      error: () => alert('Could not remove staff member. Check your permissions.')
+    if (!id) return;
+    
+    this.confirmService.open({
+      title: 'Remove Staff Personnel',
+      message: 'Are you absolutely sure you want to permanently remove this staff member?',
+      confirmText: 'Remove Personnel',
+      icon: 'person_remove',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.staffService.deleteStaff(id).subscribe({
+          next: () => this.refreshStaff(),
+          error: () => this.error.set('Could not remove staff member. Check your permissions.')
+        });
+      }
     });
   }
 }

@@ -1,0 +1,57 @@
+@import '../../../features/admin/admin-shared.scss';
+
+:host {
+  display: block;
+}
+
+.confirm-dialog {
+  .admin-dialog-header {
+    margin-bottom: 2rem;
+    
+    .header-icon {
+      &.primary {
+        background: rgba(129, 140, 248, 0.1);
+        border: 1px solid rgba(129, 140, 248, 0.2);
+        color: var(--admin-accent-indigo);
+      }
+      
+      &.destructive {
+        background: rgba(244, 63, 94, 0.1);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+        color: var(--admin-accent-rose);
+      }
+    }
+
+    .header-title-wrap h2 {
+      font-size: 1.25rem;
+    }
+  }
+
+  .admin-dialog-content {
+    margin-bottom: 2rem;
+    
+    p {
+      color: var(--admin-text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+  }
+
+  .admin-dialog-footer {
+    margin-top: 2rem;
+    
+    .btn-danger {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(225, 29, 72, 0.1));
+      border-color: var(--admin-accent-rose);
+      color: var(--admin-accent-rose);
+
+      &:hover {
+        background: var(--admin-accent-rose);
+        color: #ffffff;
+        border-color: var(--admin-accent-rose);
+      }
+    }
+  }
+}

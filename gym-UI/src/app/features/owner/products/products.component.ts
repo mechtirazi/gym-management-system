@@ -11,6 +11,7 @@ import { ProductOrdersModalComponent } from './components/product-orders-modal/p
 import { AddOrderModalComponent } from './components/add-order-modal/add-order-modal.component';
 import { Product } from '../../../shared/models/product.model';
 import { finalize } from 'rxjs';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-product-management',
@@ -31,6 +32,7 @@ import { finalize } from 'rxjs';
 })
 export class ProductManagementComponent implements OnInit {
   private productService = inject(ProductService);
+  private confirmService = inject(ConfirmDialogService);
 
   allProducts = signal<Product[]>([]);
   searchQuery = signal<string>('');
@@ -93,12 +95,20 @@ export class ProductManagementComponent implements OnInit {
   }
 
   onDeleteProduct(id: string) {
-    if (confirm('Delete this product?')) {
-      this.productService.deleteProduct(id).subscribe({
-        next: () => this.loadProducts(),
-        error: (err) => alert('Action failed.')
-      });
-    }
+    this.confirmService.open({
+      title: 'Remove Product',
+      message: 'Are you sure you want to completely delete this product from the inventory?',
+      confirmText: 'Delete Product',
+      icon: 'delete',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.productService.deleteProduct(id).subscribe({
+          next: () => this.loadProducts(),
+          error: (err) => this.error.set('Action failed to delete product.')
+        });
+      }
+    });
   }
 
   openAddModal() {

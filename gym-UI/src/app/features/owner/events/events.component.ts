@@ -9,6 +9,7 @@ import { EventAttendancesModalComponent } from './components/event-attendances-m
 import { AddEventModalComponent } from './components/add-event-modal/add-event-modal.component';
 import { EventModel } from '../../../shared/models/event.model';
 import { finalize } from 'rxjs';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-event-management',
@@ -27,6 +28,7 @@ import { finalize } from 'rxjs';
 })
 export class EventManagementComponent implements OnInit {
   private eventService = inject(EventService);
+  private confirmService = inject(ConfirmDialogService);
 
   allEvents = signal<EventModel[]>([]);
   searchQuery = signal<string>('');
@@ -103,12 +105,20 @@ export class EventManagementComponent implements OnInit {
   }
 
   onDeleteEvent(id: string) {
-    if (confirm('Delete this event permanently?')) {
-      this.eventService.deleteEvent(id).subscribe({
-        next: () => this.loadEvents(),
-        error: (err) => alert('Action failed.')
-      });
-    }
+    this.confirmService.open({
+      title: 'Decoherence Confirmation',
+      message: 'Are you absolutely certain you want to permanently delete this event?',
+      confirmText: 'Obliterate Node',
+      icon: 'warning',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.eventService.deleteEvent(id).subscribe({
+          next: () => this.loadEvents(),
+          error: (err) => this.error.set('Action failed to delete event.')
+        });
+      }
+    });
   }
 
   // ─── Pagination Controls ──────────────────────────────────────────────────

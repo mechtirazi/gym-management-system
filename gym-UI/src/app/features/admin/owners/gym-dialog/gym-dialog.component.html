@@ -1,7 +1,7 @@
 <div class="admin-dialog-container">
   <div class="admin-dialog-header">
     <div class="header-icon" style="color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
-      <mat-icon>business</mat-icon>
+      <mat-icon>domain_add</mat-icon>
     </div>
     <div class="header-title-wrap">
       <h2>Provision New Facility</h2>
@@ -10,21 +10,60 @@
   </div>
 
   <form [formGroup]="gymForm" (ngSubmit)="onSubmit()" class="admin-form-group">
-    <div *ngIf="errorMessage()" class="admin-alert mb-4" 
-         style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); min-height: auto; padding: 1rem;">
-      <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 8px;">error_outline</mat-icon>
-      <span style="font-size: 0.75rem; font-weight: 800;">{{ errorMessage() }}</span>
+    <!-- Premium Alert System -->
+    <div *ngIf="errorMessage()" class="admin-alert status-error mb-6">
+       <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
+          <mat-icon>terminal</mat-icon>
+       </div>
+       <div class="alert-content">
+          <span class="alert-tag" style="color: var(--admin-accent-rose);">System Exception</span>
+          <h3>Initialization Failure</h3>
+          <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ errorMessage() }}</p>
+       </div>
     </div>
 
     <div class="form-field">
-      <label>Facility Name</label>
-      <input formControlName="name" type="text" placeholder="e.g. Downtown Nexus Elite" autocomplete="off" />
-      <p style="font-size: 0.625rem; font-weight: 800; color: #475569; margin: 4px 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Public identifier for the facility</p>
+      <label><mat-icon>business</mat-icon> Facility Name</label>
+      <div class="input-glow-wrap">
+         <input formControlName="name" type="text" placeholder="e.g. Downtown Nexus Elite" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label><mat-icon>location_on</mat-icon> Physical Address</label>
+      <div class="input-glow-wrap">
+         <input formControlName="adress" type="text" placeholder="123 Silicon Valley Blvd, Suite 400" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="two-col-grid">
+       <div class="form-field">
+          <label><mat-icon>groups</mat-icon> Node Capacity</label>
+          <div class="input-glow-wrap">
+             <input formControlName="capacity" type="number" placeholder="100" />
+          </div>
+       </div>
+       <div class="form-field">
+          <label><mat-icon>schedule</mat-icon> Operational Windows</label>
+          <div class="input-glow-wrap">
+             <input formControlName="open_hour" type="text" placeholder="08:00-22:00" />
+          </div>
+       </div>
+    </div>
+
+    <div class="form-field">
+      <label><mat-icon>phone</mat-icon> Relay Phone (Optional)</label>
+      <div class="input-glow-wrap">
+         <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
+      </div>
     </div>
 
     <div class="admin-dialog-footer">
-      <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">Cancel</button>
+      <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
+         <mat-icon>close</mat-icon> Abort
+      </button>
       <button type="submit" [disabled]="gymForm.invalid || loading()" class="admin-btn btn-primary">
+        <mat-icon>{{ loading() ? 'sync' : 'vitals' }}</mat-icon>
         {{ loading() ? 'Provisioning...' : 'Initialize Facility' }}
       </button>
     </div>

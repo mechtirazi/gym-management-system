@@ -17,6 +17,7 @@ import { CanDirective } from '../../../../shared/directives/can.directive';
 
 import { OwnerDialogComponent } from '../owner-dialog/owner-dialog.component';
 import { OwnerGymsListComponent } from '../owner-gyms-list/owner-gyms-list.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-owners-list',
@@ -119,69 +120,123 @@ export class OwnersListComponent implements OnInit {
   }
 
   impersonateOwner(ownerObj: any) {
-    if (confirm(`Are you sure you want to impersonate ${ownerObj.fullName}?`)) {
-       this.loading.set(true);
-       this.authService.impersonate(ownerObj.id_user, ownerObj.fullName).subscribe({
-          error: (err) => {
-             this.snackBar.open(err.error?.message || 'Failed to impersonate owner.', 'Dismiss', { duration: 4000 });
-             this.loading.set(false);
-          }
-       });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      disableClose: true,
+      data: {
+        title: 'Confirm Validation',
+        message: `Are you sure you want to securely impersonate <strong>${ownerObj.fullName}</strong>?`,
+        icon: 'admin_panel_settings',
+        confirmText: 'Impersonate'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+         this.loading.set(true);
+         this.authService.impersonate(ownerObj.id_user, ownerObj.fullName).subscribe({
+            error: (err) => {
+               this.snackBar.open(err.error?.message || 'Failed to impersonate owner.', 'Dismiss', { duration: 4000 });
+               this.loading.set(false);
+            }
+         });
+      }
+    });
   }
 
   disableAllGyms(ownerObj: any) {
     const gymCount = ownerObj.owned_gyms_count || 0;
-    const msg = `Are you sure you want to disable all gyms for ${ownerObj.fullName}? This will set ${gymCount} gyms to inactive. The owner's account will remain active.`;
+    const msg = `Are you sure you want to completely disable all gyms for <strong>${ownerObj.fullName}</strong>?<br><br>This will set ${gymCount} nodes to completely inactive status. The core identity will remain unaffected.`;
     
-    if (confirm(msg)) {
-       this.loading.set(true);
-       this.ownersService.disableAllGyms(ownerObj.id_user).subscribe({
-          next: () => {
-             this.snackBar.open(`All ${gymCount} gyms have been disabled.`, 'Dismiss', { duration: 3000 });
-             this.loadOwners();
-          },
-          error: (err) => {
-             this.snackBar.open(err.error?.message || 'Failed to disable gyms.', 'Dismiss', { duration: 4000 });
-             this.loading.set(false);
-          }
-       });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '500px',
+      disableClose: true,
+      data: {
+        title: 'Mass Suspension Procedure',
+        message: msg,
+        icon: 'gpp_bad',
+        isDestructive: true,
+        confirmText: 'Suspend All'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+         this.loading.set(true);
+         this.ownersService.disableAllGyms(ownerObj.id_user).subscribe({
+            next: () => {
+               this.snackBar.open(`All ${gymCount} gyms have been disabled.`, 'Dismiss', { duration: 3000 });
+               this.loadOwners();
+            },
+            error: (err) => {
+               this.snackBar.open(err.error?.message || 'Failed to disable gyms.', 'Dismiss', { duration: 4000 });
+               this.loading.set(false);
+            }
+         });
+      }
+    });
   }
 
   activateAllGyms(ownerObj: any) {
     const gymCount = ownerObj.owned_gyms_count || 0;
-    const msg = `Are you sure you want to activate all gyms for ${ownerObj.fullName}? This will set ${gymCount} gyms back to active.`;
+    const msg = `Are you sure you want to reactivate all operation nodes for <strong>${ownerObj.fullName}</strong>?<br><br>This will instantly set ${gymCount} gyms back to operational status.`;
     
-    if (confirm(msg)) {
-       this.loading.set(true);
-       this.ownersService.activateAllGyms(ownerObj.id_user).subscribe({
-          next: () => {
-             this.snackBar.open(`All ${gymCount} gyms have been activated.`, 'Dismiss', { duration: 3000 });
-             this.loadOwners();
-          },
-          error: (err) => {
-             this.snackBar.open(err.error?.message || 'Failed to activate gyms.', 'Dismiss', { duration: 4000 });
-             this.loading.set(false);
-          }
-       });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '500px',
+      disableClose: true,
+      data: {
+        title: 'Mass Reactivation Procedure',
+        message: msg,
+        icon: 'published_with_changes',
+        confirmText: 'Activate All'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+         this.loading.set(true);
+         this.ownersService.activateAllGyms(ownerObj.id_user).subscribe({
+            next: () => {
+               this.snackBar.open(`All ${gymCount} gyms have been activated.`, 'Dismiss', { duration: 3000 });
+               this.loadOwners();
+            },
+            error: (err) => {
+               this.snackBar.open(err.error?.message || 'Failed to activate gyms.', 'Dismiss', { duration: 4000 });
+               this.loading.set(false);
+            }
+         });
+      }
+    });
   }
 
   deleteOwner(ownerObj: any) {
-    if (confirm(`Are you sure you want to delete the owner ${ownerObj.fullName}? This cannot be undone.`)) {
-       this.loading.set(true);
-       this.ownersService.deleteOwner(ownerObj.id_user).subscribe({
-          next: () => {
-             this.snackBar.open('Owner deleted.', 'Dismiss', { duration: 3000 });
-             this.loadOwners();
-          },
-          error: (err) => {
-             this.snackBar.open(err.error?.message || 'Failed to delete owner.', 'Dismiss', { duration: 4000 });
-             this.loading.set(false);
-          }
-       });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      disableClose: true,
+      data: {
+        title: 'Decoherence Confirmation',
+        message: `Are you absolutely certain you want to permanently delete the identity node for <strong>${ownerObj.fullName}</strong>?<br><br>This irreversible action will destroy all associated node records.`,
+        icon: 'warning',
+        isDestructive: true,
+        confirmText: 'Obliterate Node'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+         this.loading.set(true);
+         this.ownersService.deleteOwner(ownerObj.id_user).subscribe({
+            next: () => {
+               this.snackBar.open('Node completely eliminated.', 'Dismiss', { duration: 3000 });
+               this.loadOwners();
+            },
+            error: (err) => {
+               this.snackBar.open(err.error?.message || 'Failed to delete owner node.', 'Dismiss', { duration: 4000 });
+               this.loading.set(false);
+            }
+         });
+      }
+    });
   }
 
   trackByOwnerId = (_: number, owner: any) => owner?.id_user ?? owner?.email ?? _;

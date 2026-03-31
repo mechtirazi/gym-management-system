@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SessionService } from '../../services/session.service';
 import { finalize } from 'rxjs';
+import { ConfirmDialogService } from '../../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-sessions-modal',
@@ -14,6 +15,7 @@ import { finalize } from 'rxjs';
 export class SessionsModalComponent implements OnInit {
   private sessionService = inject(SessionService);
   private fb = inject(FormBuilder);
+  private confirmService = inject(ConfirmDialogService);
 
   course = input.required<any>();
   close = output<void>();
@@ -136,13 +138,22 @@ export class SessionsModalComponent implements OnInit {
   }
 
   deleteSession(id: string) {
-    if (!confirm('Remove this session?')) return;
-    this.sessionService.deleteSession(id).subscribe({
-      next: () => {
-        this.sessionsUpdated.emit();
-        this.loadData();
-      },
-      error: (err) => alert('Delete failed.')
+    this.confirmService.open({
+      title: 'Remove Session',
+      message: 'Are you sure you want to remove this session?',
+      confirmText: 'Remove Session',
+      icon: 'event_busy',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.sessionService.deleteSession(id).subscribe({
+          next: () => {
+            this.sessionsUpdated.emit();
+            this.loadData();
+          },
+          error: (err) => this.submitError.set('Delete failed.')
+        });
+      }
     });
   }
 
@@ -150,7 +161,7 @@ export class SessionsModalComponent implements OnInit {
     const nextStatus = attendance.status === 'present' ? 'absent' : 'present';
     this.sessionService.updateAttendance(attendance.id_attendance, { status: nextStatus }).subscribe({
       next: () => this.fetchAttendances(attendance.id_session),
-      error: () => alert('Failed to update attendance.')
+      error: () => this.submitError.set('Failed to update attendance.')
     });
   }
 }

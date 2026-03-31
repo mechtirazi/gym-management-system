@@ -9,6 +9,7 @@ import { AddMembershipModalComponent } from './components/add-membership-modal/a
 import { ViewMembershipModalComponent } from './components/view-membership-modal/view-membership-modal.component';
 import { EditMembershipModalComponent } from './components/edit-membership-modal/edit-membership-modal.component';
 import { finalize } from 'rxjs';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-membership-management',
@@ -28,6 +29,7 @@ import { finalize } from 'rxjs';
 })
 export class MembershipManagementComponent implements OnInit {
   private membershipService = inject(MembershipService);
+  private confirmService = inject(ConfirmDialogService);
 
   private allSubscriptions = signal<any[]>([]);
   searchQuery = signal<string>('');
@@ -134,15 +136,23 @@ export class MembershipManagementComponent implements OnInit {
   }
 
   onCancelMembership(id: string) {
-    if (confirm('Are you sure you want to cancel this membership?')) {
-      this.membershipService.deleteSubscription(id).subscribe({
-        next: () => {
-          console.log('Membership cancelled successfully');
-          this.refreshSubscriptions();
-        },
-        error: (err) => alert('Operation failed.')
-      });
-    }
+    this.confirmService.open({
+      title: 'Cancel Membership',
+      message: 'Are you sure you want to cancel this membership?',
+      confirmText: 'Cancel Membership',
+      icon: 'warning',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.membershipService.deleteSubscription(id).subscribe({
+          next: () => {
+            console.log('Membership cancelled successfully');
+            this.refreshSubscriptions();
+          },
+          error: (err) => this.error.set('Operation failed.')
+        });
+      }
+    });
   }
 
   onViewDetails(membership: any) {

@@ -123,6 +123,9 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::post('impersonate/{id_user}', [AdminController::class, 'impersonate'])->name('admin.impersonate');
         Route::get('gyms', [AdminController::class, 'index']);
         Route::get('owners', [AdminController::class, 'getOwners']);
+        Route::post('owners', [AdminController::class, 'storeOwner']);
+        Route::patch('owners/{id_owner}', [AdminController::class, 'updateOwner']);
+        Route::delete('owners/{id_owner}', [AdminController::class, 'deleteOwner']);
         Route::get('owners/{id_owner}/gyms', [AdminController::class, 'getOwnerGyms']);
         Route::post('notifications/all', [AdminController::class, 'broadcastNotification'])->name('admin.notifications.all');
         Route::post('notifications/owner/{id_owner}', [AdminController::class, 'notifyOwner'])->name('admin.notifications.owner');

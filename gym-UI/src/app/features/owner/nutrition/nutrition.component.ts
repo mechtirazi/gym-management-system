@@ -7,6 +7,7 @@ import { PageHeaderComponent } from '../components/page-header/page-header.compo
 import { FilterControlsComponent } from '../components/filter-controls/filter-controls.component';
 import { NutritionCardComponent } from './components/nutrition-card/nutrition-card.component';
 import { finalize } from 'rxjs';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-nutrition-management',
@@ -23,6 +24,7 @@ import { finalize } from 'rxjs';
 })
 export class NutritionManagementComponent implements OnInit {
   private nutritionService = inject(NutritionService);
+  private confirmService = inject(ConfirmDialogService);
 
   allPlans = signal<NutritionPlan[]>([]);
   nutritionists = signal<any[]>([]);
@@ -199,17 +201,23 @@ export class NutritionManagementComponent implements OnInit {
   }
 
   onDeletePlan(id: string) {
-    if (!confirm('Delete this nutrition plan?')) {
-      return;
-    }
-    this.nutritionService.deleteNutritionPlan(id).subscribe({
-      next: () => {
-        this.loadPlans();
-        this.showNotification('success', 'Nutrition plan deleted successfully.');
-      },
-      error: () => {
-        this.showNotification('error', 'Failed to delete nutrition plan.');
-      }
+    this.confirmService.open({
+      title: 'Delete Nutrition Plan',
+      message: 'Are you absolutely sure you want to permanently delete this nutrition plan?',
+      confirmText: 'Delete Plan',
+      icon: 'restaurant_menu',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.nutritionService.deleteNutritionPlan(id).subscribe({
+        next: () => {
+          this.loadPlans();
+          this.showNotification('success', 'Nutrition plan deleted successfully.');
+        },
+        error: () => {
+          this.showNotification('error', 'Failed to delete nutrition plan.');
+        }
+      });
     });
   }
 

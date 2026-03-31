@@ -8,6 +8,7 @@ import { CourseCardComponent } from './components/course-card/course-card.compon
 import { AddCourseModalComponent } from './components/add-course-modal/add-course-modal.component';
 import { SessionsModalComponent } from './components/sessions-modal/sessions-modal.component';
 import { finalize } from 'rxjs';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-course-management',
@@ -26,6 +27,7 @@ import { finalize } from 'rxjs';
 })
 export class CourseManagementComponent implements OnInit {
   private courseService = inject(CourseService);
+  private confirmService = inject(ConfirmDialogService);
 
   allCourses = signal<any[]>([]);
   searchQuery = signal<string>('');
@@ -120,12 +122,20 @@ export class CourseManagementComponent implements OnInit {
   }
 
   onDeleteCourse(id: string) {
-    if (confirm('Delete this course permanently?')) {
-      this.courseService.deleteCourse(id).subscribe({
-        next: () => this.loadCourses(),
-        error: (err) => alert('Action failed.')
-      });
-    }
+    this.confirmService.open({
+      title: 'Delete Course',
+      message: 'Are you completely sure you want to permanently delete this course?',
+      confirmText: 'Delete Course',
+      icon: 'warning',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.courseService.deleteCourse(id).subscribe({
+          next: () => this.loadCourses(),
+          error: (err) => this.error.set('Action failed to delete course.')
+        });
+      }
+    });
   }
 
   onManageClasses(course: any) {

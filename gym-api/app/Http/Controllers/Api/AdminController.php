@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Cache;
 class AdminController extends Controller
 {
     public function __construct(
-        protected NotificationService $notificationService
+        protected \App\Services\NotificationService $notificationService,
+        protected \App\Services\UserService $userService
     ) {}
 
     /**
@@ -308,5 +309,72 @@ class AdminController extends Controller
             'data' => $notification,
             'message' => 'Owner notification created successfully.',
         ], 201);
+    }
+
+    /**
+     * Store a newly created owner.
+     */
+    public function storeOwner(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $owner = $this->userService->create(array_merge($validated, [
+            'role' => User::ROLE_OWNER,
+            'creation_date' => now(),
+        ]));
+
+        return response()->json([
+            'success' => true,
+            'data' => $owner,
+            'message' => 'Owner provisioned successfully.',
+        ], 201);
+    }
+
+    /**
+     * Update an owner.
+     */
+    public function updateOwner(Request $request, $id_owner)
+    {
+        $owner = User::where('id_user', $id_owner)
+            ->where('role', User::ROLE_OWNER)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:users,email,' . $owner->id_user . ',id_user',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $owner = $this->userService->update($owner, $validated);
+
+        return response()->json([
+            'success' => true,
+            'data' => $owner,
+            'message' => 'Owner identity synced successfully.',
+        ], 200);
+    }
+
+    /**
+     * Delete an owner.
+     */
+    public function deleteOwner($id_owner)
+    {
+        $owner = User::where('id_user', $id_owner)
+            ->where('role', User::ROLE_OWNER)
+            ->firstOrFail();
+
+        $this->userService->deleteUser($owner);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Owner node decohered successfully.',
+        ], 204);
     }
 }

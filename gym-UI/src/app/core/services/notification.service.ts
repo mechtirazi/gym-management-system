@@ -26,6 +26,11 @@ export class NotificationService {
     return this.http.get<any>(this.API_URL).pipe(
       map(response => {
         const data = Array.isArray(response) ? response : response.data || [];
+        // Sort by created_at descending if available
+        data.sort((a: any, b: any) => {
+          if (!a.created_at || !b.created_at) return 0;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
         const mapped = data.map((n: any) => this.mapNotification(n));
         this._notifications.set(mapped);
         return mapped;
