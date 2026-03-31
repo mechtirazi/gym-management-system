@@ -33,7 +33,7 @@ export class GymDialogComponent {
 
   gymForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
-    adress: [''],
+    adress: ['', [Validators.required, Validators.minLength(3)]],
     phone: [''],
     capacity: [100, [Validators.required, Validators.min(1)]],
     open_hour: ['08:00-22:00', [Validators.required]]

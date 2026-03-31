@@ -2,6 +2,17 @@
   --primary-color: var(--color-primary-500);
   --secondary-color: var(--color-secondary-500);
 
+  /* Sidebar Core Theme Defaults (Indigo) */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --sidebar-glass-hover: rgba(255, 255, 255, 0.4);
+
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
   --bg-header: rgba(255, 255, 255, 0.8);
@@ -42,9 +53,22 @@
   --admin-item-border: #e2e8f0; 
   --admin-btn-bg: #ffffff;
   --admin-btn-text: #1e293b;
+  --admin-input-focus-bg: #ffffff;
+  --admin-focus-glow: rgba(79, 70, 229, 0.08);
 }
 
 .dark {
+  /* Dark Sidebar Core Defaults */
+  --color-primary-50: rgba(129, 140, 248, 0.1);
+  --color-primary-100: rgba(129, 140, 248, 0.15);
+  --color-primary-200: rgba(129, 140, 248, 0.25);
+  --color-primary-300: #4f46e5;
+  --color-primary-400: #6366f1;
+  --color-primary-500: #818cf8;
+  --color-primary-600: #a5b4fc;
+  --color-primary-700: #c7d2fe;
+  --sidebar-glass-hover: rgba(15, 23, 42, 0.25);
+
   --bg-main: #020617;
   --bg-card: #0f172a;
   --bg-header: rgba(15, 23, 42, 0.8);
@@ -78,6 +102,8 @@
   --admin-item-border: rgba(255, 255, 255, 0.1);
   --admin-btn-bg: rgba(30, 41, 59, 0.8);
   --admin-btn-text: #f1f5f9;
+  --admin-input-focus-bg: rgba(255, 255, 255, 0.06);
+  --admin-focus-glow: rgba(129, 140, 248, 0.1);
 }
 
 body {
@@ -243,4 +269,14 @@ body {
   &:hover {
     background: #ffe4e6;
   }
+}
+
+/* ─── Global Material Dialog Glass Override ─── */
+/* Removes the hardcoded white box from Angular Material when using our custom admin glass container */
+.mdc-dialog__surface:has(.admin-dialog-container),
+.mat-mdc-dialog-surface:has(.admin-dialog-container) {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: visible !important;
 }

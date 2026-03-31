@@ -10,6 +10,7 @@ import { MemberControlsComponent } from './components/member-controls/member-con
 import { MemberCardComponent } from './components/member-card/member-card.component';
 import { MemberProfileModalComponent } from './components/member-profile-modal/member-profile-modal.component';
 import { MemberStatsComponent } from './components/member-stats/member-stats.component';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-member-management',
@@ -29,6 +30,7 @@ import { MemberStatsComponent } from './components/member-stats/member-stats.com
 })
 export class MemberManagementComponent implements OnInit {
   private memberService = inject(MemberService);
+  private confirmService = inject(ConfirmDialogService);
 
   private allMembers = signal<GymMember[]>([]);
 
@@ -179,11 +181,19 @@ export class MemberManagementComponent implements OnInit {
 
   deleteMember(id: string) {
     if (!id) return;
-    if (confirm('Permanently remove this member?')) {
-      this.memberService.deleteMember(id).subscribe({
-        next: () => this.triggerRefresh(),
-        error: (err) => alert('Operation failed. Check permissions.')
-      });
-    }
+    this.confirmService.open({
+      title: 'Remove Member',
+      message: 'Are you completely sure you want to permanently remove this member?',
+      confirmText: 'Remove Member',
+      icon: 'person_remove',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.memberService.deleteMember(id).subscribe({
+          next: () => this.triggerRefresh(),
+          error: (err) => this.error.set('Operation failed. Check permissions.')
+        });
+      }
+    });
   }
 }

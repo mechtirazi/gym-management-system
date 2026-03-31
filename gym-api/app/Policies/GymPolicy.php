@@ -50,7 +50,7 @@ class GymPolicy
     public function create(User $user): bool
     {
         // Users with MEMBER or OWNER role can create gyms (matching course logic)
-        return $user->role=== User::ROLE_OWNER;
+        return in_array($user->role, [User::ROLE_SUPER_ADMIN, User::ROLE_OWNER]);
     }
 
     /**

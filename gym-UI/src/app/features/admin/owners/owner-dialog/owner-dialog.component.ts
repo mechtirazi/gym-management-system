@@ -22,52 +22,71 @@ import { OwnerCreatePayload, OwnerUpdatePayload, UserVm } from '../../../../core
     <div class="admin-dialog-container">
        <div class="admin-dialog-header">
           <div class="header-icon">
-             <mat-icon>{{data.user ? 'manage_accounts' : 'person_add'}}</mat-icon>
+             <mat-icon>{{data.user ? 'shield_person' : 'person_add_alt'}}</mat-icon>
           </div>
           <div class="header-title-wrap">
-             <h2>{{ data.user ? 'Update Identity' : 'Provision Owner' }}</h2>
-             <p>{{ data.user ? 'Modify administrative node parameters' : 'Initialize a new governance entity' }}</p>
+             <h2>{{ data.user ? 'Identity Management' : 'Owner Provisioning' }}</h2>
+             <p>{{ data.user ? 'Modify administrative node parameters for governance' : 'Initialize a new top-level governance entity' }}</p>
           </div>
        </div>
 
        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="admin-form-group">
-          <div *ngIf="errorMessage()" class="admin-alert mb-4" 
-               style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); min-height: auto; padding: 1rem;">
-             <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 8px;">error_outline</mat-icon>
-             <span style="font-size: 0.75rem; font-weight: 800;">{{ errorMessage() }}</span>
+          <!-- Premium Alert System -->
+          <div *ngIf="errorMessage()" class="admin-alert status-error mb-6">
+             <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
+                <mat-icon>terminal</mat-icon>
+             </div>
+             <div class="alert-content">
+                <span class="alert-tag" style="color: var(--admin-accent-rose);">Protocol Error</span>
+                <h3>Validation Exception</h3>
+                <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ errorMessage() }}</p>
+             </div>
           </div>
        
           <div class="two-col-grid">
              <div class="form-field">
-               <label>First Name</label>
-               <input formControlName="name" type="text" placeholder="John" />
+                <label><mat-icon>badge</mat-icon> First Name</label>
+                <div class="input-glow-wrap">
+                   <input formControlName="name" type="text" placeholder="John" />
+                </div>
              </div>
              <div class="form-field">
-               <label>Last Name</label>
-               <input formControlName="last_name" type="text" placeholder="Doe" />
+                <label><mat-icon>fingerprint</mat-icon> Last Name</label>
+                <div class="input-glow-wrap">
+                   <input formControlName="last_name" type="text" placeholder="Doe" />
+                </div>
              </div>
           </div>
 
           <div class="form-field">
-             <label>Network Identifier (Email)</label>
-             <input formControlName="email" type="email" placeholder="owner@gym-nexus.com" />
+             <label><mat-icon>alternate_email</mat-icon> Network Identifier (Email)</label>
+             <div class="input-glow-wrap">
+                <input formControlName="email" type="email" placeholder="owner@gym-nexus.com" />
+             </div>
           </div>
 
           <div class="form-field" *ngIf="!data.user">
-             <label>Access Key (Temporary Password)</label>
-             <input formControlName="password" type="password" placeholder="••••••••" />
-             <p style="font-size: 0.625rem; font-weight: 800; color: #475569; margin: 4px 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Min 8 characters required</p>
+             <label><mat-icon>key</mat-icon> Access Key (Temporary Password)</label>
+             <div class="input-glow-wrap">
+                <input formControlName="password" type="password" placeholder="••••••••" />
+             </div>
+             <p class="field-hint">Quantum-secure: Min 8 characters required</p>
           </div>
 
           <div class="form-field">
-             <label>Relay Phone (Optional)</label>
-             <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
+             <label><mat-icon>contact_phone</mat-icon> Relay Phone (Optional)</label>
+             <div class="input-glow-wrap">
+                <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
+             </div>
           </div>
 
           <div class="admin-dialog-footer">
-             <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">Cancel</button>
+             <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
+                <mat-icon>close</mat-icon> Abort
+             </button>
              <button type="submit" [disabled]="form.invalid || loading()" class="admin-btn btn-primary">
-                {{ loading() ? 'Processing...' : (data.user ? 'Sync Identity' : 'Provision Node') }}
+                <mat-icon>{{ loading() ? 'sync' : (data.user ? 'published_with_changes' : 'vitals') }}</mat-icon>
+                {{ loading() ? 'Executing...' : (data.user ? 'Sync Identity' : 'Provision Node') }}
              </button>
           </div>
        </form>

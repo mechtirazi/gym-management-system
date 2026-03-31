@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 import { Product } from '../../../../../shared/models/product.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../../../environments/environment';
+import { ConfirmDialogService } from '../../../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-product-orders-modal',
@@ -16,6 +17,7 @@ import { environment } from '../../../../../../environments/environment';
 export class ProductOrdersModalComponent implements OnInit {
   private productService = inject(ProductService);
   private http = inject(HttpClient);
+  private confirmService = inject(ConfirmDialogService);
 
   product = input.required<Product>();
   close = output<void>();
@@ -44,22 +46,28 @@ export class ProductOrdersModalComponent implements OnInit {
   }
 
   deleteOrder(orderId: string) {
-    if (!confirm('Are you sure you want to delete this order?')) {
-      return;
-    }
+    this.confirmService.open({
+      title: 'Delete Order',
+      message: 'Are you absolutely sure you want to permanently delete this order record?',
+      confirmText: 'Delete Order',
+      icon: 'warning',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
 
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.delete(`${environment.apiUrl}/orders/${orderId}`, { headers }).subscribe({
-      next: () => {
-        // Remove from list
-        this.orders.set(this.orders().filter(o => o.id_order !== orderId));
-      },
-      error: (err) => {
-        console.error('Failed to delete order', err);
-        alert('Failed to delete order.');
-      }
+      this.http.delete(`${environment.apiUrl}/orders/${orderId}`, { headers }).subscribe({
+        next: () => {
+          // Remove from list
+          this.orders.set(this.orders().filter(o => o.id_order !== orderId));
+        },
+        error: (err) => {
+          console.error('Failed to delete order', err);
+          this.error.set('Failed to delete order.');
+        }
+      });
     });
   }
 
