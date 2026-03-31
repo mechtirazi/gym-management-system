@@ -142,7 +142,7 @@ export class GymProfileComponent implements OnInit {
         }
       });
       // Append the file (common parameter names: file, image, logo, cover)
-      finalPayload.append('logo', this.selectedFile); 
+      finalPayload.append('logo', this.selectedFile);
     }
 
     this.gymService.updateGym(targetId, finalPayload)

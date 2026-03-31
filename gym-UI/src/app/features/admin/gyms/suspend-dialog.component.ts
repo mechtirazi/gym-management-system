@@ -33,23 +33,21 @@ import { MatIconModule } from '@angular/material/icon';
       </div>
 
       <div class="admin-dialog-footer">
-        <button type="button" class="admin-btn" (click)="dialogRef.close()">Cancel</button>
+        <button type="button" class="admin-btn" (click)="dialogRef.close()">
+           <mat-icon>close</mat-icon> Cancel
+        </button>
         <button
           type="button"
-          class="admin-btn btn-primary"
-          style="background: var(--admin-accent-rose); border-color: rgba(244, 63, 94, 0.2);"
+          class="admin-btn btn-danger"
           [disabled]="!reason.trim()"
           (click)="dialogRef.close(reason)"
         >
-          <mat-icon style="font-size: 16px; width: 16px; height: 16px;">block</mat-icon>
-          SEVER ACCESS
+          <mat-icon>block</mat-icon> Sever Access
         </button>
       </div>
     </div>
   `,
-  styles: [`
-    :host { display: block; }
-  `]
+  styleUrl: './suspend-dialog.component.scss'
 })
 export class SuspendDialogComponent {
   reason = '';

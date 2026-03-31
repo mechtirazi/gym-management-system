@@ -12,6 +12,7 @@ import { AddOrderModalComponent } from './components/add-order-modal/add-order-m
 import { Product } from '../../../shared/models/product.model';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-product-management',
@@ -33,6 +34,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class ProductManagementComponent implements OnInit {
   private productService = inject(ProductService);
   private authService = inject(AuthService);
+  private confirmService = inject(ConfirmDialogService);
 
   /** Nutritionists may sell (orders) but cannot add/edit/delete catalog items (API + UI). */
   canManageInventory = computed(() => this.authService.userRole() !== 'nutritionist');
@@ -98,12 +100,20 @@ export class ProductManagementComponent implements OnInit {
   }
 
   onDeleteProduct(id: string) {
-    if (confirm('Delete this product?')) {
-      this.productService.deleteProduct(id).subscribe({
-        next: () => this.loadProducts(),
-        error: (err) => alert('Action failed.')
-      });
-    }
+    this.confirmService.open({
+      title: 'Remove Product',
+      message: 'Are you sure you want to completely delete this product from the inventory?',
+      confirmText: 'Delete Product',
+      icon: 'delete',
+      isDestructive: true
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.productService.deleteProduct(id).subscribe({
+          next: () => this.loadProducts(),
+          error: (err) => this.error.set('Action failed to delete product.')
+        });
+      }
+    });
   }
 
   openAddModal() {

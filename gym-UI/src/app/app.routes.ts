@@ -36,9 +36,13 @@ export const routes: Routes = [
     loadComponent: () => import('./shared/layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     // canActivate: [authGuard],
     children: [
-      { 
-        path: 'settings', 
-        loadComponent: () => import('./features/shared/settings/settings.component').then(m => m.SettingsComponent) 
+      {
+        path: 'settings',
+        loadComponent: () => import('./features/shared/settings/settings.component').then(m => m.SettingsComponent)
+      },
+      {
+        path: 'notifications',
+        loadComponent: () => import('./features/shared/notifications/notifications.component').then(m => m.NotificationsComponent)
       },
       {
         path: 'owner',
@@ -68,37 +72,34 @@ export const routes: Routes = [
       {
         path: 'admin',
         children: [
-          { 
-            path: 'dashboard', 
-            loadComponent: () => import('./features/admin/dashboard/dashboard.component').then(m => m.DashboardComponent) 
+          {
+            path: 'dashboard',
+            loadComponent: () => import('./features/admin/dashboard/dashboard.component').then(m => m.DashboardComponent)
           },
-          { 
-            path: 'owners', 
-            loadComponent: () => import('./features/admin/owners/owners-list/owners-list.component').then(m => m.OwnersListComponent) 
+          {
+            path: 'owners',
+            loadComponent: () => import('./features/admin/owners/owners-list/owners-list.component').then(m => m.OwnersListComponent)
           },
-          { 
-            path: 'gyms', 
-            loadComponent: () => import('./features/admin/gyms/gyms-list.component').then(m => m.GymsListComponent) 
+          {
+            path: 'gyms',
+            loadComponent: () => import('./features/admin/gyms/gyms-list.component').then(m => m.GymsListComponent)
           },
-          { 
-            path: 'monitoring', 
-            loadComponent: () => import('./features/admin/monitoring/monitoring.component').then(m => m.MonitoringComponent) 
+          {
+            path: 'monitoring',
+            loadComponent: () => import('./features/admin/monitoring/monitoring.component').then(m => m.MonitoringComponent)
           },
-          { 
-            path: 'access-matrix', 
-            loadComponent: () => import('./features/admin/access-matrix/access-matrix.component').then(m => m.AccessMatrixComponent) 
+          {
+            path: 'access-matrix',
+            loadComponent: () => import('./features/admin/access-matrix/access-matrix.component').then(m => m.AccessMatrixComponent)
           },
-          { 
-            path: 'activity', 
-            loadComponent: () => import('./features/admin/activity/activity.component').then(m => m.ActivityComponent) 
+          {
+            path: 'activity',
+            loadComponent: () => import('./features/admin/activity/activity.component').then(m => m.ActivityComponent)
           },
-          { 
-            path: 'operations', 
-            loadComponent: () => import('./features/admin/operations/operations.component').then(m => m.OperationsComponent) 
-          },
-          { 
-            path: 'revenue', 
-            loadComponent: () => import('./features/admin/dashboard/components/revenue-analytics/revenue-analytics.component').then(m => m.RevenueAnalyticsComponent) 
+
+          {
+            path: 'revenue',
+            loadComponent: () => import('./features/admin/dashboard/components/revenue-analytics/revenue-analytics.component').then(m => m.RevenueAnalyticsComponent)
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]

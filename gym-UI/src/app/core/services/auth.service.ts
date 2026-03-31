@@ -18,7 +18,9 @@ export class AuthService {
   userRole = computed(() => this.currentUser()?.role);
   connectedGymId = computed(() => this.currentUser()?.gym_id);
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) {
+    this.checkAndSetDefaultGym();
+  }
 
   getApiUrl(): string {
     return this.API_URL;
@@ -91,6 +93,26 @@ export class AuthService {
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
       this.currentUser.set(user);
+      
+      // Auto-set default gym if owner has none
+      if (user.role === 'owner' && !user.gym_id) {
+        this.checkAndSetDefaultGym();
+      }
+    }
+  }
+
+  private checkAndSetDefaultGym(): void {
+    const user = this.currentUser();
+    if (user && user.role === 'owner' && !user.gym_id) {
+      this.http.get<any>(`${this.API_URL}/gyms`).subscribe({
+        next: (res) => {
+          if (res.success && res.data && res.data.length > 0) {
+            const firstGymId = res.data[0].id_gym;
+            this.switchGym(firstGymId);
+          }
+        },
+        error: (err) => console.error('Error fetching gyms for default selection:', err)
+      });
     }
   }
 

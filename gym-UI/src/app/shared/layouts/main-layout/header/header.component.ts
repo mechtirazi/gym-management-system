@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +16,7 @@ export class HeaderComponent {
   private authService = inject(AuthService);
   private themeService = inject(ThemeService);
   private notificationService = inject(NotificationService);
+  private router = inject(Router);
 
   currentUser = this.authService.currentUser;
   isDarkMode = this.themeService.darkMode;
@@ -30,6 +32,11 @@ export class HeaderComponent {
 
   toggleNotifications(): void {
     this.showNotifications.update(v => !v);
+  }
+
+  viewAllNotifications(): void {
+    this.showNotifications.set(false);
+    this.router.navigate(['/notifications']);
   }
 
   toggleLangDropdown(): void {
