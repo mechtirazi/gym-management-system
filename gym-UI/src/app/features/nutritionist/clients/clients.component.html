@@ -1,0 +1,77 @@
+<div class="clients-page">
+  <app-page-header
+    [title]="'Clients'"
+    [subtitle]="'Members you can support (based on your assigned gyms).'"
+  >
+    <span header-icon class="material-symbols-rounded">groups</span>
+  </app-page-header>
+
+  <div class="controls">
+    <app-filter-controls
+      [searchQuery]="rawSearchQuery()"
+      (searchChange)="onSearchChange($event)"
+      [searchPlaceholder]="'Search clients by name or email...'"
+      [selectedFilter]="selectedFilter()"
+      (filterChange)="onFilterChange($event)"
+      [filterOptions]="filterOptions"
+      [allText]="'All'"
+    />
+  </div>
+
+  @if (isLoading()) {
+    <div class="table-card skeleton-wrap">
+      @for (_ of [1,2,3,4,5]; track $index) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="state error">
+      {{ error() }}
+      <button class="btn" (click)="load()">Retry</button>
+    </div>
+  } @else if (filteredClients().length === 0) {
+    <div class="state">No clients found.</div>
+  } @else {
+    <div class="table-card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Email</th>
+            <th style="text-align: right;">Plans</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of pagedClients(); track c.id_user) {
+            <tr>
+              <td class="name">
+                <div class="avatar">{{ (c.name?.charAt(0) || 'M') }}</div>
+                <div>
+                  <div class="full">{{ c.name }} {{ c.last_name }}</div>
+                  <div class="muted">Member</div>
+                </div>
+              </td>
+              <td class="muted">{{ c.email }}</td>
+              <td style="text-align: right; font-weight: 800;">{{ plansByMemberId()[c.id_user] || 0 }}</td>
+              <td style="text-align: right;">
+                <a class="btn link" [routerLink]="'/nutritionist/nutrition-plans'" [queryParams]="{ memberId: c.id_user }">
+                  View plans
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn" [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">Prev</button>
+        <div class="muted">Page {{ currentPage() }} / {{ totalPages() }}</div>
+        <button class="btn" [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">Next</button>
+      </div>
+    }
+  }
+</div>
+

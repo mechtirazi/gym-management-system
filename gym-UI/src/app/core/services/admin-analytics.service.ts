@@ -31,18 +31,16 @@ export class AdminAnalyticsService {
   private http = inject(HttpClient);
 
   getPlatformMetrics(): Observable<PlatformMetrics> {
-    console.log('[AdminAnalytics] GET /api/admin/metrics/overview');
     return this.http.get<ApiResponse<PlatformMetrics>>(
-      `${environment.apiBaseUrl}/api/admin/metrics/overview`
+      `${environment.apiUrl}/admin/metrics/overview`
     ).pipe(
       map(res => res.data as PlatformMetrics)
     );
   }
 
   getRevenueAnalytics(): Observable<RevenueAnalytics> {
-    console.log('[AdminAnalytics] GET /api/admin/analytics/revenue');
     return this.http.get<ApiResponse<RevenueAnalytics>>(
-      `${environment.apiBaseUrl}/api/admin/analytics/revenue`
+      `${environment.apiUrl}/admin/analytics/revenue`
     ).pipe(
       map(res => res.data as RevenueAnalytics)
     );

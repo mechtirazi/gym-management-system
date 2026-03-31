@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
 import { socialCallbackGuard } from './core/guards/social-callback.guard';
 import { roleRedirectGuard } from './core/guards/role-redirect.guard';
 
@@ -61,6 +60,10 @@ export const routes: Routes = [
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
           { path: 'nutrition', loadComponent: () => import('./features/owner/nutrition/nutrition.component').then(m => m.NutritionManagementComponent) },
         ]
+      },
+      {
+        path: 'nutritionist',
+        loadChildren: () => import('./features/nutritionist/nutritionist.routes').then(m => m.nutritionistRoutes)
       },
       {
         path: 'admin',

@@ -35,7 +35,7 @@ class AttendanceFactory extends Factory
         return [
             'id_member' => $memberId,
             'id_session' => $session->id_session,
-            'status' => fake()->randomElement(['absent', 'present', 'late']),
+            'status' => $this->faker->randomElement(['absent', 'present', 'late']),
         ];
     }
 }

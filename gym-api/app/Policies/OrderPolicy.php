@@ -15,6 +15,7 @@ class OrderPolicy
         return in_array($user->role, [
             User::ROLE_OWNER,
             User::ROLE_RECEPTIONIST,
+            User::ROLE_NUTRITIONIST,
             User::ROLE_MEMBER,
         ]);
     }
@@ -29,10 +30,11 @@ class OrderPolicy
             return $order->id_member === $user->id_user;
         }
 
-        // Owners and Receptionists can view orders (scoping handled in service)
+        // Owners, receptionists, and nutritionists can view orders (scoping handled in service)
         return in_array($user->role, [
             User::ROLE_OWNER,
             User::ROLE_RECEPTIONIST,
+            User::ROLE_NUTRITIONIST,
         ]);
     }
 
@@ -44,6 +46,7 @@ class OrderPolicy
         return in_array($user->role, [
             User::ROLE_OWNER,
             User::ROLE_RECEPTIONIST,
+            User::ROLE_NUTRITIONIST,
             User::ROLE_MEMBER,
         ]);
     }
@@ -61,6 +64,7 @@ class OrderPolicy
         return in_array($user->role, [
             User::ROLE_OWNER,
             User::ROLE_RECEPTIONIST,
+            User::ROLE_NUTRITIONIST,
         ]);
     }
 

@@ -10,10 +10,22 @@ return new class () extends Migration {
      */
     public function up(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->string('title')->nullable()->after('id_notification');
-            $table->string('type')->default('info')->after('text');
-            $table->boolean('is_read')->default(false)->after('id_user');
+        $hasTitle = Schema::hasColumn('notifications', 'title');
+        $hasType = Schema::hasColumn('notifications', 'type');
+        $hasIsRead = Schema::hasColumn('notifications', 'is_read');
+
+        Schema::table('notifications', function (Blueprint $table) use ($hasTitle, $hasType, $hasIsRead) {
+            if (! $hasTitle) {
+                $table->string('title')->nullable()->after('id_notification');
+            }
+
+            if (! $hasType) {
+                $table->string('type')->default('info')->after('text');
+            }
+
+            if (! $hasIsRead) {
+                $table->boolean('is_read')->default(false)->after('id_user');
+            }
         });
     }
 
@@ -22,8 +34,27 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->dropColumn(['title', 'type', 'is_read']);
+        $hasTitle = Schema::hasColumn('notifications', 'title');
+        $hasType = Schema::hasColumn('notifications', 'type');
+        $hasIsRead = Schema::hasColumn('notifications', 'is_read');
+
+        Schema::table('notifications', function (Blueprint $table) use ($hasTitle, $hasType, $hasIsRead) {
+            if ($hasTitle || $hasType || $hasIsRead) {
+                $columns = [];
+                if ($hasTitle) {
+                    $columns[] = 'title';
+                }
+                if ($hasType) {
+                    $columns[] = 'type';
+                }
+                if ($hasIsRead) {
+                    $columns[] = 'is_read';
+                }
+
+                if (! empty($columns)) {
+                    $table->dropColumn($columns);
+                }
+            }
         });
     }
 };

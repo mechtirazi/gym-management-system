@@ -4,7 +4,15 @@ export interface User {
   last_name: string;
   email: string;
   phone: string;
-  role: 'super_admin' | 'admin' | 'staff' | 'member' | 'owner';
+  role:
+    | 'super_admin'
+    | 'admin'
+    | 'owner'
+    | 'trainer'
+    | 'nutritionist'
+    | 'receptionist'
+    | 'staff'
+    | 'member';
   gym_id?: number;
   profile_picture?: string;
 }

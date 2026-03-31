@@ -13,9 +13,16 @@
         </div>
         <div class="text-content">
           <h1>Store & Products</h1>
-          <p class="subtitle">Manage your gym's storefront inventory and incoming orders.</p>
+          <p class="subtitle">
+            @if (canManageInventory()) {
+              Manage your gym's storefront inventory and incoming orders.
+            } @else {
+              Browse products for your assigned gyms and record sales for members.
+            }
+          </p>
         </div>
       </div>
+      @if (canManageInventory()) {
       <button class="add-product-btn" (click)="openAddModal()">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -24,6 +31,7 @@
         </svg>
         Add New Product
       </button>
+      }
     </div>
 
     <div class="products-controls">
@@ -72,9 +80,9 @@
     } @else {
     <div class="products-grid">
       @for (product of filteredProducts(); track $index) {
-      <app-product-card [product]="product" [product]="product" (deleteClick)="onDeleteProduct($event)"
-        (editClick)="openEditModal($event)" (ordersClick)="openOrdersModal($event)"
-        (addOrderClick)="openAddOrderModal($event)">
+      <app-product-card [product]="product" [allowInventoryEdit]="canManageInventory()"
+        (deleteClick)="onDeleteProduct($event)" (editClick)="openEditModal($event)"
+        (ordersClick)="openOrdersModal($event)" (addOrderClick)="openAddOrderModal($event)">
       </app-product-card>
       }
     </div>

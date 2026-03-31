@@ -18,10 +18,10 @@ class GymFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->company().' Gym',
-            'adress' => fake()->address(),
-            'capacity' => fake()->numberBetween(50, 500),
-            'open_hour' => fake()->randomElement([
+            'name' => $this->faker->company().' Gym',
+            'adress' => $this->faker->address(),
+            'capacity' => $this->faker->numberBetween(50, 500),
+            'open_hour' => $this->faker->randomElement([
                 '6:00 AM - 10:00 PM',
                 '7:00 AM - 11:00 PM',
                 '5:00 AM - 9:00 PM',

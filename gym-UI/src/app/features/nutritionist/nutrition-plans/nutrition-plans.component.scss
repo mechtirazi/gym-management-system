@@ -1,0 +1,206 @@
+.plans-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.state {
+  background: var(--bg-glass);
+  backdrop-filter: blur(14px);
+  border: 1.5px solid var(--border-glass);
+  border-radius: 18px;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.state.error {
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.35);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.btn {
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-skeleton {
+  min-height: 220px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.16) 25%, rgba(148, 163, 184, 0.3) 37%, rgba(148, 163, 184, 0.16) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 640px;
+  background: var(--bg-glass);
+  border-radius: 24px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.confirm-card {
+  max-width: 480px;
+}
+
+.modal-card h3 {
+  margin: 0 0 1.25rem;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.modal-form .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+input,
+select {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.multi-select {
+  min-height: 120px;
+}
+
+small {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.error-text {
+  color: #b91c1c;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.modal-actions button {
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+  font-weight: 900;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-card);
+  cursor: pointer;
+}
+
+.modal-actions button.primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 15px rgba(16, 185, 129, 0.2);
+}
+
+.modal-actions button.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border-color: transparent;
+}
+
+.toast {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 3000;
+  border-radius: 14px;
+  padding: 0.85rem 1.1rem;
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+.toast.success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+.toast.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+@media (max-width: 768px) {
+  .modal-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .span-2 {
+    grid-column: span 1;
+  }
+}
+

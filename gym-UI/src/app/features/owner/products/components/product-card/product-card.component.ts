@@ -11,6 +11,8 @@ import { Product } from '../../../../../shared/models/product.model';
 })
 export class ProductCardComponent {
   product = input.required<Product>();
+  /** When false, hide add-to-catalog actions (delete/edit); sales actions stay visible. */
+  allowInventoryEdit = input<boolean>(true);
   deleteClick = output<string>();
   editClick = output<Product>();
   ordersClick = output<Product>();

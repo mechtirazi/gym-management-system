@@ -3,6 +3,8 @@
     <app-admin-sidebar></app-admin-sidebar>
   } @else if (userRole() === 'owner') {
     <app-owner-sidebar></app-owner-sidebar>
+  } @else if (userRole() === 'nutritionist') {
+    <app-nutritionist-sidebar></app-nutritionist-sidebar>
   } @else {
     <app-member-sidebar></app-member-sidebar>
   }

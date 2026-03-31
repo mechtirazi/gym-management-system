@@ -24,7 +24,7 @@ class EnrollmentFactory extends Factory
         return [
             'id_member' => User::factory(),
             'id_gym' => Gym::factory(),
-            'enrollment_date' => fake()->dateTimeBetween('-6 months', 'now'),
+            'enrollment_date' => $this->faker->dateTimeBetween('-6 months', 'now'),
         ];
     }
 }

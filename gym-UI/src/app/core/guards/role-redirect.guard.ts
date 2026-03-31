@@ -16,6 +16,8 @@ export const roleRedirectGuard: CanActivateFn = () => {
     return router.parseUrl('/owner/dashboard');
   } else if (role === 'member') {
     return router.parseUrl('/member/dashboard');
+  } else if (role === 'nutritionist') {
+    return router.parseUrl('/nutritionist/dashboard');
   } else if (role === 'admin' || role === 'super_admin') {
     return router.parseUrl('/admin/dashboard');
   }

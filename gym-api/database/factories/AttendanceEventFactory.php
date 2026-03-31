@@ -35,7 +35,7 @@ class AttendanceEventFactory extends Factory
         return [
             'id_member' => $memberId,
             'id_event' => $event->id_event,
-            'status' => fake()->randomElement(['cancelled', 'upcoming', 'ongoing', 'completed']),
+            'status' => $this->faker->randomElement(['cancelled', 'upcoming', 'ongoing', 'completed']),
         ];
     }
 }

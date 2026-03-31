@@ -17,14 +17,14 @@ class NotificationFactory extends Factory
      */
     public function definition(): array
     {
-        $type = fake()->randomElement(['info', 'warning', 'success', 'error']);
-        $text = fake()->randomElement([
+        $type = $this->faker->randomElement(['info', 'warning', 'success', 'error']);
+        $text = $this->faker->randomElement([
             'Your subscription is expiring soon',
-            'New course available: ' . fake()->word(),
+            'New course available: ' . $this->faker->word(),
             'Your session scheduled for tomorrow',
             'Payment received successfully',
             'New event registered',
-            'Workout reminder: ' . fake()->sentence(),
+            'Workout reminder: ' . $this->faker->sentence(),
             'Your trainer sent you a message',
         ]);
 
@@ -40,10 +40,10 @@ class NotificationFactory extends Factory
 
         return [
             'id_user' => User::inRandomOrder()->first()?->id_user ?? User::factory(),
-            'title' => fake()->randomElement($titles),
+            'title' => $this->faker->randomElement($titles),
             'text' => $text,
             'type' => $type,
-            'is_read' => fake()->boolean(20), // 20% chance of being read
+            'is_read' => $this->faker->boolean(20), // 20% chance of being read
         ];
     }
 }

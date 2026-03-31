@@ -19,13 +19,13 @@ class CourseFactory extends Factory
     {
         return [
             'id_course' => \Illuminate\Support\Str::uuid()->toString(),
-            'name' => fake()->word().' Training',
-            'description' => fake()->paragraph(),
+            'name' => $this->faker->word().' Training',
+            'description' => $this->faker->paragraph(),
             'id_gym' => Gym::inRandomOrder()->first()?->id_gym ?? Gym::factory(),
-            'price' => fake()->numberBetween(20, 100),
-            'max_capacity' => fake()->numberBetween(10, 30),
-            'count' => fake()->numberBetween(1, 20),
-            'duration' => fake()->numberBetween(4, 12).' weeks',
+            'price' => $this->faker->numberBetween(20, 100),
+            'max_capacity' => $this->faker->numberBetween(10, 30),
+            'count' => $this->faker->numberBetween(1, 20),
+            'duration' => $this->faker->numberBetween(4, 12).' weeks',
         ];
     }
 }

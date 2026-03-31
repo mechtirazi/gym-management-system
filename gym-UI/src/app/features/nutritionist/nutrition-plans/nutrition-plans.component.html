@@ -1,0 +1,133 @@
+<div class="plans-page">
+  <app-page-header
+    [title]="'Nutrition Plans'"
+    [subtitle]="'Create and manage your nutrition plans.'"
+    [buttonText]="'Create plan'"
+    (addClick)="onAddPlan()"
+  >
+    <span header-icon class="material-symbols-rounded">restaurant</span>
+  </app-page-header>
+
+  <app-filter-controls
+    [searchQuery]="rawSearchQuery()"
+    (searchChange)="onSearchChange($event)"
+    [searchPlaceholder]="'Search by goal or member name...'"
+    [selectedFilter]="selectedFilter()"
+    (filterChange)="onFilterChange($event)"
+    [filterOptions]="filterOptions"
+    [allText]="'All Plans'"
+  />
+
+  @if (notification()) {
+    <div class="toast" [class.success]="notification()?.type === 'success'" [class.error]="notification()?.type === 'error'">
+      {{ notification()?.text }}
+    </div>
+  }
+
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ modalMode() === 'add' ? 'Create Nutrition Plan' : 'Edit Nutrition Plan' }}</h3>
+
+        <form (ngSubmit)="submitPlan()" class="modal-form">
+          <div class="form-grid">
+            <label>
+              Gym
+              <select [(ngModel)]="selectedGymId" name="id_gym" required>
+                <option [ngValue]="null" disabled>Select a gym</option>
+                @for (g of gyms(); track g.id_gym) {
+                  <option [ngValue]="g.id_gym">{{ g.name }}</option>
+                }
+              </select>
+              @if (gyms().length === 0) {
+                <small class="error-text">No gym assigned. Contact your owner/admin.</small>
+              }
+            </label>
+
+            <label class="span-2">
+              Goal
+              <input [(ngModel)]="planForm().goal" name="goal" placeholder="e.g., Weight loss, Bulking, Recomp..." required />
+            </label>
+
+            <label>
+              Start date
+              <input type="date" [(ngModel)]="planForm().start_date" name="start_date" required />
+            </label>
+
+            <label>
+              End date
+              <input type="date" [(ngModel)]="planForm().end_date" name="end_date" required />
+            </label>
+
+            <label>
+              Price
+              <input type="number" [(ngModel)]="planForm().price" name="price" min="0" required />
+            </label>
+
+            <label>
+              Assign clients
+              <select [(ngModel)]="planForm().id_members" name="id_members" multiple required class="multi-select">
+                @for (m of members(); track m.id_user) {
+                  <option [value]="m.id_user">{{ m.name }} {{ m.last_name }}</option>
+                }
+              </select>
+              <small>Hold Ctrl (Cmd) to select multiple clients</small>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="primary">{{ modalMode() === 'add' ? 'Create' : 'Update' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (pendingDeleteId()) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="modal-card confirm-card" (click)="$event.stopPropagation()">
+        <h3>Delete nutrition plan?</h3>
+        <p class="muted">This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button type="button" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="danger" (click)="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="grid">
+      @for (_ of [1,2,3,4]; track $index) {
+        <div class="card-skeleton"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="state error">
+      {{ error() }}
+      <button class="btn" (click)="loadPlans()">Retry</button>
+    </div>
+  } @else if (filteredPlans().length === 0) {
+    <div class="state">No plans found.</div>
+  } @else {
+    <div class="grid">
+      @for (plan of pagedPlans(); track plan.id_plan) {
+        <app-nutrition-card
+          [plan]="plan"
+          (deleteClick)="requestDelete($event)"
+          (editClick)="onEditPlan(plan)"
+        />
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn" [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">Prev</button>
+        <div class="muted">Page {{ currentPage() }} / {{ totalPages() }}</div>
+        <button class="btn" [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">Next</button>
+      </div>
+    }
+  }
+</div>
+

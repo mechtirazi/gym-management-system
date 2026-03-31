@@ -30,8 +30,8 @@ class GymService extends BaseService
             return $query->where('id_owner', $user->id_user)->get();
         }
 
-        // Staff see gyms they are assigned to
-        if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_RECEPTIONIST])) {
+        // Staff see gyms they are assigned to (gym_staff)
+        if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_RECEPTIONIST, User::ROLE_NUTRITIONIST])) {
             return $query->whereIn('id_gym', $user->allowedGymIds())->get();
         }
 

@@ -32,13 +32,13 @@ class UserFactory extends Factory
         ];
 
         return [
-            'name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
-            'email' => fake()->unique()->safeEmail(),
+            'name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
+            'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(), // verified by default so existing tests pass
             'password' => 'password123', // Model cast handles hashing
-            'role' => fake()->randomElement($roles),
-            'phone' => fake()->phoneNumber(),
+            'role' => $this->faker->randomElement($roles),
+            'phone' => $this->faker->phoneNumber(),
             'creation_date' => now(),
             'profile_picture' => null,
         ];

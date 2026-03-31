@@ -25,9 +25,14 @@ class OrderPolicyTest extends TestCase
     // ─────────────────────────────────────────────
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function viewAny_allows_owner_receptionist_member_only()
+    public function viewAny_allows_owner_receptionist_nutritionist_member_only()
     {
-        $allowed = [User::ROLE_OWNER, User::ROLE_RECEPTIONIST, User::ROLE_MEMBER];
+        $allowed = [
+            User::ROLE_OWNER,
+            User::ROLE_RECEPTIONIST,
+            User::ROLE_NUTRITIONIST,
+            User::ROLE_MEMBER,
+        ];
 
         foreach (User::VALID_ROLES as $role) {
             $user = User::factory()->create(['role' => $role]);
@@ -83,6 +88,16 @@ class OrderPolicyTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
+    public function view_nutritionist_can_view_any_order()
+    {
+        $nutritionist = User::factory()->nutritionist()->create();
+        $member       = User::factory()->member()->create();
+        $order        = Order::factory()->create(['id_member' => $member->id_user]);
+
+        $this->assertTrue($this->policy->view($nutritionist, $order));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
     public function view_trainer_is_denied()
     {
         $trainer = User::factory()->trainer()->create();
@@ -97,12 +112,19 @@ class OrderPolicyTest extends TestCase
     // ─────────────────────────────────────────────
 
     #[\PHPUnit\Framework\Attributes\Test]
-    public function create_allows_only_member()
+    public function create_allows_owner_receptionist_nutritionist_member()
     {
+        $allowed = [
+            User::ROLE_OWNER,
+            User::ROLE_RECEPTIONIST,
+            User::ROLE_NUTRITIONIST,
+            User::ROLE_MEMBER,
+        ];
+
         foreach (User::VALID_ROLES as $role) {
             $user = User::factory()->create(['role' => $role]);
             $this->assertEquals(
-                $role === User::ROLE_MEMBER,
+                in_array($role, $allowed),
                 $this->policy->create($user),
                 "create failed for role: $role"
             );
@@ -168,6 +190,16 @@ class OrderPolicyTest extends TestCase
         $order        = Order::factory()->create(['id_member' => $member->id_user]);
 
         $this->assertTrue($this->policy->update($receptionist, $order));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function update_nutritionist_can_update_any_order()
+    {
+        $nutritionist = User::factory()->nutritionist()->create();
+        $member       = User::factory()->member()->create();
+        $order        = Order::factory()->create(['id_member' => $member->id_user]);
+
+        $this->assertTrue($this->policy->update($nutritionist, $order));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -239,6 +271,16 @@ class OrderPolicyTest extends TestCase
         $order        = Order::factory()->create(['id_member' => $member->id_user]);
 
         $this->assertFalse($this->policy->delete($receptionist, $order));
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function delete_nutritionist_is_denied()
+    {
+        $nutritionist = User::factory()->nutritionist()->create();
+        $member       = User::factory()->member()->create();
+        $order        = Order::factory()->create(['id_member' => $member->id_user]);
+
+        $this->assertFalse($this->policy->delete($nutritionist, $order));
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

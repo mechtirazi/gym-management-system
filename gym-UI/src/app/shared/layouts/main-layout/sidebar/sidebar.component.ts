@@ -17,7 +17,7 @@ export class SidebarComponent {
 
   private allNavItems = [
     // Common items
-    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['admin', 'staff', 'member', 'owner'] },
+    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['admin', 'staff', 'member', 'owner', 'trainer', 'receptionist', 'nutritionist', 'super_admin'] },
 
     // Owner specific items
     { label: 'My Gym', icon: 'gym', route: '/owner/gym-profile', roles: ['owner'] },
@@ -26,6 +26,10 @@ export class SidebarComponent {
     { label: 'Memberships', icon: 'card', route: '/owner/memberships', roles: ['owner', 'admin'] },
     { label: 'Equipment', icon: 'settings', route: '/owner/equipment', roles: ['owner'] },
     { label: 'Revenue', icon: 'revenue', route: '/owner/revenue', roles: ['owner', 'admin'] },
+
+    // Nutritionist specific items
+    { label: 'Clients', icon: 'users', route: '/nutritionist/clients', roles: ['nutritionist'] },
+    { label: 'Nutrition Plans', icon: 'food', route: '/nutritionist/nutrition-plans', roles: ['nutritionist'] },
 
     // Member specific items
     { label: 'My Workouts', icon: 'calendar', route: '/member/workouts', roles: ['member'] },
@@ -37,8 +41,8 @@ export class SidebarComponent {
     { label: 'System Logs', icon: 'settings', route: '/admin/logs', roles: ['admin'] },
 
     // Shared
-    { label: 'Community', icon: 'users', route: '/community', roles: ['admin', 'staff', 'member', 'owner'] },
-    { label: 'Settings', icon: 'settings', route: '/settings', roles: ['admin', 'staff', 'member', 'owner'] }
+    { label: 'Community', icon: 'users', route: '/community', roles: ['admin', 'staff', 'member', 'owner', 'trainer', 'receptionist', 'nutritionist', 'super_admin'] },
+    { label: 'Settings', icon: 'settings', route: '/settings', roles: ['admin', 'staff', 'member', 'owner', 'trainer', 'receptionist', 'nutritionist', 'super_admin'] }
   ];
 
   navItems = computed(() => {

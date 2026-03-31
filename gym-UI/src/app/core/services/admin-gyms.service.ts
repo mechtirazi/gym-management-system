@@ -8,7 +8,7 @@ export type { GymDto };
 @Injectable({ providedIn: 'root' })
 export class AdminGymsService {
   private http = inject(HttpClient);
-  private baseUrl = `${environment.apiBaseUrl}/api/admin/gyms`;
+  private baseUrl = `${environment.apiUrl}/admin/gyms`;
 
   getGyms(): Observable<GymDto[]> {
     return this.http.get<ApiResponse<GymDto[]>>(this.baseUrl).pipe(

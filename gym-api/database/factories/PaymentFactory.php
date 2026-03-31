@@ -22,7 +22,7 @@ class PaymentFactory extends Factory
     {
         $gym = Gym::inRandomOrder()->first() ?? Gym::factory()->create();
         
-        $relationType = fake()->randomElement(['membership', 'product', 'course', 'other']);
+        $relationType = $this->faker->randomElement(['membership', 'product', 'course', 'other']);
         
         $id_order = null;
         $id_course = null;
@@ -35,17 +35,17 @@ class PaymentFactory extends Factory
         }
 
         // Random date in the last year
-        $createdAt = fake()->dateTimeBetween('-11 months', 'now');
+        $createdAt = $this->faker->dateTimeBetween('-11 months', 'now');
 
         return [
             'id_user' => User::inRandomOrder()->first()?->id_user ?? User::factory(),
             'id_gym' => $gym->id_gym,
             'id_order' => $id_order,
             'id_course' => $id_course,
-            'amount' => fake()->numberBetween(20, 1000),
-            'method' => fake()->randomElement(['credit_card', 'cash', 'bank_transfer']),
+            'amount' => $this->faker->numberBetween(20, 1000),
+            'method' => $this->faker->randomElement(['credit_card', 'cash', 'bank_transfer']),
             'type' => $type,
-            'id_transaction' => fake()->bothify('TRX-####-????'),
+            'id_transaction' => $this->faker->bothify('TRX-####-????'),
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
         ];

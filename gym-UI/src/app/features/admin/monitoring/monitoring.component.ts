@@ -115,24 +115,24 @@ export class MonitoringComponent implements OnInit {
     // Reset all to checking
     this.endpoints.set(this.endpoints().map(e => ({ ...e, status: 'checking' as const })));
 
-    const base = environment.apiBaseUrl;
+    const apiBase = environment.apiUrl.replace(/\/api$/, '');
 
     // Health check (/up) — no auth needed
-    this.http.get(`${base}/up`, { observe: 'response', responseType: 'text' }).pipe(
+    this.http.get(`${apiBase}/up`, { observe: 'response', responseType: 'text' }).pipe(
       retry(2),
       map(() => 'accessible' as const),
       catchError(err => of(this.mapError(err)))
     ).subscribe(status => this.updateEndpoint('/up', status as any));
 
     // Auth check (/api/me)
-    this.http.get<any>(`${base}/api/me`).pipe(
+    this.http.get<any>(`${environment.apiUrl}/me`).pipe(
       retry(2),
       map(() => 'accessible' as const),
       catchError(err => of(this.mapError(err)))
     ).subscribe(status => this.updateEndpoint('/api/me', status as any));
 
     // Users
-    this.http.get<any>(`${base}/api/users`).pipe(
+    this.http.get<any>(`${environment.apiUrl}/users`).pipe(
       retry(2),
       map(() => 'accessible' as const),
       catchError(err => of(this.mapError(err)))
@@ -140,7 +140,7 @@ export class MonitoringComponent implements OnInit {
 
 
     // Notifications
-    this.http.get<any>(`${base}/api/notifications`).pipe(
+    this.http.get<any>(`${environment.apiUrl}/notifications`).pipe(
       retry(2),
       map(() => 'accessible' as const),
       catchError(err => of(this.mapError(err)))

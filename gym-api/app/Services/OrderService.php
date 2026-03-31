@@ -28,7 +28,7 @@ class OrderService extends BaseService
         // Owners and Receptionists: in a real app, orders would likely be tied to a gym.
         // If they aren't directly tied, we might join through members or just allow viewing all for now.
         // Since id_gym is missing from Order, we return all for staff roles.
-        if (in_array($user->role, [User::ROLE_OWNER, User::ROLE_RECEPTIONIST])) {
+        if (in_array($user->role, [User::ROLE_OWNER, User::ROLE_RECEPTIONIST, User::ROLE_NUTRITIONIST])) {
             return $query->get();
         }
 

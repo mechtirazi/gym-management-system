@@ -1,0 +1,70 @@
+<div class="dash">
+  <div class="dash-header">
+    <div>
+      <h1>Nutritionist Dashboard</h1>
+      <p class="muted">Welcome, {{ nutritionistName() }}.</p>
+    </div>
+    <div class="actions">
+      <a class="btn primary" routerLink="/nutritionist/nutrition-plans">Create plan</a>
+      <a class="btn" routerLink="/nutritionist/clients">View clients</a>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="card error">
+      {{ error() }}
+      <button class="btn small" (click)="load()">Retry</button>
+    </div>
+  }
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Clients</div>
+      <div class="value">{{ clientsCount() }}</div>
+      <div class="hint">Members in your gyms</div>
+    </div>
+    <div class="card">
+      <div class="label">My plans</div>
+      <div class="value">{{ plansCount() }}</div>
+      <div class="hint">Total assigned plans</div>
+    </div>
+    <div class="card">
+      <div class="label">Active plans</div>
+      <div class="value">{{ activePlansCount() }}</div>
+      <div class="hint">Currently running</div>
+    </div>
+    <div class="card">
+      <div class="label">Expiring soon</div>
+      <div class="value">{{ expiringSoonCount() }}</div>
+      <div class="hint">Within 7 days</div>
+    </div>
+    <div class="card">
+      <div class="label">Unread notifications</div>
+      <div class="value">{{ unreadNotifications() }}</div>
+      <div class="hint">From your account inbox</div>
+    </div>
+  </div>
+
+  <div class="card notifications">
+    <div class="notifications-head">
+      <div class="label">Recent notifications</div>
+      <button class="btn small" (click)="markAllNotificationsRead()">Mark all as read</button>
+    </div>
+    @if (latestNotifications().length === 0) {
+      <div class="hint">No notifications yet.</div>
+    } @else {
+      @for (n of latestNotifications(); track n.id) {
+        <div class="notification-row">
+          <div>
+            <div class="n-title">{{ n.title }}</div>
+            <div class="hint">{{ n.description }} - {{ n.time }}</div>
+          </div>
+          @if (n.unread) {
+            <button class="btn small" (click)="markNotificationRead(n.id)">Mark read</button>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>
+

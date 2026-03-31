@@ -9,7 +9,7 @@ import { mapUserToVm } from '../utils/mappers';
 @Injectable({ providedIn: 'root' })
 export class AdminOwnersService {
   private http = inject(HttpClient);
-  private url = `${environment.apiBaseUrl}/api/admin/owners`;
+  private url = `${environment.apiUrl}/admin/owners`;
 
   getOwners(): Observable<UserVm[]> {
     return this.http.get<ApiResponse<UserVm[]>>(this.url).pipe(
@@ -39,7 +39,7 @@ export class AdminOwnersService {
 
   // Unverified computation done here for components
   getAllUsers(): Observable<UserVm[]> {
-     return this.http.get<ApiResponse<UserVm[]>>(`${environment.apiBaseUrl}/api/users`).pipe(map(r => (r.data || []).map(mapUserToVm)));
+     return this.http.get<ApiResponse<UserVm[]>>(`${environment.apiUrl}/users`).pipe(map(r => (r.data || []).map(mapUserToVm)));
   }
 
   getOwner(id: string): Observable<UserVm> {

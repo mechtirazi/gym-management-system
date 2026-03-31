@@ -17,14 +17,14 @@ class EventFactory extends Factory
      */
     public function definition(): array
     {
-        $startDate = fake()->dateTimeBetween('now', '+60 days');
+        $startDate = $this->faker->dateTimeBetween('now', '+60 days');
 
         return [
-            'title' => fake()->catchPhrase().' Event',
-            'description' => fake()->paragraph(),
+            'title' => $this->faker->catchPhrase().' Event',
+            'description' => $this->faker->paragraph(),
             'start_date' => $startDate,
-            'end_date' => fake()->dateTimeBetween($startDate, $startDate->modify('+7 days')),
-            'max_participants' => fake()->numberBetween(50, 200),
+            'end_date' => $this->faker->dateTimeBetween($startDate, $startDate->modify('+7 days')),
+            'max_participants' => $this->faker->numberBetween(50, 200),
             'id_gym' => Gym::inRandomOrder()->first()?->id_gym ?? Gym::factory(),
         ];
     }

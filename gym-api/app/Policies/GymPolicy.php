@@ -12,12 +12,13 @@ class GymPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Members, Owners, Trainers, and Receptionists can view gyms
+        // Members, Owners, and staff can view gyms (scoped by service/policy)
         return in_array($user->role, [
             User::ROLE_MEMBER,
             User::ROLE_OWNER,
             User::ROLE_TRAINER,
-            User::ROLE_RECEPTIONIST
+            User::ROLE_RECEPTIONIST,
+            User::ROLE_NUTRITIONIST,
         ]);
     }
 
@@ -36,8 +37,8 @@ class GymPolicy
             return $gym->id_owner === $user->id_user;
         }
 
-        // Trainer or Receptionist can view gyms they are associated with
-        if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_RECEPTIONIST])) {
+        // Staff can view gyms they are associated with
+        if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_RECEPTIONIST, User::ROLE_NUTRITIONIST])) {
             return $user->assignedGyms()->where('gyms.id_gym', $gym->id_gym)->exists();
         }
 

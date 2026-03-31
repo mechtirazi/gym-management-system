@@ -19,10 +19,10 @@ class ProductFactory extends Factory
     {
         return [
             'id_gym'   => Gym::inRandomOrder()->first()?->id_gym,
-            'name'     => fake()->word().' Supplement',
-            'price'    => fake()->numberBetween(10, 150),
-            'stock'    => fake()->numberBetween(0, 100),
-            'category' => fake()->randomElement(['Protein', 'Vitamins', 'Equipment', 'Snacks', 'Drinks']),
+            'name'     => $this->faker->word().' Supplement',
+            'price'    => $this->faker->numberBetween(10, 150),
+            'stock'    => $this->faker->numberBetween(0, 100),
+            'category' => $this->faker->randomElement(['Protein', 'Vitamins', 'Equipment', 'Snacks', 'Drinks']),
         ];
     }
 }

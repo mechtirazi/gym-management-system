@@ -21,11 +21,11 @@ class ReviewFactory extends Factory
         return [
             'id_user' => User::where('role', 'member')->inRandomOrder()->first()?->id_user ?? User::factory()->member(),
             'id_event' => Event::inRandomOrder()->first()?->id_event ?? Event::factory(),
-            'rating' => fake()->numberBetween(1, 5),
-            'comment' => fake()->sentence(),
-            'ai_sentiment_score' => fake()->randomFloat(2, -1, 1),
-            'ai_category' => fake()->randomElement(['positive', 'neutral', 'negative']),
-            'review_date' => fake()->dateTimeBetween('-30 days', 'now'),
+            'rating' => $this->faker->numberBetween(1, 5),
+            'comment' => $this->faker->sentence(),
+            'ai_sentiment_score' => $this->faker->randomFloat(2, -1, 1),
+            'ai_category' => $this->faker->randomElement(['positive', 'neutral', 'negative']),
+            'review_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
         ];
     }
 }

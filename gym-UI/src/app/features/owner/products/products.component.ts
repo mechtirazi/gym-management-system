@@ -11,6 +11,7 @@ import { ProductOrdersModalComponent } from './components/product-orders-modal/p
 import { AddOrderModalComponent } from './components/add-order-modal/add-order-modal.component';
 import { Product } from '../../../shared/models/product.model';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-product-management',
@@ -31,6 +32,10 @@ import { finalize } from 'rxjs';
 })
 export class ProductManagementComponent implements OnInit {
   private productService = inject(ProductService);
+  private authService = inject(AuthService);
+
+  /** Nutritionists may sell (orders) but cannot add/edit/delete catalog items (API + UI). */
+  canManageInventory = computed(() => this.authService.userRole() !== 'nutritionist');
 
   allProducts = signal<Product[]>([]);
   searchQuery = signal<string>('');

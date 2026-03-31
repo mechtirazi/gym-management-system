@@ -18,8 +18,8 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'order_date' => fake()->dateTimeBetween('-30 days', 'now'),
-            'status' => fake()->randomElement(['pending', 'confirmed', 'completed', 'cancelled']),
+            'order_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
+            'status' => $this->faker->randomElement(['pending', 'confirmed', 'completed', 'cancelled']),
             'id_member' => User::where('role', 'member')->inRandomOrder()->first()?->id_user ?? User::factory()->member(),
         ];
     }

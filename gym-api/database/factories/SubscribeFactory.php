@@ -21,8 +21,8 @@ class SubscribeFactory extends Factory
         return [
             'id_gym' => Gym::inRandomOrder()->first()?->id_gym ?? Gym::factory(),
             'id_user' => User::where('role', 'member')->inRandomOrder()->first()?->id_user ?? User::factory()->member(),
-            'status' => fake()->randomElement(['active', 'inactive', 'expired', 'cancelled']),
-            'subscribe_date' => fake()->dateTimeBetween('-60 days', 'now'),
+            'status' => $this->faker->randomElement(['active', 'inactive', 'expired', 'cancelled']),
+            'subscribe_date' => $this->faker->dateTimeBetween('-60 days', 'now'),
         ];
     }
 }

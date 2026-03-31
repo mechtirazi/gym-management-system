@@ -1,6 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { GymNotification } from '../../shared/models/notification.model';
 import { environment } from '../../../environments/environment';
 
@@ -108,5 +109,3 @@ export class NotificationService {
     return date.toLocaleDateString();
   }
 }
-
-import { map } from 'rxjs/operators';
