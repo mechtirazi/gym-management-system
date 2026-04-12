@@ -105,7 +105,7 @@ class DatabaseSeeder extends Seeder
 
         echo "\n✅ Database seeding completed successfully!\n";
         echo "📊 Total Records Created:\n";
-        echo "   • 34 Users (2 super admins, 5 trainers, 20 members, 3 nutritionists, 4 owners)\n";
+        echo "   • Users (includes super admins, owners, trainers, members, nutritionists, receptionists)\n";
         echo "   • 6 Gyms\n";
         echo "   • 12 Gym Staff Assignments\n";
         echo "   • 30-40 Enrollments\n";

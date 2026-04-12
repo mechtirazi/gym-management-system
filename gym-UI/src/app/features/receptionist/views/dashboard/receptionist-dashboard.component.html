@@ -1,0 +1,102 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h1>Receptionist Dashboard</h1>
+      <p class="subtitle">Quick overview for {{ selectedGymName() }}</p>
+    </div>
+    <button class="btn" (click)="load()" [disabled]="isLoading()">Refresh</button>
+  </div>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading">Loading…</div>
+  } @else if (stats()) {
+    <div class="grid">
+      <div class="card">
+        <div class="label">Members (distinct)</div>
+        <div class="value">{{ stats()!.kpis.membersTotal }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Active enrollments</div>
+        <div class="value">{{ stats()!.kpis.activeEnrollments }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Expiring soon (7d)</div>
+        <div class="value">{{ stats()!.kpis.expiringEnrollmentsSoon }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Check-ins today</div>
+        <div class="value">{{ stats()!.kpis.checkinsToday }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Sessions today</div>
+        <div class="value">{{ stats()!.kpis.sessionsToday }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Active events</div>
+        <div class="value">{{ stats()!.kpis.activeEvents }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Payments today</div>
+        <div class="value">{{ stats()!.kpis.paymentsToday }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Revenue today</div>
+        <div class="value">{{ stats()!.kpis.revenueToday | number: '1.0-2' }}</div>
+      </div>
+      <div class="card">
+        <div class="label">Revenue (this month)</div>
+        <div class="value">{{ stats()!.kpis.revenueThisMonth | number: '1.0-2' }}</div>
+      </div>
+    </div>
+
+    <div class="lists">
+      <div class="card list">
+        <div class="list-title">Upcoming sessions</div>
+        @if (!stats()!.upcomingSessions.length) {
+          <div class="muted">No upcoming sessions.</div>
+        } @else {
+          <div class="items">
+            @for (s of stats()!.upcomingSessions; track s.id_session) {
+              <div class="item">
+                <div class="item-main">
+                  <div class="item-name">{{ s.course?.name || 'Session' }}</div>
+                  <div class="item-meta">
+                    {{ s.date_session }} · {{ s.start_time }}-{{ s.end_time }}
+                    @if (s.trainer?.name) { · {{ s.trainer?.name }} }
+                  </div>
+                </div>
+                <div class="chip">{{ s.status || 'upcoming' }}</div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="card list">
+        <div class="list-title">Recent check-ins</div>
+        @if (!stats()!.recentCheckins.length) {
+          <div class="muted">No recent check-ins.</div>
+        } @else {
+          <div class="items">
+            @for (c of stats()!.recentCheckins; track c.id_attendance) {
+              <div class="item">
+                <div class="item-main">
+                  <div class="item-name">{{ c.memberName }}</div>
+                  <div class="item-meta">
+                    {{ c.session?.courseName || 'Course' }} · {{ c.status }}
+                  </div>
+                </div>
+                <div class="chip muted-chip">{{ c.created_at | date:'shortTime' }}</div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+

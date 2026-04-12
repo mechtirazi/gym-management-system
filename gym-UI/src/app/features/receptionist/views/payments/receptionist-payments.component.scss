@@ -1,0 +1,156 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+label span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-sidebar);
+  color: var(--text-main);
+}
+
+.btn {
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn.primary {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+  color: #fff;
+}
+
+.btn.secondary {
+  opacity: 0.85;
+}
+
+.btn.tiny {
+  padding: 0.35rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: rgb(220, 38, 38);
+  margin-bottom: 1rem;
+}
+
+.table {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1.3fr 1.6fr 0.7fr 0.8fr 0.9fr 0.5fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.row.head {
+  background: var(--bg-sidebar);
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+.right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.loading,
+.empty {
+  color: var(--text-muted);
+  padding: 0.5rem 0;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 0.9fr 1.1fr;
+    align-items: start;
+  }
+}
+

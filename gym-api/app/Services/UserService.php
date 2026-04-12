@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Enrollment;
+use App\Models\GymStaff;
 use Illuminate\Http\UploadedFile;
 
 class UserService extends BaseService
@@ -29,7 +31,56 @@ class UserService extends BaseService
             $data['profile_picture'] = $path;
         }
 
-        return User::create($data);
+        $newUser = User::create($data);
+
+        // Auto-assign to gym if created by an owner or receptionist
+        $creator = auth()->user();
+        if ($creator && in_array($creator->role, [User::ROLE_OWNER, User::ROLE_RECEPTIONIST])) {
+            $gymIds = [];
+            
+            if (isset($data['id_gym'])) {
+                $gymIds[] = $data['id_gym'];
+            } elseif (isset($data['gym_id'])) {
+                $gymIds[] = $data['gym_id'];
+            } elseif (isset($data['gyms']) && is_array($data['gyms'])) {
+                foreach ($data['gyms'] as $gym) {
+                    if (is_array($gym) && isset($gym['id_gym'])) {
+                        $gymIds[] = $gym['id_gym'];
+                    } elseif (is_numeric($gym) || is_string($gym)) {
+                        $gymIds[] = $gym;
+                    }
+                }
+            }
+
+            // Default to creator's first allowed gym if none provided
+            if (empty($gymIds)) {
+                $allowed = $creator->allowedGymIds();
+                if ($allowed && $allowed->count() > 0) {
+                    $gymIds[] = $allowed->first();
+                }
+            }
+
+            if (!empty($gymIds)) {
+                $gymId = $gymIds[0];
+                
+                if ($newUser->role === User::ROLE_MEMBER) {
+                    \App\Models\Enrollment::create([
+                        'id_member' => $newUser->id_user,
+                        'id_gym' => $gymId,
+                        'enrollment_date' => $newUser->creation_date ?? now(),
+                        'status' => 'active',
+                        'type' => 'standard',
+                    ]);
+                } else if (in_array($newUser->role, [User::ROLE_TRAINER, User::ROLE_NUTRITIONIST, User::ROLE_RECEPTIONIST])) {
+                    \App\Models\GymStaff::create([
+                        'id_user' => $newUser->id_user,
+                        'id_gym' => $gymId,
+                    ]);
+                }
+            }
+        }
+
+        return $newUser;
     }
 
     /**

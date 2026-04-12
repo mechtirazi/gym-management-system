@@ -24,9 +24,29 @@ class UserSeeder extends Seeder
         // Create 3 nutritionists
         User::factory()->nutritionist()->count(3)->create();
 
+        // Create 5 receptionists
+        User::factory()->receptionist()->count(5)->create();
+
         // Create 4 gym owners
         User::factory()->owner()->count(4)->create();
 
-        echo "✓ Created 34 test users successfully!\n";
+        // Create 2 fixed receptionist accounts for easy login/testing
+        User::factory()->receptionist()->create([
+            'name' => 'Reception',
+            'last_name' => 'One',
+            'email' => 'receptionist1@gym.local',
+            'password' => 'password123',
+            'phone' => '+1000000001',
+        ]);
+
+        User::factory()->receptionist()->create([
+            'name' => 'Reception',
+            'last_name' => 'Two',
+            'email' => 'receptionist2@gym.local',
+            'password' => 'password123',
+            'phone' => '+1000000002',
+        ]);
+
+        echo "✓ Created test users successfully (including receptionists)!\n";
     }
 }

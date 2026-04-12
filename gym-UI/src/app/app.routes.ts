@@ -70,6 +70,10 @@ export const routes: Routes = [
         loadChildren: () => import('./features/nutritionist/nutritionist.routes').then(m => m.nutritionistRoutes)
       },
       {
+        path: 'receptionist',
+        loadChildren: () => import('./features/receptionist/receptionist.routes').then(m => m.receptionistRoutes)
+      },
+      {
         path: 'admin',
         children: [
           {

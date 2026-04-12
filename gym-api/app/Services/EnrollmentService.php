@@ -21,7 +21,7 @@ class EnrollmentService extends BaseService
         // Auto-check for expirations whenever list is fetched
         $this->checkExpirations($user);
 
-        $query = $this->query();
+        $query = $this->query()->orderBy('created_at', 'desc');
 
         // Super Admin sees all enrollments
         if ($user->role === User::ROLE_SUPER_ADMIN) {

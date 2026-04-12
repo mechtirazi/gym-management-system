@@ -15,7 +15,7 @@ export class MemberService {
   /**
    * Fetches members from the backend with server-side pagination and filtering.
    */
-  getMembers(page: number = 1, perPage: number = 10, filters: any = {}): Observable<any> {
+  getMembers(page: number = 1, perPage: number = 100, filters: any = {}): Observable<any> {
     let url = `${this.apiUrl}/enrollments?page=${page}&per_page=${perPage}`;
     
     if (filters.status && filters.status !== 'All') {
@@ -43,6 +43,12 @@ export class MemberService {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     return this.http.put<any>(`${this.apiUrl}/users/${userId}`, member, { headers });
+  }
+
+  updateEnrollment(enrollmentId: string, enrollmentData: any): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    return this.http.put<any>(`${this.apiUrl}/enrollments/${enrollmentId}`, enrollmentData, { headers });
   }
 
   deleteMember(id: string): Observable<any> {

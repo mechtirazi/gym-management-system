@@ -1,0 +1,151 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  grid-column: span 12;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.label {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.value {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 0.25rem;
+}
+
+.btn {
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: rgb(220, 38, 38);
+  margin-bottom: 1rem;
+}
+
+.loading {
+  padding: 1rem 0;
+  color: var(--text-muted);
+}
+
+@media (min-width: 768px) {
+  .card {
+    grid-column: span 4;
+  }
+}
+
+.lists {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.card.list {
+  grid-column: span 12;
+}
+
+.list-title {
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.items {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--bg-sidebar);
+}
+
+.item-name {
+  font-weight: 800;
+}
+
+.item-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.15rem;
+}
+
+.chip {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  font-weight: 800;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.muted-chip {
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .lists {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+

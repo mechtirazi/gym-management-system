@@ -1,0 +1,94 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h1>Payments</h1>
+      <p class="subtitle">Create and update payments (receptionist permissions)</p>
+    </div>
+    <div class="actions">
+      <button class="btn" (click)="refresh()" [disabled]="isLoading()">Refresh</button>
+      <button class="btn secondary" (click)="reset()" [disabled]="isLoading()">New</button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  <div class="grid">
+    <div class="card form-card">
+      <h2>{{ canEdit() ? 'Edit payment' : 'New payment' }}</h2>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form">
+        <label>
+          <span>User ID</span>
+          <input formControlName="id_user" placeholder="id_user (UUID)" />
+        </label>
+
+        <label>
+          <span>Amount</span>
+          <input type="number" formControlName="amount" />
+        </label>
+
+        <label>
+          <span>Method</span>
+          <input formControlName="method" placeholder="cash / card / transfer / ..." />
+        </label>
+
+        <label>
+          <span>Type</span>
+          <select formControlName="type">
+            <option value="membership">membership</option>
+            <option value="product">product</option>
+            <option value="course">course</option>
+            <option value="nutrition">nutrition</option>
+            <option value="other">other</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Transaction ID (optional)</span>
+          <input formControlName="id_transaction" placeholder="Leave empty to auto-generate" />
+        </label>
+
+        <button class="btn primary" type="submit" [disabled]="isLoading()">
+          {{ canEdit() ? 'Update' : 'Create' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="card list-card">
+      <h2>Recent payments</h2>
+
+      @if (isLoading() && !payments().length) {
+        <div class="loading">Loading…</div>
+      } @else if (!payments().length) {
+        <div class="empty">No payments found.</div>
+      } @else {
+        <div class="table">
+          <div class="row head">
+            <div>ID</div>
+            <div>User</div>
+            <div>Amount</div>
+            <div>Type</div>
+            <div>Method</div>
+            <div></div>
+          </div>
+
+          @for (p of payments(); track p.id_payment) {
+            <div class="row">
+              <div class="mono">{{ p.id_payment }}</div>
+              <div class="mono">{{ p.id_user }}</div>
+              <div>{{ p.amount }}</div>
+              <div>{{ p.type || '—' }}</div>
+              <div>{{ p.method }}</div>
+              <div class="right">
+                <button class="btn tiny" (click)="select(p)" [disabled]="isLoading()">Edit</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+

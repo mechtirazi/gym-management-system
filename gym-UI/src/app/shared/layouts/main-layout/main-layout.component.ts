@@ -6,6 +6,7 @@ import { OwnerSidebarComponent } from './sidebars/owner-sidebar/owner-sidebar.co
 import { MemberSidebarComponent } from './sidebars/member-sidebar/member-sidebar.component';
 import { AdminSidebarComponent } from './sidebars/admin-sidebar/admin-sidebar.component';
 import { NutritionistSidebarComponent } from './sidebars/nutritionist-sidebar/nutritionist-sidebar.component';
+import { ReceptionistSidebarComponent } from './sidebars/receptionist-sidebar/receptionist-sidebar.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 
@@ -19,7 +20,8 @@ import { ThemeService } from '../../../core/services/theme.service';
     OwnerSidebarComponent, 
     MemberSidebarComponent,
     AdminSidebarComponent,
-    NutritionistSidebarComponent
+    NutritionistSidebarComponent,
+    ReceptionistSidebarComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'

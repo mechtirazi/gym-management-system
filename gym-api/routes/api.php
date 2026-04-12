@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\OwnerRevenueController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\SuperAdminAnalyticsController;
 use App\Http\Controllers\Api\OwnerController;
+use App\Http\Controllers\Api\ReceptionistDashboardController;
 
 // Public Auth Routes (no authentication required)
 Route::prefix('auth')->group(function () {
@@ -103,6 +104,10 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
 
     // Gym Staff routes
     Route::apiResource('gym-staff', GymStaffController::class);
+
+    // Receptionist dashboard (aggregated stats)
+    Route::get('receptionist/dashboard-stats', [ReceptionistDashboardController::class, 'stats'])
+        ->name('receptionist.dashboard-stats');
 
     // Gym Receipt Upload (Excluded from subscription check so they can pay when expired)
     Route::post('owner/gyms/{gym}/upload-receipt', [OwnerController::class, 'uploadReceipt'])
