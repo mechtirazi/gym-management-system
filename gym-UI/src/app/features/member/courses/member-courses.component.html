@@ -1,0 +1,126 @@
+<div class="courses-container animate-fade-in">
+  <header class="header-hub">
+    <div class="glass-card header-content">
+      <div class="text-group">
+        <h1>Training Programs</h1>
+        <p>Expert-led courses from your connected fitness nodes.</p>
+      </div>
+
+      <div class="header-filters">
+        <div class="search-box">
+          <span class="material-symbols-rounded">search</span>
+          <input type="text" [(ngModel)]="searchText" (ngModelChange)="onFilterChange()"
+            placeholder="Search programs or trainers..." />
+        </div>
+
+        <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="gym-node-selector">
+          <option value="all">Global Hub (All Gyms)</option>
+          <option *ngFor="let gym of gyms" [value]="gym.id_gym">{{ gym.name }}</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <nav class="category-tabs">
+    @for (cat of categories; track cat.id) {
+    <button class="tab-item" [class.active]="selectedCategory === cat.id"
+      (click)="selectedCategory = cat.id; onFilterChange()">
+      {{ cat.label }}
+    </button>
+    }
+  </nav>
+
+  <div *ngIf="errorMessage" class="error-hub">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  @if (!loading) {
+  <div class="courses-grid" *ngIf="paginatedCourses.length > 0; else noCourses">
+    @for (course of paginatedCourses; track course.id_course) {
+    <div class="course-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'"
+      [class.is-owned]="course.isOwned">
+      <div class="course-poster">
+        <img
+          [src]="course.image || 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600'"
+          [alt]="course.name">
+        <div class="category-badge">{{ course.category || 'Elite' }}</div>
+      </div>
+
+      <div class="course-details">
+        <div class="vendor-info">
+          <img
+            [src]="course.trainer?.avatar || 'https://ui-avatars.com/api/?name=Trainer&background=00d2ff&color=fff&bold=true'"
+            class="trainer-avatar">
+          <span class="trainer-name">{{ course.trainer?.name || 'Master Coach' }}</span>
+        </div>
+
+        <h3 class="course-title">{{ course.name }}</h3>
+        <p class="course-desc">{{ (course.description | slice:0:120) + '...' }}</p>
+
+        <div class="course-meta">
+          <span class="meta-item"><span class="icon">schedule</span> {{ course.duration }} Weeks</span>
+          <span class="meta-item"><span class="icon">groups</span> {{ course.members_count }} Enrolled</span>
+        </div>
+
+        <div class="card-footer">
+          <div class="price-tag">
+            <span class="currency">$</span>
+            <span class="amount">{{ course.price || '49.99' }}</span>
+          </div>
+          <button class="enroll-btn" [disabled]="course.isOwned" (click)="onEnroll(course)">
+            {{ course.isOwned ? 'Enrolled' : 'Enroll Now' }}
+            <span class="material-symbols-rounded">{{ course.isOwned ? 'verified' : 'arrow_forward' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Zen Pagination Hub -->
+  <div class="pagination-hub animate-fade-in" *ngIf="totalPages > 1">
+    <button class="nav-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+      <span class="material-icons">chevron_left</span>
+    </button>
+
+    <div class="page-indicators">
+      <button *ngFor="let p of [].constructor(totalPages); let i = index" class="page-pill"
+        [class.active]="currentPage === i + 1" (click)="changePage(i + 1)">
+        {{ i + 1 }}
+      </button>
+    </div>
+
+    <button class="nav-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+      <span class="material-icons">chevron_right</span>
+    </button>
+  </div>
+
+  <ng-template #noCourses>
+    <div class="empty-state">
+      <h3>No programs found</h3>
+      <p>Try adjusting your filters or search keywords.</p>
+    </div>
+  </ng-template>
+  } @else {
+  <div class="courses-grid">
+    @for (s of [1,2,3]; track s) {
+    <div class="skeleton-card glass-card">
+      <div class="skeleton-media"></div>
+      <div class="skeleton-body">
+        <div class="line title"></div>
+        <div class="line desc"></div>
+        <div class="line meta"></div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
+    [headerTitle]="'Unlock Program Access'" [itemTitle]="selectedCourse?.name || 'Program'"
+    [itemSubtitle]="selectedCourse?.category || 'Elite Training'"
+    [itemImage]="selectedCourse?.image || 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600'"
+    [purchaseTerms]="'Enrolling grants you full access to all future sessions and training materials for this program duration.'"
+    (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase()">
+  </app-payment-modal>
+</div>

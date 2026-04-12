@@ -1,12 +1,14 @@
 <div class="layout-container" [class.is-admin]="userRole() === 'super_admin' || userRole() === 'admin'">
   @if (userRole() === 'super_admin' || userRole() === 'admin') {
-    <app-admin-sidebar></app-admin-sidebar>
+  <app-admin-sidebar></app-admin-sidebar>
   } @else if (userRole() === 'owner') {
-    <app-owner-sidebar></app-owner-sidebar>
+  <app-owner-sidebar></app-owner-sidebar>
   } @else if (userRole() === 'nutritionist') {
-    <app-nutritionist-sidebar></app-nutritionist-sidebar>
+  <app-nutritionist-sidebar></app-nutritionist-sidebar>
+  } @else if (userRole() === 'trainer') {
+  <app-trainer-sidebar></app-trainer-sidebar>
   } @else {
-    <app-member-sidebar></app-member-sidebar>
+  <app-member-sidebar></app-member-sidebar>
   }
 
   <div class="main-content">
@@ -14,11 +16,11 @@
 
     <main class="page-content">
       @if (userRole() === 'super_admin' || userRole() === 'admin') {
-        <div class="admin-blobs">
-          <div class="blob blob-1"></div>
-          <div class="blob blob-2"></div>
-          <div class="blob blob-3"></div>
-        </div>
+      <div class="admin-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+      </div>
       }
       <router-outlet></router-outlet>
     </main>

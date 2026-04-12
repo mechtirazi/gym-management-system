@@ -21,6 +21,9 @@ class Review extends Model
     protected $fillable = [
         'id_user',
         'id_event',
+        'id_trainer',
+        'id_course',
+        'id_session',
         'rating',
         'comment',
         'review_date',
@@ -37,5 +40,20 @@ class Review extends Model
     public function event()
     {
         return $this->belongsTo(Event::class, 'id_event', 'id_event');
+    }
+
+    public function trainer()
+    {
+        return $this->belongsTo(User::class, 'id_trainer', 'id_user');
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'id_course', 'id_course');
+    }
+
+    public function session()
+    {
+        return $this->belongsTo(Session::class, 'id_session', 'id_session');
     }
 }

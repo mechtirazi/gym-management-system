@@ -24,8 +24,8 @@ class NutritionPlanPolicy
             return true;
         }
 
-        // Receptionist can see plans in their assigned gyms
-        if ($user->role === 'receptionist') {
+        // Receptionist and Trainer can see plans in their assigned gyms
+        if ($user->role === 'receptionist' || $user->role === User::ROLE_TRAINER) {
             return true;
         }
 

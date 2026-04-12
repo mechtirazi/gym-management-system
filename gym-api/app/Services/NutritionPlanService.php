@@ -41,6 +41,10 @@ class NutritionPlanService extends BaseService
         }
 
         if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
+            if ($user->role === User::ROLE_NUTRITIONIST) {
+                $query = $query->where('id_nutritionist', $user->id_user);
+            }
+            
             if ($activeGymId) {
                 $query = $query->where('id_gym', $activeGymId);
             } else {

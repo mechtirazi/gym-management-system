@@ -70,4 +70,27 @@ class NotificationService extends BaseService
             'is_read' => false,
         ]);
     }
+
+    /**
+     * Mark a specific notification as read
+     */
+    public function markAsRead($id)
+    {
+        $notif = $this->getById($id);
+        if ($notif) {
+            $notif->is_read = true;
+            $notif->save();
+        }
+    }
+
+    /**
+     * Mark all notifications as read for a specific user
+     */
+    public function markAllAsRead($userId)
+    {
+        $this->model->where(function ($query) use ($userId) {
+            $query->where('id_user', $userId)
+                  ->orWhereNull('id_user');
+        })->update(['is_read' => true]);
+    }
 }

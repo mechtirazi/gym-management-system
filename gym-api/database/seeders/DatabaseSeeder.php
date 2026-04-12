@@ -103,6 +103,24 @@ class DatabaseSeeder extends Seeder
             }
         }
 
+        // 2. Give every trainer some reviews (dynamic rating)
+        $trainers = \App\Models\User::where('role', \App\Models\User::ROLE_TRAINER)->get();
+        foreach ($trainers as $trainer) {
+            // Hot data for current month (trend calculation)
+            \App\Models\Review::factory()->count(rand(2, 5))->create([
+                'id_trainer' => $trainer->id_user,
+                'created_at' => \Carbon\Carbon::now(),
+                'review_date' => \Carbon\Carbon::now(),
+            ]);
+
+            // Data for previous month (trend comparison)
+            \App\Models\Review::factory()->count(rand(2, 5))->create([
+                'id_trainer' => $trainer->id_user,
+                'created_at' => \Carbon\Carbon::now()->subMonth(),
+                'review_date' => \Carbon\Carbon::now()->subMonth(),
+            ]);
+        }
+
         echo "\n✅ Database seeding completed successfully!\n";
         echo "📊 Total Records Created:\n";
         echo "   • 34 Users (2 super admins, 5 trainers, 20 members, 3 nutritionists, 4 owners)\n";

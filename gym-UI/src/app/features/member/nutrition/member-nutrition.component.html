@@ -1,0 +1,143 @@
+<div class="nutrition-hub-container animate-fade-in">
+    <!-- Dynamic Background Aura -->
+    <div class="x-bg-aura"></div>
+
+    <header class="hub-header">
+        <div class="header-content">
+            <div class="discovery-tag">
+                <span class="dot"></span>
+                <span>Bio-Sync Hub 2026</span>
+            </div>
+            <h1 class="hub-title">Fuel your <br> <span class="text-gradient">Performance.</span></h1>
+            <p class="hub-subtitle">Synchronized nutrition plans from your connected facilities.</p>
+        </div>
+
+        <div class="header-controls-wrapper">
+            <div class="header-controls">
+                <div class="search-orb">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" [(ngModel)]="searchText" placeholder="Search plans, macros, or goals..."
+                        class="search-input">
+                </div>
+
+                <div class="filter-group">
+                    <select [(ngModel)]="selectedGymId" class="gym-selector">
+                        <option value="all">Global Hubs (All Gyms)</option>
+                        <option *ngFor="let gym of gyms" [value]="gym.id_gym">{{ gym.name }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div *ngIf="loading" class="x-skeleton-grid">
+        <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="error-hub">
+        <span class="material-symbols-rounded">dns</span>
+        <p>{{ errorMessage }}</p>
+    </div>
+
+    <ng-container *ngIf="!loading && !errorMessage">
+        <!-- Marketplace Grid -->
+        <main class="nutrition-bento-grid" *ngIf="paginatedPlans.length > 0; else noPlans">
+            @for (plan of paginatedPlans; track plan.name) {
+            <article class="plan-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'"
+                [class.is-inactive]="!plan.isActive">
+
+                <div class="card-glass-body">
+                    <div class="gym-badge">
+                        <img [src]="plan.gymLogo" alt="Gym">
+                        <span>{{ plan.gymName }}</span>
+                    </div>
+
+                    <div class="plan-info">
+                        <h2>{{ plan.name }}</h2>
+                        <p>{{ plan.description }}</p>
+
+                        <div class="inactive-pill" *ngIf="!plan.isActive">
+                            <span class="material-symbols-rounded">history</span> Protocol De-Synchronized
+                        </div>
+                    </div>
+
+                    <div class="macro-dashboard">
+                        <div class="macro-stat macro-cell">
+                            <span class="val">{{ plan.macroStatus.protein }}g</span>
+                            <span class="lab">Prot</span>
+                            <div class="mini-progress">
+                                <div class="fill p" [style.width]="plan.macroStatus.pPercent + '%'"></div>
+                            </div>
+                        </div>
+                        <div class="macro-stat macro-cell">
+                            <span class="val">{{ plan.macroStatus.carbs }}g</span>
+                            <span class="lab">Carb</span>
+                            <div class="mini-progress">
+                                <div class="fill c" [style.width]="plan.macroStatus.cPercent + '%'"></div>
+                            </div>
+                        </div>
+                        <div class="macro-stat macro-cell">
+                            <span class="val">{{ plan.macroStatus.fats }}g</span>
+                            <span class="lab">Fat</span>
+                            <div class="mini-progress">
+                                <div class="fill f" [style.width]="plan.macroStatus.fPercent + '%'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-actions">
+                        <button class="btn-action-glass" (click)="$event.stopPropagation(); buyPlan(plan)">
+                            <span class="material-symbols-rounded">
+                                {{ plan.isOwned ? 'restaurant' : (plan.isActive ? 'shopping_cart' : 'lock') }}
+                            </span>
+                            {{ plan.isOwned ? 'View Daily Log' : (plan.isActive ? 'Purchase Sync' : 'Inactive') }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="owner-pill" *ngIf="plan.isOwned">
+                    <span class="material-symbols-rounded">verified</span> Bio-Synced
+                </div>
+
+                <div class="card-glow"></div>
+            </article>
+            }
+        </main>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-hub" *ngIf="totalPages > 1">
+            <button class="btn-page-nav" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+                <span class="material-symbols-rounded">
+                    < </span>
+            </button>
+
+            <div class="page-indicators">
+                <span *ngFor="let p of [].constructor(totalPages); let i = index" class="page-dot"
+                    [class.active]="currentPage === i + 1" (click)="changePage(i + 1)">
+                    {{ i + 1 }}
+                </span>
+            </div>
+
+            <button class="btn-page-nav" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+                <span class="material-symbols-rounded"> > </span>
+            </button>
+        </div>
+
+        <!-- Empty State for Search -->
+        <ng-template #noPlans>
+            <div class="empty-hub">
+                <span class="material-symbols-rounded icon">search_off</span>
+                <h3>No results for Hub Query</h3>
+                <p>We couldn't find any protocols matching your bio-search. Try broadening your gym or keyword node.</p>
+            </div>
+        </ng-template>
+    </ng-container>
+
+    <!-- Shared Payment Modal -->
+    <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
+        [headerTitle]="'Bio-Protocol Acquisition'" [itemTitle]="selectedPlan?.name || 'Protocol'"
+        [itemSubtitle]="selectedPlan?.gymName || 'Local Gym Hub'" [itemImage]="selectedPlan?.gymLogo"
+        [purchaseTerms]="'Unlocking this protocol will synchronize the nutritionist\'s meal algorithms to your daily performance tracker.'"
+        (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase()">
+    </app-payment-modal>
+</div>

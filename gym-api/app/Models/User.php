@@ -10,6 +10,15 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use App\Models\Wallet;
 
+/**
+ * @property int $manual_calories
+ * @property int $manual_protein
+ * @property int $manual_carbs
+ * @property int $manual_fats
+ * @property float $manual_water
+ * @property float $manual_weight
+ * @property int $evolution_points
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens; /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -65,6 +74,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_picture',
         'provider',
         'provider_id',
+        'manual_calories',
+        'manual_protein',
+        'manual_carbs',
+        'manual_fats',
+        'manual_water',
+        'manual_weight',
+        'evolution_points',
     ];
 
     /**
@@ -99,18 +115,18 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Validate role on create
         static::creating(function ($model) {
-            if (! in_array($model->role, self::VALID_ROLES)) {
+            if (!in_array($model->role, self::VALID_ROLES)) {
                 throw new \InvalidArgumentException(
-                    "Invalid role: {$model->role}. Valid roles are: ".implode(', ', self::VALID_ROLES)
+                    "Invalid role: {$model->role}. Valid roles are: " . implode(', ', self::VALID_ROLES)
                 );
             }
         });
 
         // Validate role on update
         static::updating(function ($model) {
-            if (! in_array($model->role, self::VALID_ROLES)) {
+            if (!in_array($model->role, self::VALID_ROLES)) {
                 throw new \InvalidArgumentException(
-                    "Invalid role: {$model->role}. Valid roles are: ".implode(', ', self::VALID_ROLES)
+                    "Invalid role: {$model->role}. Valid roles are: " . implode(', ', self::VALID_ROLES)
                 );
             }
         });
@@ -123,9 +139,11 @@ class User extends Authenticatable implements MustVerifyEmail
         });
 
         static::updated(function ($model) {
-            if ($model->wasChanged('role')
+            if (
+                $model->wasChanged('role')
                 && $model->role === self::ROLE_MEMBER
-                && ! $model->wallet) {
+                && !$model->wallet
+            ) {
                 $model->wallet()->create();
             }
         });

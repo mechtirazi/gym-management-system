@@ -1,0 +1,133 @@
+<div class="sessions-container animate-fade-in">
+  <header class="sessions-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">🕒</div>
+        <div class="text-content">
+          <h1>My Training Schedule</h1>
+          <p class="subtitle">Review and manage your upcoming classes and sessions.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sessions-controls">
+      <div class="search-wrap">
+        <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Search by course name or date...">
+      </div>
+
+      <div class="status-filter">
+        <button [class.active]="selectedStatus() === 'All'" (click)="selectedStatus.set('All')">All</button>
+        <button [class.active]="selectedStatus() === 'upcoming'"
+          (click)="selectedStatus.set('upcoming')">Upcoming</button>
+        <button [class.active]="selectedStatus() === 'completed'"
+          (click)="selectedStatus.set('completed')">Completed</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="sessions-content">
+    @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Syncing schedule...</p>
+    </div>
+    } @else {
+    <div class="table-card glass-card">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th>Class / Course</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th style="text-align: right;">Capacity/Attendance</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (session of filteredSessions(); track session.id_session) {
+          <tr class="session-row">
+            <td>
+              <div class="course-info">
+                <span class="course-name">{{ session.course?.name || 'Assigned Session' }}</span>
+              </div>
+            </td>
+            <td>{{ session.date_session | date:'mediumDate' }}</td>
+            <td>
+              <span class="time-badge">{{ session.start_time | slice:0:5 }} - {{ session.end_time | slice:0:5 }}</span>
+            </td>
+            <td>
+              <span class="status-cell" [ngClass]="getStatusClass(session.status)">
+                {{ session.status }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <button class="primary-btn sm-btn" (click)="viewAttendance(session)">
+                View Attendance
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="5" class="empty-table-msg">No sessions found matching your criteria.</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </main>
+</div>
+
+@if (selectedSession()) {
+<div class="attendance-modal-overlay">
+  <div class="attendance-modal glass-card animate-scale-in">
+    <header class="modal-header">
+      <div class="header-info">
+        <h2>Attendance</h2>
+        <p>{{ selectedSession().course?.name || 'Class' }} - {{ selectedSession().date_session | date:'mediumDate' }}
+        </p>
+      </div>
+      <button class="icon-btn close-btn" (click)="closeAttendance()">✕</button>
+    </header>
+
+    <div class="modal-body">
+      @if (isLoadingAttendances()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading members...</p>
+      </div>
+      } @else if (attendanceError()) {
+      <div class="error-state">
+        <p>{{ attendanceError() }}</p>
+        <button class="primary-btn mt-2" (click)="viewAttendance(selectedSession())">Retry</button>
+      </div>
+      } @else if (attendances().length === 0) {
+      <div class="empty-state">
+        <div class="icon-bubble empty-icon">👥</div>
+        <p>No members enrolled in this session yet.</p>
+      </div>
+      } @else {
+      <div class="attendance-list">
+        @for (att of attendances(); track att.id_attendance) {
+        <div class="attendance-item">
+          <div class="member-info">
+            <div class="avatar">{{ (att.member?.first_name | slice:0:1) || '?' }}</div>
+            <div class="details">
+              <span class="name">{{ att.member?.first_name || 'Unknown' }} {{ att.member?.last_name || '' }}</span>
+              <span class="email">{{ att.member?.email || 'No email' }}</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="status-toggle" [ngClass]="att.status === 'present' ? 'present' : 'absent'"
+              (click)="toggleAttendanceStatus(att)">
+              {{ att.status === 'present' ? 'Present' : 'Absent' }}
+            </button>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+</div>
+}

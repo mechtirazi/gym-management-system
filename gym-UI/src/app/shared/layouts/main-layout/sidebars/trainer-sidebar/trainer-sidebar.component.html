@@ -1,0 +1,39 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 18h4M14 18h4M15 22v-4M9 22v-4M15 14v-4M9 14v-4M11 6v-2h2v2M5 10v4h14v-4H5z"></path>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span>GYM<span class="text-primary">UI</span></span>
+        <span class="role-badge">Trainer</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ng-container *ngFor="let item of navItems">
+      <div *ngIf="item.isHeader" class="nav-header">{{ item.label }}</div>
+      <a *ngIf="!item.isHeader" [routerLink]="item.routePath" routerLinkActive="active" class="nav-item">
+        <div class="nav-icon" [innerHTML]="getIcon(item.icon || '')"></div>
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    </ng-container>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="support-card">
+      <div class="support-icon">🏆</div>
+      <div class="support-content">
+        <div class="support-title">Coach Center</div>
+        <div class="support-desc">Manage your team.</div>
+      </div>
+      <button class="support-btn">
+        <span class="material-symbols-rounded">rocket_launch</span>
+        <span>Go Pro</span>
+      </button>
+    </div>
+  </div>
+</aside>

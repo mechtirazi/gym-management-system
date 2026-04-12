@@ -51,6 +51,20 @@ class StoreUserRequest extends FormRequest
             ];
         }
 
+        // Receptionists, Trainers, and Nutritionists can only create members
+        if ($user && in_array($user->role, ['receptionist', 'trainer', 'nutritionist'])) {
+            return [
+                'name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|string|min:6',
+                'role' => 'required|string|in:member',
+                'phone' => 'required|string|max:20',
+                'creation_date' => 'required|date',
+                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ];
+        }
+
         // Default for unauthenticated or other users
         return [
             'name' => 'required|string|max:255',
@@ -100,8 +114,8 @@ class StoreUserRequest extends FormRequest
             return 'Owners can only create trainer, member, nutritionist, or receptionist.';
         }
 
-        if ($user && $user->role === 'super_admin') {
-            return 'Super admin can only create owners.';
+        if ($user && in_array($user->role, ['receptionist', 'trainer', 'nutritionist'])) {
+            return 'You can only create members.';
         }
 
         return 'Invalid role selected.';

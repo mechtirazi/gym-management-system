@@ -32,6 +32,7 @@ class NotificationPolicy
         return in_array($user->role, [
             User::ROLE_OWNER,
             User::ROLE_RECEPTIONIST,
+            User::ROLE_TRAINER, // Added trainer role
         ]);
     }
 

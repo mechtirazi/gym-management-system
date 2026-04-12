@@ -9,7 +9,7 @@ import { AuthService } from '../services/auth.service';
 export const roleRedirectGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  
+
   const role = authService.userRole();
 
   if (role === 'owner') {
@@ -18,6 +18,8 @@ export const roleRedirectGuard: CanActivateFn = () => {
     return router.parseUrl('/member/dashboard');
   } else if (role === 'nutritionist') {
     return router.parseUrl('/nutritionist/dashboard');
+  } else if (role === 'trainer') {
+    return router.parseUrl('/trainer/dashboard');
   } else if (role === 'admin' || role === 'super_admin') {
     return router.parseUrl('/admin/dashboard');
   }

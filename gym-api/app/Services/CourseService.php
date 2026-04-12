@@ -53,6 +53,12 @@ class CourseService extends BaseService
             $query = $query->whereHas('sessions', function ($sq) use ($user) {
                 $sq->where('id_trainer', $user->id_user);
             });
+            
+            // Respect active gym context for trainers too
+            if ($activeGymId) {
+                $query = $query->where('id_gym', $activeGymId);
+            }
+
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 

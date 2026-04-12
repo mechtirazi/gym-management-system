@@ -91,6 +91,11 @@ export class NotificationService {
     return this.http.post(`${environment.apiUrl}/admin/notifications/owner/${ownerId}`, { text });
   }
 
+  sendToUser(userId: string, text: string): Observable<any> {
+    // Uses the generic store endpoint which requires id_user and text
+    return this.http.post(`${this.API_URL}`, { id_user: userId, text: text, type: 'info' });
+  }
+
   private mapNotification(n: any): GymNotification {
     return {
       id: n.id_notification,
