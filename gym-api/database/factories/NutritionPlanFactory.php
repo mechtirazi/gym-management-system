@@ -22,7 +22,15 @@ class NutritionPlanFactory extends Factory
 
         return [
             'id_gym'           => Gym::inRandomOrder()->first()?->id_gym,
+            'name'             => $this->faker->words(3, true) . ' Protocol',
+            'description'      => $this->faker->sentence(10),
             'goal'             => $this->faker->randomElement(['Weight Loss', 'Muscle Gain', 'Maintenance', 'Endurance', 'Strength']),
+            'protein'          => $this->faker->numberBetween(80, 250),
+            'carbs'            => $this->faker->numberBetween(100, 400),
+            'fats'             => $this->faker->numberBetween(40, 120),
+            'calories'         => $this->faker->numberBetween(1500, 3500),
+            'score'            => $this->faker->numberBetween(60, 100),
+            'is_active'        => $this->faker->boolean(80),
             'start_date'       => $startDate,
             'end_date'         => $this->faker->dateTimeBetween($startDate, $startDate->modify('+90 days')),
             'id_nutritionist'  => User::where('role', 'nutritionist')->inRandomOrder()->first()?->id_user ?? User::factory()->nutritionist(),

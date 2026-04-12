@@ -1,0 +1,229 @@
+<div class="trainer-dashboard animate-fade-in">
+  @if (isLoading()) {
+  <div class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Building your command center...</p>
+  </div>
+  } @else {
+  <header class="dashboard-header glass-card">
+    <div class="header-content">
+      <div class="welcome-text">
+        <h1>Welcome back, {{ trainerName() }}</h1>
+        <p class="subtitle">Here's your schedule and performance for today.</p>
+      </div>
+      <div class="current-time">
+        <span class="date">{{ currentTime() | date:'fullDate' }}</span>
+        <span class="time">{{ currentTime() | date:'shortTime' }}</span>
+      </div>
+    </div>
+  </header>
+
+  @if (nextSession()) {
+  <div class="spotlight-section">
+    <div class="spotlight-card glass-card next-up">
+      <div class="spotlight-badge">NEXT SESSION</div>
+      <div class="spotlight-main">
+        <div class="session-hero">
+          <div class="hero-icon">🏋️‍♂️</div>
+          <div class="hero-details">
+            <h2>{{ nextSession().course?.name || 'Assigned Class' }}</h2>
+            <p>{{ nextSession().start_time | slice:0:5 }} - {{ nextSession().end_time | slice:0:5 }}</p>
+          </div>
+        </div>
+
+        <div class="countdown-wrap">
+          <div class="countdown-label">STARTING IN</div>
+          <div class="countdown-value">{{ countdown() }}</div>
+        </div>
+
+        <div class="spotlight-actions">
+        </div>
+      </div>
+
+      <div class="attendance-forecast">
+        <div class="forecast-bar">
+          <div class="fill" [style.width.%]="getAttendanceProgress(nextSession())"></div>
+        </div>
+        <span class="forecast-text">Capacity: {{ nextSession().attendances_count || 0 }} / 20 Enrolled</span>
+      </div>
+    </div>
+  </div>
+  }
+
+  <div class="stats-row">
+    <div class="stat-card glass-card">
+      <div class="icon-box cyan">👥</div>
+      <div class="stat-data">
+        <span class="value">{{ stats().activeClients }}</span>
+        <span class="label">Active Clients</span>
+      </div>
+      <div class="trend positive">+2 this week</div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="icon-box amber">🕒</div>
+      <div class="stat-data">
+        <span class="value">{{ stats().sessionsToday }}</span>
+        <span class="label">Today's Goals</span>
+      </div>
+      <div class="trend">{{ stats().completedToday }} Completed</div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="icon-box emerald">⭐️</div>
+      <div class="stat-data">
+        <span class="value">{{ stats().rating }}</span>
+        <span class="label">Performance</span>
+      </div>
+      <div class="trend positive">{{ stats().ratingTrend }} Improvement</div>
+    </div>
+  </div>
+
+  <div class="dashboard-main-grid">
+    <section class="schedule-section glass-card">
+      <div class="section-header">
+        <h3>Upcoming Schedule</h3>
+        <button class="text-link" routerLink="/trainer/sessions">View Full Calendar</button>
+      </div>
+      <div class="agenda-list">
+        @for (session of limitedSessions(); track session.id_session) {
+        <div class="agenda-item">
+          <div class="time-col">
+            <span class="time">{{ session.start_time | slice:0:5 }}</span>
+            <span class="date-sm">{{ session.date_session | date:'MMM d' }}</span>
+          </div>
+          <div class="info-col">
+            <span class="course-title">{{ session.course?.name || 'Class' }}</span>
+            <span class="gym-badge">Main Gym</span>
+          </div>
+          <div class="status-col">
+            <span class="status-pill" [ngClass]="session.status">{{ session.status }}</span>
+          </div>
+        </div>
+        } @empty {
+        <div class="empty-agenda">
+          <p>Your schedule is clear for now.</p>
+        </div>
+        }
+      </div>
+    </section>
+
+    <section class="quick-actions glass-card">
+      <h3>Command Bar</h3>
+      <div class="actions-grid">
+        <button class="action-btn" (click)="openAddMember()">
+          <span class="icon">👤</span>
+          <span class="txt">Add Member</span>
+        </button>
+        <button class="action-btn active" (click)="openBroadcast()">
+          <span class="icon">📢</span>
+          <span class="txt">Broadcast</span>
+        </button>
+        <button class="action-btn" routerLink="/trainer/analytics">
+          <span class="icon">📈</span>
+          <span class="txt">Analytics</span>
+        </button>
+        <button class="action-btn">
+          <span class="icon">⚙️</span>
+          <span class="txt">Preferences</span>
+        </button>
+      </div>
+    </section>
+  </div>
+  }
+
+  <!-- ADD MEMBER MODAL -->
+  @if (isAddMemberModalOpen()) {
+  <div class="modal-overlay" (click)="closeAddMember()">
+    <div class="broadcast-modal glass-card animate-scale-in" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Add New Member</h2>
+        <button class="close-btn" (click)="closeAddMember()">✕</button>
+      </header>
+
+      <div class="modal-body">
+        <div style="display: flex; gap: 1rem;">
+          <div class="form-group" style="flex: 1;">
+            <label>First Name</label>
+            <input type="text" [ngModel]="memberForm().first_name"
+              (ngModelChange)="updateMemberForm('first_name', $event)" placeholder="John">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Last Name</label>
+            <input type="text" [ngModel]="memberForm().last_name"
+              (ngModelChange)="updateMemberForm('last_name', $event)" placeholder="Doe">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" [ngModel]="memberForm().email" (ngModelChange)="updateMemberForm('email', $event)"
+            placeholder="john.doe@example.com">
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" [ngModel]="memberForm().phone" (ngModelChange)="updateMemberForm('phone', $event)"
+            placeholder="+1 234 567 890">
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button class="secondary-btn" (click)="closeAddMember()">Cancel</button>
+        <button class="primary-btn" [disabled]="!memberForm().first_name || !memberForm().email || isSavingMember()"
+          (click)="saveMember()">
+          {{ isSavingMember() ? 'Saving...' : 'Create Member' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  <!-- BROADCAST MODAL -->
+  @if (isBroadcastModalOpen()) {
+  <div class="modal-overlay" (click)="closeBroadcast()">
+    <div class="broadcast-modal glass-card animate-scale-in" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>New Broadcast</h2>
+        <button class="close-btn" (click)="closeBroadcast()">✕</button>
+      </header>
+
+      <div class="modal-body">
+        <p class="desc">Send a notification to all members enrolled in your upcoming sessions.</p>
+
+        <div class="form-group">
+          <label>Message Type</label>
+          <div class="type-selector">
+            <button [class.active]="broadcastForm().type === 'info'" (click)="broadcastForm().type = 'info'">ℹ️
+              Info</button>
+            <button [class.active]="broadcastForm().type === 'warning'" (click)="broadcastForm().type = 'warning'">⚠️
+              Alert</button>
+            <button [class.active]="broadcastForm().type === 'promo'" (click)="broadcastForm().type = 'promo'">🔥
+              Promo</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" [ngModel]="broadcastForm().title" (ngModelChange)="updateBroadcastForm('title', $event)"
+            placeholder="e.g. Class Update">
+        </div>
+
+        <div class="form-group">
+          <label>Message Content</label>
+          <textarea [ngModel]="broadcastForm().message" (ngModelChange)="updateBroadcastForm('message', $event)"
+            rows="4" placeholder="Write your message here..."></textarea>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button class="secondary-btn" (click)="closeBroadcast()">Cancel</button>
+        <button class="primary-btn" [disabled]="!broadcastForm().message || isSendingBroadcast()"
+          (click)="sendBroadcast()">
+          {{ isSendingBroadcast() ? 'Sending...' : 'Send Broadcast' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+</div>

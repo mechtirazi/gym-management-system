@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Enrollment extends Model
@@ -17,6 +18,8 @@ class Enrollment extends Model
 
     protected $keyType = 'string';
 
+    protected $appends = ['end_date', 'start_date'];
+
     protected $fillable = [
         'id_member',
         'id_gym',
@@ -24,6 +27,22 @@ class Enrollment extends Model
         'status',
         'type',
     ];
+
+    public function getEndDateAttribute()
+    {
+        if (!$this->enrollment_date)
+            return null;
+
+        // Dynamic logic based on type
+        $days = ($this->type === 'premium') ? 90 : 30;
+
+        return Carbon::parse($this->enrollment_date)->addDays($days)->toDateString();
+    }
+
+    public function getStartDateAttribute()
+    {
+        return $this->enrollment_date;
+    }
 
     // Relationships
     public function member()

@@ -1,0 +1,79 @@
+<div class="community-container animate-fade-in">
+  <!-- Stats Section -->
+  <header class="community-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">✨</div>
+        <div class="text-content">
+          <h1>Community Outreach</h1>
+          <p class="subtitle">Monitor member reviews and community engagement.</p>
+        </div>
+      </div>
+      
+      <div class="stats-overview">
+        <div class="stat-pill primary">
+          <span class="stat-value">{{ stats.averageRating }} <small>★</small></span>
+          <span class="stat-label">Avg. Global Rating</span>
+        </div>
+        <div class="stat-pill success">
+          <span class="stat-value">{{ stats.positiveRate }}%</span>
+          <span class="stat-label">Satisfaction rate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="community-controls">
+      <div class="search-wrap">
+        <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Search comments or members...">
+      </div>
+
+      <div class="sentiment-filter">
+        <button [class.active]="selectedFilter === 'all'" (click)="selectedFilter='all'; applyFilter()">All</button>
+        <button [class.active]="selectedFilter === 'positive'" (click)="selectedFilter='positive'; applyFilter()">Positive</button>
+        <button [class.active]="selectedFilter === 'neutral'" (click)="selectedFilter='neutral'; applyFilter()">Neutral</button>
+        <button [class.active]="selectedFilter === 'negative'" (click)="selectedFilter='negative'; applyFilter()">Negative</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="community-content">
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading community feedback...</p>
+      </div>
+    } @else {
+      <div class="reviews-grid">
+        @for (review of filteredReviews; track review.review_id) {
+          <article class="review-card glass-card">
+            <div class="review-header">
+              <div class="user-info">
+                <div class="avatar">{{ review.user?.name?.charAt(0) }}{{ review.user?.last_name?.charAt(0) }}</div>
+                <div>
+                  <h4 class="user-name">{{ review.user?.name }} {{ review.user?.last_name }}</h4>
+                  <span class="review-date">{{ review.created_at | date:'mediumDate' }}</span>
+                </div>
+              </div>
+              <div class="sentiment-badge" [ngClass]="getSentimentClass(review)">
+                {{ getSentimentLabel(review) }}
+              </div>
+            </div>
+
+            <div class="star-rating">
+              @for (star of getStars(review); track $index) {
+                <span class="star" [class.filled]="star">★</span>
+              }
+            </div>
+
+            <p class="review-comment">"{{ review.comment }}"</p>
+          </article>
+        } @empty {
+          <div class="empty-state">
+            <p>No reviews found matching your criteria.</p>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>

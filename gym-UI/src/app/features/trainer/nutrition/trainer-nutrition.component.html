@@ -1,0 +1,52 @@
+<div class="nutrition-container animate-fade-in">
+  <header class="nutrition-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">🥗</div>
+        <div class="text-content">
+          <h1>Nutrition Oversight</h1>
+          <p class="subtitle">Review dietary plans and progress for your clients.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="nutrition-controls">
+      <div class="search-wrap">
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Search by member name or goal...">
+      </div>
+
+      <div class="status-filter">
+        @for (status of filterOptions; track status) {
+          <button class="filter-chip" [class.active]="selectedFilter() === (status === 'All Plans' ? 'All' : status)" (click)="onFilterChange(status === 'All Plans' ? 'All' : status)">
+            {{ status }}
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="nutrition-content">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Syncing nutrition plans...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <p>{{ error() }}</p>
+        <button class="retry-btn" (click)="loadPlans()">Reload Plans</button>
+      </div>
+    } @else if (filteredPlans().length === 0) {
+      <div class="empty-state">
+        <h3>No nutrition plans found</h3>
+        <p>Your clients may not have nutritional plans yet.</p>
+      </div>
+    } @else {
+      <div class="nutrition-grid">
+        @for (plan of filteredPlans(); track $index) {
+          <app-nutrition-card [plan]="plan"></app-nutrition-card>
+        }
+      </div>
+    }
+  </main>
+</div>

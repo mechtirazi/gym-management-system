@@ -7,20 +7,16 @@ use App\Models\Course;
 
 class CoursePolicy
 {
-    /**
-     * Determine if the user can view any courses
-     */
     public function viewAny(User $user): bool
     {
-        //  Member, owner, receptionist, trainer can view course lists
-        // They will be filtered by the service
+        // Member, owner, receptionist, trainer, nutritionist can view course lists
         return in_array($user->role, [
             User::ROLE_MEMBER,
             User::ROLE_OWNER,
             User::ROLE_RECEPTIONIST,
             User::ROLE_TRAINER,
+            User::ROLE_NUTRITIONIST,
         ]);
-
     }
 
     /**

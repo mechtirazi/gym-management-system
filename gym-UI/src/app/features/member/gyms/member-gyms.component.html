@@ -1,0 +1,106 @@
+<div class="x-hub-container">
+  <!-- Dynamic Background Effects -->
+  <div class="x-bg-aura aura-1"></div>
+  <div class="x-bg-aura aura-2"></div>
+
+  <!-- Architectural Header -->
+  <header class="x-header animate-slide-up">
+    <div class="header-content">
+      <div class="discovery-tag">
+        <span class="dot"></span>
+        <span>Discovery Hub 2026</span>
+      </div>
+      <h1 class="x-title">Explore your <br> <span class="text-gradient">Power-Hub.</span></h1>
+      <p class="x-subtitle">Premium curated high-performance facilities.</p>
+    </div>
+    <div class="header-controls">
+      <div class="x-search-orb">
+        <span class="material-symbols-rounded">search</span>
+        <input type="text" placeholder="Search facilities..." [(ngModel)]="searchTerm">
+      </div>
+      <button class="btn-filter-glass">
+        <span class="material-symbols-rounded">tune</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- High-Performance Filter Track -->
+  <div class="x-filter-track animate-slide-up" style="animation-delay: 0.1s">
+    <div class="track-inner">
+      <button class="x-chip" *ngFor="let cat of filterCategories" [class.active]="activeFilter === cat"
+        (click)="setFilter(cat)">
+        {{ cat }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Bento Architectural Grid -->
+  <main class="x-bento-grid">
+    @if (loading) {
+    <div class="x-skeleton bento-item-large"></div>
+    <div class="x-skeleton bento-item"></div>
+    <div class="x-skeleton bento-item"></div>
+    <div class="x-skeleton bento-item"></div>
+    } @else {
+    @for (gym of filteredGyms; track gym.id_gym) {
+    <article class="bento-item animate-slide-up" [class.bento-large]="$index % 5 === 0"
+      [style.animation-delay]="$index * 0.05 + 0.2 + 's'" [routerLink]="['/member/gyms', gym.id_gym]">
+
+      <div class="item-visual">
+        <img
+          [src]="gym.image || 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=1200'"
+          class="main-img" alt="Gym">
+
+        <div class="visual-overlay">
+          <div class="top-meta">
+            <span class="status-pill" [class.open]="true">Open Now</span>
+            <button class="btn-like" (click)="$event.stopPropagation(); onLike(gym.id_gym)">
+              <span class="material-symbols-rounded">bookmark</span>
+            </button>
+          </div>
+
+          <div class="bottom-meta">
+            <div class="gym-identity">
+              <img [src]="gym.logo || 'assets/images/default-gym-logo.png'" class="mini-logo">
+              <div class="identity-text">
+                <h3>{{ gym.name }}</h3>
+                <p>{{ gym.adress || 'Metropolitan Core' }}</p>
+              </div>
+            </div>
+            <div class="gym-stats">
+              <span class="stat">
+                <span class="material-symbols-rounded">group</span>
+                {{ gym.members_count || 0 }}
+              </span>
+              <span class="stat">
+                <span class="material-symbols-rounded">star</span>
+                4.9
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3D Perspective Shine -->
+        <div class="shine-effect"></div>
+      </div>
+
+      <div class="item-actions">
+        <button class="btn-action-primary" (click)="$event.stopPropagation(); onSubscribe(gym)">
+          Join Hub
+          <span class="material-symbols-rounded">arrow_forward</span>
+        </button>
+      </div>
+    </article>
+    }
+    }
+  </main>
+
+  <!-- High-Fidelity Checkout Vault -->
+  <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
+    [headerTitle]="'Facility Activation'" [itemTitle]="selectedGym?.name || 'Facility Hub'"
+    [itemSubtitle]="selectedGym?.adress || 'Premium Fitness Node'"
+    [itemImage]="selectedGym?.image || 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=1200'"
+    [purchaseTerms]="'Activating this facility grants you full access to all standard training equipments, lockers and recovery zones.'"
+    (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase()">
+  </app-payment-modal>
+</div>

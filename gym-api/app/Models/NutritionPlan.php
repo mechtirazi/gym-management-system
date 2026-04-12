@@ -20,7 +20,15 @@ class NutritionPlan extends Model
 
     protected $fillable = [
         'id_gym',
+        'name',
+        'description',
         'goal',
+        'protein',
+        'carbs',
+        'fats',
+        'calories',
+        'score',
+        'is_active',
         'start_date',
         'end_date',
         'id_nutritionist',

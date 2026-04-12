@@ -36,6 +36,12 @@ class AttendanceService extends BaseService
 
         // Trainers only see attendance for their sessions
         if ($user->role === User::ROLE_TRAINER) {
+            $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) {
+                $q->whereHas('session.course', function ($sq) use ($gymId) {
+                    $sq->where('id_gym', $gymId);
+                });
+            });
+
             return $query->whereHas('session', function ($q) use ($user) {
                 $q->where('id_trainer', $user->id_user);
             })->get();

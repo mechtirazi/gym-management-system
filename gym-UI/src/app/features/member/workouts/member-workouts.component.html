@@ -1,0 +1,140 @@
+<div class="workouts-container animate-fade-in">
+  <header class="page-header">
+    <div class="header-content">
+      <h1>{{ showCatalog ? 'Exercise Catalog' : 'My Workouts' }}</h1>
+      <button class="btn-toggle-catalog" (click)="toggleCatalog()">
+        <span class="material-icons">{{ showCatalog ? 'fitness_center' : 'grid_view' }}</span>
+        {{ showCatalog ? 'Back to Session' : 'View Catalog' }}
+      </button>
+    </div>
+    <p class="subtitle">Manage your training schedule and discover new courses.</p>
+  </header>
+
+  <!-- KATALOG VIEW -->
+  <section class="catalog-grid-view animate-fade-in" *ngIf="showCatalog">
+    <div class="catalog-header glass-container mb-4">
+      <span class="material-icons">info</span>
+      <p>Browse global exercise protocols. Click an item to view details or go back to add to session.</p>
+      <input type="text" [(ngModel)]="exSearch" placeholder="Search Catalog..." class="glass-search ml-auto">
+    </div>
+    <div class="pro-catalog-grid">
+      <div class="cat-card glass-item animate-slide-up" *ngFor="let ex of filteredExercises"
+        (click)="addPresetExercise(ex.name)">
+        <div class="card-visual">
+          <img [src]="ex.image" alt="exercise">
+          <div class="visual-overlay"></div>
+        </div>
+        <div class="card-info-pane">
+          <span class="ex-name">{{ ex.name }}</span>
+          <span class="ex-cat badge">{{ ex.category }}</span>
+        </div>
+        <div class="sync-indicator">
+          <span class="material-icons">sync</span>
+          SYNC PROTOCOL
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- YOUR PERSONAL WORKOUT BUILDER -->
+  <div class="dual-pane-layout" *ngIf="!showCatalog">
+    <!-- PERSONAL PROTOCOL CATALOG (LEFT PANE) -->
+    <aside class="library-pane glass-container animate-fade-in">
+      <div class="pane-header">
+        <span class="material-icons">bookmark_added</span>
+        <h3 class="pane-title">Personal Catalog</h3>
+      </div>
+
+      <!-- Filters for your personal list -->
+      <div class="category-filters mini-v">
+        <button class="filter-chip" [class.active]="activeCategory === 'all'"
+          (click)="activeCategory = 'all'">All</button>
+        <button class="filter-chip" [class.active]="activeCategory === 'chest'"
+          (click)="activeCategory = 'chest'">Chest</button>
+        <button class="filter-chip" [class.active]="activeCategory === 'back'"
+          (click)="activeCategory = 'back'">Back</button>
+        <button class="filter-chip" [class.active]="activeCategory === 'legs'"
+          (click)="activeCategory = 'legs'">Legs</button>
+      </div>
+
+      <div class="exercise-list custom-scrollbar">
+        <!-- ONLY shows exercises that you have added from the main Catalog -->
+        <div class="library-item glass-item animate-slide-up" *ngFor="let ex of filteredSelectedExercises"
+          (click)="addExerciseToSession(ex.name)">
+          <div class="ex-img-thumb">
+            <img [src]="ex.image" alt="ex">
+          </div>
+          <div class="ex-detail">
+            <span class="name">{{ ex.name }}</span>
+            <span class="meta">{{ ex.category }}</span>
+          </div>
+          <div class="library-actions">
+            <span class="material-icons add-icon">post_add</span>
+            <span class="material-icons delete-icon" (click)="removeFromCatalog(ex.name, $event)">delete_outline</span>
+          </div>
+        </div>
+
+        <div class="empty-sync-list" *ngIf="selectedExercisesNames.length === 0">
+          <p>Your catalog is empty. Sync exercises from the main list above.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ACTIVE SESSION BUILDER (RIGHT PANE) -->
+    <main class="builder-pane glass-container animate-fade-in">
+      <div class="pane-header">
+        <div class="header-main">
+          <span class="material-icons">fitness_center</span>
+          <h2>Active Pulse Protocol</h2>
+        </div>
+        <button class="btn-commit" (click)="saveWorkout()" [disabled]="isSaving || workoutForm.exercises.length === 0">
+          <span class="material-icons">{{ isSaving ? 'sync' : 'cloud_upload' }}</span>
+          {{ isSaving ? 'Syncing...' : 'Commit Session' }}
+        </button>
+      </div>
+
+      <div class="session-form custom-scrollbar">
+        <div class="form-group mb-5">
+          <label>Protocol Identity</label>
+          <input type="text" [(ngModel)]="workoutForm.name" class="titanium-input" placeholder="Name your session...">
+        </div>
+
+        <div class="exercises-stack" *ngIf="workoutForm.exercises.length > 0">
+          <div class="exercise-node glass-item animate-slide-up"
+            *ngFor="let ex of workoutForm.exercises; let i = index">
+            <div class="node-header">
+              <span class="node-name">{{ ex.exercise_name }}</span>
+              <button class="btn-icon delete" (click)="removeExercise(i)"><span
+                  class="material-icons">close</span></button>
+            </div>
+
+            <div class="sets-table">
+              <div class="row header">
+                <span>Set</span>
+                <span>Kg</span>
+                <span>Reps</span>
+                <span></span>
+              </div>
+              <div class="row animate-fade-in" *ngFor="let set of ex.sets; let si = index">
+                <span class="set-idx">#{{ si + 1 }}</span>
+                <input type="number" [(ngModel)]="set.weight" class="mini-input">
+                <input type="number" [(ngModel)]="set.reps" class="mini-input">
+                <button class="btn-icon mini" (click)="removeSet(i, si)"><span
+                    class="material-icons">remove</span></button>
+              </div>
+            </div>
+
+            <button class="btn-add-set-link" (click)="addSet(i)">
+              <span class="material-icons">add</span> Add Intensive Set
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-builder" *ngIf="workoutForm.exercises.length === 0">
+          <span class="material-icons big-icon">add_to_photos</span>
+          <p>Select exercises from the library to initiate protocol.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

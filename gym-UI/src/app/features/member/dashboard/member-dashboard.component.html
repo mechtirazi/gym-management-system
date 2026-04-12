@@ -1,0 +1,244 @@
+<div class="member-dashboard-container">
+  <!-- Architectural Hero Section -->
+  <header class="dashboard-hero animate-fade-in">
+    <div class="hero-aura"></div>
+    <div class="hero-content">
+      <div class="greeting-layer">
+        <span class="status-token">BIOMETRIC_PROFILE_ACTIVE</span>
+        <h1>{{ getGreeting() }}, <span class="text-gradient">{{ user()?.name }}</span></h1>
+        <p class="subtitle">System heartbeat: Normal. Consistency level: Optimal.</p>
+      </div>
+      <div class="quick-access-orb">
+        <button class="btn-check-in-titanium" (click)="onCheckIn()" [disabled]="isSyncing">
+          <span class="material-icons" [class.syncing]="isSyncing">{{ isSyncing ? 'sync' : 'qr_code_scanner' }}</span>
+          {{ isSyncing ? 'Syncing...' : 'Node Check-in' }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-main-grid animate-slide-up-delayed">
+    <!-- Left Column: Operations & Training (Bento Core) -->
+    <div class="ops-column">
+      <!-- High-Performance Stats Strip -->
+      <div class="stats-strip">
+        <div class="stat-pill titanium purple" [class.pulse]="stats.activeWorkouts > 0">
+          <div class="stat-icon">🏋️</div>
+          <div class="stat-data">
+            <span class="label">Integrated Programs</span>
+            <h3 class="value">{{ stats.activeWorkouts }}</h3>
+          </div>
+        </div>
+        <div class="stat-pill titanium cyan">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-data">
+            <span class="label">Daily Performance (Kcal)</span>
+            <h3 class="value">{{ stats.caloriesBurned | number:'1.0-0' }}</h3>
+          </div>
+        </div>
+        <div class="stat-pill titanium orange">
+          <div class="stat-icon">⚡</div>
+          <div class="stat-data">
+            <span class="label">Node Syncs</span>
+            <h3 class="value">{{ stats.completedSessions }}</h3>
+          </div>
+        </div>
+        <div class="stat-pill titanium gold">
+          <div class="stat-icon">💎</div>
+          <div class="stat-data">
+            <span class="label">Evolution Points</span>
+            <h3 class="value">{{ stats.evolutionPoints | number }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Training Module -->
+      <section class="glass-module timeline-section training-hub-v3">
+        <div class="module-header">
+          <div class="title-group">
+            <div class="header-icon-glow"><span class="material-icons">sensors</span></div>
+            <div class="header-text">
+              <h2>Upcoming Synchronization</h2>
+              <p>Real-time training pulse distribution</p>
+            </div>
+          </div>
+          <a routerLink="/member/workouts" class="btn-action-outline">Access Nodes</a>
+        </div>
+
+        <div class="timeline-v-list" *ngIf="upcomingSessions.length > 0; else noSessions">
+          <div class="timeline-node" *ngFor="let session of upcomingSessions">
+            <div class="node-time">
+              <span class="time">{{ session.created_at | date:'HH:mm' }}</span>
+              <span class="date">{{ session.created_at | date:'MMM dd' }}</span>
+            </div>
+            <div class="node-content glass-item">
+              <div class="node-icon"><span class="material-icons">fitness_center</span></div>
+              <div class="node-details">
+                <h4>{{ session.course?.name || 'Training Node' }}</h4>
+                <p>{{ session.gym?.name || 'Metropolitan Core' }}</p>
+              </div>
+              <button class="btn-sync" (click)="joinSession(session)">
+                <span class="material-icons">input</span>
+                SYNC
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noSessions>
+          <div class="empty-state-v3">
+            <div class="orb-empty-glow">✨</div>
+            <p>No active training pulses detected in your pipeline.</p>
+            <button class="btn-action-primary" routerLink="/member/courses">Initialize Protocols</button>
+          </div>
+        </ng-template>
+      </section>
+    </div>
+
+    <!-- Right Column: Status & Intelligence -->
+    <div class="intel-column">
+      <!-- Finance Vault (Top Right) -->
+      <section class="glass-module wallet-vault-v2">
+        <div class="module-header-mini">
+          <span class="material-icons">wallet</span>
+          <h2>Zenith Vault</h2>
+        </div>
+
+        <div class="vault-display-compact">
+          <div class="balance-readout">
+            <span class="num">{{ stats.walletBalance | number:'1.0-0' }}</span>
+            <span class="tag">PTS AVAILABLE</span>
+          </div>
+          <div class="vault-actions-compact">
+            <button class="btn-v-mini" (click)="handleRedeem()"><span class="material-icons">autorenew</span></button>
+            <button class="btn-v-mini" (click)="showLedger()"><span class="material-icons">history</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Status Widget -->
+      <section class="glass-module membership-widget-v3" *ngIf="activeEnrollment || activeSubscription">
+        <div class="module-header-mini">
+          <span class="material-icons">verified_user</span>
+          <h2>Node Authorization</h2>
+        </div>
+
+        <div class="membership-content-v3">
+          <div class="m-plan-info">
+            <h3>{{ activeEnrollment?.gym?.name || activeSubscription?.gym?.name || 'Metropolitan Core' }}</h3>
+            <div class="m-status-pill"
+              [class.premium]="activeEnrollment?.type === 'premium' || (activeSubscription && !activeSubscription.plan?.name?.toLowerCase().includes('standard'))">
+              {{ activeEnrollment ? (activeEnrollment.type || 'Standard') : 'Premium Access' }}
+            </div>
+          </div>
+
+          <div class="m-status-progress">
+            <div class="p-labels">
+              <span>{{ getSubscriptionProgress(activeEnrollment ? activeEnrollment.end_date :
+                activeSubscription.end_date, 'standard') }}% SYNCED</span>
+              <span>{{ getDaysLeft(activeEnrollment ? activeEnrollment.end_date : activeSubscription.end_date) }}d
+                LEFT</span>
+            </div>
+            <div class="p-bar-base">
+              <div class="p-bar-fill"
+                [style.width.%]="getSubscriptionProgress(activeEnrollment ? activeEnrollment.end_date : activeSubscription.end_date, 'standard')">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="premium-upgrade-card">
+        <div class="shimmer"></div>
+        <h4>Upgrade to Elite Tier</h4>
+        <p>Unlock personal coaching nodes and advanced biometric tracking.</p>
+        <button class="btn-premium" (click)="initiateUpgrade()">ACTIVATE_ELITE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Immersive Modal Overlays -->
+  <!-- Checkout Overlay -->
+  <div class="payment-modal-backdrop" *ngIf="showCheckoutModal" (click)="showCheckoutModal = false">
+    <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="title-group">
+          <span class="material-icons">payments</span>
+          <h3>Elite Activation Hub</h3>
+        </div>
+        <button class="close-btn" (click)="showCheckoutModal = false"><span class="material-icons">close</span></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="payment-options">
+          <div class="payment-card" [class.processing]="isProcessingPayment" (click)="processPayment('points')">
+            <div class="card-icon points"><span class="material-icons">stars</span></div>
+            <div class="card-info">
+              <span class="method-title">Zen Points</span>
+              <span class="method-desc">Redeem gained platform points.</span>
+            </div>
+            <div class="price-info">
+              <span class="cost">150</span>
+              <span class="units">PTS</span>
+            </div>
+          </div>
+
+          <div class="payment-card" [class.processing]="isProcessingPayment" (click)="processPayment('credit')">
+            <div class="card-icon credit"><span class="material-icons">credit_card</span></div>
+            <div class="card-info">
+              <span class="method-title">Credit Card</span>
+              <span class="method-desc">Standard external payment node.</span>
+            </div>
+            <div class="price-info">
+              <span class="cost">$19.99</span>
+              <span class="units">USD</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Digital ID Sync -->
+  <div class="qr-modal-overlay" *ngIf="showQRModal" (click)="closeQRModal()">
+    <div class="qr-card titanium animate-scale-in" (click)="$event.stopPropagation()">
+      <div class="qr-header">
+        <span class="status-chip" [class.active]="!isSyncing">{{ isSyncing ? 'SYNCING PROTOCOL...' : 'IDENTITY VERIFIED'
+          }}</span>
+        <h3>Digital Identity Sync</h3>
+        <p>Show this code to the facility terminal</p>
+      </div>
+
+      <div class="qr-vault">
+        <div class="qr-aura"></div>
+        <img [src]="qrCodeUrl" alt="Member QR Code" class="qr-image">
+      </div>
+
+      <div class="member-brief" *ngIf="user()">
+        <div class="m-avatar">{{ user()?.name?.charAt(0) }}</div>
+        <div class="m-info">
+          <span class="m-name">{{ user()?.name }}</span>
+          <span class="m-id">NODE_ID: {{ user()?.id_user?.substring(0, 8) }}</span>
+        </div>
+      </div>
+
+      <button class="btn-close-vault" (click)="closeQRModal()">
+        <span class="material-icons">close</span>
+        Dismiss Sync
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast System -->
+  <div class="toast-hub-container" *ngIf="toastMessage">
+    <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
+      <span class="material-icons">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' :
+        'info') }}</span>
+      <div class="toast-content">
+        <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System
+          Notice') }}</strong>
+        <p>{{ toastMessage }}</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -38,9 +38,7 @@ class EnrollmentService extends BaseService
         }
 
         // Staff (Receptionists, Trainers, Nutritionists) see enrollments in their assigned gyms
-        if (in_array($user->role, [
-        User::ROLE_RECEPTIONIST
-        ])) {
+        if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
             $this->applyActiveGymScope($query, $user);
             $allowedGyms = $user->allowedGymIds() ?? collect();
             $query = $query->whereIn('id_gym', $allowedGyms);

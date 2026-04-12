@@ -1,0 +1,369 @@
+<div class="progress-container animate-fade-in">
+  <!-- Dynamic Evolution Header -->
+  <header class="page-header animate-slide-up">
+    <div class="header-main-content">
+      <div class="evolution-level">
+          <span class="lvl-label">EVOLUTION_LEVEL</span>
+          <span class="lvl-value">{{ getRank().level }}</span>
+          <div class="lvl-progress-bar">
+              <div class="fill" [style.width]="(stats?.evolutionPoints % 100) + '%'" [style.background]="getRank().color"></div>
+          </div>
+      </div>
+      <div class="header-text">
+          <span class="status-token" [style.color]="getRank().color">BIOMETRIC SYNC ACTIVE</span>
+          <h1>Physical <br><span class="text-gradient">Evolution Hub</span></h1>
+          <p class="rank-tag" [style.color]="getRank().color">Currently Ranked: <strong>{{ getRank().title }}</strong></p>
+      </div>
+    </div>
+    
+    <div class="header-stats-orb">
+      <div class="metric-item">
+          <span class="label">Body Mass Index</span>
+          <span class="value">{{ getBMI() }}</span>
+          <span class="sub-label">{{ getBMICategory() }}</span>
+      </div>
+      <div class="metric-divider"></div>
+      <div class="metric-item">
+          <span class="label">Protocol Score</span>
+          <span class="value">{{ getBioScore() }}%</span>
+          <span class="sub-label">Sync Quality</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid-layout">
+    <!-- PRO PROGRESSIVE FORMULAIRE -->
+    <section class="section glass-container" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+      <div class="section-header">
+        <span class="material-icons">biotech</span>
+        <h2>Pro Evolution Tracker</h2>
+      </div>
+      
+      <div class="tracking-dashboard" *ngIf="stats" [class.syncing]="isUpdatingBio" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding-top: 1rem;">
+        
+        <!-- Target Settings -->
+        <div class="tracker-card" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+           <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: #a78bfa;">
+             <span class="material-icons">track_changes</span> 
+             Set Your Protocol
+           </h3>
+           <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem;">Mass Objective</label>
+           <select class="glass-select" style="width: 100%; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(139,92,246,0.3); color: white; margin-bottom: 1rem;" [value]="fitnessGoal" (change)="onFitnessGoalChange($event)">
+             <option value="cut">Fat Loss (Cut -500 kcal)</option>
+             <option value="maintain">Maintenance</option>
+             <option value="bulk">Muscle Gain (Bulk +500 kcal)</option>
+           </select>
+           
+           <div class="target-cals" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(139,92,246,0.1); border-radius: 8px;">
+             <span>Daily Caloric Target:</span>
+             <strong style="font-size: 1.2rem; color: #c4b5fd;">{{ getTargetCalories() | number:'1.0-0' }} Kcal</strong>
+           </div>
+        </div>
+
+        <!-- Biometrics Form -->
+        <div class="tracker-card" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+           <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: #34d399;">
+             <span class="material-icons">monitor_weight</span> 
+             Formulaire Details
+           </h3>
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="input-group">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Current Weight (kg)</label>
+                <input type="number" step="0.1" #weightInput [value]="stats.weight" (change)="updateBiometrics('weight', weightInput.value)" style="width: 100%; padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white;">
+              </div>
+              <div class="input-group">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Hydration (L)</label>
+                <input type="number" step="0.1" #waterInput [value]="stats.water" (change)="updateBiometrics('water', waterInput.value)" style="width: 100%; padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white;">
+              </div>
+              <div class="input-group" style="grid-column: 1 / -1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Kcal Consumed Check</label>
+                <input type="number" #calInput [value]="stats.caloriesBurned" (change)="updateBiometrics('calories', calInput.value)" style="width: 100%; padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; font-weight: bold;">
+              </div>
+           </div>
+        </div>
+
+        <!-- Macros Tracker -->
+        <div class="tracker-card" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+           <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: #60a5fa;">
+             <span class="material-icons">restaurant</span> 
+             Macros Log
+           </h3>
+           <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+              <div class="macro-row" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 6px;">
+                 <span style="width: 50px; font-size: 0.85rem; color: #cbd5e1;">Prot</span>
+                 <input type="number" #protInput [value]="stats.protein" (change)="updateBiometrics('protein', protInput.value)" style="width: 60px; padding: 0.3rem; border-radius: 4px; background: rgba(255,255,255,0.05); border: none; color: white;">
+                 <div style="flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                   <div [style.width.%]="getMacroPercentage('protein')" style="height: 100%; background: #ef4444;"></div>
+                 </div>
+              </div>
+              <div class="macro-row" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 6px;">
+                 <span style="width: 50px; font-size: 0.85rem; color: #cbd5e1;">Carbs</span>
+                 <input type="number" #carbInput [value]="stats.carbs" (change)="updateBiometrics('carbs', carbInput.value)" style="width: 60px; padding: 0.3rem; border-radius: 4px; background: rgba(255,255,255,0.05); border: none; color: white;">
+                 <div style="flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                   <div [style.width.%]="getMacroPercentage('carbs')" style="height: 100%; background: #eab308;"></div>
+                 </div>
+              </div>
+              <div class="macro-row" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 6px;">
+                 <span style="width: 50px; font-size: 0.85rem; color: #cbd5e1;">Fats</span>
+                 <input type="number" #fatsInput [value]="stats.fats" (change)="updateBiometrics('fats', fatsInput.value)" style="width: 60px; padding: 0.3rem; border-radius: 4px; background: rgba(255,255,255,0.05); border: none; color: white;">
+                 <div style="flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                   <div [style.width.%]="getMacroPercentage('fats')" style="height: 100%; background: #3b82f6;"></div>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- REAL HISTORY & PREDICTIVE ANALYTICS SECTION -->
+    <section class="pro-analytics-grid" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2.5rem; margin-bottom: 2rem;" *ngIf="!loading">
+       
+       <!-- Historical Real Stats -->
+       <div class="glass-container section" style="background: linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9));">
+         <div class="section-header border-b-0 pb-0 mb-4">
+           <span class="material-icons" style="color: #8b5cf6;">query_stats</span>
+           <h2>Historical Activity</h2>
+         </div>
+         <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem;">Authentic algorithmic analysis of your physical sync records.</p>
+         
+         <div class="stat-boxes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div class="s-box" style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+              <span style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Total Lifetime</span>
+              <h3 style="font-size: 2.5rem; margin: 0.5rem 0; color: white;">{{ historyStats.totalLifetime }}</h3>
+              <span style="font-size: 0.8rem; color: #10b981;">Total Syncs</span>
+            </div>
+            <div class="s-box" style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+              <span style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">This Month</span>
+              <h3 style="font-size: 2.5rem; margin: 0.5rem 0; color: white;">{{ historyStats.monthly }}</h3>
+              <span style="font-size: 0.8rem; color: #8b5cf6;">Active Nodes</span>
+            </div>
+            <div class="s-box" style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+              <span style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Weekly Avg</span>
+              <h3 style="font-size: 2.5rem; margin: 0.5rem 0; color: white;">{{ historyStats.weeklyAverage }}</h3>
+              <span style="font-size: 0.8rem; color: #38bdf8;">Sessions/Week</span>
+            </div>
+           <div class="s-box" style="grid-column: 1 / -1; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+             <div>
+               <span style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Favorite Protocol</span>
+               <h3 style="font-size: 1.2rem; margin: 0.5rem 0 0; color: #38bdf8;">{{ historyStats.favorite }}</h3>
+             </div>
+             <div style="background: rgba(56,189,248,0.1); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8;">
+               <span class="material-icons">fitness_center</span>
+             </div>
+           </div>
+         </div>
+       </div>
+
+       <!-- Evolution AI Prediction -->
+       <div class="glass-container section" style="background: linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9)); position: relative; overflow: hidden;">
+         <div class="ai-glow" [style.background]="'radial-gradient(circle at right top, ' + evolutionPrediction.color + '40, transparent 60%)'" style="position: absolute; right: -50px; top: -50px; width: 300px; height: 300px; z-index: 0; pointer-events: none;"></div>
+         
+         <div style="position: relative; z-index: 1;">
+           <div class="section-header border-b-0 pb-0 mb-4">
+             <span class="material-icons" [style.color]="evolutionPrediction.color">psychology</span>
+             <h2>Evolution Prediction</h2>
+           </div>
+           <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem;">{{ evolutionPrediction.desc }}</p>
+           
+           <!-- Projection Timeline -->
+           <div class="projection-timeline" style="display: flex; justify-content: space-between; align-items: flex-end; padding: 2rem; background: rgba(0,0,0,0.4); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem;">
+              <div class="p-node text-center">
+                 <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">CURRENT</span>
+                 <strong style="font-size: 1.5rem; color: white;">{{ evolutionPrediction.current }}</strong><span style="font-size: 0.8rem; color: #64748b;">kg</span>
+              </div>
+              <div class="p-line" style="flex-grow: 1; height: 2px; background: rgba(255,255,255,0.1); margin: 0 1rem 1rem 1rem; position: relative;">
+                 <span class="material-icons" [style.color]="evolutionPrediction.color" style="position: absolute; left: 50%; top: -12px; transform: translateX(-50%); background: #0f172a; padding: 0 5px; font-size: 1.2rem;">{{ evolutionPrediction.trendIcon }}</span>
+              </div>
+              <div class="p-node text-center">
+                 <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">IN 4 WEEKS</span>
+                 <strong style="font-size: 1.5rem; color: white;">{{ evolutionPrediction.month1 }}</strong><span style="font-size: 0.8rem; color: #64748b;">kg</span>
+              </div>
+              <div class="p-line" style="flex-grow: 1; height: 2px; background: rgba(255,255,255,0.1); margin: 0 1rem 1rem 1rem; position: relative;">
+                 <span class="material-icons" [style.color]="evolutionPrediction.color" style="position: absolute; left: 50%; top: -12px; transform: translateX(-50%); background: #0f172a; padding: 0 5px; font-size: 1.2rem;">{{ evolutionPrediction.trendIcon }}</span>
+              </div>
+              <div class="p-node text-center">
+                 <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">IN 12 WEEKS</span>
+                 <strong style="font-size: 1.5rem;" [style.color]="evolutionPrediction.color">{{ evolutionPrediction.month3 }}</strong><span style="font-size: 0.8rem; color: #64748b;">kg</span>
+              </div>
+           </div>
+
+           <div class="warning-pill" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.75rem; background: rgba(239,68,68,0.1); color: #ef4444; padding: 6px 12px; border-radius: 100px;">
+              <span class="material-icons" style="font-size: 1rem;">info</span>
+              Predictions assume 100% adherence to tracking and caloric targets.
+           </div>
+         </div>
+       </div>
+
+    </section>
+    
+    <!-- PROFESSIONAL DYNAMIC PERFORMANCE HUB -->
+    <section class="workout-progress-hub glass-container" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+       <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+         <div>
+            <span class="material-icons" style="color: #10b981;">trending_up</span>
+            <h2>Muscular Evolution Hub</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 5px;">Synchronized growth analysis based on targeted workout protocols.</p>
+         </div>
+
+         <!-- MUSCLE FILTER SYSTEM -->
+         <div class="muscle-filters" style="display: flex; gap: 8px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <button *ngFor="let cat of ['all', 'chest', 'back', 'legs', 'shoulders']" 
+                    (click)="setAnalysisCategory(cat)"
+                    [style.background]="analysisCategory === cat ? 'rgba(139, 92, 246, 0.2)' : 'transparent'"
+                    [style.color]="analysisCategory === cat ? '#c4b5fd' : '#64748b'"
+                    [style.border-color]="analysisCategory === cat ? 'rgba(139, 92, 246, 0.4)' : 'transparent'"
+                    style="border: 1px solid transparent; outline: none; border-radius: 8px; padding: 6px 14px; font-size: 0.7rem; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; letter-spacing: 1px;">
+               {{ cat }}
+            </button>
+         </div>
+       </div>
+
+       <div class="performance-grid" *ngIf="filteredVolumeStats; else noData" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; padding: 1rem;">
+          
+          <!-- Volume Analytics Chart -->
+          <div class="analytics-card" style="background: rgba(0,0,0,0.3); padding: 2rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;">
+                <div>
+                   <span style="font-size: 0.75rem; color: #64748b; font-weight: 800; text-transform: uppercase;">{{ analysisCategory }} Volume Trend</span>
+                   <h3 style="font-size: 1.5rem; color: white; margin: 4px 0;">Pulse Intensity</h3>
+                </div>
+                <div [style.color]="filteredVolumeStats.recentChange >= 0 ? '#10b981' : '#ef4444'" 
+                     style="font-weight: 900; font-size: 1rem; display: flex; flex-direction: column; align-items: flex-end;">
+                   <div style="display: flex; align-items: center; gap: 4px; background: rgba(16,185,129,0.1); padding: 4px 12px; border-radius: 100px;">
+                      <span class="material-icons" style="font-size: 1.1rem;">{{ filteredVolumeStats.recentChange >= 0 ? 'arrow_upward' : 'arrow_downward' }}</span>
+                      {{ filteredVolumeStats.recentChange }}%
+                   </div>
+                   <span style="font-size: 0.6rem; color: #64748b; margin-top: 5px; font-weight: 400;">Week-over-week Growth</span>
+                </div>
+             </div>
+
+             <!-- Dynamic Volume Chart Bars -->
+             <div class="volume-chart" style="display: flex; align-items: flex-end; gap: 20px; height: 180px; margin-bottom: 2.5rem; padding: 0 1rem;">
+                <div class="v-bar-node" *ngFor="let d of filteredVolumeStats.data" style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative;">
+                   <div style="width: 100%; min-height: 4px; border-radius: 6px 6px 0 0; background: linear-gradient(to top, rgba(139,92,246,0.3), #8b5cf6); transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);" 
+                        [style.height.px]="(Number(d.volume) / Number(filteredVolumeStats.maxRaw) * 180)">
+                   </div>
+                   <span style="font-size: 0.65rem; color: #475569; font-weight: 800;">{{ d.date }}</span>
+                </div>
+             </div>
+
+             <div style="display: flex; justify-content: space-between; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                <div class="m-stat">
+                   <span style="display: block; font-size: 0.7rem; color: #64748b; font-weight: 800;">LIFETIME {{ analysisCategory.toUpperCase() }} WORK</span>
+                   <strong style="color: #fff; font-size: 1.25rem;">{{ filteredVolumeStats.totalLifetime }} <small style="font-size: 0.7rem; color: #64748b;">kg</small></strong>
+                </div>
+                <div class="m-stat text-right">
+                   <span style="display: block; font-size: 0.7rem; color: #64748b; font-weight: 800;">PEAK PROTOCOL LOAD</span>
+                   <strong style="color: #8b5cf6; font-size: 1.25rem;">{{ filteredVolumeStats.maxVolume }} <small style="font-size: 0.7rem; color: #64748b;">kg</small></strong>
+                </div>
+             </div>
+          </div>
+
+          <!-- Summary info -->
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+             <div class="summary-card glass-item" style="padding: 1.5rem; border-radius: 20px; background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.1);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                   <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139,92,246,0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd;">
+                      <span class="material-icons" style="font-size: 1.2rem;">fitness_center</span>
+                   </div>
+                   <div>
+                      <h4 style="margin: 0; font-size: 0.9rem; font-weight: 900; color: #fff;">{{ analysisCategory.toUpperCase() }} FOCUS</h4>
+                      <span style="font-size: 0.65rem; color: #64748b;">Intensity Vector Active</span>
+                   </div>
+                </div>
+                <p style="font-size: 0.8rem; line-height: 1.6; color: #94a3b8; margin: 0;">
+                   This chart visualizes your progressive overload for <strong>{{ analysisCategory === 'all' ? 'All Groups' : analysisCategory }}</strong>. By tracking volume sessions for this body group, we measure muscular intensity evolution.
+                </p>
+             </div>
+
+             <div class="empty-prog" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 20px; border: 2px dashed rgba(255,255,255,0.05); color: #475569; padding: 2rem; text-align: center;">
+                <span class="material-icons" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;">insights</span>
+                <p style="font-size: 0.75rem;">Switch between categories to see your training synergy breakdown across your entire physique.</p>
+             </div>
+          </div>
+
+       </div>
+
+       <ng-template #noData>
+          <div style="padding: 4.5rem; text-align: center; color: #64748b;">
+             <span class="material-icons" style="font-size: 4rem; opacity: 0.1; margin-bottom: 1.5rem;">query_stats</span>
+             <p style="font-size: 1rem; font-weight: 800; color: #fff;">No synchronization pulse detected for {{ analysisCategory.toUpperCase() }}.</p>
+             <p style="font-size: 0.75rem; margin-top: 8px;">Log protocols targeting this muscle category to activate your evolution visualization.</p>
+          </div>
+       </ng-template>
+    </section>
+
+    <!-- Achievement Badges -->
+    <section class="section glass-container">
+      <div class="section-header">
+        <span class="material-icons">stars</span>
+        <h2>Node Milestones</h2>
+      </div>
+      <div class="achievements-grid" *ngIf="!loading; else skeletonAchievements">
+         <div class="achievement-badge" 
+              *ngFor="let ach of achievements" 
+              [class.locked]="ach.locked"
+              [class.active]="!ach.locked">
+            <div class="badge-aura"></div>
+            <span class="icon">{{ ach.icon }}</span>
+            <h4>{{ ach.title }}</h4>
+            <p>{{ ach.label }}</p>
+            <div class="badge-progress" *ngIf="ach.locked">
+                <span class="val">{{ ach.current }}/{{ ach.target }}</span>
+                <div class="bar-container">
+                    <div class="bar" [style.width.%]="(ach.current / ach.target) * 100"></div>
+                </div>
+            </div>
+            <div class="status-pill" *ngIf="!ach.locked">SYNCED</div>
+         </div>
+      </div>
+    </section>
+
+    <!-- Attendance History -->
+    <section class="section glass-container history-section">
+      <div class="section-header">
+        <span class="material-icons">history</span>
+        <h2>Training Node History</h2>
+      </div>
+      <div class="history-list" *ngIf="attendances.length > 0; else noHistory">
+         <div class="attendance-item glass-item animate-slide-right" 
+              *ngFor="let record of displayedAttendances; let i = index"
+              [style.animation-delay]="i * 0.05 + 's'">
+            <div class="record-icon">
+              <span class="material-icons">done_all</span>
+            </div>
+            <div class="record-info">
+               <div class="item-tag">FACILITY_ACCESS</div>
+               <h4>{{ record.session?.course?.name || 'Open Gym Session' }}</h4>
+               <p>{{ record.session?.course?.gym?.name || 'Metropolitan Node' }}</p>
+            </div>
+            <div class="record-time">
+               <span class="date">{{ record.created_at | date:'MMM dd, yyyy' }}</span>
+               <span class="time">{{ record.created_at | date:'HH:mm' }}</span>
+            </div>
+         </div>
+         
+         <div class="history-actions" *ngIf="attendances.length > 5" style="text-align: center; margin-top: 1.5rem;">
+            <button (click)="toggleHistory()" style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); color: #c4b5fd; padding: 0.8rem 2rem; border-radius: 12px; font-weight: 800; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;">
+               <span class="material-icons">{{ showAllHistory ? 'expand_less' : 'expand_more' }}</span>
+               {{ showAllHistory ? 'Collapse Timeline' : 'Access Full Archive' }}
+            </button>
+         </div>
+      </div>
+      <ng-template #noHistory>
+         <div class="empty-state animate-fade-in" *ngIf="!loading">
+           <div class="empty-orb">✨</div>
+           <p>No training pulses detected. Start your first session to begin your timeline.</p>
+           <button class="btn-primary-mini glass" routerLink="/member/gyms">Find Nodes</button>
+         </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <ng-template #skeletonAchievements>
+    <div class="achievements-grid">
+        <div class="skeleton-badge glass-card skeleton-pulse" *ngFor="let s of [1,2,3]"></div>
+    </div>
+  </ng-template>
+</div>

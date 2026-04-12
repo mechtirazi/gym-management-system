@@ -1,0 +1,135 @@
+<div class="feed-container">
+  <!-- Dynamic Background Nodes -->
+  <div class="bg-glow purple"></div>
+  <div class="bg-glow blue"></div>
+
+  <header class="hub-header animate-fade-in">
+    <div class="header-glass">
+      <div class="header-main">
+        <div class="brand-orb">
+          <span class="material-icons">hub</span>
+        </div>
+        <div class="text-group">
+          <div class="status-pill">
+            <span class="pulse-node"></span>
+            LIVE SYNC
+          </div>
+          <h1>Zenith Feed</h1>
+          <p>Real-time heartbeat from your fitness network</p>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="h-stat">
+          <span class="val">{{ activities.length }}</span>
+          <span class="lab">Active Nodes</span>
+        </div>
+        <div class="h-stat" *ngIf="activeSubscription">
+          <span class="val">{{ activeSubscription.plan?.name?.split(' ')[0] }}</span>
+          <span class="lab">Tier</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-feed" *ngIf="!loading; else skeleton">
+    <div *ngIf="activities.length > 0; else emptyFeed" class="bento-grid-feed">
+        
+        @for (act of activities; track act.timestamp) {
+            <div class="feed-node-container animate-slide-up" [style.animation-delay]="$index * 0.05 + 's'">
+                <div class="feed-card glass-modern">
+                    <div class="card-glow" [style.background]="'radial-gradient(circle at top right, ' + act.color + '15, transparent)'"></div>
+                    
+                    <div class="card-hero" *ngIf="act.image">
+                        <img [src]="act.image" [alt]="act.title">
+                        <div class="hero-overlay"></div>
+                    </div>
+
+                    <div class="card-header">
+                        <div class="gym-badge">
+                            <span class="material-icons">location_on</span>
+                            {{ act.gymName || 'Global Hub' }}
+                        </div>
+                        <div class="time-meta">
+                            <span class="material-icons">schedule</span>
+                            {{ act.time }}
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="type-indicator" [style.background]="act.color + '20'" [style.color]="act.color">
+                            {{ act.type }}
+                        </div>
+                        <h2>{{ act.title || 'Broadcast Update' }}</h2>
+                        <p class="content-text">{{ act.content }}</p>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="social-actions">
+                            <button class="action-btn glass" (click)="likePulse(act)" [class.active-like]="act.liked"><span class="material-symbols-rounded">{{ act.liked ? 'favorite' : 'favorite_border' }}</span></button>
+                            <button class="action-btn glass" (click)="commentPulse(act)"><span class="material-symbols-rounded">chat_bubble_outline</span></button>
+                            <button class="action-btn glass" (click)="sharePulse(act)"><span class="material-symbols-rounded">share</span></button>
+                        </div>
+                        <button class="view-btn" [style.background]="act.color" (click)="viewDetails(act)">
+                            Details
+                            <span class="material-icons">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+  </div>
+
+  <ng-template #skeleton>
+    <div class="bento-grid-feed">
+        @for (s of [1,2,3,4,5,6]; track s) {
+            <div class="skeleton-node glass-modern skeleton-pulse"></div>
+        }
+    </div>
+  </ng-template>
+
+  <ng-template #emptyFeed>
+    <div class="empty-feed animate-fade-in">
+        <div class="empty-orb">✨</div>
+        <h2>Atmospheric Silence</h2>
+        <p>No pulses detected in your network today. Check back later for fresh activity nodes.</p>
+        <button class="btn-refresh glass" (click)="loadRealFeed()">Sync Network</button>
+    </div>
+  </ng-template>
+
+<div class="toast-hub-container" *ngIf="toastMessage">
+    <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
+      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' :
+        'info') }}</span>
+      <div class="toast-content">
+        <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System Notice') }}</strong>
+        <p>{{ toastMessage }}</p>
+      </div>
+    </div>
+</div>
+
+<div class="feed-modal-backdrop" *ngIf="activeModalAct" (click)="closeModal()">
+    <div class="feed-modal glass-modern animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>{{ modalMode === 'comment' ? 'Transmit Response' : 'Diagnostic Data' }}</h3>
+            <button class="action-btn glass" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
+        </div>
+        <div class="modal-body" *ngIf="modalMode === 'comment'">
+            <p style="color:#94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem;">Replying to: <strong style="color:white">{{ activeModalAct.title }}</strong></p>
+            <textarea #commentInput class="glass-input" rows="4" placeholder="Enter transmission..."></textarea>
+            <button class="view-btn" (click)="submitComment(commentInput.value)">Transmit <span class="material-symbols-rounded">send</span></button>
+        </div>
+        <div class="modal-body" *ngIf="modalMode === 'details'">
+            <div class="type-indicator" [style.background]="activeModalAct.color + '20'" [style.color]="activeModalAct.color" style="display: inline-block; padding: 0.4rem 1rem; border-radius: 1rem; font-size: 0.7rem; font-weight: 950; letter-spacing: 2px; margin-bottom: 1.2rem;">
+                {{ activeModalAct.type }}
+            </div>
+            <h2 style="font-size: 2rem; font-weight: 950; letter-spacing: -1px; margin-bottom: 1.5rem; color: #fff;">{{ activeModalAct.title }}</h2>
+            <p class="content-text" style="font-size: 1.1rem; line-height: 1.6; color: #94a3b8; margin-bottom: 2rem;">{{ activeModalAct.content }}</p>
+            <div class="time-meta" style="color: #64748b; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 0.6rem;">
+                <span class="material-symbols-rounded" style="font-size:1.1rem">schedule</span>
+                {{ activeModalAct.time }} | via {{ activeModalAct.gymName }}
+            </div>
+        </div>
+    </div>
+</div>
+</div>

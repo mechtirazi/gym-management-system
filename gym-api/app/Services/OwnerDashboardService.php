@@ -19,7 +19,7 @@ class OwnerDashboardService
 {
     private function calculateTrend($current, $previous): int
     {
-        if ((float)$previous == 0.0) {
+        if ((float) $previous == 0.0) {
             return $current > 0 ? 100 : 0;
         }
         return (int) round((($current - $previous) / $previous) * 100);
@@ -55,7 +55,7 @@ class OwnerDashboardService
             ->whereMonth('created_at', $now->month)
             ->whereYear('created_at', $now->year)
             ->sum('amount');
-        
+
         $prevRevenue = Payment::whereIn('id_gym', $gymIdsArray)
             ->whereBetween('created_at', [$prevMonthStart, $prevMonthEnd])
             ->sum('amount');
@@ -66,31 +66,31 @@ class OwnerDashboardService
         $currActiveMembers = Subscribe::whereIn('id_gym', $gymIdsArray)
             ->where('status', Subscribe::STATUS_ACTIVE)
             ->count();
-            
+
         $prevActiveMembers = Subscribe::whereIn('id_gym', $gymIdsArray)
             ->where('status', Subscribe::STATUS_ACTIVE)
             ->where('created_at', '<', $currMonthStart)
             ->count();
-        
+
         $membersTrend = $this->calculateTrend($currActiveMembers, $prevActiveMembers);
 
         // 3. New Memberships
         $currNewMem = Subscribe::whereIn('id_gym', $gymIdsArray)
             ->where('created_at', '>=', $currMonthStart)
             ->count();
-        
+
         $prevNewMem = Subscribe::whereIn('id_gym', $gymIdsArray)
             ->whereBetween('created_at', [$prevMonthStart, $prevMonthEnd])
             ->count();
-            
+
         $membershipsTrend = $this->calculateTrend($currNewMem, $prevNewMem);
 
         // 4. Active Trainers
-        $currTrainers = User::where('role', User::ROLE_TRAINER)->whereHas('gymStaff', function($q) use ($gymIdsArray) {
+        $currTrainers = User::where('role', User::ROLE_TRAINER)->whereHas('gymStaff', function ($q) use ($gymIdsArray) {
             $q->whereIn('id_gym', $gymIdsArray);
         })->count();
-        
-        $prevTrainers = User::where('role', User::ROLE_TRAINER)->whereHas('gymStaff', function($q) use ($gymIdsArray) {
+
+        $prevTrainers = User::where('role', User::ROLE_TRAINER)->whereHas('gymStaff', function ($q) use ($gymIdsArray) {
             $q->whereIn('id_gym', $gymIdsArray);
         })->where('created_at', '<', $currMonthStart)->count();
 
@@ -98,7 +98,7 @@ class OwnerDashboardService
 
         // 5. Upcoming Sessions
         $upcomingSessions = Session::with(['course', 'trainer'])
-            ->whereHas('course', function($q) use ($gymIdsArray) {
+            ->whereHas('course', function ($q) use ($gymIdsArray) {
                 $q->whereIn('id_gym', $gymIdsArray);
             })
             ->where('start_time', '>', $now)
@@ -106,7 +106,7 @@ class OwnerDashboardService
             ->take(4)
             ->get();
 
-        $sessionData = $upcomingSessions->map(function($session) {
+        $sessionData = $upcomingSessions->map(function ($session) {
             return [
                 'id' => $session->id_session,
                 'courseName' => $session->course->name,
@@ -132,7 +132,7 @@ class OwnerDashboardService
             ->take(3)
             ->get();
 
-        $expiringData = $expiringMemberships->map(function($sub) use ($now) {
+        $expiringData = $expiringMemberships->map(function ($sub) use ($now) {
             $endDate = Carbon::parse($sub->subscribe_date)->addDays(30);
             return [
                 'memberName' => $sub->user->name . ' ' . $sub->user->last_name,
@@ -143,12 +143,12 @@ class OwnerDashboardService
 
         // 8. Gym Occupancy
         $gym = Gym::whereIn('id_gym', $gymIdsArray)->first();
-        $currentPresent = Attendance::whereHas('session.course', function($q) use ($gymIdsArray) {
+        $currentPresent = Attendance::whereHas('session.course', function ($q) use ($gymIdsArray) {
             $q->whereIn('id_gym', $gymIdsArray);
         })
-        ->where('status', Attendance::STATUS_PRESENT)
-        ->whereDate('created_at', Carbon::today())
-        ->count();
+            ->where('status', Attendance::STATUS_PRESENT)
+            ->whereDate('created_at', Carbon::today())
+            ->count();
 
         return [
             "stats" => [
@@ -179,24 +179,48 @@ class OwnerDashboardService
 
         // 1. Total Attendance
         $totalAttendance = Attendance::where('id_member', $user->id_user)->count();
-        
+
         // 2. Wallet Balance
         $walletBalance = $user->wallet ? $user->wallet->balance : 0.0;
-        
+
         // 3. Active Subscriptions
         $activeSubCount = Subscribe::where('id_user', $user->id_user)
             ->where('status', Subscribe::STATUS_ACTIVE)
             ->count();
-            
+
         // 4. Enrollments
         $enrollmentCount = $user->enrollments()->count();
+
+        // 5. Automated Evolution Formula (The Zen Algorithm)
+        // High weight on attendance and manual data logging consistency
+        $evolutionPoints = ($user->evolution_points) 
+            + ($totalAttendance * 50) 
+            + ($user->manual_calories / 10) 
+            + ($user->manual_protein * 5) 
+            + ($user->manual_carbs * 2)
+            + ($user->manual_fats * 2)
+            + ($user->manual_water * 25)
+            + ($walletBalance * 10);
 
         return [
             "stats" => [
                 "totalAttendance" => $totalAttendance,
                 "walletBalance" => (float) $walletBalance,
                 "activeSubscriptions" => $activeSubCount,
-                "enrollments" => $enrollmentCount
+                "enrollments" => $enrollmentCount,
+                "calories" => $user->manual_calories,
+                "protein" => $user->manual_protein,
+                "carbs" => $user->manual_carbs,
+                "fats" => $user->manual_fats,
+                "water" => $user->manual_water,
+                "weight" => $user->manual_weight,
+                "evolutionPoints" => (int) $evolutionPoints
+            ],
+            "user" => [
+                "name" => $user->name,
+                "last_name" => $user->last_name,
+                "email" => $user->email,
+                "role" => $user->role
             ]
         ];
     }
@@ -257,11 +281,11 @@ class OwnerDashboardService
             $monthDate = $startPeriod->copy()->addMonthsNoOverflow($i);
             $monthStart = $monthDate->copy()->startOfMonth();
             $monthEnd = $monthDate->copy()->endOfMonth();
-            
+
             $amount = Payment::whereIn('id_gym', $gymIdsArray)
                 ->whereBetween('created_at', [$monthStart, $monthEnd])
                 ->sum('amount');
-                
+
             $chartData[] = [
                 'month' => $monthDate->format('M'),
                 'amount' => (int) $amount
@@ -349,7 +373,7 @@ class OwnerDashboardService
             ->whereMonth('created_at', $now->month)
             ->whereYear('created_at', $now->year)
             ->count();
-            
+
         $expiringSoon = Subscribe::whereIn('id_gym', $gymIdsArray)
             ->where('status', Subscribe::STATUS_ACTIVE)
             ->where('subscribe_date', '<=', $now->copy()->subDays(25))
@@ -434,22 +458,22 @@ class OwnerDashboardService
 
         return $attendances->map(function ($attendance) {
             $member = $attendance->member;
-            
+
             $nameStr = 'Unknown Member';
             $initials = '??';
 
             if ($member) {
                 $firstName = trim($member->name ?? '');
                 $lastName = trim($member->last_name ?? '');
-                
+
                 $nameParts = array_filter([$firstName, $lastName]);
                 if (!empty($nameParts)) {
                     $nameStr = implode(' ', $nameParts);
                 }
-                
+
                 $firstInitial = $firstName ? mb_strtoupper(mb_substr($firstName, 0, 1)) : '';
                 $lastInitial = $lastName ? mb_strtoupper(mb_substr($lastName, 0, 1)) : '';
-                
+
                 $initials = $firstInitial . $lastInitial;
                 if (empty($initials)) {
                     $initials = '??';

@@ -7,6 +7,7 @@ import { MemberSidebarComponent } from './sidebars/member-sidebar/member-sidebar
 import { AdminSidebarComponent } from './sidebars/admin-sidebar/admin-sidebar.component';
 import { NutritionistSidebarComponent } from './sidebars/nutritionist-sidebar/nutritionist-sidebar.component';
 import { ReceptionistSidebarComponent } from './sidebars/receptionist-sidebar/receptionist-sidebar.component';
+import { TrainerSidebarComponent } from './sidebars/trainer-sidebar/trainer-sidebar.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 
@@ -14,14 +15,15 @@ import { ThemeService } from '../../../core/services/theme.service';
   selector: 'app-main-layout',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterOutlet, 
-    HeaderComponent, 
-    OwnerSidebarComponent, 
+    CommonModule,
+    RouterOutlet,
+    HeaderComponent,
+    OwnerSidebarComponent,
     MemberSidebarComponent,
     AdminSidebarComponent,
     NutritionistSidebarComponent,
-    ReceptionistSidebarComponent
+    ReceptionistSidebarComponent,
+    TrainerSidebarComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'

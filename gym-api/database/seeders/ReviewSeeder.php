@@ -12,9 +12,9 @@ class ReviewSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create 30 reviews
-        Review::factory()->count(30)->create();
+        // Create 100 reviews across all types (event, trainer, course, session)
+        Review::factory()->count(100)->create();
 
-        echo "✓ Created 30 reviews successfully!\n";
+        echo "✓ Created 100 reviews successfully!\n";
     }
 }

@@ -41,6 +41,26 @@ export const routes: Routes = [
         loadComponent: () => import('./features/shared/settings/settings.component').then(m => m.SettingsComponent)
       },
       {
+        path: 'settings/profile',
+        loadComponent: () => import('./shared/components/coming-soon/coming-soon.component').then(m => m.ComingSoonComponent)
+      },
+      {
+        path: 'settings/preferences',
+        loadComponent: () => import('./shared/components/coming-soon/coming-soon.component').then(m => m.ComingSoonComponent)
+      },
+      {
+        path: 'exercises',
+        loadComponent: () => import('./shared/components/coming-soon/coming-soon.component').then(m => m.ComingSoonComponent)
+      },
+      {
+        path: 'community/classes',
+        loadComponent: () => import('./shared/components/coming-soon/coming-soon.component').then(m => m.ComingSoonComponent)
+      },
+      {
+        path: 'community/forum',
+        loadComponent: () => import('./shared/components/coming-soon/coming-soon.component').then(m => m.ComingSoonComponent)
+      },
+      {
         path: 'notifications',
         loadComponent: () => import('./features/shared/notifications/notifications.component').then(m => m.NotificationsComponent)
       },
@@ -64,6 +84,10 @@ export const routes: Routes = [
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
           { path: 'nutrition', loadComponent: () => import('./features/owner/nutrition/nutrition.component').then(m => m.NutritionManagementComponent) },
         ]
+      },
+      {
+        path: 'trainer',
+        loadChildren: () => import('./features/trainer/trainer.routes').then(m => m.trainerRoutes)
       },
       {
         path: 'nutritionist',
@@ -110,10 +134,7 @@ export const routes: Routes = [
       },
       {
         path: 'member',
-        children: [
-          { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
-          { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
-        ]
+        loadChildren: () => import('./features/member/member.routes').then(m => m.memberRoutes)
       }
     ]
   },

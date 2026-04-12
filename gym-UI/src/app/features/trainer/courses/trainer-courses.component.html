@@ -1,0 +1,61 @@
+<div class="trainer-courses-container animate-fade-in">
+  <header class="courses-header glass-card">
+    <div class="header-main">
+      <div class="title-section">
+        <div class="icon-bubble">📚</div>
+        <div class="text-content">
+          <h1>My Assigned Courses</h1>
+          <p class="subtitle">View details and materials for the courses you teach.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="courses-controls">
+      <div class="search-wrap">
+        <input type="text" [value]="searchQuery()" (input)="onSearchChange($event)" placeholder="Search courses by name or description...">
+      </div>
+      <div class="filter-wrap">
+        <select [value]="selectedType()" (change)="onTypeChange($event)">
+          @for (type of availableTypes(); track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="courses-content">
+    @if (isLoading()) {
+      <div class="loading-state glass-card">
+        <div class="spinner"></div>
+        <p>Loading your courses...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state glass-card">
+        <div class="icon-bubble empty-icon">⚠️</div>
+        <p>{{ error() }}</p>
+        <button class="primary-btn mt-4" (click)="loadCourses()">Retry</button>
+      </div>
+    } @else if (filteredCourses().length === 0) {
+      <div class="empty-state glass-card">
+        <div class="icon-bubble empty-icon">📓</div>
+        <h3>No Courses Found</h3>
+        <p>You don't have any matching courses assigned to you.</p>
+      </div>
+    } @else {
+      <div class="courses-grid">
+        @for (course of filteredCourses(); track course.id_course) {
+          <article class="course-card glass-card">
+            <div class="course-header">
+              <span class="course-type">{{ course.type || 'General' }}</span>
+            </div>
+            <div class="course-body">
+              <h2 class="course-name">{{ course.name }}</h2>
+              <p class="course-desc" [title]="course.description">{{ course.description || 'No description provided.' }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </main>
+</div>

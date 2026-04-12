@@ -33,16 +33,23 @@ class SessionService extends BaseService
             })->get();
         }
 
-        // Trainers only see their own sessions
-        if ($user->role === User::ROLE_TRAINER) {
-            return $query->where('id_trainer', $user->id_user)->get();
-        }
+        // Staff (Trainers, Receptionists, Nutritionists)
+        if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_RECEPTIONIST, User::ROLE_NUTRITIONIST])) {
+            $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) {
+                $q->whereHas('course.gym', function ($sq) use ($gymId) {
+                    $sq->where('id_gym', $gymId);
+                });
+            });
 
-        // Receptionists see sessions in their assigned gyms
-        if ($user->role === User::ROLE_RECEPTIONIST) {
-            return $query->whereHas('course.gym', function ($q) use ($user) {
-                $q->whereIn('gyms.id_gym', $user->allowedGymIds());
-            })->get();
+            if ($user->role === User::ROLE_TRAINER) {
+                $query->where('id_trainer', $user->id_user);
+            } else {
+                $query->whereHas('course.gym', function ($q) use ($user) {
+                    $q->whereIn('gyms.id_gym', $user->allowedGymIds());
+                });
+            }
+            
+            return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
         return collect();

@@ -14,7 +14,7 @@ class ReviewService extends BaseService
     public function __construct(AIService $aiService, NotificationService $notificationService)
     {
         $this->setModel(new Review());
-        $this->setRelations(['user', 'event', 'event.gym']);
+        $this->setRelations(['user', 'event.gym', 'trainer.gymStaff', 'course.gym', 'session.course.gym']);
         $this->aiService = $aiService;
         $this->notificationService = $notificationService;
     }
@@ -39,8 +39,17 @@ class ReviewService extends BaseService
             })->get();
         }
 
-        // Receptionists see reviews for their assigned gyms
-        if ($user->role === User::ROLE_RECEPTIONIST) {
+        // Staff (Receptionist, Trainer, Nutritionist) see reviews for their assigned gyms
+        if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
+            
+            // If the user is a trainer, restrict their view strictly to their own personal reviews
+            // And completely bypass the event.gym requirement because trainer reviews are tied to the trainer/course, not events.
+            if ($user->role === User::ROLE_TRAINER) {
+                $query->where('id_trainer', $user->id_user);
+                return $perPage ? $query->paginate($perPage) : $query->get();
+            }
+
+            // For other staff (Receptionist, Nutritionist), keep the event scoping if that's what's designed.
             $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) {
                 $q->whereHas('event', function ($sq) use ($gymId) {
                     $sq->where('id_gym', $gymId);

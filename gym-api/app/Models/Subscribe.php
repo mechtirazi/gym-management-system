@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Subscribe extends Model
@@ -19,6 +20,15 @@ class Subscribe extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    protected $appends = ['end_date'];
+
+    public function getEndDateAttribute()
+    {
+        if (!$this->subscribe_date)
+            return null;
+        return Carbon::parse($this->subscribe_date)->addDays(30)->toDateString();
+    }
 
     /**
      * Subscribe status constants

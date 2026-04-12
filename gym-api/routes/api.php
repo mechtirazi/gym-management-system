@@ -25,13 +25,14 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\SuperAdminAnalyticsController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ReceptionistDashboardController;
+use App\Http\Controllers\Api\TrainerController;
 
 // Public Auth Routes (no authentication required)
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register'])->name('auth.register');
     Route::post('login', [AuthController::class, 'login'])
-         ->name('auth.login')
-         ->middleware('throttle:login');
+        ->name('auth.login')
+        ->middleware('throttle:login');
 
     // Email Verification
     Route::get('verify/{id}/{hash}', [AuthController::class, 'verify'])->name('verification.verify');
@@ -92,6 +93,8 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::apiResource('subscribes', SubscribeController::class);
 
     // Nutrition Plan routes
+    Route::get('nutrition-plans/available', [NutritionPlanController::class, 'available'])->name('nutrition-plans.available');
+    Route::post('nutrition-plans/{nutritionPlan}/purchase', [NutritionPlanController::class, 'purchase'])->name('nutrition-plans.purchase');
     Route::apiResource('nutrition-plans', NutritionPlanController::class);
 
     // Notification routes
@@ -121,6 +124,30 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
             Route::get('recent-checkins', [OwnerDashboardController::class, 'getRecentCheckins'])->name('owner.recent-checkins');
             Route::get('revenue-stats', [OwnerRevenueController::class, 'getAdvancedStats'])->name('owner.revenue-stats');
         });
+    });
+
+    // Member Dashboard routes
+    Route::middleware(['role:member'])->prefix('member')->group(function () {
+        Route::get('dashboard-stats', [App\Http\Controllers\Api\MemberController::class, 'getDashboardStats'])->name('member.dashboard-stats');
+        Route::post('courses/{course}/enroll', [App\Http\Controllers\Api\MemberController::class, 'enrollCourse'])->name('member.courses.enroll');
+        Route::post('gyms/{gym}/purchase', [App\Http\Controllers\Api\MemberController::class, 'purchaseMembership'])->name('member.gyms.purchase');
+        Route::post('check-in', [App\Http\Controllers\Api\MemberController::class, 'checkIn'])->name('member.check-in');
+        Route::put('biometrics', [App\Http\Controllers\Api\MemberController::class, 'updateBiometrics'])->name('member.biometrics');
+        Route::post('workouts', [App\Http\Controllers\Api\MemberController::class, 'storeWorkoutLog'])->name('member.workouts.save');
+        Route::get('workouts/history', [App\Http\Controllers\Api\MemberController::class, 'getWorkoutHistory'])->name('member.workouts.history');
+    });
+
+    // Trainer Dashboard routes
+    Route::middleware(['role:trainer'])->prefix('trainer')->group(function () {
+        Route::get('dashboard-stats', [TrainerController::class, 'getDashboardStats'])->name('trainer.dashboard-stats');
+        Route::get('upcoming-sessions', [TrainerController::class, 'getUpcomingSessions'])->name('trainer.upcoming-sessions');
+        Route::get('sessions', [TrainerController::class, 'getSessions'])->name('trainer.sessions');
+        Route::get('analytics', [TrainerController::class, 'getAnalytics'])->name('trainer.analytics');
+        Route::post('broadcast', [TrainerController::class, 'broadcast'])->name('trainer.broadcast');
+
+        Route::get('clients', [UserController::class, 'index'])->name('trainer.clients');
+        Route::post('clients', [UserController::class, 'store'])->name('trainer.clients.store');
+        Route::patch('clients/{user}', [UserController::class, 'update'])->name('trainer.clients.update');
     });
 
     // Super Admin routes

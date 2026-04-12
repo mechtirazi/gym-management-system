@@ -70,8 +70,14 @@ class UserPolicy
     {
         // Super admin can create owners
         // Owners can create any staff/member
-        // Receptionists can only create members
-        return in_array($user->role, [User::ROLE_SUPER_ADMIN, User::ROLE_OWNER, User::ROLE_RECEPTIONIST]);
+        // Receptionists, Trainers, and Nutritionists can manage members/clients
+        return in_array($user->role, [
+            User::ROLE_SUPER_ADMIN, 
+            User::ROLE_OWNER, 
+            User::ROLE_RECEPTIONIST, 
+            User::ROLE_TRAINER, 
+            User::ROLE_NUTRITIONIST
+        ]);
     }
 
     /**
@@ -94,8 +100,8 @@ class UserPolicy
             ]);
         }
 
-        // Receptionists can only create members
-        if ($user->role === User::ROLE_RECEPTIONIST) {
+        // Receptionists, Trainers, and Nutritionists can only create members
+        if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
             return $targetRole === User::ROLE_MEMBER;
         }
 
@@ -145,9 +151,29 @@ class UserPolicy
             return true;
         }
 
-        // Receptionists manage members only
-        if ($user->role === User::ROLE_RECEPTIONIST) {
-            return $targetUser->role === User::ROLE_MEMBER;
+        // Receptionists, Trainers, and Nutritionists manage members/clients only
+        if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
+            if ($targetUser->role !== User::ROLE_MEMBER) {
+                return false;
+            }
+
+            // For Trainers, check if this is their client (same Course/Session)
+            if ($user->role === User::ROLE_TRAINER) {
+                return $targetUser->attendances()
+                    ->whereHas('session', function ($q) use ($user) {
+                        $q->where('id_trainer', $user->id_user);
+                    })
+                    ->exists();
+            }
+
+            // For Nutritionists, check if they are the assigned nutritionist
+            if ($user->role === User::ROLE_NUTRITIONIST) {
+                return $targetUser->nutritionPlansAsMember()
+                    ->where('id_nutritionist', $user->id_user)
+                    ->exists();
+            }
+
+            return true;
         }
 
         return false;

@@ -16,7 +16,9 @@ return new class () extends Migration {
 
         Schema::table('notifications', function (Blueprint $table) {
             $table->uuid('id_user')->nullable()->change();
-            $table->boolean('is_read')->default(false)->after('id_user');
+            if (!Schema::hasColumn('notifications', 'is_read')) {
+                $table->boolean('is_read')->default(false)->after('id_user');
+            }
             $table->index(['id_user', 'created_at'], 'notifications_user_created_at_index');
         });
 

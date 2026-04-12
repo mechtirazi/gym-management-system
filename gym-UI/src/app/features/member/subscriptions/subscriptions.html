@@ -1,0 +1,138 @@
+<div class="membership-container">
+  <!-- Atmospheric Header -->
+  <header class="header-hub">
+      <div class="glass-card header-content">
+          <div class="text-group">
+              <h1>Training Nodes</h1>
+              <p>Active program synchronizations for your profile.</p>
+          </div>
+          <button class="join-btn" routerLink="/member/gyms">
+              <span class="material-icons">add_circle</span>
+              Join New Gym
+          </button>
+      </div>
+  </header>
+
+  <!-- Content States -->
+  @if (loading) {
+      <div class="loading-grid">
+          @for (s of [1,2,3]; track s) {
+              <div class="skeleton-card glass-card"></div>
+          }
+      </div>
+  } @else if (subscriptions.length > 0) {
+      <div class="subscriptions-grid">
+          @for (sub of subscriptions; track sub.id_subscribe) {
+              <div class="sub-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'">
+                  <div class="gym-badge">
+                      <img [src]="sub.gym?.logo_url || 'https://ui-avatars.com/api/?name=Gym&background=8b5cf6&color=fff'" [alt]="sub.gym?.name">
+                      <div class="gym-details">
+                          <span class="gym-name">{{ sub.gym?.name || 'Local Node' }}</span>
+                          <span class="gym-location">{{ sub.gym?.address || 'Premium Facility' }}</span>
+                      </div>
+                  </div>
+
+                   <div class="plan-info">
+                      <div class="plan-header">
+                        <span class="plan-label">Sync Protocol</span>
+                        <span class="type-badge" [class.premium]="sub.type === 'premium'">
+                            {{ sub.type === 'premium' ? 'Premium Sync' : 'Standard Sync' }}
+                        </span>
+                      </div>
+                      <h2 class="plan-name">{{ sub.gym?.name || 'Vanguard Member' }}</h2>
+                      <p class="plan-desc">Advanced biometric tracking and facility access protocols.</p>
+                      
+                      <div class="progress-node" *ngIf="sub.status?.toLowerCase() === 'active' || sub.status?.toLowerCase() === 'pending'">
+                          <div class="progress-meta">
+                              <span>{{ getSubscriptionProgress(sub.end_date, sub.type) }}% Capacity</span>
+                              <span class="days-pulse">{{ getDaysLeft(sub.end_date) }} Days Left</span>
+                          </div>
+                          <div class="progress-track">
+                              <div class="progress-bar" [style.width.%]="getSubscriptionProgress(sub.end_date, sub.type)"></div>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div class="usage-stats">
+                      <div class="stat-node">
+                          <span class="stat-val">{{ (sub.enrollment_date || sub.start_date) | date:'MMM dd, yyyy' }}</span>
+                          <span class="stat-label">Initialization</span>
+                      </div>
+                      <div class="stat-node">
+                          <span class="stat-val">{{ sub.end_date | date:'MMM dd, yyyy' }}</span>
+                          <span class="stat-label">Recalibration</span>
+                      </div>
+                  </div>
+
+                  <div class="plan-features">
+                      <div class="feat-item"><span class="material-icons">check_circle</span> Unlimited Gym Access</div>
+                      <div class="feat-item"><span class="material-icons">check_circle</span> Locker Access</div>
+                      <div class="feat-item" *ngIf="!isStandardPlan(sub.plan?.name)"><span class="material-icons">check_circle</span> Sauna & Spa</div>
+                      <div class="feat-item" *ngIf="!isStandardPlan(sub.plan?.name)"><span class="material-icons">check_circle</span> 24/7 Access</div>
+                  </div>
+
+                  <div class="card-footer">
+                      <div class="status-pill" [ngClass]="getStatusClass(sub.status)">
+                          {{ sub.status || 'Active' }}
+                      </div>
+                      <div class="price-and-action" style="display: flex; align-items: center; gap: 1.5rem;">
+                          <button (click)="reactivate(sub)" class="btn-glass-primary-sm">
+                              <span class="material-symbols-rounded">autorenew</span> {{ (sub.status?.toLowerCase() === 'expired' || sub.status?.toLowerCase() === 'cancelled') ? 'Reactivate Node' : 'Extend Node' }}
+                          </button>
+                          <div class="price-node">
+                              <span class="currency">$</span>
+                              <span class="amount">{{ sub.amount || '49.99' }}</span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          }
+      </div>
+  } @else {
+      <div class="empty-state glass-card animate-fade-in">
+          <div class="icon-node">🏟️</div>
+          <h2>No Active Nodes</h2>
+          <p>You haven't synchronized with any gym facilities yet. Explore the Hub to find your home base.</p>
+          <button class="primary-btn" routerLink="/member/gyms">Explore Facilities</button>
+      </div>
+  }
+
+  <!-- Modals -->
+  <div class="payment-modal-backdrop" *ngIf="showPaymentPicker" (click)="showPaymentPicker = false">
+    <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="title-group"><span class="material-symbols-rounded">payments</span>
+          <h3>Activation Node</h3>
+        </div>
+        <button class="close-btn" (click)="showPaymentPicker = false"><span
+            class="material-symbols-rounded">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="payment-options">
+          <div class="payment-card" [class.processing]="isProcessingPayment" (click)="processPurchase('zen_wallet')">
+            <div class="card-icon points"><span class="material-symbols-rounded">stars</span></div>
+            <div class="card-info"><span class="method-title">Zen Points</span><span class="method-desc">Redeem gained platform points.</span></div>
+            <div class="price-info"><span class="cost">50</span><span class="units">PTS</span></div>
+          </div>
+          <div class="payment-card" [class.processing]="isProcessingPayment" (click)="processPurchase('credit_card')">
+            <div class="card-icon credit"><span class="material-symbols-rounded">credit_card</span></div>
+            <div class="card-info"><span class="method-title">Credit Card</span><span class="method-desc">Standard external payment node.</span></div>
+            <div class="price-info"><span class="cost">$49.99</span><span class="units">USD</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast System -->
+  <div class="toast-hub-container" *ngIf="toastMessage">
+    <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
+      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' :
+        'info') }}</span>
+      <div class="toast-content">
+        <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System Notice') }}</strong>
+        <p>{{ toastMessage }}</p>
+      </div>
+    </div>
+  </div>
+</div>
