@@ -12,13 +12,30 @@
 
   <!-- KATALOG VIEW -->
   <section class="catalog-grid-view animate-fade-in" *ngIf="showCatalog">
-    <div class="catalog-header glass-container mb-4">
+    <div class="catalog-instructions glass-container mb-4">
       <span class="material-icons">info</span>
       <p>Browse global exercise protocols. Click an item to view details or go back to add to session.</p>
-      <input type="text" [(ngModel)]="exSearch" placeholder="Search Catalog..." class="glass-search ml-auto">
     </div>
-    <div class="pro-catalog-grid">
-      <div class="cat-card glass-item animate-slide-up" *ngFor="let ex of filteredExercises"
+
+    <div class="catalog-toolbar glass-container mb-4">
+      <input type="text" [(ngModel)]="exSearch" placeholder="Search Catalog..." class="glass-search">
+      
+      <div class="category-filters main-catalog-filters">
+        <button class="filter-chip" [class.active]="activeCategory === 'all'" (click)="activeCategory = 'all'">All</button>
+        <button class="filter-chip" [class.active]="activeCategory === 'chest'" (click)="activeCategory = 'chest'">Chest</button>
+        <button class="filter-chip" [class.active]="activeCategory === 'back'" (click)="activeCategory = 'back'">Back</button>
+        <button class="filter-chip" [class.active]="activeCategory === 'legs'" (click)="activeCategory = 'legs'">Legs</button>
+        <button class="filter-chip" [class.active]="activeCategory === 'shoulders'" (click)="activeCategory = 'shoulders'">Shoulders</button>
+      </div>
+
+      <div class="zoom-slider-container ml-auto">
+        <span class="material-icons">zoom_in</span>
+        <input type="range" min="0.5" max="1.5" step="0.1" [(ngModel)]="catalogScale" class="zoom-slider">
+      </div>
+    </div>
+    <div class="pro-catalog-grid" [ngStyle]="gridScaleStyle">
+      <div class="cat-card glass-item animate-slide-up" [class.is-synced]="isInCatalog(ex.name)" 
+        *ngFor="let ex of filteredExercises; trackBy: trackByLibraryItem"
         (click)="addPresetExercise(ex.name)">
         <div class="card-visual">
           <img [src]="ex.image" alt="exercise">
@@ -29,8 +46,8 @@
           <span class="ex-cat badge">{{ ex.category }}</span>
         </div>
         <div class="sync-indicator">
-          <span class="material-icons">sync</span>
-          SYNC PROTOCOL
+          <span class="material-icons">{{ isInCatalog(ex.name) ? 'bookmark_added' : 'sync' }}</span>
+          {{ isInCatalog(ex.name) ? 'IN CATALOG' : 'SYNC PROTOCOL' }}
         </div>
       </div>
     </div>
@@ -59,7 +76,7 @@
 
       <div class="exercise-list custom-scrollbar">
         <!-- ONLY shows exercises that you have added from the main Catalog -->
-        <div class="library-item glass-item animate-slide-up" *ngFor="let ex of filteredSelectedExercises"
+        <div class="library-item glass-item animate-slide-up" *ngFor="let ex of filteredSelectedExercises; trackBy: trackByLibraryItem"
           (click)="addExerciseToSession(ex.name)">
           <div class="ex-img-thumb">
             <img [src]="ex.image" alt="ex">
@@ -101,9 +118,9 @@
 
         <div class="exercises-stack" *ngIf="workoutForm.exercises.length > 0">
           <div class="exercise-node glass-item animate-slide-up"
-            *ngFor="let ex of workoutForm.exercises; let i = index">
+            *ngFor="let ex of workoutForm.exercises; let i = index; trackBy: trackByExercise">
             <div class="node-header">
-              <span class="node-name">{{ ex.exercise_name }}</span>
+              <input type="text" [(ngModel)]="ex.exercise_name" class="node-name-input" placeholder="Exercise name...">
               <button class="btn-icon delete" (click)="removeExercise(i)"><span
                   class="material-icons">close</span></button>
             </div>
@@ -115,7 +132,7 @@
                 <span>Reps</span>
                 <span></span>
               </div>
-              <div class="row animate-fade-in" *ngFor="let set of ex.sets; let si = index">
+              <div class="row animate-fade-in" *ngFor="let set of ex.sets; let si = index; trackBy: trackBySet">
                 <span class="set-idx">#{{ si + 1 }}</span>
                 <input type="number" [(ngModel)]="set.weight" class="mini-input">
                 <input type="number" [(ngModel)]="set.reps" class="mini-input">

@@ -125,6 +125,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
             Route::get('dashboard-stats', [OwnerDashboardController::class, 'getDashboardStats'])->name('owner.dashboard-stats');
             Route::get('revenue-chart', [OwnerDashboardController::class, 'getRevenueChart'])->name('owner.revenue-chart');
             Route::get('recent-checkins', [OwnerDashboardController::class, 'getRecentCheckins'])->name('owner.recent-checkins');
+            Route::get('activity-chart', [OwnerDashboardController::class, 'getActivityChart'])->name('owner.activity-chart');
             Route::get('revenue-stats', [OwnerRevenueController::class, 'getAdvancedStats'])->name('owner.revenue-stats');
             
             // Membership Plan Management

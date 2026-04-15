@@ -4,6 +4,26 @@ import { Observable, map, Subject } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
 
+export interface WorkoutSet {
+  weight: number;
+  reps: number;
+}
+
+export interface WorkoutExercise {
+  exercise_name: string;
+  sets: WorkoutSet[];
+}
+
+export interface Workout {
+  name: string;
+  exercises: WorkoutExercise[];
+}
+
+export interface WorkoutHistoryResponse {
+  data: any[]; // Link to a more detailed 'LoggedWorkout' if backend types are known
+  total?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -120,12 +140,12 @@ export class MemberService {
     return this.http.put<any>(`${this.apiUrl}/member/biometrics`, stats);
   }
 
-  saveWorkoutLog(workoutData: any): Observable<any> {
+  saveWorkoutLog(workoutData: Workout): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/member/workouts`, workoutData);
   }
 
-  getWorkoutHistory(page: number = 1): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/member/workouts/history?page=${page}`);
+  getWorkoutHistory(page: number = 1): Observable<WorkoutHistoryResponse> {
+    return this.http.get<WorkoutHistoryResponse>(`${this.apiUrl}/member/workouts/history?page=${page}`);
   }
 
   submitReview(gymId: string, reviewData: any): Observable<any> {

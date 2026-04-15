@@ -31,30 +31,38 @@ export class RevenueChartComponent implements OnInit {
   chartError = signal<string | null>(null);
 
   public chartOptions: Partial<ChartOptions> | any = {
-    series: [{ name: "Revenue", data: [] }],
-    chart: { type: "bar", height: 320, toolbar: { show: false }, fontFamily: 'inherit', animations: { enabled: true } },
+    series: [
+      { name: "Attendance", data: [] },
+      { name: "New Sign-ups", data: [] },
+      { name: "Cancellations", data: [] }
+    ],
+    chart: { type: "area", height: 320, toolbar: { show: false }, fontFamily: 'inherit', animations: { enabled: true }, sparkline: { enabled: false } },
     plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
-    colors: ['#4f46e5'],
+    colors: ['#0ea5e9', '#f59e0b', '#f43f5e'],
     dataLabels: { enabled: false },
-    stroke: { width: 0 },
-    xaxis: { categories: [], axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#64748b', fontSize: '13px', fontWeight: 600 } } },
-    yaxis: { labels: { formatter: (val: number) => `$${val.toLocaleString()}`, style: { colors: '#64748b', fontSize: '12px' } } },
+    stroke: { width: 3, curve: 'smooth' },
+    xaxis: { categories: [], axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#64748b', fontSize: '12px', fontWeight: 600 } } },
+    yaxis: { labels: { formatter: (val: number) => Math.round(val), style: { colors: '#64748b', fontSize: '12px' } } },
     grid: { borderColor: '#f1f5f9', strokeDashArray: 4, yaxis: { lines: { show: true } } }
   };
 
   ngOnInit() {
-    this.fetchChartData('this_year');
+    this.fetchChartData();
   }
 
-  fetchChartData(filter: string) {
+  fetchChartData() {
     this.isLoadingChart.set(true);
     this.chartError.set(null);
-    this.dashboardService.getRevenueChartData(filter)
+    this.dashboardService.getActivityChartData()
       .pipe(finalize(() => this.isLoadingChart.set(false)))
       .subscribe({
         next: (data) => {
-          this.chartOptions.series = [{ name: 'Revenue', data: data.map(d => d.amount) }];
-          this.chartOptions.xaxis = { ...this.chartOptions.xaxis, categories: data.map(d => d.month) };
+          this.chartOptions.series = [
+            { name: 'Attendance', data: data.map(d => d.attendance) },
+            { name: 'New Sign-ups', data: data.map(d => d.signups) },
+            { name: 'Cancellations', data: data.map(d => d.cancellations) }
+          ];
+          this.chartOptions.xaxis = { ...this.chartOptions.xaxis, categories: data.map(d => d.date) };
         },
         error: (err) => {
           console.error('Failed to load chart', err);
@@ -63,7 +71,4 @@ export class RevenueChartComponent implements OnInit {
       });
   }
 
-  onFilterChange(event: any) {
-    this.fetchChartData(event.target.value);
-  }
 }

@@ -62,25 +62,35 @@ class OwnerDashboardService
 
         $revenueTrend = $this->calculateTrend($currRevenue, $prevRevenue);
 
-        // 2. Active Members
-        $currActiveMembers = Subscribe::whereIn('id_gym', $gymIdsArray)
-            ->where('status', Subscribe::STATUS_ACTIVE)
-            ->count();
+        // 2. Active Members (Unique users with ROLE_MEMBER)
+        $currActiveMembers = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->where('enrollments.status', 'active')
+            ->where('users.role', User::ROLE_MEMBER)
+            ->distinct('enrollments.id_member')
+            ->count('enrollments.id_member');
 
-        $prevActiveMembers = Subscribe::whereIn('id_gym', $gymIdsArray)
-            ->where('status', Subscribe::STATUS_ACTIVE)
-            ->where('created_at', '<', $currMonthStart)
-            ->count();
+        $prevActiveMembers = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->where('enrollments.status', 'active')
+            ->where('users.role', User::ROLE_MEMBER)
+            ->where('enrollments.created_at', '<', $currMonthStart)
+            ->distinct('enrollments.id_member')
+            ->count('enrollments.id_member');
 
         $membersTrend = $this->calculateTrend($currActiveMembers, $prevActiveMembers);
 
-        // 3. New Memberships
-        $currNewMem = Subscribe::whereIn('id_gym', $gymIdsArray)
-            ->where('created_at', '>=', $currMonthStart)
+        // 3. New Memberships (ROLE_MEMBER only)
+        $currNewMem = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->where('enrollments.created_at', '>=', $currMonthStart)
+            ->where('users.role', User::ROLE_MEMBER)
             ->count();
 
-        $prevNewMem = Subscribe::whereIn('id_gym', $gymIdsArray)
-            ->whereBetween('created_at', [$prevMonthStart, $prevMonthEnd])
+        $prevNewMem = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->whereBetween('enrollments.created_at', [$prevMonthStart, $prevMonthEnd])
+            ->where('users.role', User::ROLE_MEMBER)
             ->count();
 
         $membershipsTrend = $this->calculateTrend($currNewMem, $prevNewMem);
@@ -141,7 +151,76 @@ class OwnerDashboardService
             ];
         });
 
-        // 8. Gym Occupancy
+        // 8. Activity Trends (Daily - Last 14 Days)
+        $activityTrends = [];
+        for ($i = 13; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            $dayLabel = $date->format('M d');
+            
+            $attendanceCount = Attendance::whereHas('session.course', function ($q) use ($gymIdsArray) {
+                    $q->whereIn('id_gym', $gymIdsArray);
+                })
+                ->whereDate('created_at', $date)
+                ->where('status', Attendance::STATUS_PRESENT)
+                ->count();
+                
+            $newSignups = Enrollment::whereIn('id_gym', $gymIdsArray)
+                ->whereDate('created_at', $date)
+                ->count();
+                
+            $cancellations = Subscribe::whereIn('id_gym', $gymIdsArray)
+                ->where('status', Subscribe::STATUS_CANCELLED)
+                ->whereDate('updated_at', $date)
+                ->count();
+                
+            $activityTrends[] = [
+                'date' => $dayLabel,
+                'attendance' => $attendanceCount,
+                'signups' => $newSignups,
+                'cancellations' => $cancellations
+            ];
+        }
+
+        // 9. Key Focus Areas
+        $totalMembers = Enrollment::whereIn('id_gym', $gymIdsArray)->count();
+        $retentionRate = $totalMembers > 0 ? round(($currActiveMembers / $totalMembers) * 100) : 0;
+        
+        $newMembersLast30 = Enrollment::whereIn('id_gym', $gymIdsArray)
+            ->where('created_at', '>=', $now->copy()->subDays(30))
+            ->get();
+        $onboardedCount = 0;
+        foreach($newMembersLast30 as $member) {
+            if (Attendance::where('id_member', $member->id_member)->exists()) {
+                $onboardedCount++;
+            }
+        }
+        $onboardingRate = $newMembersLast30->count() > 0 ? round(($onboardedCount / $newMembersLast30->count()) * 100) : 0;
+        
+        $totalProducts = Product::whereIn('id_gym', $gymIdsArray)->count();
+        $lowStockProducts = Product::whereIn('id_gym', $gymIdsArray)->where('stock', '<', 10)->count();
+        $equipmentHealth = $totalProducts > 0 ? round((($totalProducts - $lowStockProducts) / $totalProducts) * 100) : 100;
+        
+        $totalSessionsToday = Session::whereHas('course', function ($q) use ($gymIdsArray) {
+                $q->whereIn('id_gym', $gymIdsArray);
+            })
+            ->whereDate('start_time', Carbon::today())
+            ->count();
+        $attendedSessionsToday = Attendance::whereHas('session.course', function ($q) use ($gymIdsArray) {
+                $q->whereIn('id_gym', $gymIdsArray);
+            })
+            ->whereDate('created_at', Carbon::today())
+            ->distinct('id_session')
+            ->count('id_session');
+        $staffEfficiency = $totalSessionsToday > 0 ? round(($attendedSessionsToday / $totalSessionsToday) * 100) : 0;
+        
+        $focusAreas = [
+            ['label' => 'Retention Campaigns', 'value' => $retentionRate, 'color' => 'bg-cyan-500'],
+            ['label' => 'New Member Onboarding', 'value' => $onboardingRate, 'color' => 'bg-teal-500'],
+            ['label' => 'Equipment Upgrades', 'value' => $equipmentHealth, 'color' => 'bg-amber-500'],
+            ['label' => 'Staff Efficiency', 'value' => $staffEfficiency, 'color' => 'bg-purple-500'],
+        ];
+
+        // 10. Gym Occupancy
         $gym = Gym::whereIn('id_gym', $gymIdsArray)->first();
         $currentPresent = Attendance::whereHas('session.course', function ($q) use ($gymIdsArray) {
             $q->whereIn('id_gym', $gymIdsArray);
@@ -164,12 +243,8 @@ class OwnerDashboardService
             "upcomingSessions" => $sessionData,
             "inventoryAlerts" => $inventoryAlerts,
             "expiringMemberships" => $expiringData,
-            "occupancy" => [
-                "current" => $currentPresent,
-                "capacity" => $gym ? $gym->capacity : 100,
-                "percentage" => $gym && $gym->capacity > 0 ? round(($currentPresent / $gym->capacity) * 100) : 0,
-                "gymName" => $gym ? $gym->name : 'Main Gym'
-            ]
+            "activityTrends" => $activityTrends,
+            "focusAreas" => $focusAreas,
         ];
     }
 
@@ -223,6 +298,44 @@ class OwnerDashboardService
                 "role" => $user->role
             ]
         ];
+    }
+
+    public function getActivityChartData(User $user): array
+    {
+        $gymIdsArray = $this->getActiveGymIds($user);
+        $chartData = [];
+        $now = Carbon::now();
+
+        // Last 14 days
+        for ($i = 13; $i >= 0; $i--) {
+            $date = $now->copy()->subDays($i);
+            $dayLabel = $date->format('d M');
+
+            $attendance = Attendance::whereHas('session.course', function ($q) use ($gymIdsArray) {
+                    $q->whereIn('id_gym', $gymIdsArray);
+                })
+                ->whereDate('created_at', $date)
+                ->where('status', Attendance::STATUS_PRESENT)
+                ->count();
+
+            $signups = Enrollment::whereIn('id_gym', $gymIdsArray)
+                ->whereDate('created_at', $date)
+                ->count();
+
+            $cancellations = Subscribe::whereIn('id_gym', $gymIdsArray)
+                ->where('status', Subscribe::STATUS_CANCELLED)
+                ->whereDate('updated_at', $date)
+                ->count();
+
+            $chartData[] = [
+                'date' => $dayLabel,
+                'attendance' => $attendance,
+                'signups' => $signups,
+                'cancellations' => $cancellations
+            ];
+        }
+
+        return $chartData;
     }
 
     public function getRevenueChart(User $user, string $filter = 'last_6_months'): array
@@ -292,7 +405,7 @@ class OwnerDashboardService
             ];
 
             // Member Growth calculation
-            $activeCount = Subscribe::whereIn('id_gym', $gymIdsArray)
+            $activeCount = Enrollment::whereIn('id_gym', $gymIdsArray)
                 ->where('created_at', '<=', $monthEnd)
                 ->count();
 
@@ -374,9 +487,9 @@ class OwnerDashboardService
             ->whereYear('created_at', $now->year)
             ->count();
 
-        $expiringSoon = Subscribe::whereIn('id_gym', $gymIdsArray)
-            ->where('status', Subscribe::STATUS_ACTIVE)
-            ->where('subscribe_date', '<=', $now->copy()->subDays(25))
+        $expiringSoon = Enrollment::whereIn('id_gym', $gymIdsArray)
+            ->where('status', 'active')
+            ->where('enrollment_date', '<=', $now->copy()->subDays(25))
             ->count();
 
         // 7. Top Performing Courses (by Revenue & Attendance)

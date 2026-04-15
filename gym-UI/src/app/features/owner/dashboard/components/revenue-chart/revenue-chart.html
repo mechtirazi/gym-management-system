@@ -4,10 +4,6 @@
       <h2>Revenue Overview</h2>
       <p class="text-slate-500 text-sm mt-1">Monthly earnings summary</p>
     </div>
-    <select class="chart-filter" (change)="onFilterChange($event)">
-      <option value="this_year">This Year</option>
-      <option value="last_6_months">Last 6 Months</option>
-    </select>
   </div>
   
   @if (isLoadingChart()) {
@@ -17,7 +13,7 @@
   } @else if (chartError()) {
     <div class="flex flex-col items-center justify-center text-red-500" style="height: 320px;">
       <p>{{ chartError() }}</p>
-      <button class="mt-2 text-sm underline" (click)="fetchChartData('this_year')">Retry</button>
+      <button class="mt-2 text-sm underline" (click)="fetchChartData()">Retry</button>
     </div>
   } @else {
     <apx-chart

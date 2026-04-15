@@ -21,6 +21,7 @@ import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.se
     CommonModule,
     FormsModule,
     PageHeaderComponent,
+    FilterControlsComponent,
     ProductCardComponent,
     AddProductModalComponent,
     EditProductModalComponent,

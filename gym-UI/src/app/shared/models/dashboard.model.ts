@@ -21,14 +21,21 @@ export interface DashboardData {
   upcomingSessions: UpcomingSession[];
   inventoryAlerts: InventoryAlert[];
   expiringMemberships: ExpiringMembership[];
-  occupancy: Occupancy;
+  activityTrends: ActivityTrend[];
+  focusAreas: FocusArea[];
 }
 
-export interface Occupancy {
-  current: number;
-  capacity: number;
-  percentage: number;
-  gymName: string;
+export interface ActivityTrend {
+  date: string;
+  attendance: number;
+  signups: number;
+  cancellations: number;
+}
+
+export interface FocusArea {
+  label: string;
+  value: number;
+  color: string;
 }
 
 export interface UpcomingSession {
@@ -62,4 +69,3 @@ export interface RevenueData {
   month: string;
   amount: number;
 }
-

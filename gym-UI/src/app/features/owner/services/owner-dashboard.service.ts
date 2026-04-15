@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
-import { DashboardStats, DashboardData, Checkin, RevenueData } from '../../../shared/models/dashboard.model';
+import { DashboardStats, DashboardData, Checkin, RevenueData, ActivityTrend } from '../../../shared/models/dashboard.model';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +25,13 @@ export class OwnerDashboardService {
    */
   getRevenueChartData(filter: string = 'this_year'): Observable<RevenueData[]> {
     return this.http.get<RevenueData[]>(`${this.apiUrl}/owner/revenue-chart?filter=${filter}`);
+  }
+
+  /**
+   * Fetches the activity trends chart data.
+   */
+  getActivityChartData(): Observable<ActivityTrend[]> {
+    return this.http.get<ActivityTrend[]>(`${this.apiUrl}/owner/activity-chart`);
   }
 
   /**

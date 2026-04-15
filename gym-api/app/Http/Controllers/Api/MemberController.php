@@ -367,7 +367,7 @@ class MemberController extends Controller
 
         return DB::transaction(function () use ($request, $user) {
             $workoutLog = \App\Models\WorkoutLog::create([
-                'id_member' => $user->id_user,
+                'id_member' => $user->getKey(),
                 'name' => $request->input('name', 'Metropolitan Quick Session'),
                 'workout_date' => now(),
             ]);
@@ -404,7 +404,7 @@ class MemberController extends Controller
      */
     public function getWorkoutHistory(Request $request)
     {
-        $history = \App\Models\WorkoutLog::where('id_member', $request->user()->id_user)
+        $history = \App\Models\WorkoutLog::where('id_member', $request->user()->getKey())
             ->with(['exercises.sets'])
             ->orderBy('workout_date', 'desc')
             ->paginate(10);

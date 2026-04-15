@@ -24,7 +24,7 @@
           <span class="lab">Active Nodes</span>
         </div>
         <div class="h-stat" *ngIf="activeSubscription">
-          <span class="val">{{ activeSubscription.plan?.name?.split(' ')[0] }}</span>
+          <span class="val">{{ activeSubscription?.plan?.name?.split(' ')[0] }}</span>
           <span class="lab">Tier</span>
         </div>
       </div>
@@ -65,11 +65,11 @@
 
                     <div class="card-footer">
                         <div class="social-actions">
-                            <button class="action-btn glass" (click)="likePulse(act)" [class.active-like]="act.liked"><span class="material-symbols-rounded">{{ act.liked ? 'favorite' : 'favorite_border' }}</span></button>
+                            <button class="action-btn glass" (click)="likePulse(act)" [class.active-like]="act?.liked"><span class="material-symbols-rounded">{{ act?.liked ? 'favorite' : 'favorite_border' }}</span></button>
                             <button class="action-btn glass" (click)="commentPulse(act)"><span class="material-symbols-rounded">chat_bubble_outline</span></button>
                             <button class="action-btn glass" (click)="sharePulse(act)"><span class="material-symbols-rounded">share</span></button>
                         </div>
-                        <button class="view-btn" [style.background]="act.color" (click)="viewDetails(act)">
+                        <button class="view-btn" [style.background]="act?.color" (click)="viewDetails(act)">
                             Details
                             <span class="material-icons">arrow_forward</span>
                         </button>

@@ -43,6 +43,18 @@ class OwnerDashboardController extends Controller
     }
 
     /**
+     * Returns the activity trends chart data (attendance, signups, cancellations).
+     */
+    public function getActivityChart(Request $request)
+    {
+        $user = $request->user();
+
+        $chartData = $this->dashboardService->getActivityChartData($user);
+
+        return response()->json($chartData);
+    }
+
+    /**
      * Returns the top recent gym member check-ins for the dashboard activity feed.
      */
     public function getRecentCheckins(Request $request)

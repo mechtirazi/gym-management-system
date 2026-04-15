@@ -7,6 +7,8 @@ use App\Http\Requests\UpdateAttendanceRequest;
 use App\Models\Attendance;
 use App\Services\AttendanceService;
 
+use App\Http\Resources\AttendanceResource;
+
 class AttendanceController extends BaseApiController
 {
     public function __construct(AttendanceService $attendanceService)
@@ -28,12 +30,19 @@ class AttendanceController extends BaseApiController
                 $data = $this->service->getAttendancesBySessionId($sessionId);
                 return response()->json([
                     'success' => true,
-                    'data' => $data,
+                    'data' => AttendanceResource::collection($data),
                     'message' => 'Attendances for session retrieved successfully',
                 ], 200);
             }
 
-            return parent::index($request);
+            $user = auth()->user();
+            $data = $this->service->getAllScoped($user);
+            
+            return response()->json([
+                'success' => true,
+                'data' => AttendanceResource::collection($data),
+                'message' => 'Attendances retrieved successfully',
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

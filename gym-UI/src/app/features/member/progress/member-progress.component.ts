@@ -118,7 +118,7 @@ export class MemberProgressComponent implements OnInit {
           const backendStats = response.stats?.stats;
           this.stats = {
             ...this.stats,
-            caloriesBurned: backendStats?.calories || 0,
+            caloriesBurned: backendStats?.caloriesBurned || 0,
             protein: backendStats?.protein || 0,
             carbs: backendStats?.carbs || 0,
             fats: backendStats?.fats || 0,
