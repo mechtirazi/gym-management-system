@@ -176,8 +176,7 @@
 
       &:hover {
         background: var(--admin-accent-indigo);
-        color: white;
-        transform: rotate(90deg) scale(1.1);
+        color: var(--text-main); transform: rotate(90deg) scale(1.1);
         border-color: var(--admin-accent-indigo);
       }
     }
@@ -222,8 +221,7 @@
 
     &.active {
       background: var(--admin-accent-indigo);
-      color: white;
-      border-color: var(--admin-accent-indigo);
+      color: var(--text-main); border-color: var(--admin-accent-indigo);
       padding: 0.8rem 2.5rem;
       box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
     }
@@ -317,8 +315,7 @@
           backdrop-filter: blur(10px);
           padding: 0.5rem 1rem;
           border-radius: 1rem;
-          color: white;
-          font-size: 0.8rem;
+          color: var(--text-main); font-size: 0.8rem;
           font-weight: 700;
           border: 1px solid rgba(255,255,255,0.2);
 
@@ -332,8 +329,7 @@
           background: rgba(255,255,255,0.15);
           backdrop-filter: blur(10px);
           border: 1px solid rgba(255,255,255,0.2);
-          color: white;
-          display: flex;
+          color: var(--text-main); display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
@@ -357,12 +353,21 @@
             background: white;
             object-fit: cover;
             border: 2px solid rgba(255,255,255,0.2);
+
+            &.text-logo {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 900;
+              font-size: 1.4rem;
+              color: var(--admin-accent-indigo);
+              background: rgba(255, 255, 255, 0.95);
+            }
           }
 
           .identity-text {
             h3 {
-              color: white;
-              font-size: 1.6rem;
+              color: var(--text-main); font-size: 1.6rem;
               font-weight: 800;
               margin: 0;
               letter-spacing: -1px;
@@ -425,6 +430,42 @@
     opacity: 0;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
+    .btn-action-follow {
+      width: 100%;
+      background: var(--admin-accent-indigo);
+      color: var(--text-main); border: 1px solid transparent;
+      padding: 0.8rem;
+      border-radius: 1.2rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-bottom: 0.8rem;
+      box-shadow: 0 5px 15px rgba(99, 102, 241, 0.2);
+
+      &:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+      }
+
+      &.active {
+        background: var(--admin-item-bg);
+        color: var(--text-main);
+        border: 1px solid var(--admin-glass-border);
+        box-shadow: none;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(220, 38, 38, 0.4);
+          color: #ef4444; // Warning color for unfollow
+        }
+      }
+    }
+
     .btn-action-primary {
       width: 100%;
       background: white;
@@ -440,10 +481,20 @@
       gap: 1rem;
       cursor: pointer;
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      transition: 0.3s;
 
       &:hover {
         background: var(--admin-accent-indigo);
-        color: white;
+        color: var(--text-main); transform: translateY(-3px);
+      }
+
+      &.is-enrolled {
+        background: rgba(74, 222, 128, 0.1) !important;
+        backdrop-filter: blur(10px);
+        color: #4ade80 !important;
+        border: 1px solid rgba(74, 222, 128, 0.3) !important;
+        box-shadow: none;
+        cursor: default;
       }
     }
   }

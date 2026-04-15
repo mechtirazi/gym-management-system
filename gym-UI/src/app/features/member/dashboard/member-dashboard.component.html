@@ -4,7 +4,7 @@
     <div class="hero-aura"></div>
     <div class="hero-content">
       <div class="greeting-layer">
-        <span class="status-token">BIOMETRIC_PROFILE_ACTIVE</span>
+        <span class="status-token">MEMBER_PROFILE_ACTIVE</span>
         <h1>{{ getGreeting() }}, <span class="text-gradient">{{ user()?.name }}</span></h1>
         <p class="subtitle">System heartbeat: Normal. Consistency level: Optimal.</p>
       </div>
@@ -158,46 +158,61 @@
   </div>
 
   <!-- Immersive Modal Overlays -->
-  <!-- Checkout Overlay -->
-  <div class="payment-modal-backdrop" *ngIf="showCheckoutModal" (click)="showCheckoutModal = false">
+  <!-- Elite Benefits Modal -->
+  <div class="payment-modal-backdrop" *ngIf="showEliteBenefitsModal" (click)="showEliteBenefitsModal = false">
     <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="title-group">
-          <span class="material-icons">payments</span>
-          <h3>Elite Activation Hub</h3>
+          <span class="material-icons">workspace_premium</span>
+          <h3>Elite Tier Benefits</h3>
         </div>
-        <button class="close-btn" (click)="showCheckoutModal = false"><span class="material-icons">close</span></button>
+        <button class="close-btn" (click)="showEliteBenefitsModal = false"><span class="material-icons">close</span></button>
       </div>
-
-      <div class="modal-body">
-        <div class="payment-options">
-          <div class="payment-card" [class.processing]="isProcessingPayment" (click)="processPayment('points')">
-            <div class="card-icon points"><span class="material-icons">stars</span></div>
-            <div class="card-info">
-              <span class="method-title">Zen Points</span>
-              <span class="method-desc">Redeem gained platform points.</span>
-            </div>
-            <div class="price-info">
-              <span class="cost">150</span>
-              <span class="units">PTS</span>
-            </div>
-          </div>
-
-          <div class="payment-card" [class.processing]="isProcessingPayment" (click)="processPayment('credit')">
-            <div class="card-icon credit"><span class="material-icons">credit_card</span></div>
-            <div class="card-info">
-              <span class="method-title">Credit Card</span>
-              <span class="method-desc">Standard external payment node.</span>
-            </div>
-            <div class="price-info">
-              <span class="cost">$19.99</span>
-              <span class="units">USD</span>
-            </div>
+      <div class="modal-body benefits-body">
+        <div class="benefit-item">
+          <span class="material-icons">psychology</span>
+          <div class="text">
+            <strong>Neural Coaching Nodes</strong>
+            <p>Access customized AI-driven training plans that adapt to your body's biometric output in real-time.</p>
           </div>
         </div>
+        <div class="benefit-item">
+          <span class="material-icons">monitor_heart</span>
+          <div class="text">
+            <strong>Advanced Biometric Sync</strong>
+            <p>Full integration with wearable sensors for metabolic tracking and recovery optimization.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <span class="material-icons">door_open</span>
+          <div class="text">
+            <strong>24/7 Global Hub Access</strong>
+            <p>Unrestricted access to any facility within the Metropolitan Hub network worldwide.</p>
+          </div>
+        </div>
+        
+        <button class="btn-check-in-titanium full-width" (click)="proceedToPayment()">
+          PROCEED TO ACTIVATION
+          <span class="material-icons">arrow_forward</span>
+        </button>
       </div>
     </div>
   </div>
+
+  <!-- High-Fidelity Checkout Vault (Matched to Program Style) -->
+  <app-payment-modal 
+    [showModal]="showPaymentPicker" 
+    [headerTitle]="'Elite Protocol Activation'"
+    [itemTitle]="'Elite Tier: Neural Access'"
+    [itemSubtitle]="'One-Time Program Integration'"
+    [itemImage]="'https://images.unsplash.com/photo-1540206395-6880f9490e44?auto=format&fit=crop&q=80&w=600'"
+    [purchaseTerms]="'Enrolling in the Elite Tier grants you permanent access to Neural Coaching nodes and advanced biometric tracking protocols across the Vanguard network.'"
+    [processingPayment]="isProcessingPayment"
+    [paymentError]="paymentError"
+    [stripePublicKey]="stripePublicKey"
+    (cancelPayment)="showPaymentPicker = false"
+    (confirmPayment)="processPurchase($event)">
+  </app-payment-modal>
 
   <!-- Digital ID Sync -->
   <div class="qr-modal-overlay" *ngIf="showQRModal" (click)="closeQRModal()">

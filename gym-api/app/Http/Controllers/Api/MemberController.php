@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\OwnerDashboardService;
+use App\Services\StripeService;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
@@ -19,16 +20,47 @@ use Carbon\Carbon;
 class MemberController extends Controller
 {
     protected $dashboardService;
+    protected $stripeService;
 
-    public function __construct(OwnerDashboardService $dashboardService)
+    public function __construct(OwnerDashboardService $dashboardService, StripeService $stripeService)
     {
         $this->dashboardService = $dashboardService;
+        $this->stripeService = $stripeService;
     }
 
     public function getDashboardStats(Request $request)
     {
         $stats = $this->dashboardService->getMemberStats($request->user());
         return response()->json($stats);
+    }
+
+    /**
+     * Initialize a Stripe Payment Intent for membership
+     */
+    public function createPaymentIntent(Request $request, Gym $gym)
+    {
+        $user = $request->user();
+        // Use custom amount if provided (e.g. for nutrition plans), otherwise default to membership price
+        $price = $request->input('amount') ?: 49.99;
+
+        try {
+            $intent = $this->stripeService->createPaymentIntent($price, 'usd', [
+                'user_id' => $user->id_user,
+                'gym_id' => $gym->id_gym,
+                'type' => $request->input('amount') ? 'item_purchase' : 'membership_enrollment'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'client_secret' => $intent->client_secret,
+                'amount' => $price
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stripe Sync Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -93,13 +125,17 @@ class MemberController extends Controller
             ]);
 
             // 6. Create Enrollment Record
-            $enrollment = Enrollment::create([
-                'id_member' => $user->id_user,
-                'id_gym' => $course->id_gym,
-                'enrollment_date' => now(),
-                'status' => 'active',
-                'type' => 'premium'
-            ]);
+            $enrollment = Enrollment::updateOrCreate(
+                [
+                    'id_member' => $user->id_user,
+                    'id_gym' => $course->id_gym,
+                ],
+                [
+                    'enrollment_date' => now(),
+                    'status' => 'active',
+                    'type' => 'premium'
+                ]
+            );
 
             return response()->json([
                 'success' => true,
@@ -121,20 +157,42 @@ class MemberController extends Controller
         $user = $request->user();
         $wallet = $user->wallet;
         $method = $request->input('payment_method', 'zen_wallet');
-        $price = 49.99; // Standard membership price
+        
+        // Handle Dynamic Plans
+        $planId = $request->input('id_plan');
+        $plan = null;
+        
+        if ($planId) {
+            $plan = \App\Models\MembershipPlan::find($planId);
+            if (!$plan) {
+                return response()->json(['success' => false, 'message' => 'Protocol Error: Specified synchronization plan is not recognized by the Hub.'], 400);
+            }
+            $price = $plan->price;
+            $type = $plan->type;
+        } else {
+            // Professional Tier Pricing Matrix (Legacy Fallback)
+            $type = $request->input('type', 'standard');
+            $pricing = [
+                'trial' => 9.99,
+                'standard' => 49.99,
+                'premium' => 99.99
+            ];
+            $price = $pricing[$type] ?? 49.99;
+        }
 
-        // 1. Double-check for existing active subscription
-        $exists = Subscribe::where('id_user', $user->id_user)
+        // 1. Double-check for existing active enrollment (Abonnement)
+        $exists = Enrollment::where('id_member', $user->id_user)
             ->where('id_gym', $gym->id_gym)
-            ->where('status', Subscribe::STATUS_ACTIVE)
+            ->where('status', 'active')
             ->exists();
 
         if ($exists) {
-            return response()->json(['success' => false, 'message' => 'Active synchronization node already exists for this facility.'], 400);
+            return response()->json(['success' => false, 'message' => 'Active biometric enrollment node already exists for this facility.'], 400);
         }
 
         // 2. Logic based on payment method
         if ($method === 'zen_wallet') {
+            // Zen points usually have a different conversion, but we'll use same value for now or 1:1 points
             if (!$wallet || $wallet->balance < $price) {
                 return response()->json([
                     'success' => false,
@@ -144,7 +202,7 @@ class MemberController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($user, $gym, $wallet, $price, $method) {
+        return DB::transaction(function () use ($user, $gym, $wallet, $price, $method, $type, $plan) {
             $transactionId = 'TXN-' . strtoupper(Str::random(12));
 
             if ($method === 'zen_wallet') {
@@ -155,13 +213,12 @@ class MemberController extends Controller
                     'wallet_id' => $wallet->id,
                     'amount' => $price,
                     'type' => 'debit',
-                    'description' => "Membership Activation via Points: {$gym->name}",
+                    'description' => "Membership Activation (" . ucfirst($type) . ") via Points: {$gym->name}",
                     'reference_type' => Gym::class,
                     'reference_id' => $gym->id_gym
                 ]);
                 $transactionId = 'ZEN-SUB-' . strtoupper(Str::random(12));
             } else {
-                // Mocking Credit Card Success
                 $transactionId = 'STRIPE-' . strtoupper(Str::random(12));
             }
 
@@ -170,26 +227,46 @@ class MemberController extends Controller
                 'id_user' => $user->id_user,
                 'id_gym' => $gym->id_gym,
                 'amount' => $price,
-                'method' => $method, // 'zen_wallet' or 'credit_card'
+                'method' => $method,
                 'type' => 'membership',
                 'id_transaction' => $transactionId
             ]);
 
-            // 6. Create Subscribe Record
-            $subscription = Subscribe::create([
-                'id_user' => $user->id_user,
-                'id_gym' => $gym->id_gym,
-                'status' => Subscribe::STATUS_ACTIVE,
-                'subscribe_date' => now()
-            ]);
+            // 6. Create Enrollment Record (Abonnement)
+            $enrollment = Enrollment::updateOrCreate(
+                [
+                    'id_member' => $user->id_user,
+                    'id_gym' => $gym->id_gym,
+                ],
+                [
+                    'id_plan' => $plan ? $plan->id : null,
+                    'enrollment_date' => now(),
+                    'status' => 'active',
+                    'type' => $type
+                ]
+            );
+
+            // 7. Auto-Follow if not already synchronized
+            $isSubscribed = Subscribe::where('id_user', $user->id_user)
+                ->where('id_gym', $gym->id_gym)
+                ->exists();
+
+            if (!$isSubscribed) {
+                Subscribe::create([
+                    'id_user' => $user->id_user,
+                    'id_gym' => $gym->id_gym,
+                    'status' => Subscribe::STATUS_ACTIVE,
+                    'subscribe_date' => now()
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => $method === 'zen_wallet' 
-                    ? "Access protocol initiated via Zen Points! Welcome to {$gym->name}."
-                    : "Payment processed successfully via {$method}. Your access to {$gym->name} is now live.",
+                    ? "Bio-Pulse Activated! Enrollment complete for {$gym->name}."
+                    : "Payment processed successfully via {$method}. Your access node at {$gym->name} is now live.",
                 'data' => [
-                    'subscription' => $subscription,
+                    'enrollment' => $enrollment,
                     'payment_method' => $method,
                     'new_balance' => $wallet ? $wallet->fresh()->balance : 0
                 ]
@@ -204,14 +281,14 @@ class MemberController extends Controller
     {
         $user = $request->user();
         
-        $activeSub = Subscribe::where('id_user', $user->id_user)
-            ->where('status', Subscribe::STATUS_ACTIVE)
+        $activeEnroll = Enrollment::where('id_member', $user->id_user)
+            ->where('status', 'active')
             ->first();
             
-        if (!$activeSub) {
+        if (!$activeEnroll) {
             return response()->json([
                 'success' => false,
-                'message' => 'No active membership node found. Please activate a subscription to check-in.'
+                'message' => 'No active enrollment node found. Please activate an abonnement to check-in.'
             ], 403);
         }
 

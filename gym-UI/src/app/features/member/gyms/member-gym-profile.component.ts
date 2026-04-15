@@ -7,11 +7,13 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { FormsModule } from '@angular/forms';
+import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-member-gym-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, PaymentModalComponent],
   templateUrl: './member-gym-profile.component.html',
   styleUrl: './member-gym-profile.component.scss'
 })
@@ -41,6 +43,11 @@ export class MemberGymProfileComponent implements OnInit {
     rating: 5,
     comment: ''
   };
+
+  membershipPlans: any[] = [];
+
+  stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
+  paymentError: string | null = null;
   gymReviews: any[] = [];
 
   // Toast Notification State
@@ -52,6 +59,14 @@ export class MemberGymProfileComponent implements OnInit {
   currentOccupancy = 0;
   loadColor = '#4ade80';
   todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; // 0=Mon, 6=Sun
+
+  get averageRating(): string {
+    if (!this.gymReviews || this.gymReviews.length === 0) {
+      return this.gym?.avg_rating || '5.0';
+    }
+    const sum = this.gymReviews.reduce((acc, review) => acc + (review.rating || 0), 0);
+    return (sum / this.gymReviews.length).toFixed(1);
+  }
 
   ngOnInit() {
     const gymId = this.route.snapshot.paramMap.get('id');
@@ -69,7 +84,8 @@ export class MemberGymProfileComponent implements OnInit {
     forkJoin({
       allGyms: this.memberService.getAllGyms().pipe(catchError(() => of({ data: [] }))),
       allCourses: this.memberService.getAvailableCourses().pipe(catchError(() => of({ data: [] }))),
-      mySubs: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] })))
+      mySubs: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] }))),
+      enrollments: this.memberService.getMyEnrollments().pipe(catchError(() => of({ data: [] })))
     }).subscribe({
       next: (res: any) => {
         // Find specific gym
@@ -89,9 +105,12 @@ export class MemberGymProfileComponent implements OnInit {
           ];
         }
 
-        // Check subscription status
-        const mySubs = res.mySubs.data || [];
-        this.isSubscribed = mySubs.some((s: any) => s.gym_id === id);
+        // Check membership/subscription status
+        const mySubs = res.mySubs.data || res.mySubs || [];
+        const enrollments = res.enrollments?.data || res.enrollments || [];
+        
+        this.isSubscribed = mySubs.some((s: any) => s.id_gym === id) || 
+                            enrollments.some((e: any) => e.id_gym === id);
 
         // Simulation of live metrics
         this.calculateLiveMetrics();
@@ -99,8 +118,24 @@ export class MemberGymProfileComponent implements OnInit {
         // Generate Dynamic Map Hub
         this.generateMapUrl();
 
-        this.loading = false;
-        this.cdr.detectChanges();
+        // Fetch gym reviews
+        this.fetchReviews(id);
+
+        // Fetch dynamic plans for this gym
+        this.memberService.getGymPlans(id).subscribe({
+          next: (plansRes: any) => {
+            if (plansRes.data && plansRes.data.length > 0) {
+              this.membershipPlans = plansRes.data;
+            }
+            this.loading = false;
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.warn('Could not fetch dynamic plans, using default protocol.', err);
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
+        });
       },
       error: (err) => {
         console.error('Failed to sync hub data', err);
@@ -122,9 +157,13 @@ export class MemberGymProfileComponent implements OnInit {
 
   calculateLiveMetrics() {
     if (!this.gym) return;
+    
+    // Use real member count from database if available, otherwise fallback to simulation
+    this.currentOccupancy = this.gym.active_members_count !== undefined 
+      ? this.gym.active_members_count 
+      : (this.gym.members_count || 0);
+
     const capacity = this.gym.capacity || 200;
-    // Generate a semi-realistic occupancy based on capacity
-    this.currentOccupancy = Math.floor(Math.random() * (capacity * 0.9));
     const loadPercent = (this.currentOccupancy / capacity) * 100;
 
     if (loadPercent > 80) this.loadColor = '#ef4444';
@@ -162,24 +201,59 @@ export class MemberGymProfileComponent implements OnInit {
     this.showToast(`Initiating GPS routing to: ${this.gym?.adress || 'the facility'}...`, 'info');
   }
 
-  processPurchase(method: 'zen_wallet' | 'credit_card') {
+  processPurchase(event: any) {
     if (!this.gym?.id_gym) return;
 
+    const method = event.method;
+    const plan = event.plan;
+    if (!plan) {
+      this.showToast('Validation Error: No synchronization tier selected.', 'error');
+      return;
+    }
+    
     this.isProcessingPayment = true;
-    this.memberService.purchaseMembership(this.gym.id_gym, method).subscribe({
-      next: (res: any) => {
-        this.isSubscribed = true;
-        this.showPaymentPicker = false;
-        this.isProcessingPayment = false;
-        this.showToast(res.message || 'Payment successful! Welcome to ' + this.gym.name, 'success');
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        this.isProcessingPayment = false;
-        this.showToast(err.error?.message || 'Payment synchronization failed. Check your credits.', 'error');
-        this.cdr.detectChanges();
-      }
-    });
+    this.paymentError = null;
+
+    if (method === 'zen_wallet') {
+      this.memberService.purchaseMembership(this.gym.id_gym, 'zen_wallet', plan.type || plan.id, plan.id).subscribe({
+        next: (res: any) => this.handlePurchaseSuccess(res),
+        error: (err: any) => this.handlePurchaseError(err)
+      });
+    } else if (method === 'stripe' || method === 'credit_card') {
+      this.memberService.createPaymentIntent(this.gym.id_gym, plan.price).subscribe({
+        next: (res: any) => {
+          const clientSecret = res.client_secret;
+          event.stripe.confirmCardPayment(clientSecret, {
+            payment_method: { card: event.card }
+          }).then((result: any) => {
+            if (result.error) {
+              this.handlePurchaseError({ error: { message: result.error.message } });
+            } else if (result.paymentIntent.status === 'succeeded') {
+              this.memberService.purchaseMembership(this.gym.id_gym, 'credit_card', plan.type || plan.id, plan.id).subscribe({
+                next: (res: any) => this.handlePurchaseSuccess(res),
+                error: (err: any) => this.handlePurchaseError(err)
+              });
+            }
+          });
+        },
+        error: (err: any) => this.handlePurchaseError(err)
+      });
+    }
+  }
+
+  private handlePurchaseSuccess(res: any) {
+    this.isSubscribed = true;
+    this.showPaymentPicker = false;
+    this.isProcessingPayment = false;
+    this.showToast(res.message || 'Payment successful! Welcome to ' + this.gym.name, 'success');
+    this.cdr.detectChanges();
+  }
+
+  private handlePurchaseError(err: any) {
+    this.isProcessingPayment = false;
+    this.paymentError = err.error?.message || 'Payment synchronization failed.';
+    this.showToast(this.paymentError || 'Error', 'error');
+    this.cdr.detectChanges();
   }
 
   switchTab(tab: 'overview' | 'training' | 'community') {
@@ -194,6 +268,16 @@ export class MemberGymProfileComponent implements OnInit {
       return;
     }
     this.showReviewModal = true;
+  }
+
+  fetchReviews(id: string) {
+    this.memberService.getGymReviews(id).subscribe({
+      next: (res: any) => {
+        this.gymReviews = res.data || [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.warn('Could not fetch reputation data.', err)
+    });
   }
 
   submitRating(rating: number) {
@@ -213,11 +297,14 @@ export class MemberGymProfileComponent implements OnInit {
         this.showReviewModal = false;
         this.showToast('Review Protocol Synchronized Successfully!', 'success');
         this.reviewData = { rating: 5, comment: '' };
-        // In a real app, we'd reload the reviews list here
+        
+        // Immediate full-node synchronization
+        this.fetchReviews(this.gym.id_gym);
       },
       error: (err: any) => {
         this.isSubmittingReview = false;
-        this.showToast('Sync Error: Failed to publish review. Hub might be offline.', 'error');
+        const errorMessage = err.error?.message || 'Sync Error: Failed to publish review. Hub might be offline.';
+        this.showToast(errorMessage, 'error');
       }
     });
   }
@@ -231,5 +318,20 @@ export class MemberGymProfileComponent implements OnInit {
         this.toastMessage = '';
         this.cdr.detectChanges();
     }, 4000);
+  }
+
+  getImageUrl(path?: string): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${baseUrl}/${cleanPath}`;
+  }
+
+  getGymInitials(name?: string): string {
+    if (!name) return 'GY';
+    const words = name.trim().split(/\s+/);
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
   }
 }

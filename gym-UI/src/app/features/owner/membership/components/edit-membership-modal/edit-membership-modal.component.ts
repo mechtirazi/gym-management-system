@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angu
 import { MembershipService } from '../../services/membership.service';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { finalize, Subscription } from 'rxjs';
+import { MembershipPlanService, MembershipPlan } from '../../../services/membership-plan.service';
 
 @Component({
   selector: 'app-edit-membership-modal',
@@ -49,10 +50,11 @@ import { finalize, Subscription } from 'rxjs';
 
             <div class="form-group">
               <label>Membership Tier</label>
-              <select formControlName="type">
-                <option value="standard">Standard</option>
-                <option value="premium">Premium</option>
-                <option value="trial">Trial</option>
+              <select formControlName="id_plan">
+                <option value="">Legacy (Select new plan)</option>
+                @for (plan of plans(); track plan.id) {
+                  <option [value]="plan.id">{{ plan.name }} - {{ plan.type | titlecase }}</option>
+                }
               </select>
             </div>
           </div>
@@ -165,11 +167,14 @@ export class EditMembershipModalComponent implements OnInit {
 
   isSubmitting = signal(false);
   error = signal<string | null>(null);
+  plans = signal<MembershipPlan[]>([]);
+  private planService = inject(MembershipPlanService);
+  private authService = inject(AuthService);
 
   editForm = this.fb.group({
     enrollment_date: ['', Validators.required],
     status: ['', Validators.required],
-    type: ['', Validators.required]
+    id_plan: ['']
   });
 
   private statusSub?: Subscription;
@@ -183,8 +188,18 @@ export class EditMembershipModalComponent implements OnInit {
     this.editForm.patchValue({
       enrollment_date: dateString,
       status: (this.membership().status || 'active').toLowerCase(),
-      type: (this.membership().type || 'standard').toLowerCase()
+      id_plan: this.membership().id_plan || ''
     });
+
+    const gymId = this.authService.connectedGymId();
+    if (gymId) {
+      this.planService.getPlans(gymId.toString()).subscribe({
+        next: (res) => {
+          this.plans.set(res.data || res || []);
+        },
+        error: (err) => console.error('Failed to load plans', err)
+      });
+    }
 
     this.statusSub = this.editForm.get('status')?.valueChanges.subscribe(newStatus => {
       if (newStatus === 'active') {
@@ -199,8 +214,6 @@ export class EditMembershipModalComponent implements OnInit {
       this.statusSub.unsubscribe();
     }
   }
-
-  private authService = inject(AuthService);
 
   onSubmit() {
     if (this.editForm.invalid) return;

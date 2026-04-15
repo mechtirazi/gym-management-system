@@ -20,15 +20,15 @@
   <!-- 2026 Immersive Hero Header -->
   <header class="x-hero-hub">
     <div class="hero-visual">
-      <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1600"
+      <img [src]="getImageUrl(gym.picture || gym.image) || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1600'"
         alt="Cover">
     </div>
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
       <div class="main-identity">
-        <div class="brand-orb">
-          <img [src]="gym.logo || 'assets/images/default-gym-logo.png'" alt="Logo">
+        <div class="brand-orb text-logo">
+          {{ getGymInitials(gym.name) }}
         </div>
         <div class="text-meta">
           <h1>{{ gym.name }}</h1>
@@ -67,15 +67,15 @@
       <div class="hours-track-row">
         <div class="hour-card" [class.is-today]="todayIndex < 5">
           <span class="day">Mon - Fri</span>
-          <span class="time">06:00 - 22:00</span>
+          <span class="time">{{ gym.open_mon_fri || '06:00 - 22:00' }}</span>
         </div>
         <div class="hour-card" [class.is-today]="todayIndex === 5">
           <span class="day">Saturday</span>
-          <span class="time">08:00 - 20:00</span>
+          <span class="time">{{ gym.open_sat || '08:00 - 20:00' }}</span>
         </div>
         <div class="hour-card" [class.is-today]="todayIndex === 6">
           <span class="day">Sunday</span>
-          <span class="time">08:00 - 16:00</span>
+          <span class="time">{{ gym.open_sun || '08:00 - 16:00' }}</span>
         </div>
       </div>
     </div>
@@ -87,8 +87,8 @@
         <h4>Facility Pulse</h4>
       </div>
       <div class="metrics-row">
-        <div class="m-point">
-          <span class="val">4.9</span>
+        <div class="m-point" (click)="switchTab('community')" style="cursor: pointer;">
+          <span class="val">{{ averageRating }}</span>
           <span class="lab">Rating</span>
         </div>
         <div class="m-point">
@@ -182,14 +182,38 @@
               <span class="label">Reputation Network</span>
               <h2>Member Feedback.</h2>
             </div>
-            <button class="btn-glass-primary" (click)="openReviewModal()">
+            <button class="btn-glass-primary-sm" (click)="openReviewModal()">
               <span class="material-symbols-rounded">rate_review</span> Commit Review
             </button>
           </div>
 
-          <div class="reviews-placeholder glass-module">
+          <div class="reviews-list animate-fade-in" *ngIf="gymReviews.length > 0">
+            <div class="review-node-card glass-module" *ngFor="let review of gymReviews">
+              <div class="node-header">
+                <div class="user-id">
+                  <div class="avatar-node">{{ review.user?.name?.charAt(0) || 'M' }}</div>
+                  <div class="meta">
+                    <span class="u-name">{{ review.user?.name || 'Authorized Member' }}</span>
+                    <span class="u-date">{{ review.created_at | date:'mediumDate' }}</span>
+                  </div>
+                </div>
+                <div class="rating-display">
+                  <span class="material-symbols-rounded" *ngFor="let s of [1,2,3,4,5]" [style.color]="review.rating >= s ? '#f59e0b' : 'rgba(255,255,255,0.1)'">star</span>
+                </div>
+              </div>
+              <p class="node-content">{{ review.comment }}</p>
+              <div class="node-footer" *ngIf="review.ai_sentiment_score">
+                <span class="ai-tag" [class.pos]="review.ai_sentiment_score > 0.5">
+                  <span class="material-symbols-rounded">psychology</span>
+                  {{ review.ai_category || 'General Feedback' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="reviews-placeholder glass-module" *ngIf="gymReviews.length === 0">
             <div class="p-orb"><span class="material-symbols-rounded">sensors</span></div>
-            <p>Feedback node is currently being processed. <br> Influence the hub reputation now.</p>
+            <p>Feedback node is currently empty. <br> Be the first to influence the hub reputation.</p>
           </div>
         </section>
       </div>
@@ -197,32 +221,20 @@
     </main>
   </div>
 
-  <!-- Modals -->
-  <div class="payment-modal-backdrop" *ngIf="showPaymentPicker" (click)="showPaymentPicker = false">
-    <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="title-group"><span class="material-symbols-rounded">payments</span>
-          <h3>Activation Node</h3>
-        </div>
-        <button class="close-btn" (click)="showPaymentPicker = false"><span
-            class="material-symbols-rounded">close</span></button>
-      </div>
-      <div class="modal-body">
-        <div class="payment-options">
-          <div class="payment-card" (click)="processPurchase('zen_wallet')">
-            <div class="card-icon points"><span class="material-symbols-rounded">stars</span></div>
-            <div class="card-info"><span class="method-title">Zen Points</span></div>
-            <div class="price-info"><span class="cost">50</span><span class="units">PTS</span></div>
-          </div>
-          <div class="payment-card" (click)="processPurchase('credit_card')">
-            <div class="card-icon credit"><span class="material-symbols-rounded">credit_card</span></div>
-            <div class="card-info"><span class="method-title">Credit Card</span></div>
-            <div class="price-info"><span class="cost">$49.99</span><span class="units">USD</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- High-Fidelity Checkout Vault -->
+  <app-payment-modal 
+    [showModal]="showPaymentPicker" 
+    [itemTitle]="gym?.name || 'Facility Node'"
+    [itemSubtitle]="'Standard Synchronization Protocol'"
+    [itemImage]="''"
+    [purchaseTerms]="'Activating this enrollment node will grant you access to high-performance facilities and training protocols.'"
+    [processingPayment]="isProcessingPayment"
+    [paymentError]="paymentError"
+    [stripePublicKey]="stripePublicKey"
+    [plans]="membershipPlans"
+    (cancelPayment)="showPaymentPicker = false"
+    (confirmPayment)="processPurchase($event)">
+  </app-payment-modal>
 
   <div class="payment-modal-backdrop review-backdrop" *ngIf="showReviewModal" (click)="showReviewModal = false">
     <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">

@@ -23,8 +23,7 @@
 .btn-toggle-catalog {
   background: rgba(139, 92, 246, 0.1);
   border: 1px solid rgba(139, 92, 246, 0.3);
-  color: #fff;
-  padding: 8px 20px;
+  color: var(--text-main); padding: 8px 20px;
   border-radius: 100px;
   display: flex;
   align-items: center;
@@ -50,14 +49,13 @@
     gap: 12px;
     padding: 1rem 1.5rem;
     border-radius: 12px;
-    p { margin: 0; font-size: 0.9rem; color: #94a3b8; }
+    p { margin: 0; font-size: 0.9rem; color: var(--text-muted); }
     .glass-search {
       background: rgba(0,0,0,0.2);
       border: 1px solid rgba(255,255,255,0.1);
       padding: 8px 15px;
       border-radius: 8px;
-      color: #fff;
-      width: 250px;
+      color: var(--text-main); width: 250px;
       &:focus { border-color: #8b5cf6; outline: none; }
     }
   }
@@ -71,10 +69,10 @@
 
   .cat-card {
     position: relative;
-    background: rgba(255,255,255,0.03);
+    background: var(--admin-item-bg);
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid var(--admin-item-border);
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -102,7 +100,7 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
-      .ex-name { font-weight: 800; font-size: 1.1rem; color: #fff; }
+      .ex-name { font-weight: 800; font-size: 1.1rem; color: var(--text-main); }
       .ex-cat { font-size: 0.65rem; color: #8b5cf6; font-weight: 900; }
     }
 
@@ -112,8 +110,7 @@
       left: 50%;
       transform: translate(-50%, 10px);
       background: #8b5cf6;
-      color: #fff;
-      padding: 6px 15px;
+      color: var(--text-main); padding: 6px 15px;
       border-radius: 100px;
       font-size: 0.7rem;
       font-weight: 900;
@@ -155,8 +152,7 @@
 
       &.active {
         background: var(--admin-accent-indigo);
-        color: white;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        color: var(--text-main); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
       }
       
       &:hover:not(.active) {
@@ -181,8 +177,8 @@
   flex-direction: column;
   padding: 1.5rem;
   border-radius: 20px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: var(--admin-item-bg);
+  border: 1px solid var(--admin-item-border);
 
   .pane-header {
     display: flex;
@@ -205,7 +201,7 @@
       border-radius: 100px;
       border: 1px solid rgba(255,255,255,0.1);
       background: transparent;
-      color: #94a3b8;
+      color: var(--text-muted);
       font-size: 0.7rem;
       cursor: pointer;
       white-space: nowrap;
@@ -213,8 +209,7 @@
 
       &.active {
         background: #8b5cf6;
-        color: white;
-        border-color: #8b5cf6;
+        color: var(--text-main); border-color: #8b5cf6;
       }
     }
   }
@@ -229,7 +224,7 @@
       align-items: center;
       gap: 12px;
       padding: 12px;
-      background: rgba(255,255,255,0.03);
+      background: var(--admin-item-bg);
       border-radius: 12px;
       margin-bottom: 8px;
       border: 1px solid transparent;
@@ -261,7 +256,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        .name { font-weight: 700; font-size: 0.85rem; color: #fff; }
+        .name { font-weight: 700; font-size: 0.85rem; color: var(--text-main); }
         .meta { font-size: 0.7rem; color: #64748b; text-transform: capitalize; }
       }
 
@@ -308,8 +303,7 @@
 
     .btn-commit {
       background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-      color: white;
-      border: none;
+      color: var(--text-main); border: none;
       padding: 10px 20px;
       border-radius: 10px;
       font-weight: 700;
@@ -327,11 +321,11 @@
     padding-right: 15px;
 
     .exercise-node {
-      background: rgba(255,255,255,0.03);
+      background: var(--admin-item-bg);
       padding: 1.5rem;
       border-radius: 16px;
       margin-bottom: 1.5rem;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid var(--admin-item-border);
 
       .node-header {
         display: flex;
@@ -367,8 +361,7 @@
       border: 1px solid rgba(255,255,255,0.1);
       padding: 6px;
       border-radius: 6px;
-      color: white;
-      text-align: center;
+      color: var(--text-main); text-align: center;
       width: 100%;
     }
   }

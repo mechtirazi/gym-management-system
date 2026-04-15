@@ -22,11 +22,12 @@ class StoreReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_user' => 'required|exists:users,id_user',
-            'id_event' => 'required|exists:events,id_event',
+            'id_user' => 'sometimes|exists:users,id_user',
+            'id_gym' => 'sometimes|exists:gyms,id_gym',
+            'id_event' => 'sometimes|nullable|exists:events,id_event',
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string',
-            'review_date' => 'required|date',
+            'review_date' => 'sometimes|date',
         ];
     }
 

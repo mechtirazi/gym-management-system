@@ -135,9 +135,11 @@
 
     <!-- Shared Payment Modal -->
     <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
+        [paymentError]="paymentError"
+        [stripePublicKey]="stripePublicKey"
         [headerTitle]="'Bio-Protocol Acquisition'" [itemTitle]="selectedPlan?.name || 'Protocol'"
         [itemSubtitle]="selectedPlan?.gymName || 'Local Gym Hub'" [itemImage]="selectedPlan?.gymLogo"
         [purchaseTerms]="'Unlocking this protocol will synchronize the nutritionist\'s meal algorithms to your daily performance tracker.'"
-        (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase()">
+        (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
     </app-payment-modal>
 </div>

@@ -28,13 +28,9 @@ class ReviewService extends BaseService
 
         // Owners only see reviews for their gyms
         if ($user->role === User::ROLE_OWNER) {
-            $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) {
-                $q->whereHas('event', function ($sq) use ($gymId) {
-                    $sq->where('id_gym', $gymId);
-                });
-            });
-            
-            return $query->whereHas('event.gym', function ($q) use ($user) {
+            return $query->whereIn('id_gym', function ($q) use ($user) {
+                $q->select('id_gym')->from('gyms')->where('id_owner', $user->id_user);
+            })->orWhereHas('event.gym', function ($q) use ($user) {
                 $q->where('id_owner', $user->id_user);
             })->get();
         }
@@ -114,8 +110,8 @@ class ReviewService extends BaseService
     protected function notifyGymStaff(Review $review)
     {
         // Refresh to get relations if not loaded
-        $review->load(['event.gym', 'user']);
-        $gym = $review->event->gym;
+        $review->load(['event.gym', 'gym', 'user']);
+        $gym = $review->gym ?: ($review->event ? $review->event->gym : null);
         if (!$gym) return;
 
         $message = "Alert: A very negative review was posted for '{$gym->name}' by {$review->user->name}. Sentiment Score: {$review->ai_sentiment_score}. Category: {$review->ai_category}.";

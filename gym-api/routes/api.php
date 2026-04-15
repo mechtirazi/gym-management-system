@@ -58,6 +58,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::apiResource('users', UserController::class);
 
     // Gym routes
+    Route::get('gyms/{gym}/plans', [GymController::class, 'getMembershipPlans'])->name('gyms.plans');
     Route::apiResource('gyms', GymController::class);
 
     // Course routes
@@ -87,6 +88,8 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::apiResource('payments', PaymentController::class);
 
     // Review routes
+    Route::get('gyms/{gym}/reviews', [ReviewController::class, 'indexForGym'])->name('gyms.reviews.index');
+    Route::post('gyms/{gym}/reviews', [ReviewController::class, 'storeForGym'])->name('gyms.reviews.store');
     Route::apiResource('reviews', ReviewController::class);
 
     // Subscribe routes
@@ -123,6 +126,12 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
             Route::get('revenue-chart', [OwnerDashboardController::class, 'getRevenueChart'])->name('owner.revenue-chart');
             Route::get('recent-checkins', [OwnerDashboardController::class, 'getRecentCheckins'])->name('owner.recent-checkins');
             Route::get('revenue-stats', [OwnerRevenueController::class, 'getAdvancedStats'])->name('owner.revenue-stats');
+            
+            // Membership Plan Management
+            Route::get('gyms/{gym}/plans', [App\Http\Controllers\Api\OwnerMembershipPlanController::class, 'index'])->name('owner.plans.index');
+            Route::post('gyms/{gym}/plans', [App\Http\Controllers\Api\OwnerMembershipPlanController::class, 'store'])->name('owner.plans.store');
+            Route::put('plans/{plan}', [App\Http\Controllers\Api\OwnerMembershipPlanController::class, 'update'])->name('owner.plans.update');
+            Route::delete('plans/{plan}', [App\Http\Controllers\Api\OwnerMembershipPlanController::class, 'destroy'])->name('owner.plans.destroy');
         });
     });
 
@@ -131,6 +140,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::get('dashboard-stats', [App\Http\Controllers\Api\MemberController::class, 'getDashboardStats'])->name('member.dashboard-stats');
         Route::post('courses/{course}/enroll', [App\Http\Controllers\Api\MemberController::class, 'enrollCourse'])->name('member.courses.enroll');
         Route::post('gyms/{gym}/purchase', [App\Http\Controllers\Api\MemberController::class, 'purchaseMembership'])->name('member.gyms.purchase');
+        Route::post('gyms/{gym}/payment-intent', [App\Http\Controllers\Api\MemberController::class, 'createPaymentIntent'])->name('member.gyms.payment-intent');
         Route::post('check-in', [App\Http\Controllers\Api\MemberController::class, 'checkIn'])->name('member.check-in');
         Route::put('biometrics', [App\Http\Controllers\Api\MemberController::class, 'updateBiometrics'])->name('member.biometrics');
         Route::post('workouts', [App\Http\Controllers\Api\MemberController::class, 'storeWorkoutLog'])->name('member.workouts.save');

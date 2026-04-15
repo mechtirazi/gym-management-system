@@ -20,6 +20,7 @@ class Review extends Model
 
     protected $fillable = [
         'id_user',
+        'id_gym',
         'id_event',
         'id_trainer',
         'id_course',
@@ -35,6 +36,11 @@ class Review extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+
+    public function gym()
+    {
+        return $this->belongsTo(Gym::class, 'id_gym', 'id_gym');
     }
 
     public function event()

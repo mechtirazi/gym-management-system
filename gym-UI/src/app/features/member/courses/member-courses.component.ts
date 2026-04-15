@@ -35,6 +35,8 @@ export class MemberCoursesComponent implements OnInit {
   showPaymentModal = false;
   selectedCourse: any = null;
   processingPayment = false;
+  paymentError: string | null = null;
+  stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
 
   categories = [
     { id: 'all', label: 'All Programs' },
@@ -77,6 +79,15 @@ export class MemberCoursesComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  formatDuration(val: any): string {
+    if (!val) return '0 WEEKS';
+    const s = val.toString().toUpperCase();
+    if (s.includes('WEEK') || s.includes('MONTH') || s.includes('MIN')) {
+      return s;
+    }
+    return `${s} WEEKS`;
+  }
+
   onFilterChange() {
     this.currentPage = 1;
     this.cdr.detectChanges();
@@ -117,8 +128,8 @@ export class MemberCoursesComponent implements OnInit {
           isOwned: this.myEnrollmentIds.includes(course.id_course),
           gymName: course.gym?.name || 'Local Hub',
           gymLogo: course.gym?.logo_url || `https://ui-avatars.com/api/?name=${course.gym?.name || 'Gym'}&background=8b5cf6&color=fff`,
-          duration: course.duration || '8',
-          members_count: course.count || Math.floor(Math.random() * 200) + 50,
+          duration: course.duration || '0',
+          members_count: course.count || 0,
           category: course.goal || 'Fitness'
         }));
 
@@ -148,25 +159,55 @@ export class MemberCoursesComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  completePurchase() {
+  completePurchase(event: any) {
     if (!this.selectedCourse) return;
 
     this.processingPayment = true;
-    this.memberService.enrollInCourse(this.selectedCourse.id_course).subscribe({
-      next: (res: any) => {
-        console.log('ENROLL SUCCESS:', res);
-        this.processingPayment = false;
-        this.closePaymentModal();
-        this.loadData();
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        console.error('ENROLL FAILURE:', err);
-        this.processingPayment = false;
-        const msg = err.error?.message || 'Synchronization failed. Check your Zen Wallet.';
-        alert(msg);
-        this.cdr.detectChanges();
-      }
-    });
+    this.paymentError = null;
+    this.cdr.detectChanges();
+
+    if (event.method === 'zen_wallet') {
+      this.memberService.enrollInCourse(this.selectedCourse.id_course).subscribe({
+        next: (res: any) => {
+          console.log('ENROLL SUCCESS:', res);
+          this.handleSuccess();
+        },
+        error: (err: any) => this.handleError(err)
+      });
+    } else {
+      const amount = this.selectedCourse.price ? parseFloat(this.selectedCourse.price) : 49.99;
+      // Stripe Flow
+      this.memberService.createPaymentIntent(this.selectedCourse.id_gym, amount).subscribe({
+        next: (res: any) => {
+          event.stripe.confirmCardPayment(res.client_secret, {
+            payment_method: { card: event.card }
+          }).then((result: any) => {
+            if (result.error) {
+              this.handleError({ error: { message: result.error.message } });
+            } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+              this.memberService.enrollInCourse(this.selectedCourse.id_course, 'credit_card').subscribe({
+                next: () => this.handleSuccess(),
+                error: (err) => this.handleError(err)
+              });
+            }
+          });
+        },
+        error: (err) => this.handleError(err)
+      });
+    }
+  }
+
+  private handleSuccess() {
+    this.processingPayment = false;
+    this.closePaymentModal();
+    this.loadData();
+    this.cdr.detectChanges();
+  }
+
+  private handleError(err: any) {
+    console.error('PURCHASE FAILURE:', err);
+    this.paymentError = err.error?.message || 'Access synchronization failed.';
+    this.processingPayment = false;
+    this.cdr.detectChanges();
   }
 }

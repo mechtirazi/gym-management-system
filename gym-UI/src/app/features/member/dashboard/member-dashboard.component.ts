@@ -5,10 +5,13 @@ import { AuthService } from '../../../core/services/auth.service';
 import { User } from '../../../shared/models/user.model';
 import { Observable, forkJoin, map, of, Subject, debounceTime, switchMap } from 'rxjs';
 
+import { FormsModule } from '@angular/forms';
+import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
+
 @Component({
   selector: 'app-member-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, PaymentModalComponent],
   templateUrl: './member-dashboard.component.html',
   styleUrl: './member-dashboard.component.scss'
 })
@@ -38,10 +41,15 @@ export class MemberDashboardComponent implements OnInit {
   activeSubscription: any = null;
   activeEnrollment: any = null;
 
-  // State
-  showCheckoutModal = false;
-  showQRModal = false;
+  // Checkout State
+  showPaymentPicker = false;
   isProcessingPayment = false;
+  paymentError: string | null = null;
+  stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
+  membershipPlans: any[] = [];
+  
+  showEliteBenefitsModal = false;
+  showQRModal = false;
   isSyncing = false;
   isUpdatingBio = false;
   qrCodeUrl: string = '';
@@ -58,6 +66,11 @@ export class MemberDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardData();
+
+    // Listen for global upgrade triggers (e.g. from sidebar)
+    this.memberService.upgradeTriggered$.subscribe(() => {
+      this.initiateUpgrade();
+    });
 
     // The Sync-Shield: Debounce rapid inputs and handle synchronization
     this.biometricsUpdate$.pipe(
@@ -286,7 +299,7 @@ export class MemberDashboardComponent implements OnInit {
   }
 
   handleRedeem(): void {
-    this.showCheckoutModal = true;
+    this.showPaymentPicker = true;
   }
 
   showLedger(): void {
@@ -298,33 +311,61 @@ export class MemberDashboardComponent implements OnInit {
   }
 
   initiateUpgrade(): void {
-    alert('Upgrade to Member Pro to unlock advanced biometrics, tailored workouts, and elite gym access.');
+    this.showEliteBenefitsModal = true;
+    this.cdr.detectChanges();
   }
 
-  processPayment(method: 'points' | 'credit'): void {
-    if (this.isProcessingPayment) return;
+  proceedToPayment(): void {
+    this.showEliteBenefitsModal = false;
+    this.showPaymentPicker = true;
+    this.cdr.detectChanges();
+  }
 
-    // Check if points are sufficient for a mock 150 points cost
-    if (method === 'points' && this.stats.walletBalance < 150) {
-      this.showToast('Insufficient Zenith Points! You need at least 150 PTS for redemption.', 'error');
+  processPurchase(event: any) {
+    const gymId = this.activeSubscription?.id_gym || this.activeSubscription?.gym?.id_gym;
+    if (!gymId) {
+      this.showToast('Protocol Error: Accessing gym node failed.', 'error');
       return;
     }
 
+    const method = event.method;
+    const plan = event.plan;
+    if (!plan) {
+      this.showToast('Validation Error: No synchronization tier selected.', 'error');
+      return;
+    }
+    
     this.isProcessingPayment = true;
+    this.paymentError = null;
 
-    // Simulate API delay for payment processing
-    setTimeout(() => {
-      this.isProcessingPayment = false;
-      this.showCheckoutModal = false;
+    if (method === 'zen_wallet') {
+      this.memberService.purchaseMembership(gymId, 'zen_wallet', plan.type || plan.id, plan.id).subscribe({
+        next: (res: any) => this.handlePurchaseSuccess(res),
+        error: (err: any) => this.handlePurchaseError(err)
+      });
+    } else if (method === 'stripe' || method === 'credit_card' || method === 'stripe_checkout') {
+      // Simulate Stripe/External payment confirmation
+      setTimeout(() => {
+        this.memberService.purchaseMembership(gymId, 'credit_card', plan.type || plan.id, plan.id).subscribe({
+          next: (res: any) => this.handlePurchaseSuccess(res),
+          error: (err: any) => this.handlePurchaseError(err)
+        });
+      }, 1500);
+    }
+  }
 
-      if (method === 'points') {
-        this.stats.walletBalance -= 150;
-        this.showToast('Redemption Successful! 150 Zenith Points processed.', 'success');
-      } else {
-        this.showToast('Payment Authorized! Credit card charged $19.99.', 'success');
-      }
+  private handlePurchaseSuccess(res: any) {
+    this.showPaymentPicker = false;
+    this.isProcessingPayment = false;
+    this.showToast(res.message || 'Payment successful! Elite access protocols active.', 'success');
+    this.loadDashboardData();
+    this.cdr.detectChanges();
+  }
 
-      this.cdr.detectChanges();
-    }, 1500);
+  private handlePurchaseError(err: any) {
+    this.isProcessingPayment = false;
+    this.paymentError = err.error?.message || 'Payment synchronization failed.';
+    this.showToast(this.paymentError || 'Error', 'error');
+    this.cdr.detectChanges();
   }
 }

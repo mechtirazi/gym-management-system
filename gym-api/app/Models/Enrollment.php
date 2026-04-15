@@ -23,6 +23,7 @@ class Enrollment extends Model
     protected $fillable = [
         'id_member',
         'id_gym',
+        'id_plan',
         'enrollment_date',
         'status',
         'type',
@@ -33,10 +34,19 @@ class Enrollment extends Model
         if (!$this->enrollment_date)
             return null;
 
-        // Dynamic logic based on type
-        $days = ($this->type === 'premium') ? 90 : 30;
+        // Dynamic logic based on plan or type
+        if ($this->plan) {
+            $days = $this->plan->duration_days;
+        } else {
+            $days = ($this->type === 'premium') ? 90 : 30;
+        }
 
         return Carbon::parse($this->enrollment_date)->addDays($days)->toDateString();
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(MembershipPlan::class, 'id_plan');
     }
 
     public function getStartDateAttribute()

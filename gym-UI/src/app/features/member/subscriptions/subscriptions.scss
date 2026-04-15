@@ -1,7 +1,7 @@
 :host {
   display: block;
-  background: #020617;
-  color: #f8fafc;
+  background: var(--bg-main);
+  color: var(--text-main);
   min-height: 100vh;
   font-family: "Outfit", sans-serif;
   overflow-x: hidden;
@@ -38,8 +38,8 @@
     align-items: center;
     padding: 3rem 4rem;
     border-radius: 4rem;
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--admin-item-bg);
+    border: 1px solid var(--admin-item-border);
     backdrop-filter: blur(20px);
     
     @media (max-width: 1024px) {
@@ -72,8 +72,7 @@
       background: #8b5cf6;
       border: none;
       border-radius: 2rem;
-      color: white;
-      font-weight: 900;
+      color: var(--text-main); font-weight: 900;
       display: flex;
       align-items: center;
       gap: 1rem;
@@ -101,8 +100,8 @@
     min-height: 720px;
     height: auto;
     border-radius: 4rem;
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--admin-item-bg);
+    border: 1px solid var(--admin-item-border);
     display: flex;
     flex-direction: column;
     padding: 3.5rem;
@@ -111,7 +110,7 @@
     &:hover {
         transform: translateY(-20px) scale(1.02);
         border-color: rgba(139, 92, 246, 0.3);
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--admin-item-bg);
         box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
     }
 
@@ -133,8 +132,7 @@
             display: block;
             font-size: 1.1rem;
             font-weight: 850;
-            color: #fff;
-            letter-spacing: 0.5px;
+            color: var(--text-main); letter-spacing: 0.5px;
         }
 
         .gym-location {
@@ -171,8 +169,8 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1px;
-            background: rgba(255, 255, 255, 0.05);
-            color: #94a3b8;
+            background: var(--admin-item-bg);
+            color: var(--text-muted);
             border: 1px solid rgba(255, 255, 255, 0.1);
 
             &.premium {
@@ -210,7 +208,7 @@
                 justify-content: space-between;
                 font-size: 0.85rem;
                 font-weight: 700;
-                color: #94a3b8;
+                color: var(--text-muted);
                 margin-bottom: 0.8rem;
 
                 .days-pulse {
@@ -221,10 +219,10 @@
 
             .progress-track {
                 height: 8px;
-                background: rgba(255, 255, 255, 0.03);
+                background: var(--admin-item-bg);
                 border-radius: 4px;
                 overflow: hidden;
-                border: 1px solid rgba(255, 255, 255, 0.02);
+                border: 1px solid var(--admin-item-border);
             }
 
             .progress-bar {
@@ -248,7 +246,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             font-size: 0.9rem;
             font-weight: 600;
 
@@ -276,8 +274,7 @@
             .stat-val {
                 font-size: 0.85rem;
                 font-weight: 800;
-                color: #fff;
-            }
+                color: var(--text-main); }
 
             .stat-label {
                 font-size: 0.65rem;
@@ -309,7 +306,7 @@
 
         .price-node {
             .currency { font-size: 1rem; color: #8b5cf6; font-weight: 900; margin-right: 2px; }
-            .amount { font-size: 2rem; font-weight: 950; color: #fff; font-family: "Outfit", sans-serif; }
+            .amount { font-size: 2rem; font-weight: 950; color: var(--text-main); font-family: "Outfit", sans-serif; }
         }
     }
 }
@@ -322,11 +319,11 @@
     padding: 6rem;
     text-align: center;
     border-radius: 4rem;
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--admin-item-bg);
+    border: 1px solid var(--admin-item-border);
     
     .icon-node { font-size: 5rem; margin-bottom: 2rem; display: block; }
-    h2 { font-size: 2.5rem; font-weight: 950; margin-bottom: 1.5rem; color: #fff; }
+    h2 { font-size: 2.5rem; font-weight: 950; margin-bottom: 1.5rem; color: var(--text-main); }
     p { font-size: 1.25rem; color: #64748b; margin-bottom: 3rem; line-height: 1.6; }
     
     .primary-btn {
@@ -334,8 +331,7 @@
         background: #8b5cf6;
         border: none;
         border-radius: 2rem;
-        color: white;
-        font-weight: 950;
+        color: var(--text-main); font-weight: 950;
         font-size: 1.1rem;
         cursor: pointer;
         transition: 0.5s;
@@ -382,8 +378,7 @@
 
   &:hover {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(168, 85, 247, 0.8));
-    color: white;
-    box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+    color: var(--text-main); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
     transform: translateY(-2px);
   }
 }
@@ -406,9 +401,9 @@
     .title-group { 
       display: flex; align-items: center; gap: 1rem; 
       .material-symbols-rounded, .material-icons { color: #8b5cf6; font-size: 2rem; } 
-      h3 { margin: 0; font-size: 1.8rem; font-weight: 950; color: white; } 
+      h3 { margin: 0; font-size: 1.8rem; font-weight: 950; color: var(--text-main); } 
     }
-    .close-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); width: 40px; height: 40px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
+    .close-btn { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); width: 40px; height: 40px; border-radius: 50%; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
       &:hover { background: rgba(255,255,255,0.1); }
     }
   }
@@ -419,20 +414,20 @@
 .payment-options { display: flex; flex-direction: column; gap: 1.5rem; }
 .payment-card {
   display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem;
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem;
+  background: var(--admin-item-bg); border: 1px solid var(--admin-item-border); border-radius: 1.5rem;
   cursor: pointer; transition: 0.3s;
-  &:hover { background: rgba(255,255,255,0.06); transform: translateX(10px); }
+  &:hover { background: var(--admin-item-bg); transform: translateX(10px); }
   &.processing { opacity: 0.6; pointer-events: none; }
-  .card-icon { width: 60px; height: 60px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; &.points { background: #f59e0b; color: white; } &.credit { background: #10b981; color: white; } }
-  .card-info { flex: 1; .method-title { display: block; font-size: 1.3rem; font-weight: 900; color: white; } .method-desc { display: block; font-size: 0.9rem; color: #94a3b8; } }
-  .price-info { text-align: right; .cost { display: block; font-size: 1.5rem; font-weight: 950; color: white; } .units { display: block; font-size: 0.8rem; font-weight: 800; color: #64748b; } }
+  .card-icon { width: 60px; height: 60px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; &.points { background: #f59e0b; color: var(--text-main); } &.credit { background: #10b981; color: var(--text-main); } }
+  .card-info { flex: 1; .method-title { display: block; font-size: 1.3rem; font-weight: 900; color: var(--text-main); } .method-desc { display: block; font-size: 0.9rem; color: var(--text-muted); } }
+  .price-info { text-align: right; .cost { display: block; font-size: 1.5rem; font-weight: 950; color: var(--text-main); } .units { display: block; font-size: 0.8rem; font-weight: 800; color: #64748b; } }
 }
 
 /* Toast Notification */
 .toast-hub-container { position: fixed; bottom: 2.5rem; right: 2.5rem; z-index: 9999; }
 .glass-toast {
   background: rgba(15,23,42,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); padding: 1.25rem 1.75rem; border-radius: 16px;
-  display: flex; gap: 1.25rem; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  display: flex; gap: 1.25rem; color: var(--text-main); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
   transition: all 0.3s ease;
   &.success { border-bottom: 3px solid #10b981; }
   &.error { border-bottom: 3px solid #ef4444; }

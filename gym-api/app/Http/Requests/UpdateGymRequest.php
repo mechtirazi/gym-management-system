@@ -26,7 +26,12 @@ class UpdateGymRequest extends FormRequest
             'adress' => 'sometimes|string|max:255',
             'capacity' => 'sometimes|integer|min:1',
             'open_hour' => 'sometimes|string|max:255',
+            'open_mon_fri' => 'sometimes|string|max:255',
+            'open_sat' => 'sometimes|string|max:255',
+            'open_sun' => 'sometimes|string|max:255',
             'id_owner' => 'sometimes|exists:users,id_user',
+            'picture' => 'nullable|string',
+            'logo' => 'nullable|image|max:10240',
         ];
     }
 

@@ -58,9 +58,13 @@ export interface GymDto {
   adress: string;
   capacity: number;
   open_hour: string;
+  open_mon_fri?: string;
+  open_sun?: string;
   id_owner: string;
+  picture?: string;
   plan: 'basic' | 'pro';
   members_count: number;
+  active_members_count?: number;
   status: 'active' | 'suspended' | string;
   suspension_reason?: string;
   created_at?: string;

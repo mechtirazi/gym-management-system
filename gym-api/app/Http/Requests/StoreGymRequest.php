@@ -25,8 +25,13 @@ class StoreGymRequest extends FormRequest
             'name' => 'required|string|max:255',
             'adress' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
-            'open_hour' => 'required|string|max:255',
+            'open_hour' => 'sometimes|string|max:255',
+            'open_mon_fri' => 'sometimes|string|max:255',
+            'open_sat' => 'sometimes|string|max:255',
+            'open_sun' => 'sometimes|string|max:255',
             'id_owner' => 'required|exists:users,id_user',
+            'picture' => 'nullable|string',
+            'logo' => 'nullable|image|max:10240',
         ];
     }
 

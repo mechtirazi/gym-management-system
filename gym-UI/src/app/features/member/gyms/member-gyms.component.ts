@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MemberService } from '../services/member.service';
-import { Observable } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { RouterLink } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
 
@@ -28,6 +30,14 @@ export class MemberGymsComponent implements OnInit {
   showPaymentModal = false;
   selectedGym: any = null;
   processingPayment = false;
+  paymentError: string | null = null;
+  stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI'
+
+  membershipPlans = [
+    { id: 'trial', name: 'Discovery Tier', price: 9.99, description: '3-Day access spike to test facility synchronization.' },
+    { id: 'standard', name: 'Vanguard Tier', price: 49.99, description: '30-Day standard facility access and base protocols.' },
+    { id: 'premium', name: 'Elite Tier', price: 99.99, description: '90-Day full-node access including VIP recovery tech.' }
+  ];
 
   get filteredGyms() {
     return this.gyms.filter(gym => {
@@ -57,29 +67,92 @@ export class MemberGymsComponent implements OnInit {
     this.errorMessage = '';
     this.cdr.detectChanges();
 
-    this.memberService.getAllGyms().subscribe({
-      next: (res) => {
-        const results = res.data?.data ? res.data.data : res.data;
-        this.gyms = Array.isArray(results) ? results : [];
+    forkJoin({
+      allGyms: this.memberService.getAllGyms().pipe(catchError(() => of({ data: [] }))),
+      mySubscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] }))),
+      myEnrollments: this.memberService.getMyEnrollments().pipe(catchError(() => of({ data: [] })))
+    }).subscribe({
+      next: (res: any) => {
+        const extract = (obj: any): any[] => {
+          if (!obj) return [];
+          if (Array.isArray(obj)) return obj;
+          if (Array.isArray(obj.data)) return obj.data;
+          if (obj.data && Array.isArray(obj.data.data)) return obj.data.data;
+          return [];
+        };
+
+        const rawGyms = extract(res.allGyms);
+        const mySubs = extract(res.mySubscriptions);
+        const myEnrolls = extract(res.myEnrollments);
+
+        const enrolledGymIds = myEnrolls.map((e: any) => e.id_gym || e.gym_id);
+
+        this.gyms = rawGyms.map((gym: any) => {
+          const sub = mySubs.find((s: any) => (s.id_gym || s.gym_id) === gym.id_gym);
+          return {
+            ...gym,
+            isSubscribed: !!sub,
+            subscriptionId: sub?.id_subscribe || sub?.id_subscription || sub?.id,
+            isEnrolled: enrolledGymIds.includes(gym.id_gym)
+          };
+        });
+
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Failed to load gyms', err);
-        this.errorMessage = 'An error occurred while loading the gyms. Please try again later.';
+        console.error('Failed to synchronize hub data', err);
+        this.errorMessage = 'An error occurred while loading the hub nodes.';
         this.loading = false;
         this.cdr.detectChanges();
       }
     });
   }
 
+  getImageUrl(path?: string): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${baseUrl}/${cleanPath}`;
+  }
+
+  getGymInitials(name?: string): string {
+    if (!name) return 'GY';
+    const words = name.trim().split(/\s+/);
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+
+  onFollowToggle(gym: any): void {
+    if (gym.isSubscribed) {
+      // Unfollow Logic
+      if (confirm(`De-synchronize from ${gym.name}? You will lose access to their localized protocols.`)) {
+        this.memberService.unfollowGym(gym.subscriptionId).subscribe({
+          next: () => this.loadGyms(),
+          error: (err) => console.error('Unfollow failed', err)
+        });
+      }
+    } else {
+      // Follow Logic
+      this.memberService.followGym(gym.id_gym).subscribe({
+        next: () => this.loadGyms(),
+        error: (err) => {
+          console.error('Follow failed', err);
+          alert('Could not synchronize follow protocol.');
+        }
+      });
+    }
+  }
+
   onLike(gymId: string): void {
     alert(`Node ${gymId} marked as favorite. Synchronizing with your Bio-Profile.`);
   }
 
-  onSubscribe(gym: any): void {
+  onEnroll(gym: any): void {
     this.selectedGym = gym;
     this.showPaymentModal = true;
+    this.paymentError = null; // Reset error on open
     this.cdr.detectChanges();
   }
 
@@ -89,25 +162,57 @@ export class MemberGymsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  completePurchase() {
+  completePurchase(event: any) {
     if (!this.selectedGym) return;
 
+    const method = event.method;
     this.processingPayment = true;
-    this.memberService.purchaseMembership(this.selectedGym.id_gym).subscribe({
-      next: (res: any) => {
-        console.log('PURCHASE SUCCESS:', res);
-        this.processingPayment = false;
-        this.closePaymentModal();
-        this.loadGyms();
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        console.error('PURCHASE FAILURE:', err);
-        this.processingPayment = false;
-        const msg = err.error?.message || 'Access synchronization failed. Check your Zen Wallet.';
-        alert(msg);
-        this.cdr.detectChanges();
-      }
-    });
+    this.paymentError = null;
+
+    const plan = event.plan || { id: 'standard', price: 49.99 };
+
+    if (method === 'zen_wallet') {
+      this.memberService.purchaseMembership(this.selectedGym.id_gym, 'zen_wallet', plan.id).subscribe({
+        next: (res: any) => this.handlePurchaseSuccess(res),
+        error: (err: any) => this.handlePurchaseError(err)
+      });
+    } else if (method === 'stripe' || method === 'credit_card') {
+      // 1. Create Payment Intent with specific amount
+      this.memberService.createPaymentIntent(this.selectedGym.id_gym, plan.price).subscribe({
+        next: (res: any) => {
+          const clientSecret = res.client_secret;
+          // 2. Confirm Payment via Stripe Elements
+          event.stripe.confirmCardPayment(clientSecret, {
+            payment_method: { card: event.card }
+          }).then((result: any) => {
+            if (result.error) {
+              this.handlePurchaseError({ error: { message: result.error.message } });
+            } else if (result.paymentIntent.status === 'succeeded') {
+              // 3. Finalize on backend
+              this.memberService.purchaseMembership(this.selectedGym.id_gym, 'credit_card', plan.id).subscribe({
+                next: (res: any) => this.handlePurchaseSuccess(res),
+                error: (err: any) => this.handlePurchaseError(err)
+              });
+            }
+          });
+        },
+        error: (err: any) => this.handlePurchaseError(err)
+      });
+    }
+  }
+
+  private handlePurchaseSuccess(res: any) {
+    console.log('PURCHASE SUCCESS:', res);
+    this.processingPayment = false;
+    this.closePaymentModal();
+    this.loadGyms();
+    this.cdr.detectChanges();
+  }
+
+  private handlePurchaseError(err: any) {
+    console.error('PURCHASE FAILURE:', err);
+    this.paymentError = err.error?.message || 'Access synchronization failed.';
+    this.processingPayment = false;
+    this.cdr.detectChanges();
   }
 }

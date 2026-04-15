@@ -6,6 +6,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../../../environments/environment';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { finalize } from 'rxjs';
+import { MembershipPlanService, MembershipPlan } from '../../../services/membership-plan.service';
 
 @Component({
   selector: 'app-add-membership-modal',
@@ -18,6 +19,7 @@ export class AddMembershipModalComponent implements OnInit {
   private membershipService = inject(MembershipService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
+  private planService = inject(MembershipPlanService);
 
   close = output<void>();
   membershipAdded = output<void>();
@@ -27,11 +29,12 @@ export class AddMembershipModalComponent implements OnInit {
   error = signal<string | null>(null);
 
   members = signal<any[]>([]);
+  plans = signal<MembershipPlan[]>([]);
 
   membershipForm = this.fb.group({
     id_user: ['', Validators.required],
     status: ['active', Validators.required],
-    type: ['standard', Validators.required],
+    id_plan: ['', Validators.required],
     subscribe_date: [new Date().toISOString().split('T')[0], Validators.required]
   });
 
@@ -58,6 +61,16 @@ export class AddMembershipModalComponent implements OnInit {
         this.error.set('Failed to fetch user list. Please try again.');
       }
     });
+
+    const gymId = this.authService.connectedGymId();
+    if (gymId) {
+      this.planService.getPlans(gymId.toString()).subscribe({
+        next: (res) => {
+          this.plans.set(res.data || res || []);
+        },
+        error: (err) => console.error('Failed to load plans', err)
+      });
+    }
   }
 
   onSubmit() {
@@ -90,7 +103,7 @@ export class AddMembershipModalComponent implements OnInit {
       id_member: formValue.id_user,
       id_gym: gymId,
       status: formValue.status,
-      type: formValue.type,
+      id_plan: formValue.id_plan,
       enrollment_date: formValue.subscribe_date
     };
 

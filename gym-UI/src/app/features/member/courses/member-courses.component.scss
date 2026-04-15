@@ -1,7 +1,7 @@
 :host {
   display: block;
-  background: #020617;
-  color: #f8fafc;
+  background: var(--bg-main);
+  color: var(--text-main);
   min-height: 100vh;
   font-family: "Outfit", sans-serif;
   overflow-x: hidden;
@@ -96,12 +96,11 @@
     input {
       width: 100%;
       padding: 1rem 1.5rem 1rem 4rem;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--admin-item-bg);
       backdrop-filter: blur(40px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--admin-item-border);
       border-radius: 100px;
-      color: #fff;
-      font-size: 1.1rem;
+      color: var(--text-main); font-size: 1.1rem;
       font-weight: 500;
       transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 
@@ -116,10 +115,10 @@
 
   .gym-node-selector {
       appearance: none;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--admin-item-bg);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
+      color: var(--text-muted);
       padding: 1rem 3.5rem 1rem 2rem;
       border-radius: 100px;
       font-family: inherit;
@@ -134,14 +133,12 @@
 
       &:hover {
         border-color: #8b5cf6;
-        color: white;
-      }
+        color: var(--text-main); }
       &:focus { outline: none; border-color: #d946ef; }
 
       option {
-          background: #0f172a;
-          color: white;
-      }
+          background: var(--bg-card);
+          color: var(--text-main); }
   }
 }
 
@@ -160,8 +157,8 @@
   .tab-item {
     padding: 0.8rem 2rem;
     border-radius: 100px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--admin-item-bg);
+    border: 1px solid var(--admin-item-border);
     color: #64748b;
     cursor: pointer;
     font-weight: 700;
@@ -170,15 +167,13 @@
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 
     &:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      transform: translateY(-2px);
+      background: var(--admin-item-bg);
+      color: var(--text-main); transform: translateY(-2px);
     }
 
     &.active {
       background: #8b5cf6;
-      color: #fff;
-      border-color: #8b5cf6;
+      color: var(--text-main); border-color: #8b5cf6;
       box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
     }
   }
@@ -195,8 +190,8 @@
 .course-card {
   height: 620px;
   border-radius: 4rem;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--admin-item-bg);
+  border: 1px solid var(--admin-item-border);
   display: flex;
   flex-direction: column;
   transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
@@ -205,14 +200,13 @@
   &:hover {
     transform: translateY(-20px) scale(1.02);
     border-color: rgba(0, 210, 255, 0.3);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--admin-item-bg);
     box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
 
     .course-poster img { transform: scale(1.15); }
     .enroll-btn:not(:disabled) { 
         background: linear-gradient(135deg, #00d2ff, #8b5cf6);
-        color: #fff;
-    }
+        color: var(--text-main); }
   }
 
   .course-poster {
@@ -264,7 +258,7 @@
 
       .trainer-name {
         font-size: 0.95rem;
-        color: #94a3b8;
+        color: var(--text-muted);
         font-weight: 700;
         letter-spacing: 0.5px;
       }
@@ -289,26 +283,32 @@
       flex-grow: 1;
     }
 
-    .course-meta {
+    .course-meta-modern {
       display: flex;
-      gap: 2.5rem;
-      padding-top: 2rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      gap: 3.5rem;
+      padding: 2.5rem 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       margin-bottom: 2.5rem;
 
-      .meta-item {
+      .meta-node {
         display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        font-size: 0.85rem;
-        color: #475569;
-        font-weight: 850;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        flex-direction: column;
+        gap: 0.6rem;
 
-        .icon {
+        .meta-label {
+          font-size: 0.75rem;
+          font-weight: 950;
+          letter-spacing: 2px;
           color: #00d2ff;
-          font-size: 1.4rem;
+          text-transform: uppercase;
+        }
+
+        .meta-value {
+          font-size: 1rem;
+          font-weight: 850;
+          color: var(--text-muted);
+          text-transform: uppercase;
         }
       }
     }
@@ -329,17 +329,15 @@
         .amount {
           font-size: 2rem;
           font-weight: 950;
-          color: #fff;
-        }
+          color: var(--text-main); }
       }
 
       .enroll-btn {
         padding: 1.2rem 2.2rem;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--admin-item-bg);
+        border: 1px solid var(--admin-item-border);
         border-radius: 2rem;
-        color: #fff;
-        font-weight: 950;
+        color: var(--text-main); font-weight: 950;
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -377,9 +375,9 @@
         width: 48px;
         height: 48px;
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: #94a3b8;
+        background: var(--admin-item-bg);
+        border: 1px solid var(--admin-item-border);
+        color: var(--text-muted);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -410,8 +408,8 @@
         min-width: 48px;
         height: 48px;
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--admin-item-bg);
+        border: 1px solid var(--admin-item-border);
         color: #64748b;
         font-weight: 600;
         font-size: 1rem;
@@ -420,17 +418,15 @@
 
         &.active {
             background: #8b5cf6;
-            color: white;
-            border-color: #8b5cf6;
+            color: var(--text-main); border-color: #8b5cf6;
             box-shadow: 0 0 25px rgba(139, 92, 246, 0.4);
             transform: translateY(-4px);
         }
 
         &:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--admin-item-bg);
             border-color: rgba(255, 255, 255, 0.2);
-            color: white;
-            transform: translateY(-2px);
+            color: var(--text-main); transform: translateY(-2px);
         }
     }
 }
@@ -438,7 +434,7 @@
 .skeleton-card {
   height: 500px;
   border-radius: 4rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--admin-item-bg);
   animation: pulse 1.5s infinite;
 }
 

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GymMember } from '../../../../../shared/models/gym-member.model';
 import { MemberService } from '../../services/member.service';
+import { MembershipPlanService, MembershipPlan } from '../../../services/membership-plan.service';
+import { AuthService } from '../../../../../core/services/auth.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -20,6 +22,10 @@ export class MemberProfileModalComponent implements OnInit {
 
   private fb = inject(FormBuilder);
   private memberService = inject(MemberService);
+  private planService = inject(MembershipPlanService);
+  private authService = inject(AuthService);
+  
+  plans = signal<MembershipPlan[]>([]);
 
   isEditing = signal(false);
   isSubmitting = signal(false);
@@ -43,8 +49,17 @@ export class MemberProfileModalComponent implements OnInit {
       lastName: [lastName, Validators.required],
       email: [this.member().email || '', [Validators.required, Validators.email]],
       phone: [this.member().phone || ''],
-      status: [this.member().status || 'active', Validators.required]
+      status: [this.member().status || 'active', Validators.required],
+      id_plan: [this.member()['id_plan'] || '']
     });
+
+    const gymId = this.authService.connectedGymId();
+    if (gymId) {
+      this.planService.getPlans(gymId.toString()).subscribe({
+        next: (res) => this.plans.set(res.data || res || []),
+        error: (err) => console.error('Failed to load plans', err)
+      });
+    }
   }
 
   toggleEdit() {
@@ -59,7 +74,8 @@ export class MemberProfileModalComponent implements OnInit {
         lastName,
         email: this.member().email || '',
         phone: this.member().phone || '',
-        status: this.member().status || 'active'
+        status: (this.member().status || 'active').toLowerCase(),
+        id_plan: this.member()['id_plan'] || ''
       });
       this.editError.set(null);
     }
@@ -97,10 +113,13 @@ export class MemberProfileModalComponent implements OnInit {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
-          // Also update enrollment status if it changed
+          // Also update enrollment status/plan if it changed
           const enrollmentId = this.member().id;
-          if (enrollmentId && formVal.status !== this.member().status) {
-            this.memberService.updateEnrollment(enrollmentId, { status: formVal.status }).subscribe();
+          if (enrollmentId && (formVal.status !== this.member().status || formVal.id_plan !== this.member()['id_plan'])) {
+            this.memberService.updateEnrollment(enrollmentId, { 
+              status: formVal.status,
+              id_plan: formVal.id_plan 
+            }).subscribe();
           }
           this.isEditing.set(false);
           this.updated.emit();

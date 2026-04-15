@@ -32,6 +32,7 @@ export class OwnerSidebarComponent {
     { label: 'Products', icon: 'store', route: '/owner/products' },
 
     { label: 'Financials', isHeader: true },
+    { label: 'Pricing Tiers', icon: 'fitness', route: '/owner/membership-plans' },
     { label: 'Revenue', icon: 'revenue', route: '/owner/revenue' },
     { label: 'Subscriptions', icon: 'card', route: '/owner/subscriptions' },
     { label: 'Notifications', icon: 'bell', route: '/notifications' },

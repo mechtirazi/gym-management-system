@@ -18,15 +18,18 @@ class Gym extends Model
 
     protected $keyType = 'string';
 
-    protected $appends = ['members_count'];
+    protected $appends = ['members_count', 'active_members_count'];
 
     protected $fillable = [
         'name',
         'adress',
         'capacity',
-        'open_hour',
+        'open_mon_fri',
+        'open_sat',
+        'open_sun',
         'phone',
         'description',
+        'picture',
         'id_owner',
         'status',
         'suspension_reason',
@@ -102,8 +105,23 @@ class Gym extends Model
         return $this->members()->count();
     }
 
+    public function getActiveMembersCountAttribute()
+    {
+        return $this->members()->where('status', 'active')->count();
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class, 'id_gym', 'id_gym');
+    }
+
+    public function membershipPlans()
+    {
+        return $this->hasMany(MembershipPlan::class, 'id_gym', 'id_gym');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'id_gym', 'id_gym');
     }
 }

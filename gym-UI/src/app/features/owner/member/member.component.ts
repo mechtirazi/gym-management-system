@@ -126,6 +126,7 @@ export class MemberManagementComponent implements OnInit {
               email: u?.email || 'N/A',
               phone: u?.phone || 'No phone',
               status: item.status || 'Active',
+              id_plan: item.id_plan,
               joinedAt: item.created_at || u?.created_at || new Date().toISOString()
             };
           });

@@ -61,7 +61,7 @@
       svg { width: 20px; height: 20px; }
 
       &:hover {
-        background: rgba(0, 0, 0, 0.04);
+        background: var(--bg-hover);
         color: var(--text-main);
       }
 
@@ -115,8 +115,8 @@
     font-size: 2rem;
     font-weight: 600;
     overflow: hidden;
-    border: 3px solid #f0f0f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 3px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
     img {
       width: 100%;
@@ -148,18 +148,18 @@
 
   &.maxWidth { max-width: 400px; margin-bottom: 1.5rem; }
 
-  label { font-weight: 500; font-size: 0.95rem; color: #444; }
+  label { font-weight: 500; font-size: 0.95rem; color: var(--text-main); opacity: 0.9; }
 
   input {
-    padding: 0.75rem 1rem;
-    border-radius: 10px;
-    border: 1px solid #ddd;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
     font-size: 1rem;
     transition: all 0.2s ease;
     width: 100%;
 
-    &:focus { outline: none; border-color: var(--text-main); box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
-    &:disabled { background: #f8f8f8; cursor: not-allowed; }
+    &:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+    &:disabled { background: var(--bg-hover); opacity: 0.6; cursor: not-allowed; }
   }
 }
 
@@ -225,7 +225,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  background: #f9f9f9;
+  background: var(--bg-hover);
   border-radius: 16px;
   gap: 1.5rem;
 
@@ -257,16 +257,16 @@
 
   &.btn-primary {
     background: var(--text-main);
-    color: white;
-    &:hover { background: #333; transform: scale(1.02); }
+    color: var(--bg-main);
+    &:hover { background: var(--text-muted); transform: scale(1.02); }
     &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   }
 
   &.btn-outline {
-    background: var(--bg-card);
-    border: 1px solid #ddd;
+    background: transparent;
+    border: 1px solid var(--border-color);
     color: var(--text-main);
-    &:hover { background: #f8f8f8; }
+    &:hover { background: var(--bg-hover); }
   }
 }
 
@@ -283,12 +283,12 @@
   align-items: center;
   padding: 1.25rem;
   border-radius: 12px;
-  background: #fcfcfc;
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
 
   .toggle-content {
-    label { display: block; font-weight: 600; font-size: 1rem; margin-bottom: 2px; }
-    span { font-size: 0.85rem; color: #777; }
+    label { display: block; font-weight: 600; font-size: 1rem; margin-bottom: 2px; color: var(--text-main); }
+    span { font-size: 0.85rem; color: var(--text-muted); }
   }
 
   input[type="checkbox"] { width: 44px; height: 22px; cursor: pointer; }
@@ -304,8 +304,16 @@
 
   svg { width: 18px; height: 18px; }
 
-  &.success { background: #ecfdf5; color: #065f46; border: 1px solid #d1fae5; }
-  &.error { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+  &.success { 
+    background: rgba(16, 185, 129, 0.1); 
+    color: #10b981; 
+    border: 1px solid rgba(16, 185, 129, 0.2); 
+  }
+  &.error { 
+    background: rgba(239, 68, 68, 0.1); 
+    color: #ef4444; 
+    border: 1px solid rgba(239, 68, 68, 0.2); 
+  }
 }
 
 .gyms-grid {
@@ -320,7 +328,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem;
-  background: #fff;
+  background: var(--bg-input);
   border-radius: 16px;
   border: 1px solid var(--border-color);
   transition: all 0.3s ease;
@@ -331,9 +339,9 @@
   }
 
   &.active {
-    border-color: var(--text-main);
-    background: #fdfdfd;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-color: var(--primary-color);
+    background: var(--bg-hover);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
 
   .gym-info {
@@ -345,7 +353,7 @@
       width: 48px;
       height: 48px;
       border-radius: 12px;
-      background: #f0f0f0;
+      background: var(--bg-hover);
       background-size: cover;
       background-position: center;
       display: flex;
@@ -357,7 +365,7 @@
 
     .gym-details {
       h4 { margin: 0; font-size: 1.1rem; color: var(--text-main); }
-      p { margin: 0; font-size: 0.85rem; color: #777; }
+      p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
     }
   }
 
@@ -373,7 +381,7 @@
 
     .btn-switch {
       background: none;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border-color);
       padding: 6px 14px;
       border-radius: 10px;
       font-size: 0.85rem;
@@ -382,9 +390,9 @@
       transition: all 0.2s ease;
 
       &:hover {
-        background: var(--text-main);
+        background: var(--primary-color);
         color: white;
-        border-color: var(--text-main);
+        border-color: var(--primary-color);
       }
     }
   }
@@ -397,14 +405,14 @@
 }
 
 .gym-cta {
-  background: #f9f9f9;
+  background: var(--bg-hover);
   padding: 1.5rem;
   border-radius: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  p { margin: 0; font-size: 0.95rem; color: #555; max-width: 60%; }
+  p { margin: 0; font-size: 0.95rem; color: var(--text-muted); max-width: 60%; }
 
   .btn.small {
     padding: 0.5rem 1rem;

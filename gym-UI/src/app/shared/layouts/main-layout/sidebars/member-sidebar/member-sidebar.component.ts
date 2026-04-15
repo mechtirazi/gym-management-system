@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MemberService } from '../../../../../features/member/services/member.service';
 
 @Component({
   selector: 'app-member-sidebar',
@@ -13,6 +14,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 })
 export class MemberSidebarComponent {
   private authService = inject(AuthService);
+  private memberService = inject(MemberService);
   private sanitizer = inject(DomSanitizer);
   private router = inject(Router);
 
@@ -37,7 +39,13 @@ export class MemberSidebarComponent {
   ];
 
   showUpgradeNotification() {
-    alert('Upgrade to Member Pro to unlock advanced biometrics, tailored workouts, and elite gym access.');
+    if (this.router.url !== '/member/dashboard') {
+      this.router.navigate(['/member/dashboard']).then(() => {
+        setTimeout(() => this.memberService.triggerUpgradeModal(), 300);
+      });
+    } else {
+      this.memberService.triggerUpgradeModal();
+    }
   }
 
   getIcon(name: string): SafeHtml {

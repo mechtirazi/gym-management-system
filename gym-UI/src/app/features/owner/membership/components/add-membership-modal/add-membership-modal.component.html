@@ -61,11 +61,12 @@
 
         <!-- Tier Type -->
         <div class="form-group">
-          <label for="type">Membership Tier</label>
-          <select id="type" formControlName="type">
-            <option value="standard">Standard (30 Days)</option>
-            <option value="premium">Premium</option>
-            <option value="trial">Trial</option>
+          <label for="id_plan">Membership Tier</label>
+          <select id="id_plan" formControlName="id_plan">
+            <option value="" disabled selected>Select a plan</option>
+            @for (plan of plans(); track plan.id) {
+              <option [value]="plan.id">{{ plan.name }} - {{ plan.type | titlecase }}</option>
+            }
           </select>
         </div>
 

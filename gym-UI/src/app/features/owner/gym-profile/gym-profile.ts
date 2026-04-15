@@ -6,6 +6,7 @@ import { Gym } from '../../../shared/models/gym.model';
 import { GymProfileHeaderComponent } from './components/header/gym-profile-header.component';
 import { GymProfileFormComponent } from './components/form/gym-profile-form.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 import { finalize } from 'rxjs/operators';
 
@@ -72,7 +73,8 @@ export class GymProfileComponent implements OnInit {
           if (myGym) {
             // Backend uses id_gym as the primary key
             this.currentGymId.set(myGym.id_gym || null);
-            const loadedLogo = myGym.logo || myGym.logo_url || myGym.image || null;
+            const rawLogo = myGym.picture || myGym.logo || myGym.logo_url || myGym.image || null;
+            const loadedLogo = this.getImageUrl(rawLogo);
             this.initialLogo = loadedLogo;
             this.currentLogo.set(loadedLogo);
 
@@ -160,5 +162,13 @@ export class GymProfileComponent implements OnInit {
           alert('Failed to save changes to backend. Please check your connection.');
         }
       });
+  }
+
+  getImageUrl(path?: string): string | null {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${baseUrl}/${cleanPath}`;
   }
 }

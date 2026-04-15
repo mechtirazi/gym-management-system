@@ -48,7 +48,7 @@
 
       <div class="item-visual">
         <img
-          [src]="gym.image || 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=1200'"
+          [src]="getImageUrl(gym.picture || gym.image) || 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=1200'"
           class="main-img" alt="Gym">
 
         <div class="visual-overlay">
@@ -61,7 +61,7 @@
 
           <div class="bottom-meta">
             <div class="gym-identity">
-              <img [src]="gym.logo || 'assets/images/default-gym-logo.png'" class="mini-logo">
+              <div class="mini-logo text-logo">{{ getGymInitials(gym.name) }}</div>
               <div class="identity-text">
                 <h3>{{ gym.name }}</h3>
                 <p>{{ gym.adress || 'Metropolitan Core' }}</p>
@@ -85,9 +85,18 @@
       </div>
 
       <div class="item-actions">
-        <button class="btn-action-primary" (click)="$event.stopPropagation(); onSubscribe(gym)">
-          Join Hub
-          <span class="material-symbols-rounded">arrow_forward</span>
+        <button class="btn-action-follow" [class.active]="gym.isSubscribed"
+          (click)="$event.stopPropagation(); onFollowToggle(gym)">
+          {{ gym.isSubscribed ? 'Following' : 'Follow Node' }}
+          <span class="material-symbols-rounded">
+            {{ gym.isSubscribed ? 'check' : 'add' }}
+          </span>
+        </button>
+
+        <button class="btn-action-primary" [class.is-enrolled]="gym.isEnrolled"
+          (click)="$event.stopPropagation(); !gym.isEnrolled ? onEnroll(gym) : null">
+          {{ gym.isEnrolled ? 'Synchronized Access' : 'Activate Abonnement' }}
+          <span class="material-symbols-rounded">{{ gym.isEnrolled ? 'verified' : 'arrow_forward' }}</span>
         </button>
       </div>
     </article>
@@ -96,11 +105,16 @@
   </main>
 
   <!-- High-Fidelity Checkout Vault -->
-  <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
-    [headerTitle]="'Facility Activation'" [itemTitle]="selectedGym?.name || 'Facility Hub'"
-    [itemSubtitle]="selectedGym?.adress || 'Premium Fitness Node'"
-    [itemImage]="selectedGym?.image || 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=1200'"
-    [purchaseTerms]="'Activating this facility grants you full access to all standard training equipments, lockers and recovery zones.'"
-    (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase()">
-  </app-payment-modal>
+  <app-payment-modal 
+  [showModal]="showPaymentModal" 
+  [itemTitle]="selectedGym?.name || 'Facility Node'"
+  [itemSubtitle]="'Premium Abonnement Access'"
+  [purchaseTerms]="'Activating this enrollment node will grant you 30 days of standard facility access and localized training protocols.'"
+  [processingPayment]="processingPayment"
+  [paymentError]="paymentError"
+  [stripePublicKey]="stripePublicKey"
+  [plans]="membershipPlans"
+  (cancelPayment)="closePaymentModal()"
+  (confirmPayment)="completePurchase($event)">
+</app-payment-modal>
 </div>

@@ -7,5 +7,6 @@ export interface Gym {
   phone?: string;
   adress?: string;
   description?: string;
+  picture?: string;
   [key: string]: any;
 }

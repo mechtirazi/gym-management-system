@@ -34,6 +34,8 @@ export class MemberNutritionComponent implements OnInit {
   showPaymentModal = false;
   selectedPlan: any = null;
   processingPayment = false;
+  paymentError: string | null = null;
+  stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI'
 
   get filteredNutritionPlans() {
     return this.nutritionPlans.filter(plan => {
@@ -72,7 +74,8 @@ export class MemberNutritionComponent implements OnInit {
         console.error('Subscription Sync Fail:', err);
         return of({ data: [] });
       })),
-      gyms: this.memberService.getAllGyms().pipe(catchError(() => of({ data: [] })))
+      gyms: this.memberService.getAllGyms().pipe(catchError(() => of({ data: [] }))),
+      subscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] })))
     }).subscribe({
       next: (res: any) => {
         const extract = (obj: any): any[] => {
@@ -86,11 +89,20 @@ export class MemberNutritionComponent implements OnInit {
 
         const plansRaw = extract(res.allPlans);
         const myPlans = extract(res.myPlans);
-        this.gyms = extract(res.gyms);
+        const allGyms = extract(res.gyms);
+        const mySubscriptions = extract(res.subscriptions);
+
+        // Filter: Only show plans from gyms where the member has a subscription
+        const subscribedGymIds = mySubscriptions.map((s: any) => s.id_gym || s.gym_id);
+        
+        // Update selection dropdown to only show subscribed gyms
+        this.gyms = allGyms.filter((g: any) => subscribedGymIds.includes(g.id_gym));
+        
+        const filteredPlansRaw = plansRaw.filter((plan: any) => subscribedGymIds.includes(plan.id_gym));
 
         const myIds = myPlans.map((p: any) => p.id_nutrition_plan || p.id);
 
-        this.nutritionPlans = Array.isArray(plansRaw) ? plansRaw.map((plan: any) => {
+        this.nutritionPlans = Array.isArray(filteredPlansRaw) ? filteredPlansRaw.map((plan: any) => {
           const gym = this.gyms.find((g: any) => g.id_gym === plan.id_gym);
           return {
             ...plan,
@@ -121,9 +133,9 @@ export class MemberNutritionComponent implements OnInit {
   }
 
   buyPlan(plan: any) {
-    // Condition removed for testing purposes as per user request
     this.selectedPlan = plan;
     this.showPaymentModal = true;
+    this.paymentError = null;
     this.cdr.detectChanges();
   }
 
@@ -133,30 +145,54 @@ export class MemberNutritionComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  completePurchase() {
+  completePurchase(event: any) {
     if (!this.selectedPlan) return;
 
+    const method = event.method;
     this.processingPayment = true;
-    const planId = this.selectedPlan.id_plan || this.selectedPlan.id;
+    this.paymentError = null;
 
-    this.memberService.purchaseNutritionPlan(planId).subscribe({
-      next: (response) => {
-        console.log('PURCHASE SUCCESS:', response);
-        this.processingPayment = false;
-        this.cdr.detectChanges();
+    if (method === 'zen_wallet') {
+      this.memberService.purchaseNutritionPlan(this.selectedPlan.id_plan || this.selectedPlan.id).subscribe({
+        next: (res: any) => this.handleSuccess(res),
+        error: (err: any) => this.handleError(err)
+      });
+    } else {
+        // Stripe flow for Nutrition
+        this.memberService.createPaymentIntent(this.selectedPlan.id_gym, 19.99).subscribe({
+          next: (res: any) => {
+            event.stripe.confirmCardPayment(res.client_secret, {
+              payment_method: { card: event.card }
+            }).then((result: any) => {
+              if (result.error) {
+                this.handleError({ error: { message: result.error.message } });
+              } else if (result.paymentIntent.status === 'succeeded') {
+                this.memberService.purchaseNutritionPlan(this.selectedPlan.id_plan || this.selectedPlan.id).subscribe({
+                  next: (res: any) => this.handleSuccess(res),
+                  error: (err: any) => this.handleError(err)
+                });
+              }
+            });
+          },
+          error: (err: any) => this.handleError(err)
+        });
+    }
+  }
 
-        setTimeout(() => {
-          this.closePaymentModal();
-          this.loadAllNutritionData();
-        }, 1500);
-      },
-      error: (err) => {
-        console.error('PURCHASE FAILURE:', err);
-        this.processingPayment = false;
-        alert('Payment failed: ' + (err.error?.message || 'Gateway Error'));
+  private handleSuccess(res: any) {
+    this.processingPayment = false;
+    this.cdr.detectChanges();
+    setTimeout(() => {
         this.closePaymentModal();
-      }
-    });
+        this.loadAllNutritionData();
+    }, 1500);
+  }
+
+  private handleError(err: any) {
+    console.error('PURCHASE FAILURE:', err);
+    this.paymentError = err.error?.message || 'Access synchronization failed.';
+    this.processingPayment = false;
+    this.cdr.detectChanges();
   }
 
   calculateMacros(plan: any) {
