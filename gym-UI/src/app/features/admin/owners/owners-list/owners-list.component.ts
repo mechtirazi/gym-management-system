@@ -12,12 +12,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../../../core/services/auth.service';
 import { AdminOwnersService } from '../../../../core/services/admin-owners.service';
-import { UserVm } from '../../../../core/models/api.models';
+import { AdminGymsService } from '../../../../core/services/admin-gyms.service';
+import { UserVm, GymDto } from '../../../../core/models/api.models';
 import { CanDirective } from '../../../../shared/directives/can.directive';
 
 import { OwnerDialogComponent } from '../owner-dialog/owner-dialog.component';
 import { OwnerGymsListComponent } from '../owner-gyms-list/owner-gyms-list.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-owners-list',
@@ -29,6 +31,7 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../shared/co
 export class OwnersListComponent implements OnInit {
   private authService = inject(AuthService);
   private ownersService = inject(AdminOwnersService);
+  private gymsService = inject(AdminGymsService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private route = inject(ActivatedRoute);
@@ -37,79 +40,119 @@ export class OwnersListComponent implements OnInit {
 
   loading = signal(false);
   ownersData = signal<UserVm[]>([]);
+  gymsData = signal<GymDto[]>([]);
   searchControl = new FormControl('');
-  
+
   searchTerm = signal('');
+  statusFilter = signal<'all' | 'active' | 'suspended' | 'pending'>('all');
 
   expandedOwnerId = signal<string | null>(null);
+
+  setFilter(status: 'all' | 'active' | 'suspended' | 'pending') {
+    this.statusFilter.set(status);
+  }
 
   toggleRow(ownerId: string) {
     this.expandedOwnerId.set(this.expandedOwnerId() === ownerId ? null : ownerId);
   }
 
   filteredData = computed(() => {
-     const term = this.searchTerm().toLowerCase();
-     const data = this.ownersData().map(o => ({
+    const term = this.searchTerm().toLowerCase();
+    const status = this.statusFilter();
+    const gyms = this.gymsData();
+    
+    let data = this.ownersData().map(o => {
+      // Find gyms belonging to this owner for deep searching
+      const myGyms = gyms.filter(g => g.id_owner === o.id_user || g.id_owner === String(o.id_user));
+      const gymNamesStr = myGyms.map(g => g.name).join(', ');
+      
+      return {
         ...o,
         fullName: `${o.name} ${o.last_name}`,
         verificationStatus: o.email_verified_at ? 'Verified' : 'Pending',
         verified: !!o.email_verified_at,
-        initials: this.getInitials(o.name, o.last_name)
-     }));
-     
-     if (!term) return data;
-     
-     return data.filter(o => 
-       o.fullName.toLowerCase().includes(term) || 
-       o.email.toLowerCase().includes(term)
-     );
+        initials: this.getInitials(o.name, o.last_name),
+        gymNames: gymNamesStr,
+        myGyms: myGyms
+      };
+    });
+
+    // Apply Status Filter
+    if (status !== 'all') {
+      data = data.filter(o => {
+        const ownedCount = +o.owned_gyms_count! || 0;
+        const activeCount = +o.active_gyms_count! || 0;
+
+        if (status === 'active') return activeCount > 0;
+        if (status === 'suspended') return activeCount === 0 && ownedCount > 0;
+        if (status === 'pending') return ownedCount === 0;
+        return true;
+      });
+    }
+
+    // Apply Search Term
+    if (term) {
+      data = data.filter(o =>
+        o.fullName.toLowerCase().includes(term) ||
+        o.email.toLowerCase().includes(term) ||
+        o.gymNames.toLowerCase().includes(term)
+      );
+    }
+
+    return data;
   });
 
   ngOnInit() {
     this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
-       if (params['search']) {
-          this.searchControl.setValue(params['search'], { emitEvent: false });
-          this.searchTerm.set(params['search']);
-       }
+      if (params['search']) {
+        this.searchControl.setValue(params['search'], { emitEvent: false });
+        this.searchTerm.set(params['search']);
+      }
     });
 
     this.loadOwners();
-    
+
     // Simple search watcher
     this.searchControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(val => {
-       const searchStr = val || '';
-       this.searchTerm.set(searchStr);
-       this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { search: searchStr || null },
-          queryParamsHandling: 'merge'
-       });
+      const searchStr = val || '';
+      this.searchTerm.set(searchStr);
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { search: searchStr || null },
+        queryParamsHandling: 'merge'
+      });
     });
   }
 
   loadOwners() {
     this.loading.set(true);
-    this.ownersService.getOwners().subscribe({
-       next: (res) => {
-         this.ownersData.set(res);
-         this.loading.set(false);
-       },
-       error: () => this.loading.set(false)
+    
+    // Fetch both owners and gyms in parallel to enable client-side deep searching
+    forkJoin({
+      owners: this.ownersService.getOwners(),
+      gyms: this.gymsService.getGyms()
+    }).subscribe({
+      next: (res) => {
+        this.ownersData.set(res.owners);
+        this.gymsData.set(res.gyms);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
     });
   }
 
   openDialog(user?: UserVm) {
     const dialogRef = this.dialog.open(OwnerDialogComponent, {
-       width: '600px',
-       disableClose: true,
-       data: { user }
+      width: '450px',
+      disableClose: true,
+      data: { user }
     });
 
     dialogRef.afterClosed().subscribe(res => {
-       if (res) {
-          this.snackBar.open(user ? 'Owner updated.' : 'Owner created successfully.', 'Dismiss', { duration: 3000 });
-          this.loadOwners(); // Re-fetch list
-       }
+      if (res) {
+        this.snackBar.open(user ? 'Owner updated.' : 'Owner created successfully.', 'Dismiss', { duration: 3000 });
+        this.loadOwners(); // Re-fetch list
+      }
     });
   }
 
@@ -133,13 +176,13 @@ export class OwnersListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(res => {
       if (res) {
-         this.loading.set(true);
-         this.authService.impersonate(ownerObj.id_user, ownerObj.fullName).subscribe({
-            error: (err) => {
-               this.snackBar.open(err.error?.message || 'Failed to impersonate owner.', 'Dismiss', { duration: 4000 });
-               this.loading.set(false);
-            }
-         });
+        this.loading.set(true);
+        this.authService.impersonate(ownerObj.id_user, ownerObj.fullName).subscribe({
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to impersonate owner.', 'Dismiss', { duration: 4000 });
+            this.loading.set(false);
+          }
+        });
       }
     });
   }
@@ -147,7 +190,7 @@ export class OwnersListComponent implements OnInit {
   disableAllGyms(ownerObj: any) {
     const gymCount = ownerObj.owned_gyms_count || 0;
     const msg = `Are you sure you want to completely disable all gyms for <strong>${ownerObj.fullName}</strong>?<br><br>This will set ${gymCount} nodes to completely inactive status. The core identity will remain unaffected.`;
-    
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '500px',
       disableClose: true,
@@ -162,17 +205,17 @@ export class OwnersListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(res => {
       if (res) {
-         this.loading.set(true);
-         this.ownersService.disableAllGyms(ownerObj.id_user).subscribe({
-            next: () => {
-               this.snackBar.open(`All ${gymCount} gyms have been disabled.`, 'Dismiss', { duration: 3000 });
-               this.loadOwners();
-            },
-            error: (err) => {
-               this.snackBar.open(err.error?.message || 'Failed to disable gyms.', 'Dismiss', { duration: 4000 });
-               this.loading.set(false);
-            }
-         });
+        this.loading.set(true);
+        this.ownersService.disableAllGyms(ownerObj.id_user).subscribe({
+          next: () => {
+            this.snackBar.open(`All ${gymCount} gyms have been disabled.`, 'Dismiss', { duration: 3000 });
+            this.loadOwners();
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to disable gyms.', 'Dismiss', { duration: 4000 });
+            this.loading.set(false);
+          }
+        });
       }
     });
   }
@@ -180,7 +223,7 @@ export class OwnersListComponent implements OnInit {
   activateAllGyms(ownerObj: any) {
     const gymCount = ownerObj.owned_gyms_count || 0;
     const msg = `Are you sure you want to reactivate all operation nodes for <strong>${ownerObj.fullName}</strong>?<br><br>This will instantly set ${gymCount} gyms back to operational status.`;
-    
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '500px',
       disableClose: true,
@@ -194,17 +237,17 @@ export class OwnersListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(res => {
       if (res) {
-         this.loading.set(true);
-         this.ownersService.activateAllGyms(ownerObj.id_user).subscribe({
-            next: () => {
-               this.snackBar.open(`All ${gymCount} gyms have been activated.`, 'Dismiss', { duration: 3000 });
-               this.loadOwners();
-            },
-            error: (err) => {
-               this.snackBar.open(err.error?.message || 'Failed to activate gyms.', 'Dismiss', { duration: 4000 });
-               this.loading.set(false);
-            }
-         });
+        this.loading.set(true);
+        this.ownersService.activateAllGyms(ownerObj.id_user).subscribe({
+          next: () => {
+            this.snackBar.open(`All ${gymCount} gyms have been activated.`, 'Dismiss', { duration: 3000 });
+            this.loadOwners();
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to activate gyms.', 'Dismiss', { duration: 4000 });
+            this.loading.set(false);
+          }
+        });
       }
     });
   }
@@ -224,17 +267,17 @@ export class OwnersListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(res => {
       if (res) {
-         this.loading.set(true);
-         this.ownersService.deleteOwner(ownerObj.id_user).subscribe({
-            next: () => {
-               this.snackBar.open('Node completely eliminated.', 'Dismiss', { duration: 3000 });
-               this.loadOwners();
-            },
-            error: (err) => {
-               this.snackBar.open(err.error?.message || 'Failed to delete owner node.', 'Dismiss', { duration: 4000 });
-               this.loading.set(false);
-            }
-         });
+        this.loading.set(true);
+        this.ownersService.deleteOwner(ownerObj.id_user).subscribe({
+          next: () => {
+            this.snackBar.open('Node completely eliminated.', 'Dismiss', { duration: 3000 });
+            this.loadOwners();
+          },
+          error: (err) => {
+            this.snackBar.open(err.error?.message || 'Failed to delete owner node.', 'Dismiss', { duration: 4000 });
+            this.loading.set(false);
+          }
+        });
       }
     });
   }

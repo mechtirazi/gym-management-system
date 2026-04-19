@@ -13,5 +13,7 @@ export interface Gym {
   logo_url?: string;
   image?: string;
   owner?: any;
+  status?: string;
+  suspension_reason?: string;
   [key: string]: any;
 }

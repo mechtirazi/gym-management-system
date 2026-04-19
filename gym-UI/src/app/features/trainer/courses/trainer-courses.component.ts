@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrainerService } from '../services/trainer.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -13,6 +14,9 @@ import { finalize } from 'rxjs';
 })
 export class TrainerCoursesComponent implements OnInit {
   private trainerService = inject(TrainerService);
+  private authService = inject(AuthService);
+
+  activeGymId = this.authService.connectedGymId;
 
   allCourses = signal<any[]>([]);
   searchQuery = signal<string>('');
@@ -48,6 +52,7 @@ export class TrainerCoursesComponent implements OnInit {
   ngOnInit() {
     this.loadCourses();
   }
+
 
   loadCourses() {
     this.isLoading.set(true);

@@ -42,9 +42,11 @@ class AttendanceService extends BaseService
                 });
             });
 
-            return $query->whereHas('session', function ($q) use ($user) {
+            $query->whereHas('session', function ($q) use ($user) {
                 $q->where('id_trainer', $user->id_user);
-            })->get();
+            });
+
+            return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
         // Receptionists see attendance in their assigned gyms

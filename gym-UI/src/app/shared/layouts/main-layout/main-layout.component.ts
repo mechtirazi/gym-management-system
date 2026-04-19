@@ -8,6 +8,7 @@ import { AdminSidebarComponent } from './sidebars/admin-sidebar/admin-sidebar.co
 import { NutritionistSidebarComponent } from './sidebars/nutritionist-sidebar/nutritionist-sidebar.component';
 import { ReceptionistSidebarComponent } from './sidebars/receptionist-sidebar/receptionist-sidebar.component';
 import { TrainerSidebarComponent } from './sidebars/trainer-sidebar/trainer-sidebar.component';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 
@@ -23,7 +24,8 @@ import { ThemeService } from '../../../core/services/theme.service';
     AdminSidebarComponent,
     NutritionistSidebarComponent,
     ReceptionistSidebarComponent,
-    TrainerSidebarComponent
+    TrainerSidebarComponent,
+    MatIconModule
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'
@@ -33,6 +35,8 @@ export class MainLayoutComponent {
   private themeService = inject(ThemeService);
 
   userRole = this.authService.userRole;
+  gymStatus = this.authService.connectedGymStatus;
+  suspensionReason = this.authService.connectedGymSuspensionReason;
 
   constructor() {
     // When role is admin, ensure we are in a premium dark experience for the features

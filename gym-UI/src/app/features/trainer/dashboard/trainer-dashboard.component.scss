@@ -64,6 +64,15 @@
     letter-spacing: -1px;
   }
 
+  .header-main-title {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+
   .subtitle {
     color: var(--admin-text-secondary);
     font-size: 1.25rem;

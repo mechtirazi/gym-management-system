@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Session;
 use App\Models\User;
 use App\Models\Gym;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class SessionService extends BaseService
 {
@@ -19,6 +21,7 @@ class SessionService extends BaseService
      */
     public function getAllScoped($user, ?int $perPage = null)
     {
+        $this->syncSessionStatuses();
         $query = $this->query();
 
         // Members can see all sessions
@@ -68,6 +71,49 @@ class SessionService extends BaseService
      */
     public function getSessionsByTrainerId(string $trainerId)
     {
+        $this->syncSessionStatuses();
         return $this->getBy('id_trainer', $trainerId);
+    }
+
+    /**
+     * Synchronize session statuses based on current system time.
+     * Logic: upcoming -> ongoing -> completed (Respects 'cancelled').
+     */
+    public function syncSessionStatuses()
+    {
+        $now = Carbon::now();
+        $today = $now->toDateString();
+        $currentTime = $now->toTimeString();
+
+        // 1. Mark as COMPLETED: If session end time is in the past
+        Session::where('status', '!=', Session::STATUS_CANCELLED)
+            ->where('status', '!=', Session::STATUS_COMPLETED)
+            ->where(function ($q) use ($today, $currentTime) {
+                $q->where('date_session', '<', $today)
+                    ->orWhere(function ($sq) use ($today, $currentTime) {
+                        $sq->where('date_session', $today)
+                            ->where('end_time', '<', $currentTime);
+                    });
+            })
+            ->update(['status' => Session::STATUS_COMPLETED]);
+
+        // 2. Mark as UPCOMING: If session is in the future (resetting any that are mistakenly ongoing)
+        Session::where('status', '!=', Session::STATUS_CANCELLED)
+            ->where('status', '!=', Session::STATUS_UPCOMING)
+            ->where(function ($q) use ($today, $currentTime) {
+                $q->where('date_session', '>', $today)
+                    ->orWhere(function ($sq) use ($today, $currentTime) {
+                        $sq->where('date_session', $today)
+                            ->where('start_time', '>', $currentTime);
+                    });
+            })
+            ->update(['status' => Session::STATUS_UPCOMING]);
+
+        // 3. Mark as ONGOING: If current time is within [start_time, end_time]
+        Session::where('status', Session::STATUS_UPCOMING)
+            ->where('date_session', $today)
+            ->where('start_time', '<=', $currentTime)
+            ->where('end_time', '>=', $currentTime)
+            ->update(['status' => Session::STATUS_ONGOING]);
     }
 }

@@ -250,6 +250,48 @@
       color: white;
     }
   }
+
+  &.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.8);
+    pointer-events: none;
+
+    &:hover {
+      background: none;
+      border-color: transparent;
+    }
+  }
+}
+
+.lock-indicator {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #ef4444;
+  
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .sidebar:not(:hover) & {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--bg-sidebar);
+    border-radius: 50%;
+    padding: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+}
+
+.nav-header.locked {
+  opacity: 0.5;
+  color: #ef4444 !important;
 }
 
 .nav-icon {

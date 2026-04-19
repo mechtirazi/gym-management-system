@@ -13,7 +13,9 @@ export interface User {
     | 'receptionist'
     | 'staff'
     | 'member';
-  gym_id?: number;
+  gym_id?: string;
+  gym_status?: 'active' | 'suspended';
+  gym_suspension_reason?: string;
   profile_picture?: string;
 }
 

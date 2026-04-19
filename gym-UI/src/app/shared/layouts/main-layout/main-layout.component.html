@@ -24,6 +24,20 @@
         <div class="blob blob-3"></div>
       </div>
       }
+      @if (userRole() === 'owner' && gymStatus() === 'suspended') {
+        <div class="suspension-banner-global">
+          <div class="banner-icon-box">
+            <mat-icon>gpp_bad</mat-icon>
+          </div>
+          <div class="banner-content">
+            <div class="banner-title-row">
+              <span class="banner-tag">Gym Suspended</span>
+              <h3>Administrative Action Required</h3>
+            </div>
+            <p>{{ suspensionReason() || 'Your gym access has been temporarily limited by the platform administration. Please contact support for more details.' }}</p>
+          </div>
+        </div>
+      }
       <router-outlet></router-outlet>
     </main>
   </div>

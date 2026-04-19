@@ -19,7 +19,6 @@ export class AdminSidebarComponent {
     { label: 'Platform', isHeader: true },
     { label: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard' },
     { label: 'Owners', icon: 'users', route: '/admin/owners', badge: 'New' },
-    { label: 'Gyms', icon: 'gym', route: '/admin/gyms' },
     { label: 'Revenue', icon: 'payments', route: '/admin/revenue' },
 
     { label: 'System', isHeader: true },

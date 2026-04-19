@@ -15,20 +15,20 @@ import { MatIconModule } from '@angular/material/icon';
           <mat-icon>warning</mat-icon>
         </div>
         <div class="header-title-wrap">
-           <h2>Sever Access</h2>
-           <p>This will immediately block all users of <strong>{{ data.gymName }}</strong> from the platform ecosystem.</p>
+           <h2>Suspend Gym</h2>
+           <p>This will immediately block all members and staff of <strong>{{ data.gymName }}</strong> from accessing the platform.</p>
         </div>
       </div>
 
       <div class="admin-form-group">
         <div class="form-field">
-          <label for="reason">Termination Rationale</label>
+          <label for="reason">Reason for Suspension</label>
           <textarea
             id="reason"
             [(ngModel)]="reason"
-            placeholder="e.g. Policy violation, node inconsistency, etc."
+            placeholder="e.g. Policy violation, payment issues, etc."
           ></textarea>
-          <p style="font-size: 0.625rem; font-weight: 800; color: #475569; margin: 4px 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Rationale is logged in the system audit</p>
+          <p style="font-size: 0.625rem; font-weight: 800; color: #475569; margin: 4px 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">This reason will be visible to the gym owner</p>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ import { MatIconModule } from '@angular/material/icon';
           [disabled]="!reason.trim()"
           (click)="dialogRef.close(reason)"
         >
-          <mat-icon>block</mat-icon> Sever Access
+          <mat-icon>block</mat-icon> Suspend All
         </button>
       </div>
     </div>

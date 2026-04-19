@@ -12,8 +12,15 @@ class OwnerMembershipPlanController extends BaseApiController
     /**
      * Display a listing of membership plans for a specific gym.
      */
-    public function index(Gym $gym)
+    public function index(Request $request)
     {
+        $id_gym = $request->route('gym') ?? $request->header('X-Gym-Id');
+        if (!$id_gym) {
+            return response()->json(['success' => false, 'message' => 'Gym context missing.'], 400);
+        }
+
+        $gym = Gym::findOrFail($id_gym);
+
         // Security: Ensure the user owns this gym
         if ($gym->id_owner !== Auth::id()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized access to this hub.'], 403);
@@ -28,8 +35,15 @@ class OwnerMembershipPlanController extends BaseApiController
     /**
      * Store a newly created membership plan.
      */
-    public function store(Request $request, Gym $gym)
+    public function store(Request $request)
     {
+        $id_gym = $request->route('gym') ?? $request->header('X-Gym-Id');
+        if (!$id_gym) {
+            return response()->json(['success' => false, 'message' => 'Gym context missing.'], 400);
+        }
+
+        $gym = Gym::findOrFail($id_gym);
+
         if ($gym->id_owner !== Auth::id()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
         }
@@ -54,8 +68,9 @@ class OwnerMembershipPlanController extends BaseApiController
     /**
      * Update the specified membership plan.
      */
-    public function update(Request $request, MembershipPlan $plan)
+    public function update(Request $request, $id)
     {
+        $plan = MembershipPlan::findOrFail($id);
         $gym = $plan->gym;
         if ($gym->id_owner !== Auth::id()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
@@ -81,8 +96,9 @@ class OwnerMembershipPlanController extends BaseApiController
     /**
      * Remove the specified membership plan.
      */
-    public function destroy(MembershipPlan $plan)
+    public function destroy($id)
     {
+        $plan = MembershipPlan::findOrFail($id);
         $gym = $plan->gym;
         if ($gym->id_owner !== Auth::id()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);

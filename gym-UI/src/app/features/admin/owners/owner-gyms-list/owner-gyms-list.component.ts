@@ -54,7 +54,7 @@ export class OwnerGymsListComponent implements OnInit {
 
   openAddGymDialog() {
     const dialogRef = this.dialog.open(GymDialogComponent, {
-      width: '500px',
+      width: '420px',
       data: { ownerId: this.ownerId, ownerName: this.ownerName }
     });
 

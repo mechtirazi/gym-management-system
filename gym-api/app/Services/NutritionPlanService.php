@@ -45,11 +45,16 @@ class NutritionPlanService extends BaseService
                 $query = $query->where('id_nutritionist', $user->id_user);
             }
             
-            if ($activeGymId) {
-                $query = $query->where('id_gym', $activeGymId);
-            } else {
+            // Respect active gym context using standardized helper
+            $this->applyActiveGymScope($query, $user, 'id_gym');
+
+            // If no active gym was applied, or if we want to fallback to allowed gyms
+            // applyActiveGymScope only adds WHERE if active gym is present.
+            // If it's NOT present, we might still want to scope to all allowed gyms to avoid seeing EVERYTHING in the db.
+            if (!$this->getActiveGymId()) {
                 $query = $query->whereIn('id_gym', $user->allowedGymIds());
             }
+
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 

@@ -75,26 +75,28 @@
           </svg>
 
           <input id="register-password" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
-            placeholder="Create a strong password" autocomplete="new-password" required>
+            placeholder="Min 8 characters" autocomplete="new-password" required>
         </div>
       </div>
 
-      <!-- ROLE -->
+      <!-- PASSWORD CONFIRMATION -->
       <div class="form-group">
-        <label for="register-role">Role</label>
+        <label for="register-password-confirm">Confirm Password</label>
         <div class="input-wrapper">
           <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
 
-          <select id="register-role" formControlName="role" required>
-            <option value="member">Member</option>
-            <option value="staff">Staff</option>
-            <option value="owner">Owner</option>
-          </select>
+          <input id="register-password-confirm" [type]="showPassword() ? 'text' : 'password'" formControlName="password_confirmation"
+            placeholder="Confirm your password" autocomplete="new-password" required>
+        </div>
+        <div *ngIf="registerForm.errors?.['passwordMismatch'] && registerForm.get('password_confirmation')?.touched" class="error-text">
+          Passwords do not match.
         </div>
       </div>
+
+
 
       <!-- BUTTON -->
       <button type="submit" class="submit-btn" [disabled]="registerForm.invalid || isLoading()">

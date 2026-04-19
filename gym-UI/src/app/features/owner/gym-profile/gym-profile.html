@@ -14,6 +14,8 @@
     <button class="retry-btn" (click)="fetchOwnerGym()">Re-authenticate</button>
   </div>
   } @else {
+  <!-- Administrative Alerts Handled Globally by MainLayout -->
+
   <!-- Hero Profile Header -->
   <app-gym-profile-header [name]="gymForm.get('name')?.value || ''" [address]="gymForm.get('address')?.value || ''"
     [logo]="currentLogo()" [isEditing]="isEditing()" [isSaving]="isSaving()" [canSave]="gymForm.valid && !isSaving()"

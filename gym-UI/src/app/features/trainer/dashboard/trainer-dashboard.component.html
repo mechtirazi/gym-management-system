@@ -8,8 +8,22 @@
   <header class="dashboard-header glass-card">
     <div class="header-content">
       <div class="welcome-text">
-        <h1>Welcome back, {{ trainerName() }}</h1>
-        <p class="subtitle">Here's your schedule and performance for today.</p>
+        <div class="header-main-title">
+          <div class="title-with-context">
+            <h1>Welcome back, {{ trainerName() }}</h1>
+            
+            <div class="gym-context-selector" *ngIf="assignedGyms().length > 0">
+              <span class="location-icon">📍</span>
+              <select [ngModel]="activeGymId()" (change)="onGymChange($event)" class="gym-dropdown">
+                <option value="" disabled>Select a Gym Context</option>
+                <option *ngFor="let gym of assignedGyms()" [value]="gym.id_gym">
+                  {{ gym.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <p>You're logged in as a dedicated Trainer. Here's your schedule and performance for today.</p>
       </div>
       <div class="current-time">
         <span class="date">{{ currentTime() | date:'fullDate' }}</span>
@@ -44,7 +58,7 @@
         <div class="forecast-bar">
           <div class="fill" [style.width.%]="getAttendanceProgress(nextSession())"></div>
         </div>
-        <span class="forecast-text">Capacity: {{ nextSession().attendances_count || 0 }} / 20 Enrolled</span>
+        <span class="forecast-text">Capacity: {{ nextSession().attendances_count || 0 }} / {{ nextSession().course?.max_capacity || 20 }} Enrolled</span>
       </div>
     </div>
   </div>
@@ -57,7 +71,9 @@
         <span class="value">{{ stats().activeClients }}</span>
         <span class="label">Active Clients</span>
       </div>
-      <div class="trend positive">+2 this week</div>
+      <div [class]="'trend ' + (stats().activeClientsTrend.startsWith('+') ? 'positive' : 'negative')">
+        {{ stats().activeClientsTrend }} this week
+      </div>
     </div>
 
     <div class="stat-card glass-card">
@@ -75,7 +91,9 @@
         <span class="value">{{ stats().rating }}</span>
         <span class="label">Performance</span>
       </div>
-      <div class="trend positive">{{ stats().ratingTrend }} Improvement</div>
+      <div [class]="'trend ' + (stats().ratingTrend.startsWith('+') ? 'positive' : 'negative')">
+        {{ stats().ratingTrend }} Improvement
+      </div>
     </div>
   </div>
 
@@ -94,7 +112,7 @@
           </div>
           <div class="info-col">
             <span class="course-title">{{ session.course?.name || 'Class' }}</span>
-            <span class="gym-badge">Main Gym</span>
+            <span class="gym-badge">{{ session.course?.gym?.name || 'Assigned Gym' }}</span>
           </div>
           <div class="status-col">
             <span class="status-pill" [ngClass]="session.status">{{ session.status }}</span>
@@ -123,7 +141,7 @@
           <span class="icon">📈</span>
           <span class="txt">Analytics</span>
         </button>
-        <button class="action-btn">
+        <button class="action-btn" routerLink="/settings">
           <span class="icon">⚙️</span>
           <span class="txt">Preferences</span>
         </button>

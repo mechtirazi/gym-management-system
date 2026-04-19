@@ -67,6 +67,10 @@ interface CalendarDay {
                    [style.border-left-color]="getSessionColor(session)">
                 <span class="time">{{ formatTime(session.start_time) }}</span>
                 <span class="course-name">{{ session.course?.name || 'Session' }}</span>
+                <span class="gym-label" *ngIf="session.course?.gym">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M9 21V11h6v10M2 7l10-5 10 5"/></svg>
+                  {{ session.course.gym.name }}
+                </span>
               </div>
             </div>
           </div>
@@ -302,6 +306,22 @@ interface CalendarDay {
         overflow: hidden;
         text-overflow: ellipsis;
         line-height: 1.2;
+      }
+
+      .gym-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--admin-text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        opacity: 0.7;
+        margin-top: 2px;
+        
+        svg {
+          width: 10px;
+          height: 10px;
+        }
       }
     }
 

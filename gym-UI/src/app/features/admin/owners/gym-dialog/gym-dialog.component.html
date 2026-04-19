@@ -4,8 +4,8 @@
       <mat-icon>domain_add</mat-icon>
     </div>
     <div class="header-title-wrap">
-      <h2>Provision New Facility</h2>
-      <p>Assigning a new node to provider: <strong>{{ data.ownerName }}</strong></p>
+      <h2>Add New Gym</h2>
+      <p>Assigning a new facility to owner: <strong>{{ data.ownerName }}</strong></p>
     </div>
   </div>
 
@@ -16,55 +16,77 @@
           <mat-icon>terminal</mat-icon>
        </div>
        <div class="alert-content">
-          <span class="alert-tag" style="color: var(--admin-accent-rose);">System Exception</span>
-          <h3>Initialization Failure</h3>
+          <span class="alert-tag" style="color: var(--admin-accent-rose);">System Error</span>
+          <h3>Creation Failed</h3>
           <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ errorMessage() }}</p>
        </div>
     </div>
 
     <div class="form-field">
-      <label><mat-icon>business</mat-icon> Facility Name</label>
+      <label><mat-icon>business</mat-icon> Gym Name</label>
       <div class="input-glow-wrap">
-         <input formControlName="name" type="text" placeholder="e.g. Downtown Nexus Elite" autocomplete="off" />
+         <input formControlName="name" type="text" placeholder="e.g. Downtown Fitness Center" autocomplete="off" />
       </div>
+      <p class="error-text" *ngIf="gymForm.get('name')?.touched && gymForm.get('name')?.errors?.['required']">Gym name is required</p>
     </div>
 
     <div class="form-field">
-      <label><mat-icon>location_on</mat-icon> Physical Address</label>
+      <label><mat-icon>location_on</mat-icon> Street Address</label>
       <div class="input-glow-wrap">
-         <input formControlName="adress" type="text" placeholder="123 Silicon Valley Blvd, Suite 400" autocomplete="off" />
+         <input formControlName="adress" type="text" placeholder="123 Example St, City" autocomplete="off" />
       </div>
+      <p class="error-text" *ngIf="gymForm.get('adress')?.touched && gymForm.get('adress')?.errors?.['required']">Address is required</p>
     </div>
 
     <div class="two-col-grid">
        <div class="form-field">
-          <label><mat-icon>groups</mat-icon> Node Capacity</label>
+          <label><mat-icon>groups</mat-icon> Max Capacity</label>
           <div class="input-glow-wrap">
              <input formControlName="capacity" type="number" placeholder="100" />
           </div>
+          <p class="error-text" *ngIf="gymForm.get('capacity')?.touched && gymForm.get('capacity')?.errors?.['min']">Minimum capacity is 1</p>
        </div>
        <div class="form-field">
-          <label><mat-icon>schedule</mat-icon> Operational Windows</label>
+          <label><mat-icon>schedule</mat-icon> Mon - Fri Hours</label>
           <div class="input-glow-wrap">
-             <input formControlName="open_hour" type="text" placeholder="08:00-22:00" />
+             <input formControlName="open_mon_fri" type="text" placeholder="08:00-22:00" />
           </div>
+          <p class="error-text" *ngIf="gymForm.get('open_mon_fri')?.touched && gymForm.get('open_mon_fri')?.invalid">Format: HH:mm-HH:mm</p>
+       </div>
+    </div>
+
+    <div class="two-col-grid" style="margin-top: -0.5rem;">
+       <div class="form-field">
+          <label><mat-icon>event</mat-icon> Saturday Hours</label>
+          <div class="input-glow-wrap">
+             <input formControlName="open_sat" type="text" placeholder="08:00-20:00" />
+          </div>
+          <p class="error-text" *ngIf="gymForm.get('open_sat')?.touched && gymForm.get('open_sat')?.invalid">Format: HH:mm-HH:mm</p>
+       </div>
+       <div class="form-field">
+          <label><mat-icon>event_busy</mat-icon> Sunday Hours</label>
+          <div class="input-glow-wrap">
+             <input formControlName="open_sun" type="text" placeholder="08:00-16:00" />
+          </div>
+          <p class="error-text" *ngIf="gymForm.get('open_sun')?.touched && gymForm.get('open_sun')?.invalid">Format: HH:mm-HH:mm</p>
        </div>
     </div>
 
     <div class="form-field">
-      <label><mat-icon>phone</mat-icon> Relay Phone (Optional)</label>
+      <label><mat-icon>phone</mat-icon> Phone Number (Optional)</label>
       <div class="input-glow-wrap">
          <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
       </div>
+      <p class="error-text" *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.invalid">Invalid phone format</p>
     </div>
 
     <div class="admin-dialog-footer">
       <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
-         <mat-icon>close</mat-icon> Abort
+         <mat-icon>close</mat-icon> Cancel
       </button>
       <button type="submit" [disabled]="gymForm.invalid || loading()" class="admin-btn btn-primary">
-        <mat-icon>{{ loading() ? 'sync' : 'vitals' }}</mat-icon>
-        {{ loading() ? 'Provisioning...' : 'Initialize Facility' }}
+         <mat-icon>{{ loading() ? 'sync' : 'add_location' }}</mat-icon>
+         {{ loading() ? 'Creating...' : 'Create Gym' }}
       </button>
     </div>
   </form>

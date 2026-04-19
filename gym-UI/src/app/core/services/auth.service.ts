@@ -17,6 +17,8 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.currentUser());
   userRole = computed(() => this.currentUser()?.role);
   connectedGymId = computed(() => this.currentUser()?.gym_id);
+  connectedGymStatus = computed(() => this.currentUser()?.gym_status || 'active');
+  connectedGymSuspensionReason = computed(() => this.currentUser()?.gym_suspension_reason);
 
   constructor(private http: HttpClient, private router: Router) {
     this.checkAndSetDefaultGym();
@@ -71,10 +73,15 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
-  switchGym(gymId: number): void {
+  switchGym(gymId: string, status: string = 'active', reason: string = ''): void {
     const user = this.currentUser();
     if (user) {
-      const updatedUser = { ...user, gym_id: gymId };
+      const updatedUser = { 
+        ...user, 
+        gym_id: gymId, 
+        gym_status: status as any,
+        gym_suspension_reason: reason 
+      };
       this.updateCurrentUser(updatedUser);
       // Reload is necessary to force all services/components to re-fetch data for the new gym context
       setTimeout(() => {
@@ -94,8 +101,9 @@ export class AuthService {
       localStorage.setItem('user', JSON.stringify(user));
       this.currentUser.set(user);
       
-      // Auto-set default gym if owner has none
-      if (user.role === 'owner' && !user.gym_id) {
+      // Auto-set default gym if user has none
+      const staffRoles = ['owner', 'trainer', 'nutritionist', 'receptionist'];
+      if (staffRoles.includes(user.role) && !user.gym_id) {
         this.checkAndSetDefaultGym();
       }
     }
@@ -103,12 +111,15 @@ export class AuthService {
 
   private checkAndSetDefaultGym(): void {
     const user = this.currentUser();
-    if (user && user.role === 'owner' && !user.gym_id) {
+    const staffRoles = ['owner', 'trainer', 'nutritionist', 'receptionist'];
+    
+    if (user && staffRoles.includes(user.role) && !user.gym_id) {
       this.http.get<any>(`${this.API_URL}/gyms`).subscribe({
         next: (res) => {
           if (res.success && res.data && res.data.length > 0) {
-            const firstGymId = res.data[0].id_gym;
-            this.switchGym(firstGymId);
+            // Pick the first ACTIVE gym for default selection
+            const activeGym = res.data.find((g: any) => g.status === 'active') || res.data[0];
+            this.switchGym(activeGym.id_gym, activeGym.status, activeGym.suspension_reason);
           }
         },
         error: (err) => console.error('Error fetching gyms for default selection:', err)
@@ -137,6 +148,7 @@ export class AuthService {
           // Save original user if not already impersonating
           if (!localStorage.getItem('original_user')) {
             localStorage.setItem('original_user', JSON.stringify(this.currentUser()));
+            localStorage.setItem('original_token', localStorage.getItem('token') || '');
           }
           
           this.handleAuthentication(res);
@@ -151,17 +163,25 @@ export class AuthService {
 
   stopImpersonation(): void {
     const originalUser = localStorage.getItem('original_user');
+    const originalToken = localStorage.getItem('original_token');
+
     if (originalUser) {
       localStorage.removeItem('original_user');
+      localStorage.removeItem('original_token');
+      
       const user = JSON.parse(originalUser);
       this.currentUser.set(user);
       localStorage.setItem('user', originalUser);
-      // We don't necessarily have the original token if we didn't save it, 
-      // but usually the superadmin token is still valid. 
-      // If the backend handles session-based impersonation via token swap, it's easier.
+      
+      if (originalToken) {
+        localStorage.setItem('token', originalToken);
+      }
+      
       this.router.navigate(['/admin/dashboard']).then(() => {
          window.location.reload();
       });
+    } else {
+      this.logout();
     }
   }
 

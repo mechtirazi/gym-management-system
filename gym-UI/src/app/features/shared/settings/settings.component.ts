@@ -156,9 +156,9 @@ export class SettingsComponent implements OnInit {
     }, 1000);
   }
 
-  switchGym(gymId: number): void {
+  switchGym(gym: GymInfo): void {
     this.isLoading.set(true);
-    this.authService.switchGym(gymId);
+    this.authService.switchGym(gym.id_gym, gym.status, gym.suspension_reason);
     
     setTimeout(() => {
       this.isLoading.set(false);

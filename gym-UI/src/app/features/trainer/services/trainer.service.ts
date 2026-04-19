@@ -31,7 +31,25 @@ export class TrainerService {
   }
 
   createClient(data: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/users`, { ...data, role: 'member' });
+    // Auto-generate the precise creation_date timestamp expected by the DB (YYYY-MM-DD HH:mm:ss)
+    const now = new Date();
+    const creation_date = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+      .toISOString()
+      .slice(0, 19)
+      .replace('T', ' ');
+
+    const payload = {
+      name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      role: 'member',
+      password: data.password || 'Password123',
+      phone: data.phone,
+      creation_date: creation_date,
+      id_gym: data.id_gym
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/users`, payload);
   }
 
   updateClient(id: string, data: any): Observable<any> {

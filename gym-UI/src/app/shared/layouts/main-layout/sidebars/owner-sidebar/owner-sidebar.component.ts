@@ -15,33 +15,39 @@ export class OwnerSidebarComponent {
   private authService = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
 
+  connectedGymStatus = this.authService.connectedGymStatus;
+
   navItems = [
-    { label: 'Management', isHeader: true },
-    { label: 'Dashboard', icon: 'dashboard', route: '/owner/dashboard' },
-    { label: 'Gym Profile', icon: 'gym', route: '/owner/gym-profile' },
+    { label: 'Management', isHeader: true, sensitive: false },
+    { label: 'Dashboard', icon: 'dashboard', route: '/owner/dashboard', sensitive: false },
+    { label: 'Gym Profile', icon: 'gym', route: '/owner/gym-profile', sensitive: false },
 
-    { label: 'Team', isHeader: true },
-    { label: 'Staff', icon: 'users', route: '/owner/staff' },
+    { label: 'Team', isHeader: true, sensitive: true },
+    { label: 'Staff', icon: 'users', route: '/owner/staff', sensitive: true },
 
-    { label: 'Operations', isHeader: true },
-    { label: 'Members', icon: 'users', route: '/owner/members' },
-    { label: 'Memberships', icon: 'card', route: '/owner/memberships' },
-    { label: 'Courses', icon: 'calendar', route: '/owner/courses' },
-    { label: 'Events', icon: 'star', route: '/owner/events' },
-    { label: 'Equipment', icon: 'settings', route: '/owner/equipment' },
-    { label: 'Products', icon: 'store', route: '/owner/products' },
+    { label: 'Operations', isHeader: true, sensitive: true },
+    { label: 'Members', icon: 'users', route: '/owner/members', sensitive: true },
+    { label: 'Memberships', icon: 'card', route: '/owner/memberships', sensitive: true },
+    { label: 'Courses', icon: 'calendar', route: '/owner/courses', sensitive: true },
+    { label: 'Events', icon: 'star', route: '/owner/events', sensitive: true },
+    { label: 'Equipment', icon: 'settings', route: '/owner/equipment', sensitive: true },
+    { label: 'Products', icon: 'store', route: '/owner/products', sensitive: true },
 
-    { label: 'Financials', isHeader: true },
-    { label: 'Pricing Tiers', icon: 'fitness', route: '/owner/membership-plans' },
-    { label: 'Revenue', icon: 'revenue', route: '/owner/revenue' },
-    { label: 'Subscriptions', icon: 'card', route: '/owner/subscriptions' },
-    { label: 'Notifications', icon: 'bell', route: '/notifications' },
+    { label: 'Financials', isHeader: true, sensitive: true },
+    { label: 'Pricing Tiers', icon: 'fitness', route: '/owner/membership-plans', sensitive: true },
+    { label: 'Revenue', icon: 'revenue', route: '/owner/revenue', sensitive: true },
+    { label: 'Subscriptions', icon: 'card', route: '/owner/subscriptions', sensitive: true },
+    { label: 'Notifications', icon: 'bell', route: '/notifications', sensitive: false },
 
-    { label: 'App', isHeader: true },
-    { label: 'Nutrition', icon: 'food', route: '/owner/nutrition' },
-    { label: 'Community', icon: 'users', route: '/owner/community' },
-    { label: 'Settings', icon: 'settings', route: '/settings' }
+    { label: 'App', isHeader: true, sensitive: false },
+    { label: 'Nutrition', icon: 'food', route: '/owner/nutrition', sensitive: true },
+    { label: 'Community', icon: 'users', route: '/owner/community', sensitive: true },
+    { label: 'Settings', icon: 'settings', route: '/settings', sensitive: false }
   ];
+
+  isLocked(item: any): boolean {
+    return item.sensitive && this.connectedGymStatus() === 'suspended';
+  }
 
   getIcon(name: string): SafeHtml {
     const icons: { [key: string]: string } = {

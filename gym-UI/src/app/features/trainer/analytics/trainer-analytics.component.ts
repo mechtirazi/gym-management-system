@@ -2,6 +2,8 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TrainerService } from '../services/trainer.service';
 import { trigger, transition, style, animate, stagger, query } from '@angular/animations';
+import { GymService, GymInfo } from '../../../core/services/gym.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-trainer-analytics',
@@ -115,6 +117,12 @@ import { trigger, transition, style, animate, stagger, query } from '@angular/an
         -webkit-text-fill-color: transparent;
         margin: 0;
         letter-spacing: -0.05em;
+      }
+      .title-with-context {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
       }
       .subtitle {
         color: var(--admin-text-secondary);
@@ -358,13 +366,16 @@ import { trigger, transition, style, animate, stagger, query } from '@angular/an
 })
 export class TrainerAnalyticsComponent implements OnInit {
   private trainerService = inject(TrainerService);
-  
+  private authService = inject(AuthService);
+
+  activeGymId = this.authService.connectedGymId;
   analytics = signal<any>(null);
   isLoading = signal<boolean>(true);
 
   ngOnInit() {
     this.loadAnalytics();
   }
+
 
   loadAnalytics() {
     this.isLoading.set(true);

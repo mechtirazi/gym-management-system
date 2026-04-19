@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { finalize } from 'rxjs/operators';
+import { TrainerService } from '../services/trainer.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-trainer-sessions',
@@ -17,7 +19,11 @@ import { finalize } from 'rxjs/operators';
 })
 export class TrainerSessionsComponent implements OnInit {
   private http = inject(HttpClient);
+  private trainerService = inject(TrainerService);
+  private authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
+
+  activeGymId = this.authService.connectedGymId;
 
   sessions = signal<any[]>([]);
   isLoading = signal<boolean>(true);
@@ -56,6 +62,12 @@ export class TrainerSessionsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loadSessions();
+  }
+
+
+  loadSessions() {
+    this.isLoading.set(true);
     this.http.get<any>(`${this.apiUrl}/sessions`, { headers: this.authHeaders })
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({

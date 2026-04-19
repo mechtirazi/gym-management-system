@@ -4,12 +4,14 @@ import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface GymInfo {
-  id_gym: number;
+  id_gym: string;
   name: string;
   address: string;
   phone: string;
   id_owner: string;
   logo_url?: string;
+  status?: string;
+  suspension_reason?: string;
 }
 
 export interface GymsResponse {
@@ -31,7 +33,7 @@ export class GymService {
     );
   }
 
-  getGymById(id: number): Observable<GymInfo | null> {
+  getGymById(id: string): Observable<GymInfo | null> {
     return this.http.get<{success: boolean, data: GymInfo}>(`${this.apiUrl}/gyms/${id}`).pipe(
       map(res => res.data),
       catchError(() => of(null))

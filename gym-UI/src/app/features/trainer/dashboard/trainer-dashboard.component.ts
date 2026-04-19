@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { TrainerService } from '../services/trainer.service';
+import { GymService, GymInfo } from '../../../core/services/gym.service';
 import { interval, Subscription } from 'rxjs';
 import { RouterLink } from '@angular/router';
 
@@ -16,10 +17,14 @@ import { RouterLink } from '@angular/router';
 export class TrainerDashboardComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private trainerService = inject(TrainerService);
+  private gymService = inject(GymService);
   private timerSub?: Subscription;
 
-  trainerName = signal<string>((this.authService.currentUser() as any)?.first_name || 'Trainer');
-  stats = signal<any>({ activeClients: 12, sessionsToday: 3, completedToday: 1, rating: 4.9, ratingTrend: '+0.1' });
+  trainerName = signal<string>(this.authService.currentUser()?.name || 'Trainer');
+  assignedGyms = signal<GymInfo[]>([]);
+  activeGymId = computed(() => this.authService.connectedGymId());
+
+  stats = signal<any>({ activeClients: 0, activeClientsTrend: '+0', sessionsToday: 0, completedToday: 0, rating: 0, ratingTrend: '0.0' });
   upcomingSessions = signal<any[]>([]);
   isLoading = signal<boolean>(true);
 
@@ -60,8 +65,23 @@ export class TrainerDashboardComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
+    this.loadAssignedGyms();
     this.loadDashboardData();
     this.timerSub = interval(60000).subscribe(() => this.currentTime.set(new Date()));
+  }
+
+  loadAssignedGyms() {
+    this.gymService.getMyGyms().subscribe(gyms => {
+      this.assignedGyms.set(gyms);
+    });
+  }
+
+  onGymChange(event: any) {
+    const gymId = event.target.value;
+    if (gymId) {
+      const selectedGym = this.assignedGyms().find(g => g.id_gym === gymId);
+      this.authService.switchGym(gymId, selectedGym?.status, selectedGym?.suspension_reason);
+    }
   }
 
   ngOnDestroy() {
@@ -132,7 +152,8 @@ export class TrainerDashboardComponent implements OnInit, OnDestroy {
     if (!data.first_name || !data.email) return;
 
     this.isSavingMember.set(true);
-    this.trainerService.createClient(data).subscribe({
+    const gymId = this.authService.connectedGymId();
+    this.trainerService.createClient({ ...data, id_gym: gymId }).subscribe({
       next: () => {
         this.isSavingMember.set(false);
         this.closeAddMember();
@@ -155,7 +176,7 @@ export class TrainerDashboardComponent implements OnInit, OnDestroy {
   }
 
   getAttendanceProgress(session: any): number {
-    // Mocking for now, ideally backend provides attendances count
-    return session.attendances_count ? (session.attendances_count / 20) * 100 : 0;
+    const capacity = session.course?.max_capacity || 20;
+    return session.attendances_count ? (session.attendances_count / capacity) * 100 : 0;
   }
 }

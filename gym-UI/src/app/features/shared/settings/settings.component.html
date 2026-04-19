@@ -186,7 +186,7 @@
           <p class="section-desc">Manage which gym you are currently managing/connected to.</p>
           
           <div class="gyms-grid" *ngIf="myGyms().length > 0; else noGyms">
-            <div class="gym-card" *ngFor="let gym of myGyms()" [class.active]="currentGymId() === gym.id_gym">
+            <div class="gym-card" *ngFor="let gym of myGyms()" [class.active]="currentGymId() === gym.id_gym" [class.is-suspended]="gym.status === 'suspended'">
               <div class="gym-info">
                 <div class="gym-logo" [style.background-image]="gym.logo_url ? 'url(' + gym.logo_url + ')' : ''">
                   <span *ngIf="!gym.logo_url">{{ gym.name.charAt(0) }}</span>
@@ -198,7 +198,11 @@
               </div>
               <div class="gym-status">
                 <span class="badge" *ngIf="currentGymId() === gym.id_gym">Connected</span>
-                <button *ngIf="currentGymId() !== gym.id_gym" (click)="switchGym(gym.id_gym)" class="btn-switch">
+                <span class="badge suspended" *ngIf="gym.status === 'suspended'">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Suspended
+                </span>
+                <button *ngIf="currentGymId() !== gym.id_gym" (click)="switchGym(gym)" class="btn-switch">
                   Switch to this Gym
                 </button>
               </div>

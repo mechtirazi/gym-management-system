@@ -12,12 +12,12 @@ import { AdminOwnersService } from '../../../../core/services/admin-owners.servi
   selector: 'app-gym-dialog',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
-    MatDialogModule, 
-    MatFormFieldModule, 
-    MatInputModule, 
-    MatButtonModule, 
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
     MatIconModule
   ],
   templateUrl: './gym-dialog.component.html',
@@ -34,12 +34,14 @@ export class GymDialogComponent {
   gymForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     adress: ['', [Validators.required, Validators.minLength(3)]],
-    phone: [''],
+    phone: ['', [Validators.pattern(/^\+?[0-9\s\-]{8,20}$/)]],
     capacity: [100, [Validators.required, Validators.min(1)]],
-    open_hour: ['08:00-22:00', [Validators.required]]
+    open_mon_fri: ['08:00-22:00', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]$/)]],
+    open_sat: ['08:00-20:00', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]$/)]],
+    open_sun: ['08:00-16:00', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]$/)]]
   });
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { ownerId: number | string; ownerName: string }) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public data: { ownerId: number | string; ownerName: string }) { }
 
   onCancel() {
     this.dialogRef.close();

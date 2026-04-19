@@ -908,6 +908,17 @@
       option { background: var(--admin-bg-main); color: var(--admin-text-primary); }
     }
 
+    .error-text {
+      color: var(--admin-accent-rose);
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 0.5rem;
+      margin-top: 2px;
+      animation: errorFadeIn 0.3s ease-out;
+    }
+
     textarea {
       resize: none;
       min-height: 120px;
@@ -1299,6 +1310,11 @@
   &:focus-within::after {
     opacity: 0.2;
   }
+}
+
+@keyframes errorFadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 

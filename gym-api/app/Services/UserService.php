@@ -171,12 +171,24 @@ class UserService extends BaseService
 
         // Other roles (Staff) can only see members in their same gym
         if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
-            $gymIds = $user->allowedGymIds();
+            $query = $query->where('role', User::ROLE_MEMBER);
+            
+            // Respect active gym context using standardized helper
+            $this->applyActiveGymScope($query, $user, 'id_gym', function($q, $gymId) {
+                $q->whereHas('enrollments', function($sq) use ($gymId) {
+                    $sq->where('id_gym', $gymId);
+                });
+            });
 
-            return $query->where('role', User::ROLE_MEMBER)
-                ->whereHas('enrollments', function ($sq) use ($gymIds) {
+            // If no active gym context is provided, fallback to all allowed gyms
+            if (!$this->getActiveGymId()) {
+                $gymIds = $user->allowedGymIds();
+                $query->whereHas('enrollments', function ($sq) use ($gymIds) {
                     $sq->whereIn('id_gym', $gymIds);
                 });
+            }
+
+            return $query;
         }
 
         // Members can only see themselves

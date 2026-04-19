@@ -78,12 +78,21 @@
   box-shadow: var(--admin-glass-shadow);
 }
 
-.text-content h1 {
-  font-size: 2.5rem;
-  font-weight: 900;
-  margin: 0;
-  color: var(--admin-text-primary);
-  letter-spacing: -1px;
+.text-content {
+  .title-with-context {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin: 0;
+    color: var(--admin-text-primary);
+    letter-spacing: -1px;
+  }
 }
 
 .subtitle {

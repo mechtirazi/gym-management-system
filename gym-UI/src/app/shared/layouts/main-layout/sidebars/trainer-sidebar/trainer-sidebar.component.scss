@@ -71,6 +71,8 @@
   .sidebar:hover & {
     justify-content: flex-start;
     padding: 1.5rem 1.8rem;
+    height: auto;
+    min-height: 80px;
   }
 }
 
@@ -158,6 +160,77 @@
   letter-spacing: 0.02em;
   margin-left: 0.25rem;
   display: inline-block;
+}
+
+/* ─── Fixed & Polished Gym Context Selector ─── */
+.gym-selector-container {
+  padding: 0;
+  margin: 0;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom: 1px solid transparent;
+
+  .sidebar:hover & {
+    height: auto;
+    padding: 1.25rem 1.5rem;
+    opacity: 1;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+.gym-context-selector-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  .context-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--color-primary-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .selector-wrapper {
+    position: relative;
+    width: 100%;
+
+    select {
+      width: 100%;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.6rem 2rem 0.6rem 0.8rem;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      appearance: none;
+      transition: all 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: var(--color-primary-500);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+    }
+
+    .arrow-icon {
+      position: absolute;
+      right: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+  }
 }
 
 .sidebar-nav {

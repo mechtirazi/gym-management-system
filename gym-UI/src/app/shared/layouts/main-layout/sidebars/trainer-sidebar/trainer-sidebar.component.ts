@@ -2,7 +2,9 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth.service';
+import { GymService, GymInfo } from '../../../../../core/services/gym.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { signal, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-trainer-sidebar',
@@ -11,9 +13,13 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   templateUrl: './trainer-sidebar.component.html',
   styleUrl: './trainer-sidebar.component.scss'
 })
-export class TrainerSidebarComponent {
+export class TrainerSidebarComponent implements OnInit {
   private authService = inject(AuthService);
+  private gymService = inject(GymService);
   private sanitizer = inject(DomSanitizer);
+
+  assignedGyms = signal<GymInfo[]>([]);
+  activeGymId = this.authService.connectedGymId;
 
   navItems = [
     { label: 'Overview', isHeader: true },
@@ -33,6 +39,24 @@ export class TrainerSidebarComponent {
     { label: 'Notifications', icon: 'bell', routePath: '/notifications' },
     { label: 'Settings', icon: 'settings', routePath: '/settings' }
   ];
+
+  ngOnInit() {
+    this.loadAssignedGyms();
+  }
+
+  loadAssignedGyms() {
+    this.gymService.getMyGyms().subscribe(gyms => {
+      this.assignedGyms.set(gyms);
+    });
+  }
+
+  onGymChange(event: any) {
+    const gymId = event.target.value;
+    if (gymId) {
+      const selectedGym = this.assignedGyms().find(g => g.id_gym === gymId);
+      this.authService.switchGym(gymId, selectedGym?.status, selectedGym?.suspension_reason);
+    }
+  }
 
   getIcon(name: string): SafeHtml {
     const icons: { [key: string]: string } = {

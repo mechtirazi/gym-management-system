@@ -25,70 +25,70 @@ import { OwnerCreatePayload, OwnerUpdatePayload, UserVm } from '../../../../core
              <mat-icon>{{data.user ? 'shield_person' : 'person_add_alt'}}</mat-icon>
           </div>
           <div class="header-title-wrap">
-             <h2>{{ data.user ? 'Identity Management' : 'Owner Provisioning' }}</h2>
-             <p>{{ data.user ? 'Modify administrative node parameters for governance' : 'Initialize a new top-level governance entity' }}</p>
-          </div>
-       </div>
+              <h2>{{ data.user ? 'Edit Owner' : 'Create Owner' }}</h2>
+              <p>{{ data.user ? 'Modify administrative account parameters' : 'Register a new platform owner' }}</p>
+           </div>
+        </div>
 
-       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="admin-form-group">
-          <!-- Premium Alert System -->
-          <div *ngIf="errorMessage()" class="admin-alert status-error mb-6">
-             <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
-                <mat-icon>terminal</mat-icon>
-             </div>
-             <div class="alert-content">
-                <span class="alert-tag" style="color: var(--admin-accent-rose);">Protocol Error</span>
-                <h3>Validation Exception</h3>
-                <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ errorMessage() }}</p>
-             </div>
-          </div>
-       
-          <div class="two-col-grid">
-             <div class="form-field">
-                <label><mat-icon>badge</mat-icon> First Name</label>
-                <div class="input-glow-wrap">
-                   <input formControlName="name" type="text" placeholder="John" />
-                </div>
-             </div>
-             <div class="form-field">
-                <label><mat-icon>fingerprint</mat-icon> Last Name</label>
-                <div class="input-glow-wrap">
-                   <input formControlName="last_name" type="text" placeholder="Doe" />
-                </div>
-             </div>
-          </div>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="admin-form-group">
+           <!-- Premium Alert System -->
+           <div *ngIf="errorMessage()" class="admin-alert status-error mb-6">
+              <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
+                 <mat-icon>terminal</mat-icon>
+              </div>
+              <div class="alert-content">
+                 <span class="alert-tag" style="color: var(--admin-accent-rose);">Error Occurred</span>
+                 <h3>Form Validation Error</h3>
+                 <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ errorMessage() }}</p>
+              </div>
+           </div>
+        
+           <div class="two-col-grid">
+              <div class="form-field">
+                 <label><mat-icon>badge</mat-icon> First Name</label>
+                 <div class="input-glow-wrap">
+                    <input formControlName="name" type="text" placeholder="John" />
+                 </div>
+              </div>
+              <div class="form-field">
+                 <label><mat-icon>fingerprint</mat-icon> Last Name</label>
+                 <div class="input-glow-wrap">
+                    <input formControlName="last_name" type="text" placeholder="Doe" />
+                 </div>
+              </div>
+           </div>
 
-          <div class="form-field">
-             <label><mat-icon>alternate_email</mat-icon> Network Identifier (Email)</label>
-             <div class="input-glow-wrap">
-                <input formControlName="email" type="email" placeholder="owner@gym-nexus.com" />
-             </div>
-          </div>
+           <div class="form-field">
+              <label><mat-icon>alternate_email</mat-icon> Email Address</label>
+              <div class="input-glow-wrap">
+                 <input formControlName="email" type="email" placeholder="owner@gym-nexus.com" />
+              </div>
+           </div>
 
-          <div class="form-field" *ngIf="!data.user">
-             <label><mat-icon>key</mat-icon> Access Key (Temporary Password)</label>
-             <div class="input-glow-wrap">
-                <input formControlName="password" type="password" placeholder="••••••••" />
-             </div>
-             <p class="field-hint">Quantum-secure: Min 8 characters required</p>
-          </div>
+           <div class="form-field" *ngIf="!data.user">
+              <label><mat-icon>key</mat-icon> Account Password</label>
+              <div class="input-glow-wrap">
+                 <input formControlName="password" type="password" placeholder="••••••••" />
+              </div>
+              <p class="field-hint">Secure: Min 8 characters required</p>
+           </div>
 
-          <div class="form-field">
-             <label><mat-icon>contact_phone</mat-icon> Relay Phone (Optional)</label>
-             <div class="input-glow-wrap">
-                <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
-             </div>
-          </div>
+           <div class="form-field">
+              <label><mat-icon>contact_phone</mat-icon> Phone Number (Optional)</label>
+              <div class="input-glow-wrap">
+                 <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
+              </div>
+           </div>
 
-          <div class="admin-dialog-footer">
-             <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
-                <mat-icon>close</mat-icon> Abort
-             </button>
-             <button type="submit" [disabled]="form.invalid || loading()" class="admin-btn btn-primary">
-                <mat-icon>{{ loading() ? 'sync' : (data.user ? 'published_with_changes' : 'vitals') }}</mat-icon>
-                {{ loading() ? 'Executing...' : (data.user ? 'Sync Identity' : 'Provision Node') }}
-             </button>
-          </div>
+           <div class="admin-dialog-footer">
+              <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
+                 <mat-icon>close</mat-icon> Cancel
+              </button>
+              <button type="submit" [disabled]="form.invalid || loading()" class="admin-btn btn-primary">
+                 <mat-icon>{{ loading() ? 'sync' : (data.user ? 'published_with_changes' : 'person_add') }}</mat-icon>
+                 {{ loading() ? 'Saving...' : (data.user ? 'Update Owner' : 'Create Owner') }}
+              </button>
+           </div>
        </form>
     </div>
   `

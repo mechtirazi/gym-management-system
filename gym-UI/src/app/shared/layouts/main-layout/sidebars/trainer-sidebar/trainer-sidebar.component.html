@@ -13,6 +13,21 @@
     </div>
   </div>
 
+  <!-- Global Gym Selector Container -->
+  <div class="gym-selector-container" *ngIf="assignedGyms().length > 1">
+    <div class="gym-context-selector-sidebar">
+      <div class="context-label">📍 Active Facility</div>
+      <div class="selector-wrapper">
+        <select [value]="activeGymId()" (change)="onGymChange($event)">
+          <option *ngFor="let gym of assignedGyms()" [value]="gym.id_gym">
+            {{ gym.name }}
+          </option>
+        </select>
+        <span class="arrow-icon">▼</span>
+      </div>
+    </div>
+  </div>
+
   <nav class="sidebar-nav">
     <ng-container *ngFor="let item of navItems">
       <div *ngIf="item.isHeader" class="nav-header">{{ item.label }}</div>

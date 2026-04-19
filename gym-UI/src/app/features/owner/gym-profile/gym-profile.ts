@@ -8,6 +8,7 @@ import { GymProfileFormComponent } from './components/form/gym-profile-form.comp
 import { AuthService } from '../../../core/services/auth.service';
 import { environment } from '../../../../environments/environment';
 
+import { MatIconModule } from '@angular/material/icon';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -17,7 +18,8 @@ import { finalize } from 'rxjs/operators';
     CommonModule,
     ReactiveFormsModule,
     GymProfileHeaderComponent,
-    GymProfileFormComponent
+    GymProfileFormComponent,
+    MatIconModule
   ],
   templateUrl: './gym-profile.html',
   styleUrl: './gym-profile.scss',
@@ -32,6 +34,9 @@ export class GymProfileComponent implements OnInit {
   isSaving = signal<boolean>(false);
   isLoading = signal<boolean>(true);
   loadError = signal<string | null>(null);
+  
+  gymStatus = signal<string | null>(null);
+  suspensionReason = signal<string | null>(null);
 
   currentGymId = signal<string | number | null>(null);
   initialFormValues: any = null;
@@ -73,6 +78,9 @@ export class GymProfileComponent implements OnInit {
           if (myGym) {
             // Backend uses id_gym as the primary key
             this.currentGymId.set(myGym.id_gym || null);
+            this.gymStatus.set(myGym.status || null);
+            this.suspensionReason.set(myGym.suspension_reason || null);
+
             const rawLogo = myGym.picture || myGym.logo || myGym.logo_url || myGym.image || null;
             const loadedLogo = this.getImageUrl(rawLogo);
             this.initialLogo = loadedLogo;

@@ -3,3 +3,35 @@
 :host {
   display: block;
 }
+
+.admin-dialog-container {
+  padding: 1.5rem 1.75rem !important; // Highly compact
+  
+  .admin-dialog-header {
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+
+    .header-icon {
+      width: 44px;
+      height: 44px;
+      mat-icon { font-size: 24px; width: 24px; height: 24px; }
+    }
+
+    h2 { font-size: 1.25rem; }
+    p { font-size: 0.75rem; margin-top: 2px; }
+  }
+
+  .admin-form-group {
+    gap: 1rem;
+    
+    .form-field {
+      label { font-size: 0.65rem; margin-bottom: 4px; }
+      input { padding: 0.85rem 1rem; font-size: 0.875rem; }
+    }
+  }
+
+  .admin-dialog-footer {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+  }
+}

@@ -25,7 +25,12 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         try {
-            $result = $this->authService->register($request->validated());
+            $data = $request->validated();
+            
+            // Security: Enforce member role for public registration
+            $data['role'] = 'member';
+
+            $result = $this->authService->register($data);
 
             if (! $result['success']) {
                 return response()->json([

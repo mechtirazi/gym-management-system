@@ -2,7 +2,9 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrainerService } from '../services/trainer.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { GymMember } from '../../../shared/models/gym-member.model';
+import { GymInfo } from '../../../core/services/gym.service';
 import { finalize } from 'rxjs';
 
 interface Stats {
@@ -21,6 +23,9 @@ interface Stats {
 })
 export class TrainerMembersComponent implements OnInit {
   private trainerService = inject(TrainerService);
+  private authService = inject(AuthService);
+
+  activeGymId = this.authService.connectedGymId;
 
   private allMembers = signal<GymMember[]>([]);
   private allAttendances = signal<any[]>([]);
@@ -82,37 +87,42 @@ export class TrainerMembersComponent implements OnInit {
     this.refreshMembers();
   }
 
+
   refreshMembers() {
     this.isLoading.set(true);
     this.error.set(null);
 
+    // 1. Fetch all assigned members (Clients)
+    this.trainerService.getClients().subscribe({
+      next: (res: any) => {
+        if (res && res.success) {
+          const members = (res.data || []).map((u: any) => ({
+            id: u.id_user,
+            id_user: u.id_user,
+            name: `${u.first_name || u.name || ''} ${u.last_name || ''}`.trim() || 'No Name',
+            email: u.email,
+            phone: u.phone || 'No phone',
+            status: u.status || 'Active',
+            joinedAt: u.created_at || u.creation_date,
+            avatar: u.profile_picture ? `storage/${u.profile_picture}` : null
+          }));
+          this.allMembers.set(members);
+        }
+      },
+      error: () => this.error.set('Could not fetch members.')
+    });
+
+    // 2. Fetch all attendances in background for the detail "Deep Dive" view
     this.trainerService.getAttendances()
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (response: any) => {
           if (response && response.success) {
-            const fetchedAttendances = response.data || [];
-            this.allAttendances.set(fetchedAttendances);
-
-            const memberMap = new Map<number, any>();
-            fetchedAttendances.forEach((a: any) => {
-              if (a.member && !memberMap.has(a.member.id_user)) {
-                const u = a.member;
-                memberMap.set(u.id_user, {
-                  id: u.id_user,
-                  name: `${u.first_name || u.name} ${u.last_name}`,
-                  email: u.email,
-                  phone: u.phone || 'No phone',
-                  status: u.status || 'Active',
-                  joinedAt: u.created_at || u.creation_date
-                });
-              }
-            });
-            this.allMembers.set(Array.from(memberMap.values()));
+            this.allAttendances.set(response.data || []);
           }
         },
         error: (err) => {
-          this.error.set('Could not fetch attendances.');
+          console.error('Could not fetch attendances:', err);
         }
       });
   }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TrainerService } from '../services/trainer.service';
 import { NutritionPlan } from '../../../shared/models/nutrition.model';
 import { NutritionCardComponent } from '../components/nutrition-card/nutrition-card.component';
+import { AuthService } from '../../../core/services/auth.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -19,6 +20,9 @@ import { finalize } from 'rxjs';
 })
 export class TrainerNutritionComponent implements OnInit {
   private trainerService = inject(TrainerService);
+  private authService = inject(AuthService);
+
+  activeGymId = this.authService.connectedGymId;
 
   allPlans = signal<NutritionPlan[]>([]);
   searchQuery = signal<string>('');
@@ -31,6 +35,7 @@ export class TrainerNutritionComponent implements OnInit {
   ngOnInit() {
     this.loadPlans();
   }
+
 
   loadPlans() {
     this.isLoading.set(true);

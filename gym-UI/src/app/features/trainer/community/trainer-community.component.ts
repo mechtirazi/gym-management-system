@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CommunityService } from '../../owner/services/community.service';
 import { Review } from '../../../shared/models/review.model';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-trainer-community',
@@ -13,8 +14,11 @@ import { FormsModule } from '@angular/forms';
 })
 export class TrainerCommunityComponent implements OnInit {
   private communityService = inject(CommunityService);
+  private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   protected Math = Math;
+
+  activeGymId = this.authService.connectedGymId;
 
   reviews: Review[] = [];
   filteredReviews: Review[] = [];
