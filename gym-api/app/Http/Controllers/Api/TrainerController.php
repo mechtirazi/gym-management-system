@@ -213,45 +213,99 @@ class TrainerController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:100',
             'message' => 'required|string',
-            'type' => 'required|in:info,warning,promo'
+            'type' => 'required|in:info,warning,promo',
+            'id_course' => 'nullable|string|exists:courses,id_course',
+            'id_session' => 'nullable|string|exists:sessions,id_session'
         ]);
 
         $user = $request->user();
         $gymId = $request->header('X-Gym-Id');
         
-        // Find all members enrolled in current/future sessions of this trainer (optionally in this gym)
-        $memberIds = DB::table('attendance')
-            ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
-            ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
-            ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
-                return $q->where('courses.id_gym', $gymId);
-            })
-            ->where('sessions.date_session', '>=', now()->toDateString())
-            ->distinct()
-            ->pluck('attendance.id_member');
+        $memberIds = collect();
+
+        if (isset($validated['id_course'])) {
+            // Target all members enrolled in the course
+            $memberIds = DB::table('enrollments')
+                ->where('id_course', $validated['id_course'])
+                ->where('status', 'active')
+                ->pluck('id_member');
+        } elseif (isset($validated['id_session'])) {
+            // Target members who attended or are scheduled for this session
+            $memberIds = DB::table('attendance')
+                ->where('id_session', $validated['id_session'])
+                ->pluck('id_member');
+            
+            // If no attendance yet, fallback to all course members for that session's course
+            if ($memberIds->isEmpty()) {
+                $session = Session::find($validated['id_session']);
+                if ($session) {
+                    $memberIds = DB::table('enrollments')
+                        ->where('id_course', $session->id_course)
+                        ->where('status', 'active')
+                        ->pluck('id_member');
+                }
+            }
+        } else {
+            // General broadcast to all members of the trainer across all their courses in this gym
+            $memberIds = DB::table('enrollments')
+                ->join('courses', 'enrollments.id_course', '=', 'courses.id_course')
+                ->where('courses.id_trainer', $user->id_user)
+                ->when($gymId, function($q) use ($gymId) {
+                    return $q->where('courses.id_gym', $gymId);
+                })
+                ->where('enrollments.status', 'active')
+                ->distinct()
+                ->pluck('enrollments.id_member');
+        }
 
         if ($memberIds->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'No members found in your upcoming sessions to broadcast to.'
+                'message' => 'No active members found to receive this broadcast.'
             ], 404);
         }
 
         // Send notifications
+        $notifications = [];
+        $now = now();
         foreach ($memberIds as $memberId) {
-            \App\Models\Notification::create([
+            $notifications[] = [
+                'id_notification' => \Illuminate\Support\Str::uuid(),
                 'id_user' => $memberId,
                 'title' => $validated['title'],
-                'message' => $validated['message'],
+                'text' => $validated['message'],
                 'type' => $validated['type'],
-                'is_read' => false
-            ]);
+                'is_read' => false,
+                'created_at' => $now,
+                'updated_at' => $now
+            ];
         }
+
+        // Bulk insert for performance
+        DB::table('notifications')->insert($notifications);
 
         return response()->json([
             'success' => true,
             'message' => 'Broadcast sent successfully to ' . $memberIds->count() . ' members.'
+        ]);
+    }
+
+    public function saveSessionNotes(Request $request, Session $session)
+    {
+        $this->authorize('update', $session);
+
+        $validated = $request->validate([
+            'coaching_notes' => 'nullable|string'
+        ]);
+
+        $session->update([
+            'coaching_notes' => $validated['coaching_notes']
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Session notes saved successfully.',
+            'data' => $session
         ]);
     }
 
@@ -316,7 +370,50 @@ class TrainerController extends Controller
             ->take(5)
             ->get();
 
-        // 4. Monthly Comparison
+        // 4. Course Utilization (Attendance / Max Capacity)
+        $courseUtilization = DB::table('courses')
+            ->join('sessions', 'courses.id_course', '=', 'sessions.id_course')
+            ->leftJoin('attendance', 'sessions.id_session', '=', 'attendance.id_session')
+            ->where('sessions.id_trainer', $user->id_user)
+            ->when($gymId, function($q) use ($gymId) {
+                return $q->where('courses.id_gym', $gymId);
+            })
+            ->select(
+                'courses.name',
+                DB::raw('count(attendance.id_attendance) as total_attendance'),
+                DB::raw('count(distinct sessions.id_session) as session_count'),
+                'courses.max_capacity'
+            )
+            ->groupBy('courses.id_course', 'courses.name', 'courses.max_capacity')
+            ->get()
+            ->map(function($course) {
+                $capacity_total = $course->session_count * $course->max_capacity;
+                $course->utilization = $capacity_total > 0 
+                    ? round(($course->total_attendance / $capacity_total) * 100, 1)
+                    : 0;
+                return $course;
+            });
+
+        // 5. Member Retention (Percentage of members with >1 session this month)
+        $monthlyMembers = DB::table('attendance')
+            ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
+            ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
+            ->where('sessions.id_trainer', $user->id_user)
+            ->when($gymId, function($q) use ($gymId) {
+                return $q->where('courses.id_gym', $gymId);
+            })
+            ->whereMonth('sessions.date_session', now()->month)
+            ->select('attendance.id_member', DB::raw('count(*) as session_count'))
+            ->groupBy('attendance.id_member')
+            ->get();
+
+        $totalUniqueMembers = $monthlyMembers->count();
+        $returningMembers = $monthlyMembers->where('session_count', '>', 1)->count();
+        $retentionRate = $totalUniqueMembers > 0 
+            ? round(($returningMembers / $totalUniqueMembers) * 100, 1)
+            : 0;
+
+        // 6. Monthly Comparison
         $thisMonth = DB::table('attendance')
             ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
@@ -346,6 +443,12 @@ class TrainerController extends Controller
                 'popularity' => $sessionPopularity,
                 'trend' => $attendanceTrend,
                 'engagement' => $memberEngagement,
+                'utilization' => $courseUtilization,
+                'retention' => [
+                    'rate' => $retentionRate,
+                    'total' => $totalUniqueMembers,
+                    'returning' => $returningMembers
+                ],
                 'monthly' => [
                     'current' => $thisMonth,
                     'previous' => $lastMonth,

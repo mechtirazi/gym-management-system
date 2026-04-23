@@ -2,142 +2,211 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
-// Import all seeders
+use App\Models\User;
+use App\Models\Gym;
+use App\Models\GymStaff;
+use App\Models\Enrollment;
+use App\Models\Subscribe;
+use App\Models\Course;
+use App\Models\Session;
+use App\Models\Attendance;
+use App\Models\MembershipPlan;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
+use Laravel\Passport\Client;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        echo "\n🌱 Starting database seeding...\n\n";
+        echo "\n🌱 Starting Logically Consistent Database Seeding...\n\n";
 
-        $this->call([
-            // Base data first
-            UserSeeder::class,
-            GymSeeder::class,
+        // 1. Super Admins
+        User::factory()->superAdmin()->count(2)->create();
 
-            // Create Passport Personal Access Client
-        ]);
-        \Illuminate\Support\Facades\Artisan::call('passport:client', [
+        // 2. Setup Passport Client
+        Artisan::call('passport:client', [
             '--personal' => true,
             '--name' => 'Gym Personal Access Client',
             '--no-interaction' => true,
         ]);
-        \Laravel\Passport\Client::where('name', 'Gym Personal Access Client')->update(['personal_access_client' => 1]);
-        $this->call([
-            // Link users to gyms
-            GymStaffSeeder::class,
-            EnrollmentSeeder::class,
+        Client::where('name', 'Gym Personal Access Client')->update(['personal_access_client' => 1]);
 
-            // Courses and Sessions
-            CourseSeeder::class,
-            SessionSeeder::class,
-
-            // Attendance tracking
-            AttendanceSeeder::class,
-
-            // Events
-            EventSeeder::class,
-            AttendanceEventSeeder::class,
-
-            // Products and Orders
-            ProductSeeder::class,
-            OrderSeeder::class,
-
-            // Payments
-            PaymentSeeder::class,
-
-            // Reviews
-            ReviewSeeder::class,
-
-            // Subscriptions
-            SubscribeSeeder::class,
-
-            // Nutrition Plans
-            NutritionPlanSeeder::class,
-
-            // Enrollments
-            EnrollmentSeeder::class,
-
-            // Notifications
-            NotificationSeeder::class,
+        // Specific Test Receptionist for easy login
+        $receptionistTest = User::factory()->receptionist()->create([
+            'name' => 'Reception',
+            'last_name' => 'One',
+            'email' => 'receptionist1@gym.local',
+            'password' => 'password123',
+            'phone' => '+1000000001',
         ]);
-        echo "\n   [+] Injecting specific 'Recent/Today' data to populate Dashboard immediately...\n";
+        $receptionistTest2 = User::factory()->receptionist()->create([
+            'name' => 'Reception',
+            'last_name' => 'Two',
+            'email' => 'receptionist2@gym.local',
+            'password' => 'password123',
+            'phone' => '+1000000002',
+        ]);
+
+        // Retrieve plans (created by migration 2026_04_13_000002)
+        $plans = MembershipPlan::all();
+        $defaultPlanId = $plans->first()?->id_plan;
+
+        echo "🏢 Creating 4 Gyms and populating logically...\n";
         
-        // 1. Give every gym some fresh ACTIVE subscriptions created today
-        $gyms = \App\Models\Gym::all();
-        foreach($gyms as $gym) {
-            \App\Models\Subscribe::factory()->count(5)->create([
-                'id_gym' => $gym->id_gym,
-                'status' => 'active',
-                'subscribe_date' => \Carbon\Carbon::now(),
-                'created_at' => \Carbon\Carbon::now(),
-            ]);
-            
-            // Give every gym some fresh payments today for revenue chart
-            \App\Models\Payment::factory()->count(10)->create([
-                'id_gym' => $gym->id_gym,
-                'created_at' => \Carbon\Carbon::now(),
-                'updated_at' => \Carbon\Carbon::now(),
+        $totalMembers = 0;
+        $totalCourses = 0;
+        $totalSessions = 0;
+        $totalAttendances = 0;
+
+        for ($i = 0; $i < 4; $i++) {
+            // Create 1 Owner
+            $owner = User::factory()->owner()->create();
+
+            // Create Gym for Owner
+            $gym = Gym::factory()->create([
+                'id_owner' => $owner->id_user,
             ]);
 
-            // Give every gym some recent attendances for the Live Feed
-            $sessions = \App\Models\Session::whereHas('course', function($q) use ($gym) {
-                $q->where('id_gym', $gym->id_gym);
-            })->inRandomOrder()->take(2)->get();
+            // Create Staff (Trainers, Receptionists, Nutritionists)
+            $trainers = User::factory()->trainer()->count(3)->create();
+            $receptionists = User::factory()->receptionist()->count(2)->create();
+            $nutritionists = User::factory()->nutritionist()->count(1)->create();
 
-            foreach($sessions as $session) {
-                \App\Models\Attendance::factory()->count(4)->create([
-                    'id_session' => $session->id_session,
-                    'status' => 'present',
-                    'created_at' => \Carbon\Carbon::now()->subMinutes(rand(1, 60)),
-                    'updated_at' => \Carbon\Carbon::now(),
+            $staff = $trainers->merge($receptionists)->merge($nutritionists);
+
+            // Assign staff to gym
+            foreach ($staff as $s) {
+                GymStaff::create([
+                    'id_gym_staff' => \Illuminate\Support\Str::uuid()->toString(),
+                    'id_gym' => $gym->id_gym,
+                    'id_user' => $s->id_user
                 ]);
             }
+
+            // Assign test receptionists to first and second gyms respectively
+            if ($i == 0) {
+                GymStaff::create(['id_gym_staff' => \Illuminate\Support\Str::uuid()->toString(), 'id_gym' => $gym->id_gym, 'id_user' => $receptionistTest->id_user]);
+            }
+            if ($i == 1) {
+                GymStaff::create(['id_gym_staff' => \Illuminate\Support\Str::uuid()->toString(), 'id_gym' => $gym->id_gym, 'id_user' => $receptionistTest2->id_user]);
+            }
+
+            // Create 15 Members for this gym
+            $members = User::factory()->member()->count(15)->create();
+            $totalMembers += 15;
+
+            foreach ($members as $member) {
+                // Subscribe & Enroll
+                Subscribe::factory()->create([
+                    'id_gym' => $gym->id_gym,
+                    'id_user' => $member->id_user,
+                    'status' => 'active',
+                    'subscribe_date' => Carbon::now()->subDays(rand(1, 30)),
+                ]);
+
+                $planIdToUse = $plans->isNotEmpty() ? $plans->random()->id_plan : null;
+
+                Enrollment::factory()->create([
+                    'id_member' => $member->id_user,
+                    'id_gym' => $gym->id_gym,
+                    'id_plan' => $planIdToUse,
+                    'enrollment_date' => Carbon::now()->subDays(rand(1, 30)),
+                    'status' => 'active',
+                    'type' => 'standard'
+                ]);
+            }
+
+            // Create 4 Courses for this gym
+            for ($c = 0; $c < 4; $c++) {
+                // Select a dynamic number of enrolled members (between 5 and 12)
+                $enrolledMembersCount = rand(5, 12);
+                $courseMembers = $members->random($enrolledMembersCount);
+
+                $course = Course::factory()->create([
+                    'id_gym' => $gym->id_gym,
+                    'max_capacity' => $enrolledMembersCount + rand(2, 6),
+                    'count' => $enrolledMembersCount,
+                ]);
+                $totalCourses++;
+
+                // Generate 4 sessions for each course (2 past, 2 future)
+                $trainer = $trainers->random();
+
+                // Create enrollments for these course members so they show up in the "My Clients" list for this trainer
+                foreach ($courseMembers as $cMember) {
+                    Enrollment::updateOrInsert(
+                        ['id_member' => $cMember->id_user, 'id_course' => $course->id_course],
+                        [
+                            'id' => (string) \Illuminate\Support\Str::uuid(),
+                            'id_gym' => $gym->id_gym,
+                            'enrollment_date' => Carbon::now()->subDays(rand(1, 15)),
+                            'status' => 'active',
+                            'type' => 'standard',
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ]
+                    );
+                }
+                
+                $dates = [
+                    Carbon::now()->subDays(14),
+                    Carbon::now()->subDays(7),
+                    Carbon::now()->addDays(2),
+                    Carbon::now()->addDays(9),
+                ];
+
+                foreach ($dates as $idx => $date) {
+                    $status = $date->isPast() ? 'completed' : 'upcoming';
+                    
+                    $session = Session::factory()->create([
+                        'id_course' => $course->id_course,
+                        'id_trainer' => $trainer->id_user,
+                        'date_session' => $date,
+                        'status' => $status
+                    ]);
+                    $totalSessions++;
+
+                    // Create attendance for these course members
+                    foreach ($courseMembers as $cMember) {
+                        // If past, they might be present/absent. If future, they are scheduled 'pending' or 'present' 
+                        // The factory generates random present/absent/late
+                        $attStatus = $date->isPast() ? (rand(1, 10) > 2 ? 'present' : 'absent') : 'present';
+
+                        Attendance::factory()->create([
+                            'id_member' => $cMember->id_user,
+                            'id_session' => $session->id_session,
+                            'status' => $attStatus
+                        ]);
+                        $totalAttendances++;
+                    }
+                }
+            }
+
+            // Add some hot payments for revenue views
+            \App\Models\Payment::factory()->count(5)->create([
+                'id_gym' => $gym->id_gym,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
         }
 
-        // 2. Give every trainer some reviews (dynamic rating)
-        $trainers = \App\Models\User::where('role', \App\Models\User::ROLE_TRAINER)->get();
-        foreach ($trainers as $trainer) {
-            // Hot data for current month (trend calculation)
-            \App\Models\Review::factory()->count(rand(2, 5))->create([
-                'id_trainer' => $trainer->id_user,
-                'created_at' => \Carbon\Carbon::now(),
-                'review_date' => \Carbon\Carbon::now(),
-            ]);
+        // Call the remaining non-conflicting seeders for auxiliary data
+        $this->call([
+            ProductSeeder::class,
+            OrderSeeder::class,
+            NutritionPlanSeeder::class,
+            NotificationSeeder::class,
+            ReviewSeeder::class,
+        ]);
 
-            // Data for previous month (trend comparison)
-            \App\Models\Review::factory()->count(rand(2, 5))->create([
-                'id_trainer' => $trainer->id_user,
-                'created_at' => \Carbon\Carbon::now()->subMonth(),
-                'review_date' => \Carbon\Carbon::now()->subMonth(),
-            ]);
-        }
-
-        echo "\n✅ Database seeding completed successfully!\n";
-        echo "📊 Total Records Created:\n";
-        echo "   • Users (includes super admins, owners, trainers, members, nutritionists, receptionists)\n";
-        echo "   • 6 Gyms\n";
-        echo "   • 12 Gym Staff Assignments\n";
-        echo "   • 30-40 Enrollments\n";
-        echo "   • 15 Courses\n";
-        echo "   • 30 Sessions\n";
-        echo "   • 100+ Attendance Records\n";
-        echo "   • 10 Events\n";
-        echo "   • 50 Event Attendance Records\n";
-        echo "   • 25 Products\n";
-        echo "   • 40 Orders (with products)\n";
-        echo "   • 100+ Payments (including hot data)\n";
-        echo "   • 30 Reviews\n";
-        echo "   • 80+ Subscriptions\n";
-        echo "   • 20 Nutrition Plans\n";
-        echo "   • 80 Notifications\n\n";
+        echo "\n✅ Database seeding successfully orchestrated!\n";
+        echo "📊 Total Key Records Created logically:\n";
+        echo "   • 4 Gyms\n";
+        echo "   • {$totalMembers} Enrolled Members\n";
+        echo "   • {$totalCourses} Scoped Courses\n";
+        echo "   • {$totalSessions} Linked Sessions\n";
+        echo "   • {$totalAttendances} Synced Attendances\n\n";
     }
 }

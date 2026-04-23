@@ -38,11 +38,22 @@ class ReviewService extends BaseService
         // Staff (Receptionist, Trainer, Nutritionist) see reviews for their assigned gyms
         if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
             
-            // If the user is a trainer, restrict their view strictly to their own personal reviews
-            // but also respect the active gym context if one is selected.
+            // Apply active gym scope if header is present
+            $this->applyActiveGymScope($query, $user, 'id_gym');
+
+            // If the user is a trainer, respect the active gym context
             if ($user->role === User::ROLE_TRAINER) {
-                $query->where('id_trainer', $user->id_user);
-                $this->applyActiveGymScope($query, $user, 'id_gym');
+                // If id_gym was NOT applied by applyActiveGymScope (no header), 
+                // then fallback to all allowed gyms but still include trainer's own reviews
+                if (!$this->getActiveGymId()) {
+                    $gymIds = $user->allowedGymIds();
+                    $query->where(function ($q) use ($gymIds, $user) {
+                        $q->whereIn('id_gym', $gymIds)
+                          ->orWhereHas('event', fn($sq) => $sq->whereIn('id_gym', $gymIds))
+                          ->orWhereHas('course', fn($sq) => $sq->whereIn('id_gym', $gymIds))
+                          ->orWhere('id_trainer', $user->id_user);
+                    });
+                }
                 return $perPage ? $query->paginate($perPage) : $query->get();
             }
 

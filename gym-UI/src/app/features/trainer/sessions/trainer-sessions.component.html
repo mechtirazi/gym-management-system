@@ -10,6 +10,12 @@
       </div>
     </div>
 
+    @if (broadcastMessage()) {
+      <div class="success-toast">
+        {{ broadcastMessage() }}
+      </div>
+    }
+
     <div class="sessions-controls">
       <div class="search-wrap">
         <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Search by course name or date...">
@@ -63,6 +69,9 @@
             <td style="text-align: right;">
               <button class="primary-btn sm-btn" (click)="viewAttendance(session)">
                 View Attendance
+              </button>
+              <button class="action-btn primary announce-badge" (click)="openBroadcast(session)" title="Send message to attendees">
+                📢
               </button>
             </td>
           </tr>
@@ -128,6 +137,31 @@
       </div>
       }
     </div>
+
+    <div class="modal-footer" *ngIf="!isLoadingAttendances() && !attendanceError()">
+      <div class="notes-section">
+        <div class="notes-header">
+           <h3>Coaching Notes</h3>
+           <span class="save-status" *ngIf="isSavingNotes()">Saving...</span>
+        </div>
+        <textarea 
+          [(ngModel)]="selectedSession().coaching_notes" 
+          (ngModelChange)="saveNotes()"
+          placeholder="Summarize today's progress, member performance, or highlight specific achievements..."
+          rows="4"
+        ></textarea>
+        <p class="notes-tip">Notes are saved automatically as you type.</p>
+      </div>
+    </div>
   </div>
 </div>
+}
+
+@if (broadcastSession()) {
+  <app-broadcast-dialog
+    [targetName]="(broadcastSession().course?.name || 'Session') + ' (' + (broadcastSession().date_session | date:'shortDate') + ')'"
+    [idSession]="broadcastSession().id_session"
+    (close)="broadcastSession.set(null)"
+    (success)="onBroadcastSuccess($event)">
+  </app-broadcast-dialog>
 }

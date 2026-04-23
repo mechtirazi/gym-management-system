@@ -19,8 +19,8 @@ class SubscribeFactory extends Factory
     public function definition(): array
     {
         return [
-            'id_gym' => Gym::inRandomOrder()->first()?->id_gym ?? Gym::factory(),
-            'id_user' => User::where('role', 'member')->inRandomOrder()->first()?->id_user ?? User::factory()->member(),
+            'id_gym' => null, // Set in seeder
+            'id_user' => null, // Set in seeder
             'status' => $this->faker->randomElement(['active', 'inactive', 'expired', 'cancelled']),
             'subscribe_date' => $this->faker->dateTimeBetween('-60 days', 'now'),
         ];

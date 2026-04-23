@@ -221,6 +221,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Enrollment::class, 'id_member', 'id_user');
     }
 
+    public function enrolledCourses()
+    {
+        return $this->belongsToMany(Course::class, 'enrollments', 'id_member', 'id_course')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
     /**
      * Member wallet (only for users with role = member)
      */

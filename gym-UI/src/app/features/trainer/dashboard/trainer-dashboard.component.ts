@@ -76,8 +76,7 @@ export class TrainerDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  onGymChange(event: any) {
-    const gymId = event.target.value;
+  onGymChange(gymId: string) {
     if (gymId) {
       const selectedGym = this.assignedGyms().find(g => g.id_gym === gymId);
       this.authService.switchGym(gymId, selectedGym?.status, selectedGym?.suspension_reason);

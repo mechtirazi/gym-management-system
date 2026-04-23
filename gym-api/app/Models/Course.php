@@ -35,4 +35,11 @@ class Course extends Model
     {
         return $this->hasMany(Session::class, 'id_course', 'id_course');
     }
+
+    public function enrolledMembers()
+    {
+        return $this->belongsToMany(User::class, 'enrollments', 'id_course', 'id_member')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
 }

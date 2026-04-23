@@ -24,6 +24,7 @@ class Enrollment extends Model
         'id_member',
         'id_gym',
         'id_plan',
+        'id_course',
         'enrollment_date',
         'status',
         'type',
@@ -63,5 +64,20 @@ class Enrollment extends Model
     public function gym()
     {
         return $this->belongsTo(Gym::class, 'id_gym', 'id_gym');
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'id_course', 'id_course');
+    }
+
+    /**
+     * Get the latest payment specifically for this course enrollment.
+     */
+    public function latestCoursePayment()
+    {
+        return $this->hasOne(Payment::class, 'id_course', 'id_course')
+            ->where('id_user', $this->id_member)
+            ->latest();
     }
 }

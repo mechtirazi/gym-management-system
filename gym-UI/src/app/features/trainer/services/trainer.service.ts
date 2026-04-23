@@ -60,8 +60,13 @@ export class TrainerService {
     return this.http.get<any>(`${this.apiUrl}/enrollments?id_member=${memberId}`);
   }
 
-  sendBroadcast(data: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/trainer/broadcast`, data);
+  sendDirectMessage(memberId: string, data: { title?: string; text: string; type?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/notifications`, {
+      id_user: memberId,
+      title: data.title || 'Message from your coach',
+      text: data.text,
+      type: data.type || 'info'
+    });
   }
 
   getAttendances(): Observable<any> {
@@ -74,5 +79,15 @@ export class TrainerService {
 
   getAnalytics(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/trainer/analytics`);
+  }
+
+  saveSessionNotes(sessionId: string, notes: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/trainer/sessions/${sessionId}/notes`, {
+      coaching_notes: notes
+    });
+  }
+
+  sendBroadcast(data: { title: string; message: string; type: string; id_course?: string; id_session?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/trainer/broadcast`, data);
   }
 }

@@ -21,10 +21,10 @@ class CourseFactory extends Factory
             'id_course' => \Illuminate\Support\Str::uuid()->toString(),
             'name' => $this->faker->word().' Training',
             'description' => $this->faker->paragraph(),
-            'id_gym' => Gym::inRandomOrder()->first()?->id_gym ?? Gym::factory(),
+            'id_gym' => null, // Will be overridden in Seeder
             'price' => $this->faker->numberBetween(20, 100),
-            'max_capacity' => $this->faker->numberBetween(10, 30),
-            'count' => $this->faker->numberBetween(1, 20),
+            'max_capacity' => 20,
+            'count' => 0, // Should be calculated in Seeder
             'duration' => $this->faker->numberBetween(4, 12).' weeks',
         ];
     }
