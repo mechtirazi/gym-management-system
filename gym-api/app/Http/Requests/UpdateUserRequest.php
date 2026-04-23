@@ -34,6 +34,14 @@ class UpdateUserRequest extends FormRequest
             'role' => "sometimes|string|in:{$validRoles}",
             'phone' => 'sometimes|string|max:20',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'nutritionist_advisory' => 'nullable|string',
+            'manual_calories' => 'nullable|numeric|min:0',
+            'manual_protein' => 'nullable|numeric|min:0',
+            'manual_carbs' => 'nullable|numeric|min:0',
+            'manual_fats' => 'nullable|numeric|min:0',
+            'manual_water' => 'nullable|numeric|min:0',
+            'manual_weight' => 'nullable|numeric|min:0',
+            'target_weight' => 'nullable|numeric|min:0',
         ];
     }
 

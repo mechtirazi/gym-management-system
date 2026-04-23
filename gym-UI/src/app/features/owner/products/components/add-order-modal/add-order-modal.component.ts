@@ -25,7 +25,8 @@ export class AddOrderModalComponent implements OnInit {
 
   orderData = {
     id_member: '',
-    quantity: 1
+    quantity: 1,
+    payment_method: 'cash'
   };
 
   totalPrice = computed(() => {
@@ -81,6 +82,7 @@ export class AddOrderModalComponent implements OnInit {
       order_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
       status: 'completed', // Direct purchases assumed completed initially
       id_member: this.orderData.id_member,
+      payment_method: this.orderData.payment_method,
       products: [
         {
           id_product: this.product().id_product,

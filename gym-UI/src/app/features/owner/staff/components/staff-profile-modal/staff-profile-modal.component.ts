@@ -107,7 +107,7 @@ export class StaffProfileModalComponent implements OnInit {
           this.isEditing.set(false);
           this.updated.emit();
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Update staff error:', err);
           this.editError.set(err.error?.message || err.message || 'Failed to update staff member.');
         }

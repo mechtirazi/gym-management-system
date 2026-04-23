@@ -1,0 +1,54 @@
+<div class="login-container">
+  <div class="glass-card login-card">
+    
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="gym-logo">
+        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+
+      <h2>Verify Account</h2>
+      <p>Finalizing your transformation</p>
+    </div>
+
+    <!-- Status: Loading -->
+    <div *ngIf="status() === 'loading'" class="status-content">
+      <div class="loading-wrapper">
+        <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" stroke-width="4" style="opacity: 0.25;"></circle>
+          <path style="opacity: 0.75;" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+          </path>
+        </svg>
+        <p>{{ message() }}</p>
+      </div>
+    </div>
+
+    <!-- Status: Success -->
+    <div *ngIf="status() === 'success'" class="success-card">
+      <div class="success-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h3>Success!</h3>
+      <p>{{ message() }}</p>
+      <button class="submit-btn mt-6" routerLink="/auth/login">Back to Login</button>
+    </div>
+
+    <!-- Status: Error -->
+    <div *ngIf="status() === 'error'" class="success-card error-card">
+      <div class="success-icon error-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </div>
+      <h3 class="text-red-500">Verification Failed</h3>
+      <p>{{ message() }}</p>
+      <button class="submit-btn mt-6" routerLink="/auth/login">Back to Login</button>
+    </div>
+
+  </div>
+</div>

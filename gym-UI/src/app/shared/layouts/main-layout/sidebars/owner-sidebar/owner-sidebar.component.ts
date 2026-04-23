@@ -19,7 +19,7 @@ export class OwnerSidebarComponent {
 
   navItems = [
     { label: 'Management', isHeader: true, sensitive: false },
-    { label: 'Dashboard', icon: 'dashboard', route: '/owner/dashboard', sensitive: false },
+    { label: 'Dashboard', icon: 'dashboard', route: '/owner/dashboard', sensitive: true },
     { label: 'Gym Profile', icon: 'gym', route: '/owner/gym-profile', sensitive: false },
 
     { label: 'Team', isHeader: true, sensitive: true },
@@ -37,7 +37,7 @@ export class OwnerSidebarComponent {
     { label: 'Pricing Tiers', icon: 'fitness', route: '/owner/membership-plans', sensitive: true },
     { label: 'Revenue', icon: 'revenue', route: '/owner/revenue', sensitive: true },
     { label: 'Subscriptions', icon: 'card', route: '/owner/subscriptions', sensitive: true },
-    { label: 'Notifications', icon: 'bell', route: '/notifications', sensitive: false },
+    { label: 'Notifications', icon: 'bell', route: '/notifications', sensitive: true },
 
     { label: 'App', isHeader: true, sensitive: false },
     { label: 'Nutrition', icon: 'food', route: '/owner/nutrition', sensitive: true },

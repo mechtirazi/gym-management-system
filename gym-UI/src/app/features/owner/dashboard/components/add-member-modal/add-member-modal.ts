@@ -15,11 +15,11 @@ export class AddMemberModalComponent {
   private dashboardService = inject(OwnerDashboardService);
   private fb = inject(FormBuilder);
 
-  isOpen = input<boolean>(false);
-  onClose = output<void>();
+  close = output<void>();
   memberAdded = output<void>();
 
   isSubmitting = signal<boolean>(false);
+  isSuccess = signal<boolean>(false);
   memberForm = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
@@ -29,7 +29,7 @@ export class AddMemberModalComponent {
   });
 
   closeModal() {
-    this.onClose.emit();
+    this.close.emit();
   }
 
   submitAddMember() {
@@ -40,12 +40,15 @@ export class AddMemberModalComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
-          this.memberAdded.emit();
-          this.closeModal();
+          this.isSuccess.set(true);
+          setTimeout(() => {
+            this.memberAdded.emit();
+            this.closeModal();
+          }, 2000);
         },
         error: (err) => {
           console.error('Failed to add member', err);
-          alert('Failed to add member directly to backend');
+          this.isSubmitting.set(false);
         }
       });
   }

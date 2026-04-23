@@ -1,83 +1,146 @@
-<div class="page">
-  <div class="header">
+<div class="page-container">
+  <header class="header">
     <div>
-      <h1>Attendance</h1>
-      <p class="subtitle">Record attendance for sessions</p>
+      <h1>Attendance Tracking</h1>
+      <p class="subtitle">Live session management and entrance control</p>
     </div>
-    <button class="btn" (click)="loadSessions()" [disabled]="isLoading()">Refresh sessions</button>
-  </div>
+    <div class="header-actions">
+      <div class="live-pulse-badge">
+        <span class="pulse-dot"></span> LIVE BROADCAST
+      </div>
+      <button class="refresh-btn" (click)="loadSessions()" [disabled]="isLoading()">
+        <span class="material-symbols-rounded">sync</span>
+        Sync Sessions
+      </button>
+    </div>
+  </header>
 
   @if (error()) {
-    <div class="error">{{ error() }}</div>
+    <div class="error-message">
+      <span class="material-symbols-rounded">error</span>
+      {{ error() }}
+    </div>
   }
 
-  <div class="grid">
-    <div class="card">
-      <h2>1) Choose session</h2>
-      <select class="select" [value]="selectedSessionId()" (change)="selectSession(($any($event.target)).value)">
-        <option value="">-- Select a session --</option>
-        @for (s of sessions(); track s.id_session) {
-          <option [value]="s.id_session">
-            {{ s.course?.name || s.course?.title || ('Session ' + s.id_session) }}
-            @if (s.date) { ({{ s.date }}) }
-          </option>
+  <!-- Attendance Summary Row -->
+  <div class="summary-row">
+    <div class="sum-card">
+      <span class="sum-val">{{ sessions().length }}</span>
+      <span class="sum-lbl">Available Sessions</span>
+    </div>
+    <div class="sum-card">
+      <span class="sum-val">{{ attendances().length }}</span>
+      <span class="sum-lbl">Checked-in Members</span>
+    </div>
+  </div>
+
+  <div class="attendance-grid">
+    <div class="sidebar-stack">
+      <!-- Step 1: Session Selection -->
+      <div class="card-panel selection-card">
+        <div class="step-num">01</div>
+        <h2><span class="material-symbols-rounded">event_note</span> Select Gym Session</h2>
+        <p class="panel-desc">Choose the class or session to record attendance for.</p>
+        <select class="modern-select" [value]="selectedSessionId()" (change)="selectSession(($any($event.target)).value)">
+          <option value="">-- Choose an active session --</option>
+          @for (s of sessions(); track s.id_session) {
+            <option [value]="s.id_session">
+              {{ s.course?.name || s.course?.title || ('Session ' + s.id_session) }}
+              {{ s.date ? '(' + s.date + ')' : '' }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- Step 2: Quick Mark -->
+      <div class="card-panel selection-card">
+        <div class="step-num">02</div>
+        <h2><span class="material-symbols-rounded">qr_code_scanner</span> Instant Entrance</h2>
+        <p class="panel-desc">Manually select a member to mark their attendance.</p>
+        <form [formGroup]="form" (ngSubmit)="quickAdd()" class="quick-form">
+          <div class="field">
+            <label>Member Profile</label>
+            <select class="modern-select" formControlName="id_member">
+              <option value="">-- Search Member --</option>
+              @for (m of members(); track m.userId) {
+                <option [value]="m.userId">{{ m.name }} · {{ m.email }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Entrance Status</label>
+            <div class="status-toggle-group">
+              <label class="toggle-btn" [class.active]="form.get('status')?.value === 'present'">
+                <input type="radio" formControlName="status" value="present"> Present
+              </label>
+              <label class="toggle-btn" [class.active]="form.get('status')?.value === 'late'">
+                <input type="radio" formControlName="status" value="late"> Late
+              </label>
+            </div>
+          </div>
+          <button class="save-btn" type="submit" [disabled]="isLoading() || !selectedSessionId()">
+            Confirm Entrance
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Attendance List -->
+    <div class="card-panel list-container">
+      <div class="table-header">
+        <div class="title-wrap">
+          <h2><span class="material-symbols-rounded">group</span> Registered Attendees</h2>
+          <p class="panel-desc">Members currently recorded for this session.</p>
+        </div>
+        @if (selectedSessionId()) {
+          <div class="stats-pill">
+            <span class="material-symbols-rounded">person</span>
+            {{ attendances().length }} Members
+          </div>
         }
-      </select>
-    </div>
-
-    <div class="card">
-      <h2>2) Quick mark member</h2>
-      <form [formGroup]="form" (ngSubmit)="quickAdd()" class="form">
-        <label>
-          <span>Select Member</span>
-          <select formControlName="id_member">
-            <option value="">-- Choose Member --</option>
-            @for (m of members(); track m.userId) {
-              <option [value]="m.userId">{{ m.name }} ({{ m.email }})</option>
-            }
-          </select>
-        </label>
-        <label>
-          <span>Status</span>
-          <select formControlName="status">
-            <option value="present">present</option>
-            <option value="late">late</option>
-            <option value="absent">absent</option>
-          </select>
-        </label>
-        <button class="btn primary" type="submit" [disabled]="isLoading() || !selectedSessionId()">Save</button>
-      </form>
-    </div>
-
-    <div class="card wide">
-      <div class="list-header">
-        <h2>Attendances (selected session)</h2>
-        <button class="btn secondary" (click)="refreshAttendances()" [disabled]="isLoading() || !selectedSessionId()">Refresh</button>
       </div>
 
       @if (!selectedSessionId()) {
-        <div class="empty">Select a session to see its attendance list.</div>
+        <div class="empty-state">
+          <div class="empty-icon"><span class="material-symbols-rounded">touch_app</span></div>
+          <h3>Selection Required</h3>
+          <p>Choose a session from the left to start recording.</p>
+        </div>
       } @else if (isLoading() && !attendances().length) {
-        <div class="loading">Loading…</div>
+        <div class="empty-state">
+          <div class="spinner"></div>
+          <p>Fetching attendance records...</p>
+        </div>
       } @else if (!attendances().length) {
-        <div class="empty">No attendance records yet for this session.</div>
+        <div class="empty-state">
+          <div class="empty-icon"><span class="material-symbols-rounded">person_search</span></div>
+          <h3>Session Empty</h3>
+          <p>No members have been marked for this session yet.</p>
+        </div>
       } @else {
-        <div class="table">
-          <div class="row head">
-            <div>Member</div>
-            <div>Status</div>
-            <div></div>
-          </div>
+        <div class="attendee-list">
           @for (a of attendances(); track a.id_attendance) {
-            <div class="row">
-              <div class="mono">{{ a.member?.name ? (a.member?.name + ' ' + (a.member?.last_name || '')) : a.id_member }}</div>
-              <div class="pill" [class.p-present]="a.status==='present'" [class.p-late]="a.status==='late'" [class.p-absent]="a.status==='absent'">
-                {{ a.status }}
+            <div class="attendee-card">
+              <div class="user-info">
+                <div class="avatar" [style.background]="'hsl(' + (a.id_member.length * 40) % 360 + ', 70%, 50%)'">
+                  {{ (a.member?.name?.[0] || '?').toUpperCase() }}
+                </div>
+                <div class="name-wrap">
+                  <div class="name">{{ a.member?.name ? (a.member?.name + ' ' + (a.member?.last_name || '')) : 'Anonymous Member' }}</div>
+                  <div class="uid">#{{ a.id_member.substring(0, 8) }}</div>
+                </div>
               </div>
-              <div class="right">
-                <button class="btn tiny" (click)="upsertAttendanceForMember(a.id_member, 'present')" [disabled]="isLoading()">Present</button>
-                <button class="btn tiny" (click)="upsertAttendanceForMember(a.id_member, 'late')" [disabled]="isLoading()">Late</button>
-                <button class="btn tiny" (click)="upsertAttendanceForMember(a.id_member, 'absent')" [disabled]="isLoading()">Absent</button>
+              
+              <div class="status-actions">
+                <span class="status-pill" [class]="a.status">
+                  {{ a.status }}
+                </span>
+                
+                <div class="action-group">
+                  <button title="Mark Present" [class.active-p]="a.status === 'present'" (click)="upsertAttendanceForMember(a.id_member, 'present')" [disabled]="isLoading()">P</button>
+                  <button title="Mark Late" [class.active-l]="a.status === 'late'" (click)="upsertAttendanceForMember(a.id_member, 'late')" [disabled]="isLoading()">L</button>
+                  <button title="Mark Absent" [class.active-a]="a.status === 'absent'" (click)="upsertAttendanceForMember(a.id_member, 'absent')" [disabled]="isLoading()">A</button>
+                </div>
               </div>
             </div>
           }

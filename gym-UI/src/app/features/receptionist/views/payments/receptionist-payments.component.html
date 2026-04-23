@@ -1,91 +1,256 @@
-<div class="page">
-  <div class="header">
-    <div>
-      <h1>Payments</h1>
-      <p class="subtitle">Create and update payments (receptionist permissions)</p>
+<div class="page-container">
+  <!-- Financial Terminal Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Financial Terminal</h1>
+      <p class="subtitle">Secure transaction processing & ledger management</p>
     </div>
-    <div class="actions">
-      <button class="btn" (click)="refresh()" [disabled]="isLoading()">Refresh</button>
-      <button class="btn secondary" (click)="reset()" [disabled]="isLoading()">New</button>
+    <div class="header-actions">
+      <div class="gateway-status">
+        <span class="pulse-dot"></span> Gateway Active
+      </div>
+      <button class="refresh-btn" (click)="refresh(true)" [disabled]="isLoading()">
+        <span class="material-symbols-rounded" [class.sync-spin]="isLoading()">sync</span>
+        Synchronize
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-symbols-rounded">error</span>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Metrics Summary Bar -->
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="m-icon indigo"><span class="material-symbols-rounded">receipt</span></div>
+      <div class="m-content">
+        <span class="m-label">Total Volume</span>
+        <span class="m-value">{{ payments().length }} Transactions</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="m-icon emerald"><span class="material-symbols-rounded">account_balance_wallet</span></div>
+      <div class="m-content">
+        <span class="m-label">Today's Intake</span>
+        <span class="m-value">{{ todaysTotal() | currency }} <small>(Live)</small></span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="m-icon rose">
+        <span class="material-symbols-rounded">account_balance</span>
+      </div>
+      <div class="m-content">
+        <span class="m-label">Total Revenue</span>
+        <span class="m-value">{{ totalRevenue() | currency }} <small>(Net)</small></span>
+      </div>
     </div>
   </div>
 
-  @if (error()) {
-    <div class="error">{{ error() }}</div>
-  }
+  <div class="main-grid">
+    <!-- Entry Panel -->
+    <div class="card-panel entry-panel">
+      <div class="panel-header">
+        <h2>
+          <span class="material-symbols-rounded">{{ canEdit() ? 'edit_document' : 'add_card' }}</span>
+          {{ canEdit() ? 'Edit Transaction' : 'Process New Payment' }}
+        </h2>
+        <p class="panel-desc">Record membership dues or product sales.</p>
+      </div>
 
-  <div class="grid">
-    <div class="card form-card">
-      <h2>{{ canEdit() ? 'Edit payment' : 'New payment' }}</h2>
+      <form [formGroup]="form" (ngSubmit)="save()" class="modern-form">
+        <div class="form-stack">
+          <div class="field">
+            <label>Select Member</label>
+            <div class="input-wrap">
+              <span class="material-symbols-rounded prefix">group</span>
+              <select formControlName="id_user">
+                <option value="">-- Choose Member --</option>
+                @for (m of members(); track m.userId) {
+                  <option [value]="m.userId">{{ m.name }} ({{ m.email }})</option>
+                }
+              </select>
+            </div>
+          </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()" class="form">
-        <label>
-          <span>User ID</span>
-          <input formControlName="id_user" placeholder="id_user (UUID)" />
-        </label>
+          <div class="form-row-2">
+            <div class="field">
+              <label>Amount (USD)</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded prefix">attach_money</span>
+                <input type="number" formControlName="amount" placeholder="0.00" />
+              </div>
+            </div>
 
-        <label>
-          <span>Amount</span>
-          <input type="number" formControlName="amount" />
-        </label>
+            <div class="field">
+              <label>Payment Method</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded prefix">payments</span>
+                <select formControlName="method">
+                  <option value="">Select Method</option>
+                  <option value="cash">Physical Cash</option>
+                  <option value="card">Credit/Debit Card</option>
+                  <option value="transfer">Bank Transfer</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-        <label>
-          <span>Method</span>
-          <input formControlName="method" placeholder="cash / card / transfer / ..." />
-        </label>
+          <div class="field">
+            <label>Transaction Category</label>
+            <div class="input-wrap">
+              <span class="material-symbols-rounded prefix">category</span>
+              <select formControlName="type">
+                <option value="membership">Membership Fee</option>
+                <option value="product">Retail Product</option>
+                <option value="course">Training Course</option>
+                <option value="nutrition">Nutrition/Supplements</option>
+                <option value="other">Miscellaneous</option>
+              </select>
+            </div>
+          </div>
 
-        <label>
-          <span>Type</span>
-          <select formControlName="type">
-            <option value="membership">membership</option>
-            <option value="product">product</option>
-            <option value="course">course</option>
-            <option value="nutrition">nutrition</option>
-            <option value="other">other</option>
-          </select>
-        </label>
+          <div class="field">
+            <label>External Reference ID (Optional)</label>
+            <div class="input-wrap">
+              <span class="material-symbols-rounded prefix">tag</span>
+              <input formControlName="id_transaction" placeholder="External receipt code" />
+            </div>
+          </div>
+        </div>
 
-        <label>
-          <span>Transaction ID (optional)</span>
-          <input formControlName="id_transaction" placeholder="Leave empty to auto-generate" />
-        </label>
-
-        <button class="btn primary" type="submit" [disabled]="isLoading()">
-          {{ canEdit() ? 'Update' : 'Create' }}
-        </button>
+        <div class="form-actions">
+          <button class="submit-btn" type="submit" [disabled]="isLoading()">
+            <span class="material-symbols-rounded">bolt</span>
+            {{ canEdit() ? 'Overwrite Transaction' : 'Authorize Payment' }}
+          </button>
+          @if (canEdit()) {
+            <button class="cancel-btn" type="button" (click)="reset()">Cancel</button>
+          }
+        </div>
       </form>
     </div>
 
-    <div class="card list-card">
-      <h2>Recent payments</h2>
-
-      @if (isLoading() && !payments().length) {
-        <div class="loading">Loading…</div>
-      } @else if (!payments().length) {
-        <div class="empty">No payments found.</div>
-      } @else {
-        <div class="table">
-          <div class="row head">
-            <div>ID</div>
-            <div>User</div>
-            <div>Amount</div>
-            <div>Type</div>
-            <div>Method</div>
-            <div></div>
-          </div>
-
-          @for (p of payments(); track p.id_payment) {
-            <div class="row">
-              <div class="mono">{{ p.id_payment }}</div>
-              <div class="mono">{{ p.id_user }}</div>
-              <div>{{ p.amount }}</div>
-              <div>{{ p.type || '—' }}</div>
-              <div>{{ p.method }}</div>
-              <div class="right">
-                <button class="btn tiny" (click)="select(p)" [disabled]="isLoading()">Edit</button>
-              </div>
+    <!-- Ledger Panel -->
+    <div class="card-panel ledger-panel">
+      <div class="panel-header">
+        <h2>
+          <span class="material-symbols-rounded">receipt_long</span>
+          Recent Ledger Entries
+        </h2>
+        <div class="panel-tools">
+          <div class="filter-controls">
+            <div class="filter-field">
+              <span>From:</span>
+              <input type="date" [value]="startDate()" (change)="startDate.set($any($event.target).value); onFilterChange()" />
             </div>
-          }
+            <div class="filter-field">
+              <span>To:</span>
+              <input type="date" [value]="endDate()" (change)="endDate.set($any($event.target).value); onFilterChange()" />
+            </div>
+            @if (startDate() || endDate()) {
+              <button class="clear-filters" (click)="clearFilters()" title="Clear Filters">
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            }
+          </div>
+          <button 
+            class="tool-btn" 
+            (click)="exportToCsv()" 
+            [disabled]="!payments().length" 
+            title="Export to CSV">
+            <span class="material-symbols-rounded">file_download</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Member / Transaction</th>
+              <th>Amount</th>
+              <th>Category</th>
+              <th>Gateway</th>
+              <th class="text-right">Manage</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading() && !payments().length) {
+              <tr class="no-rows">
+                <td colspan="5">
+                  <div class="loading-state">
+                    <div class="spinner-sm"></div>
+                    Syncing entries...
+                  </div>
+                </td>
+              </tr>
+            } @else if (!payments().length) {
+              <tr class="no-rows">
+                <td colspan="5">
+                  <div class="empty-state">
+                    <span class="material-symbols-rounded">database_off</span>
+                    <p>No transactions found for this ledger.</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (p of payments(); track p.id_payment) {
+                <tr>
+                  <td>
+                    <div class="user-chip">
+                      <div class="avatar">{{ (p.member?.name || p.id_user)?.[0] || 'U' }}</div>
+                      <div class="info">
+                        <span class="uuid">{{ p.member?.name || 'Member' }}</span>
+                        <span class="pid">Ref: {{ p.id_payment.substring(0, 8) }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="amount-cell">
+                    <span class="val">${{ p.amount | number:'1.2-2' }}</span>
+                  </td>
+                  <td>
+                    <span class="cat-badge" [class]="p.type">
+                      {{ p.type || 'Standard' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="method-chip">
+                      <span class="material-symbols-rounded">{{ p.method === 'card' ? 'credit_card' : 'payments' }}</span>
+                      {{ p.method }}
+                    </div>
+                  </td>
+                  <td class="text-right">
+                    <button class="edit-action-btn" (click)="select(p)" [disabled]="isLoading()">
+                      <span class="material-symbols-rounded">edit</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      @if (lastPage() > 1) {
+        <div class="pagination-footer">
+          <div class="page-meta">
+            Showing Page <strong>{{ currentPage() }}</strong> of <strong>{{ lastPage() }}</strong>
+          </div>
+          <div class="pagination-actions">
+            <button class="page-btn" [disabled]="currentPage() === 1" (click)="changePage(currentPage() - 1)">
+              <span class="material-symbols-rounded">chevron_left</span>
+            </button>
+            <div class="page-indicator">{{ currentPage() }}</div>
+            <button class="page-btn" [disabled]="currentPage() === lastPage()" (click)="changePage(currentPage() + 1)">
+              <span class="material-symbols-rounded">chevron_right</span>
+            </button>
+          </div>
         </div>
       }
     </div>

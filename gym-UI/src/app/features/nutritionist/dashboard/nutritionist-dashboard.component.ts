@@ -33,11 +33,20 @@ export class NutritionistDashboardComponent implements OnInit {
   activePlansCount = signal(0);
   expiringSoonCount = signal(0);
 
+  currentTime = signal(new Date());
+
   unreadNotifications = this.notifications.unreadCount;
   latestNotifications = computed(() => this.notifications.notifications().slice(0, 5));
 
   ngOnInit(): void {
     this.load();
+    this.startClock();
+  }
+
+  private startClock(): void {
+    setInterval(() => {
+      this.currentTime.set(new Date());
+    }, 1000 * 60);
   }
 
   load(): void {

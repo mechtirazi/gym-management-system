@@ -10,7 +10,7 @@ class NutritionPlanService extends BaseService
     public function __construct()
     {
         $this->setModel(new NutritionPlan());
-        $this->setRelations(['gym', 'nutritionist', 'member', 'members']);
+        $this->setRelations(['gym', 'nutritionist', 'members']);
     }
 
     /**

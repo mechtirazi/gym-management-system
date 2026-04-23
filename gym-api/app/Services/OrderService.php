@@ -65,6 +65,7 @@ class OrderService extends BaseService
         }
 
         $order = $this->model->create($data);
+        $gymId = null;
 
         if (!empty($products)) {
             $total = 0;
@@ -74,20 +75,37 @@ class OrderService extends BaseService
                 $total += $qty * $price;
 
                 $order->products()->attach($product['id_product'], [
-                    'id' => \Illuminate\Support\Str::uuid(), // In case pivot uses UUIDs
+                    'id' => \Illuminate\Support\Str::uuid(), 
                     'quantity' => $qty,
                     'price' => $price
                 ]);
 
-                // Decrement product stock
-                $productModel = clone $this->model; // Just to make sure we don't pollute
-                \App\Models\Product::where('id_product', $product['id_product'])->decrement('stock', $qty);
+                // Decrement product stock and get gym ID
+                $pModel = \App\Models\Product::find($product['id_product']);
+                if ($pModel) {
+                    $pModel->decrement('stock', $qty);
+                    $gymId = $pModel->id_gym;
+                }
             }
             
             // Update total if not explicitly set
             if ($data['total_amount'] == 0) {
-               $order->update(['total_amount' => $total]);
+               $totalAmount = $total;
+               $order->update(['total_amount' => $totalAmount]);
+            } else {
+               $totalAmount = $data['total_amount'];
             }
+
+            // CREATE PAYMENT RECORD
+            \App\Models\Payment::create([
+                'id_user' => $order->id_member,
+                'id_gym' => $gymId,
+                'id_order' => $order->id_order,
+                'amount' => $totalAmount,
+                'method' => $data['payment_method'] ?? 'cash', // Fallback
+                'type' => \App\Models\Payment::TYPE_PRODUCT,
+                'id_transaction' => 'ORD-' . strtoupper(substr($order->id_order, 0, 8))
+            ]);
         }
 
         return $order->fresh($this->relations);

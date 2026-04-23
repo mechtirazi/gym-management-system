@@ -9,7 +9,8 @@
       <h2 class="member-name">{{ membership().member?.name }} {{ membership().member?.last_name }}</h2>
       <div class="badges-row">
         <span class="badge membership-badge">{{ membership().gym?.name || 'Main Gym' }}</span>
-        <span class="badge type-badge" [class]="membership().type || 'standard'">{{ membership().type || 'Standard' |
+        <span class="badge type-badge" [class]="membership().plan?.type || membership().type || 'standard'">{{
+          (membership().plan?.name || membership().type || 'Standard') |
           titlecase }}</span>
       </div>
     </div>

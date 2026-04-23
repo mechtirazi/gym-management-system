@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MembershipPlanService, MembershipPlan } from '../../services/membership-plan.service';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { GymService } from '../../../../core/services/gym.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -366,6 +367,7 @@ import { finalize } from 'rxjs';
 export class MembershipPlansComponent implements OnInit {
   private planService = inject(MembershipPlanService);
   private gymService = inject(GymService);
+  private authService = inject(AuthService);
 
   plans = signal<MembershipPlan[]>([]);
   isLoading = signal<boolean>(true);
@@ -378,12 +380,12 @@ export class MembershipPlansComponent implements OnInit {
   currentPlan: MembershipPlan = this.resetPlan();
 
   ngOnInit() {
-    this.gymService.getMyGyms().subscribe(gyms => {
-      if (gyms && gyms.length > 0) {
-        this.gymId = gyms[0].id_gym.toString();
-        this.loadPlans();
-      }
-    });
+    // Reactively load plans when the gym context changes
+    const gymId = this.authService.connectedGymId();
+    if (gymId) {
+      this.gymId = gymId.toString();
+      this.loadPlans();
+    }
   }
 
   loadPlans() {
@@ -413,7 +415,7 @@ export class MembershipPlansComponent implements OnInit {
   }
 
   savePlan() {
-    if (!this.currentPlan.name || !this.currentPlan.price) return;
+    if (!this.currentPlan.name || this.currentPlan.price == null || this.currentPlan.price < 0) return;
 
     this.isSaving.set(true);
     if (this.editingPlan()) {

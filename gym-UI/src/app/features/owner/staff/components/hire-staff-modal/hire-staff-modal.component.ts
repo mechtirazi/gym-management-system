@@ -1,13 +1,14 @@
 import { Component, inject, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { StaffService } from '../../services/staff.service';
 import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-hire-staff-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatSnackBarModule],
   templateUrl: './hire-staff-modal.component.html',
   styleUrl: './hire-staff-modal.component.scss'
 })
@@ -41,6 +42,8 @@ export class HireStaffModalComponent {
     });
   }
 
+  private snackBar = inject(MatSnackBar);
+
   cancelAdd() {
     this.close.emit();
   }
@@ -65,12 +68,23 @@ export class HireStaffModalComponent {
 
     this.isAdding.set(true);
     this.staffService.addStaff(payload).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.isAdding.set(false);
+        
+        if (res && res.invitation) {
+          this.snackBar.open(
+            'This user already exists! An invitation has been sent to their notification center.', 
+            'Understood', 
+            { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' }
+          );
+        } else {
+          this.snackBar.open('New staff member hired successfully!', 'Close', { duration: 3000 });
+        }
+
         this.staffHired.emit();
         this.close.emit();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isAdding.set(false);
         console.error('Add staff error:', err);
 

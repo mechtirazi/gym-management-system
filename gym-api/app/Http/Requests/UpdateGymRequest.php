@@ -23,6 +23,9 @@ class UpdateGymRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255',
+            'phone' => 'sometimes|string|max:20',
+            'description' => 'sometimes|string',
             'adress' => 'sometimes|string|max:255',
             'capacity' => 'sometimes|integer|min:1',
             'open_hour' => 'sometimes|string|max:255',

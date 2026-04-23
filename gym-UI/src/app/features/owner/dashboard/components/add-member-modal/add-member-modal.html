@@ -1,41 +1,94 @@
 <div class="modal-overlay" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Add New Member</h2>
-      <button class="close-btn" (click)="closeModal()">×</button>
+  <div class="modal-card" (click)="$event.stopPropagation()" [class.success]="isSuccess()">
+    
+    <div class="modal-inner">
+      <!-- Success State Overlay -->
+      @if (isSuccess()) {
+        <div class="success-state animate-fade-in">
+          <div class="check-container">
+            <span class="material-symbols-rounded">check_circle</span>
+          </div>
+          <h3>Member Created!</h3>
+          <p>The new identity has been successfully synchronized with the Vanguard network.</p>
+        </div>
+      } @else {
+        <div class="modal-header">
+          <div class="header-icon">
+            <span class="material-symbols-rounded">person_add</span>
+          </div>
+          <div class="header-text">
+            <h2>Add New Member</h2>
+            <p>Onboard a new athlete to your gym ecosystem</p>
+          </div>
+          <button class="close-btn" (click)="closeModal()">
+             <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="memberForm" (ngSubmit)="submitAddMember()" class="modal-form">
+          <div class="form-grid">
+            <div class="form-group hover-glow">
+              <label>First Name</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded">person</span>
+                <input type="text" formControlName="firstName" placeholder="John" />
+              </div>
+            </div>
+            
+            <div class="form-group hover-glow">
+              <label>Last Name</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded">badge</span>
+                <input type="text" formControlName="lastName" placeholder="Doe" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group hover-glow">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <span class="material-symbols-rounded">mail</span>
+              <input type="email" formControlName="email" placeholder="john@example.com" />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group hover-glow">
+              <label>Phone Number</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded">call</span>
+                <input type="tel" formControlName="phone" placeholder="1234567890" />
+              </div>
+            </div>
+
+            <div class="form-group hover-glow">
+              <label>Temporary Password</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded">lock</span>
+                <input type="password" formControlName="password" placeholder="••••••••" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="cancel-btn" (click)="closeModal()" [disabled]="isSubmitting()">
+              Cancel
+            </button>
+            <button type="submit" class="submit-btn" [disabled]="memberForm.invalid || isSubmitting()">
+              @if (isSubmitting()) {
+                <div class="loading-spinner"></div>
+                <span>Syncing...</span>
+              } @else {
+                <span>Initialize Member</span>
+                <span class="material-symbols-rounded">arrow_forward</span>
+              }
+            </button>
+          </div>
+        </form>
+      }
     </div>
-    <form [formGroup]="memberForm" (ngSubmit)="submitAddMember()" class="modal-form">
-      <div class="form-group">
-        <label>First Name</label>
-        <input type="text" formControlName="firstName" placeholder="John" />
-      </div>
-      <div class="form-group">
-        <label>Last Name</label>
-        <input type="text" formControlName="lastName" placeholder="Doe" />
-      </div>
-      <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" formControlName="email" placeholder="john@example.com" />
-      </div>
-      <div class="form-group">
-        <label>Phone Number</label>
-        <input type="tel" formControlName="phone" placeholder="1234567890" />
-      </div>
-      <div class="form-group">
-        <label>Temporary Password</label>
-        <input type="password" formControlName="password" placeholder="password123" />
-      </div>
-      
-      <div class="modal-actions">
-        <button type="button" class="cancel-btn" (click)="closeModal()" [disabled]="isSubmitting()">Cancel</button>
-        <button type="submit" class="submit-btn" [disabled]="memberForm.invalid || isSubmitting()">
-          @if (isSubmitting()) {
-            <div class="loading-spinner small"></div>
-          } @else {
-            Add Member
-          }
-        </button>
-      </div>
-    </form>
+
+    <!-- Decorative Elements -->
+    <div class="accent-glow"></div>
   </div>
 </div>

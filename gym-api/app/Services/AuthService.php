@@ -23,9 +23,6 @@ class AuthService
             // Create user (email_verified_at is null by default)
             $user = User::create($data);
 
-            // Send verification email
-            $user->notify(new VerifyEmailNotification());
-
             return [
                 'success'              => true,
                 'user'                 => $user,
@@ -256,6 +253,7 @@ class AuthService
             'role',
             'phone',
             'profile_picture',
+            'nutritionist_advisory',
         ]);
     }
 
@@ -273,6 +271,7 @@ class AuthService
             'phone',
             'creation_date',
             'profile_picture',
+            'nutritionist_advisory',
         ]);
     }
 }

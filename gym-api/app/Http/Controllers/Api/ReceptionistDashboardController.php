@@ -170,6 +170,7 @@ class ReceptionistDashboardController extends Controller
                     'paymentsToday' => $paymentsToday,
                     'revenueToday' => $revenueToday,
                     'revenueThisMonth' => $revenueThisMonth,
+                    'revenueTotal' => (float) Payment::query()->whereIn('id_gym', $gymIds)->sum('amount'),
                 ],
                 'upcomingSessions' => $upcomingSessions,
                 'recentCheckins' => $recentCheckins,

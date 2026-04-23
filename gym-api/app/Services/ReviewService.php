@@ -28,11 +28,17 @@ class ReviewService extends BaseService
 
         // Owners only see reviews for their gyms
         if ($user->role === User::ROLE_OWNER) {
-            return $query->whereIn('id_gym', function ($q) use ($user) {
-                $q->select('id_gym')->from('gyms')->where('id_owner', $user->id_user);
-            })->orWhereHas('event.gym', function ($q) use ($user) {
-                $q->where('id_owner', $user->id_user);
-            })->get();
+            $this->applyActiveGymScope($query, $user, 'id_gym');
+            
+            $query->where(function($q) use ($user) {
+                $q->whereIn('id_gym', function ($sq) use ($user) {
+                    $sq->select('id_gym')->from('gyms')->where('id_owner', $user->id_user);
+                })->orWhereHas('event.gym', function ($sq) use ($user) {
+                    $sq->where('id_owner', $user->id_user);
+                });
+            });
+
+            return $query->get();
         }
 
         // Staff (Receptionist, Trainer, Nutritionist) see reviews for their assigned gyms
@@ -90,7 +96,18 @@ class ReviewService extends BaseService
         // 1. Analyze the review content with AI
         if (isset($data['comment']) && !empty($data['comment'])) {
             $analysis = $this->aiService->analyzeReview($data['comment']);
-            $data['ai_sentiment_score'] = $analysis['score'];
+            $aiScore = $analysis['score'];
+            
+            // 2. Blend AI score with manual rating for higher fidelity
+            // If the user gave 4 or 5 stars, the sentiment shouldn't be "Negative" unless the text is truly bad.
+            // We use a weighted average: 60% Rating, 40% AI analysis
+            if (isset($data['rating'])) {
+                $ratingWeight = $data['rating'] / 5;
+                $data['ai_sentiment_score'] = ($ratingWeight * 0.6) + ($aiScore * 0.4);
+            } else {
+                $data['ai_sentiment_score'] = $aiScore;
+            }
+            
             $data['ai_category'] = $analysis['category'];
         }
 

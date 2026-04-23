@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
     use HasFactory;
     use HasUuids;
+    use \App\Traits\HasSocialInteractions;
 
     protected $primaryKey = 'id_product';
+    protected $appends = ['is_liked', 'likes_count', 'comments_count'];
 
     public $incrementing = false;
 
@@ -21,6 +22,7 @@ class Product extends Model
     protected $fillable = [
         'id_gym',
         'name',
+        'image',
         'price',
         'stock',
         'category',

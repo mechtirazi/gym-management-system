@@ -23,7 +23,7 @@ export class MemberProgressComponent implements OnInit {
 
   // Analysis Filter State
   analysisCategory = 'all'; // 'all', 'chest', 'back', 'legs', 'shoulders'
-  
+
   private readonly exerciseMuscles: { [key: string]: string } = {
     'bench press': 'chest',
     'incline dumbbell press': 'chest',
@@ -61,7 +61,7 @@ export class MemberProgressComponent implements OnInit {
     const weightLogged = (this.stats.weight > 0) ? 25 : 0;
     const macrosAdherence = (this.getMacroPercentage('protein') + this.getMacroPercentage('carbs') + this.getMacroPercentage('fats')) / 3;
     const caloriesMet = (Math.abs(this.stats.caloriesBurned - this.getTargetCalories()) < 200) ? 25 : 0;
-    
+
     return Math.min(Math.round(waterMet + weightLogged + (macrosAdherence * 0.25) + caloriesMet), 100);
   }
 
@@ -134,18 +134,18 @@ export class MemberProgressComponent implements OnInit {
 
   private calculateAchievements(): void {
     const totalAttendance = this.stats?.totalAttendance || this.attendances.length;
-    
+
     let streak = 0;
     if (this.attendances && this.attendances.length > 0) {
       const sortedDates = this.attendances
-        .map(a => new Date(a.created_at).setHours(0,0,0,0))
-        .sort((a,b) => b - a);
+        .map(a => new Date(a.created_at).setHours(0, 0, 0, 0))
+        .sort((a, b) => b - a);
       const uniqueDates = [...new Set(sortedDates)];
-      let today = new Date().setHours(0,0,0,0);
+      let today = new Date().setHours(0, 0, 0, 0);
       let i = 0;
       if (uniqueDates[0] === today) i = 0;
       else if (uniqueDates[0] === today - 86400000) { i = 0; today = today - 86400000; }
-      
+
       for (; i < uniqueDates.length; i++) {
         if (uniqueDates[i] === today - (i * 86400000)) streak++;
         else break;
@@ -222,8 +222,8 @@ export class MemberProgressComponent implements OnInit {
   }
 
   onFitnessGoalChange(event: any): void {
-      this.fitnessGoal = event.target.value;
-      this.cdr.detectChanges();
+    this.fitnessGoal = event.target.value;
+    this.cdr.detectChanges();
   }
 
   setAnalysisCategory(cat: string): void {
@@ -239,23 +239,23 @@ export class MemberProgressComponent implements OnInit {
 
     // Filter sessions that contain exercises for the selected muscle
     const data = [...this.workoutHistory]
-      .sort((a,b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime())
+      .sort((a, b) => new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime())
       .map(w => {
         let vol = 0;
         w.exercises?.forEach((ex: any) => {
           const muscle = ex.exercise_name ? this.exerciseMuscles[ex.exercise_name.toLowerCase()] : null;
           if (this.analysisCategory === 'all' || muscle === this.analysisCategory) {
             ex.sets?.forEach((s: any) => {
-               let repWeight = Number(s.weight) || 0;
-               if (repWeight === 0) repWeight = bodyweight; // Account for bodyweight exercises
-               vol += repWeight * (Number(s.reps) || 0);
+              let repWeight = Number(s.weight) || 0;
+              if (repWeight === 0) repWeight = bodyweight; // Account for bodyweight exercises
+              vol += repWeight * (Number(s.reps) || 0);
             });
           }
         });
 
-        return { 
-          date: new Date(w.workout_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), 
-          volume: vol 
+        return {
+          date: new Date(w.workout_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          volume: vol
         };
       })
       .filter(d => d.volume > 0); // Only sessions with work done for that muscle
@@ -268,37 +268,37 @@ export class MemberProgressComponent implements OnInit {
     const maxVal = Math.max(...data.map(d => d.volume));
     const total = data.reduce((acc, curr) => acc + curr.volume, 0);
 
-    return { 
-      data, 
-      totalLifetime: total.toLocaleString(), 
-      recentChange: parseFloat(change.toFixed(1)), 
-      maxVolume: maxVal.toLocaleString(), 
-      maxRaw: maxVal 
+    return {
+      data,
+      totalLifetime: total.toLocaleString(),
+      recentChange: parseFloat(change.toFixed(1)),
+      maxVolume: maxVal.toLocaleString(),
+      maxRaw: maxVal
     };
   }
 
   get historyStats() {
     const records = this.attendances || [];
     const monthlySessions = records.filter(a => {
-        const d = new Date(a.created_at);
-        return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+      const d = new Date(a.created_at);
+      return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
     }).length;
     const courseFreq: any = {};
     let topCourse = 'None';
     let max = 0;
     records.forEach(a => {
-        const title = a.session?.course?.name || 'Metropolitan Routine';
-        courseFreq[title] = (courseFreq[title] || 0) + 1;
-        if (courseFreq[title] > max) { max = courseFreq[title]; topCourse = title; }
+      const title = a.session?.course?.name || 'Metropolitan Routine';
+      courseFreq[title] = (courseFreq[title] || 0) + 1;
+      if (courseFreq[title] > max) { max = courseFreq[title]; topCourse = title; }
     });
 
     let weeksSinceStart = 1;
     if (records.length > 0) {
-        const sorted = [...records].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-        const firstRecord = new Date(sorted[0].created_at);
-        const now = new Date();
-        const diffMs = now.getTime() - firstRecord.getTime();
-        weeksSinceStart = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 7)));
+      const sorted = [...records].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      const firstRecord = new Date(sorted[0].created_at);
+      const now = new Date();
+      const diffMs = now.getTime() - firstRecord.getTime();
+      weeksSinceStart = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 7)));
     }
     const weeklyAverage = parseFloat((records.length / weeksSinceStart).toFixed(1));
 
@@ -306,26 +306,26 @@ export class MemberProgressComponent implements OnInit {
   }
 
   get evolutionPrediction() {
-     const weight = Number(this.stats?.weight) || 70;
-     let weeklyChange = 0;
-     let desc = "Metabolic equilibrium maintained.";
-     let trendIcon = "monitor_heart";
-     let color = "#3b82f6";
+    const weight = Number(this.stats?.weight) || 70;
+    let weeklyChange = 0;
+    let desc = "Metabolic equilibrium maintained.";
+    let trendIcon = "monitor_heart";
+    let color = "#3b82f6";
 
-     const compliance = (this.stats?.evolutionPoints || 0) > 50 ? 1 : 0.5;
+    const compliance = (this.stats?.evolutionPoints || 0) > 50 ? 1 : 0.5;
 
-     if (this.fitnessGoal === 'cut') { 
-        weeklyChange = -0.45 * compliance; 
-        desc = compliance === 1 ? "Simulated lipolysis vector active." : "Inconsistent deficit detected."; 
-        trendIcon = compliance === 1 ? "trending_down" : "warning"; 
-        color = compliance === 1 ? "#10b981" : "#f59e0b"; 
-     }
-     else if (this.fitnessGoal === 'bulk') { 
-        weeklyChange = +0.25 * compliance; 
-        desc = compliance === 1 ? "Muscular hypertrophy synthesis projected." : "Suboptimal growth stimulus."; 
-        trendIcon = compliance === 1 ? "trending_up" : "warning"; 
-        color = compliance === 1 ? "#f59e0b" : "#ef4444"; 
-     }
-     return { current: weight, month1: parseFloat((weight + (weeklyChange * 4)).toFixed(1)), month3: parseFloat((weight + (weeklyChange * 12)).toFixed(1)), desc, trendIcon, color };
+    if (this.fitnessGoal === 'cut') {
+      weeklyChange = -0.45 * compliance;
+      desc = compliance === 1 ? "Simulated lipolysis vector active." : "Inconsistent deficit detected.";
+      trendIcon = compliance === 1 ? "trending_down" : "warning";
+      color = compliance === 1 ? "#10b981" : "#f59e0b";
+    }
+    else if (this.fitnessGoal === 'bulk') {
+      weeklyChange = +0.25 * compliance;
+      desc = compliance === 1 ? "Muscular hypertrophy synthesis projected." : "Suboptimal growth stimulus.";
+      trendIcon = compliance === 1 ? "trending_up" : "warning";
+      color = compliance === 1 ? "#f59e0b" : "#ef4444";
+    }
+    return { current: weight, month1: parseFloat((weight + (weeklyChange * 4)).toFixed(1)), month3: parseFloat((weight + (weeklyChange * 12)).toFixed(1)), desc, trendIcon, color };
   }
 }

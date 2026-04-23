@@ -32,6 +32,12 @@ class AttendanceResource extends JsonResource
             ],
             
             // Nested data with fallbacks
+            'member' => [
+                'id_user' => $this->member->id_user ?? null,
+                'name' => $this->member->name ?? 'Anonymous',
+                'last_name' => $this->member->last_name ?? 'Member',
+                'email' => $this->member->email ?? null,
+            ],
             'session' => [
                 'id_session' => $this->session->id_session ?? null,
                 'course' => [

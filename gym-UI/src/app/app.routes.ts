@@ -19,6 +19,10 @@ export const routes: Routes = [
         canActivate: [socialCallbackGuard],
         loadComponent: () => import('./features/auth/social-callback/social-callback').then(m => m.SocialCallback)
       },
+      {
+        path: 'verify/:id/:hash',
+        loadComponent: () => import('./features/auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent)
+      },
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },

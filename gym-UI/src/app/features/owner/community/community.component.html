@@ -127,14 +127,14 @@
           <p class="comment-text">{{ r.comment }}</p>
         </div>
 
-        <div class="review-footer" *ngIf="r.ai_sentiment_score">
+        <div class="review-footer" *ngIf="r.ai_sentiment_score !== null && r.ai_sentiment_score !== undefined">
           <div class="sentiment-meter">
             <span class="meter-label">AI Sentiment Score</span>
             <div class="meter-bg">
               <div class="meter-fill" [style.width.%]="(r.ai_sentiment_score || 0) * 100"
                 [ngClass]="getSentimentClass(r)"></div>
             </div>
-            <span class="meter-value">{{ Math.round((r.ai_sentiment_score || 0) * 100) }}%</span>
+            <span class="meter-value">{{ ((r.ai_sentiment_score || 0) * 100).toFixed(1) }}%</span>
           </div>
         </div>
       </div>

@@ -67,6 +67,18 @@ export class MemberService {
     return this.http.post<any>(`${this.apiUrl}/nutrition-plans/${planId}/purchase`, {});
   }
 
+  getNutritionPlanDetails(planId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/nutrition-plans/${planId}`);
+  }
+
+  toggleMealCompletion(mealId: string, isCompleted: boolean): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/nutrition-plans/meals/${mealId}/toggle`, { is_completed: isCompleted });
+  }
+
+  logHydration(amountMl: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/nutrition-plans/water-log`, { amount_ml: amountMl });
+  }
+
   getAvailableCourses(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/courses`);
   }
@@ -87,6 +99,14 @@ export class MemberService {
     return this.http.get<any>(`${this.apiUrl}/notifications`);
   }
 
+  getEvents(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/events`);
+  }
+
+  getProducts(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/products`);
+  }
+
   getGymReviews(gymId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/gyms/${gymId}/reviews`);
   }
@@ -96,7 +116,7 @@ export class MemberService {
   }
 
   purchaseMembership(gymId: string, paymentMethod: string = 'zen_wallet', type: string = 'standard', idPlan?: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/member/gyms/${gymId}/purchase`, { 
+    return this.http.post<any>(`${this.apiUrl}/member/gyms/${gymId}/purchase`, {
       payment_method: paymentMethod,
       type: type,
       id_plan: idPlan
@@ -154,5 +174,17 @@ export class MemberService {
 
   deleteReview(reviewId: string): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/reviews/${reviewId}`);
+  }
+
+  toggleLike(id: string, type: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/social/like`, { id, type });
+  }
+
+  addComment(id: string, type: string, content: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/social/comment`, { id, type, content });
+  }
+
+  getComments(id: string, type: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/member/social/comments?id=${id}&type=${type}`);
   }
 }

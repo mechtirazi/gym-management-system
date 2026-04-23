@@ -27,6 +27,7 @@ class StoreEnrollmentRequest extends FormRequest
             'enrollment_date' => 'required|date',
             'status' => 'sometimes|in:active,pending,cancelled,expired',
             'type' => 'sometimes|in:standard,premium,trial',
+            'id_plan' => 'sometimes|nullable|exists:membership_plans,id',
         ];
     }
 

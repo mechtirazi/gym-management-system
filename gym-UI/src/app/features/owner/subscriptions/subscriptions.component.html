@@ -1,8 +1,8 @@
 <div class="subscriptions-container">
   <div class="header-section">
     <div>
-      <h1>Subscriptions Management</h1>
-      <p class="subtitle">Manage user memberships, track renewals, and view subscription stats.</p>
+      <h1>Gym Interest & Followers</h1>
+      <p class="subtitle">Track people who have followed your gym or expressed interest in joining.</p>
     </div>
   </div>
 
@@ -18,7 +18,7 @@
         </svg>
       </div>
       <div class="stat-info">
-        <span class="stat-label">Total Subscriptions</span>
+        <span class="stat-label">Total Followers</span>
         <span class="stat-value">{{ stats().total }}</span>
       </div>
     </div>
@@ -32,22 +32,23 @@
         </svg>
       </div>
       <div class="stat-info">
-        <span class="stat-label">Active Members</span>
+        <span class="stat-label">Active Interest</span>
         <span class="stat-value">{{ stats().active }}</span>
       </div>
     </div>
 
-    <div class="stat-card monthly-revenue">
+    <div class="stat-card expired-subscriptions">
       <div class="stat-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23"></line>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
         </svg>
       </div>
       <div class="stat-info">
-        <span class="stat-label">Monthly Revenue (Est.)</span>
-        <span class="stat-value">${{ stats().revenue | number:'1.2-2' }}</span>
+        <span class="stat-label">Lost Interest</span>
+        <span class="stat-value">{{ stats().expired }}</span>
       </div>
     </div>
   </div>
@@ -56,9 +57,9 @@
     <div class="toolbar">
       <div class="tabs">
         <button [class.active]="activeTab() === 'all'" (click)="setTab('all')">All</button>
-        <button [class.active]="activeTab() === 'active'" (click)="setTab('active')">Active</button>
+        <button [class.active]="activeTab() === 'active'" (click)="setTab('active')">Interested</button>
         <button [class.active]="activeTab() === 'expired'" (click)="setTab('expired')">Expired</button>
-        <button [class.active]="activeTab() === 'cancelled'" (click)="setTab('cancelled')">Cancelled</button>
+        <button [class.active]="activeTab() === 'cancelled'" (click)="setTab('cancelled')">Removed</button>
       </div>
 
       <div class="search-bar">
@@ -68,13 +69,13 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
         <input type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
-          placeholder="Search members or emails...">
+          placeholder="Search followers or emails...">
       </div>
     </div>
 
     <div class="loading-state" *ngIf="isLoading()">
       <div class="spinner"></div>
-      <p>Fetching active memberships...</p>
+      <p>Fetching active interest list...</p>
     </div>
 
     <div class="empty-state" *ngIf="!isLoading() && filteredSubscriptions().length === 0">
@@ -85,7 +86,7 @@
           <line x1="1" y1="10" x2="23" y2="10"></line>
         </svg>
       </div>
-      <h3>No subscriptions found</h3>
+      <h3>No followers found</h3>
       <p>Try matching with another filter or search term.</p>
     </div>
 
@@ -93,9 +94,9 @@
       <table class="subscriptions-table">
         <thead>
           <tr>
-            <th>Member</th>
+            <th>Follower</th>
             <th>Gym</th>
-            <th>Joined Date</th>
+            <th>Interest Date</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -124,9 +125,9 @@
             </td>
             <td class="actions-column">
               <button class="action-btn cancel" (click)="cancelSubscription(s)" *ngIf="s.status !== 'cancelled'">
-                Cancel
+                Remove
               </button>
-              <button class="action-btn view" (click)="viewDetail(s)">View Detail</button>
+              <button class="action-btn view" (click)="viewDetail(s)">Details</button>
             </td>
           </tr>
         </tbody>
@@ -145,12 +146,11 @@
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
       </div>
-      <h3>Cancel Membership?</h3>
-      <p>Are you sure you want to cancel this subscription? The user will no longer be active, but their historical
-        records will be retained.</p>
+      <h3>Remove Follower?</h3>
+      <p>Are you sure you want to remove this person from your gym's interest list?</p>
       <div class="modal-actions">
-        <button class="secondary-btn" (click)="closeCancelConfirm()">No, Keep it</button>
-        <button class="danger-btn" (click)="confirmCancel()">Yes, Cancel</button>
+        <button class="secondary-btn" (click)="closeCancelConfirm()">Keep</button>
+        <button class="danger-btn" (click)="confirmCancel()">Yes, Remove</button>
       </div>
     </div>
   </div>
@@ -167,7 +167,7 @@
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
           </div>
-          <h2>Subscription Details</h2>
+          <h2>Interest Details</h2>
         </div>
         <button class="close-btn" (click)="closeViewModal()">&times;</button>
       </div>
@@ -184,15 +184,15 @@
 
         <div class="detail-grid">
           <div class="detail-item">
-            <span class="label">Assigned Gym</span>
+            <span class="label">Gym</span>
             <span class="value">{{ sub.gym?.name || 'Main Gym' }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">Subscription Date</span>
+            <span class="label">Date</span>
             <span class="value">{{ sub.subscribe_date | date:'longDate' }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">Subscription ID</span>
+            <span class="label">Interest ID</span>
             <span class="value code">{{ sub.id_subscribe }}</span>
           </div>
         </div>

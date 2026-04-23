@@ -35,13 +35,25 @@ export class NutritionistClientsComponent implements OnInit, OnDestroy {
   clients = signal<any[]>([]);
   rawSearchQuery = signal('');
   searchQuery = signal('');
-  selectedFilter = signal<string>('All');
+  selectedFilter = signal<string>('All Clients');
 
-  filterOptions = ['All', 'Active Plans', 'No Plans'];
+  filterOptions = ['All Clients', 'Single Program', 'Multiple Programs'];
 
   plansByMemberId = signal<Record<string, number>>({});
   currentPage = signal(1);
   perPage = signal(10);
+
+  // Statistics
+  totalClientsCount = computed(() => this.clients().length);
+  activePlansCount = computed(() => {
+    const idx = this.plansByMemberId();
+    return this.clients().filter(c => (idx[c.id_user] ?? 0) > 0).length;
+  });
+  planCoveragePercentage = computed(() => {
+    const total = this.totalClientsCount();
+    if (total === 0) return 0;
+    return Math.round((this.activePlansCount() / total) * 100);
+  });
 
   ngOnInit(): void {
     this.load();
@@ -67,33 +79,57 @@ export class NutritionistClientsComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.currentPage.set(1);
 
-    this.api
-      .getClients()
-      .pipe(finalize(() => this.isLoading.set(false)))
-      .subscribe({
-        next: res => {
-          const users = extractApiList<any>(res);
-          // Defensive filtering: nutritionist UI only handles member records.
-          this.clients.set(users.filter(isMemberUser));
-        },
-        error: () => this.error.set('Could not load clients.')
-      });
-
+    // 1. Get all plans for this nutritionist to find who the clients are
     this.api.getNutritionPlans(1, 300).subscribe({
       next: res => {
         const plans = extractApiList<any>(res);
         const me = this.auth.currentUser()?.id_user;
-        const idx: Record<string, number> = {};
-        for (const p of plans.filter(plan => isOwnedByNutritionist(plan, me))) {
-          for (const m of (p?.members ?? [])) {
+        const myPlans = plans.filter(plan => isOwnedByNutritionist(plan, me));
+
+        // 2. Extract unique members from these plans
+        const clientMap = new Map<string, any>();
+        const planCounter: Record<string, number> = {};
+
+        for (const plan of myPlans) {
+          const members = plan?.members ?? [];
+          const gymName = plan?.gym?.name || 'Unknown Gym';
+          const protocolName = plan?.goal || 'Nutrition Protocol';
+          
+          for (const m of members) {
             const id = m?.id_user;
             if (!id) continue;
-            idx[id] = (idx[id] ?? 0) + 1;
+            
+            if (!clientMap.has(id)) {
+              clientMap.set(id, { 
+                ...m, 
+                gymName, // Primary/First gym detected
+                protocols: [] 
+              });
+            }
+            
+            const client = clientMap.get(id);
+            client.protocols.push({
+              id: plan.id_plan,
+              name: protocolName,
+              gymLogo: plan?.gym?.logo,
+              gymName: gymName,
+              price: plan.price,
+              date: plan.start_date
+            });
+            
+            // Count plans for badges
+            planCounter[id] = (planCounter[id] ?? 0) + 1;
           }
         }
-        this.plansByMemberId.set(idx);
+
+        this.clients.set(Array.from(clientMap.values()));
+        this.plansByMemberId.set(planCounter);
+        this.isLoading.set(false);
       },
-      error: () => this.plansByMemberId.set({})
+      error: () => {
+        this.error.set('Could not load your client caseload.');
+        this.isLoading.set(false);
+      }
     });
   }
 
@@ -104,13 +140,20 @@ export class NutritionistClientsComponent implements OnInit, OnDestroy {
 
     let list = this.clients();
     if (q) {
-      list = list.filter(c => `${c.name ?? ''} ${c.last_name ?? ''}`.toLowerCase().includes(q) || (c.email ?? '').toLowerCase().includes(q));
+      list = list.filter(c => 
+        `${c.name ?? ''} ${c.last_name ?? ''}`.toLowerCase().includes(q) || 
+        (c.email ?? '').toLowerCase().includes(q) ||
+        (c.protocols || []).some((p: any) => 
+          (p.name ?? '').toLowerCase().includes(q) || 
+          (p.gymName ?? '').toLowerCase().includes(q)
+        )
+      );
     }
-    if (filter === 'Active Plans') {
-      list = list.filter(c => (idx[c.id_user] ?? 0) > 0);
+    if (filter === 'Single Program') {
+      list = list.filter(c => (idx[c.id_user] ?? 0) === 1);
     }
-    if (filter === 'No Plans') {
-      list = list.filter(c => (idx[c.id_user] ?? 0) === 0);
+    if (filter === 'Multiple Programs') {
+      list = list.filter(c => (idx[c.id_user] ?? 0) > 1);
     }
     return list;
   });

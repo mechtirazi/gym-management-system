@@ -579,3 +579,165 @@
     display: none;
   }
 }
+
+/* Global Workspace Switcher Styles */
+.global-switcher {
+  position: relative;
+  margin-left: 1rem;
+  z-index: 1001;
+
+  .switcher-pill {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1.25rem;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-color);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    height: 40px;
+
+    .active-gym-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 0.85rem;
+
+      svg {
+        width: 18px;
+        height: 18px;
+        color: var(--color-primary-600);
+      }
+    }
+
+    .chevron {
+      width: 14px;
+      height: 14px;
+      color: var(--text-muted);
+      transition: transform 0.3s;
+    }
+
+    &:hover {
+      background: var(--bg-hover);
+      border-color: var(--color-primary-400);
+      transform: translateY(-1px);
+    }
+
+    &.active {
+      border-color: var(--color-primary-500);
+      background: rgba(79, 70, 229, 0.05);
+      
+      .chevron { transform: rotate(180deg); }
+    }
+  }
+
+  .sw-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    width: 340px;
+    background: var(--bg-card);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--border-glass);
+    border-radius: 22px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    animation: swFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 9999;
+  }
+
+  .sw-header {
+    padding: 0.25rem 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    opacity: 0.7;
+  }
+
+  .sw-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sw-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-main);
+    border: 1.5px solid transparent;
+
+    &:hover {
+      background: var(--bg-hover);
+      transform: translateX(4px);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), transparent);
+      border-color: var(--color-primary-500);
+      
+      .gym-name { color: var(--color-primary-600); }
+    }
+
+    .gym-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+
+      &.active {
+        background: var(--color-primary-500);
+        border-color: var(--color-primary-400);
+        box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
+      }
+    }
+
+    .gym-meta {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      .gym-name {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--text-main);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+
+      .gym-small-addr {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        opacity: 0.8;
+      }
+    }
+
+    .check {
+      width: 18px;
+      height: 18px;
+      color: var(--color-primary-500);
+    }
+  }
+}
+
+@keyframes swFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

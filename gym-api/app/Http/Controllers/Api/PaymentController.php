@@ -23,4 +23,17 @@ class PaymentController extends BaseApiController
     {
         return Payment::class;
     }
+
+    public function index(\Illuminate\Http\Request $request)
+    {
+        $response = parent::index($request);
+        $data = $response->getData();
+        
+        if ($data->success) {
+            $data->todays_total = $this->service->getTodaysTotal(auth()->user());
+            $response->setData($data);
+        }
+        
+        return $response;
+    }
 }

@@ -44,7 +44,7 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
      */
     protected function verificationUrl(object $notifiable): string
     {
-        return URL::temporarySignedRoute(
+        $verifyUrl = URL::temporarySignedRoute(
             'verification.verify',
             Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
             [
@@ -52,6 +52,15 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
                 'hash' => sha1($notifiable->getEmailForVerification()),
             ]
         );
+
+        $frontendUrl = 'http://localhost:4200/auth/verify';
+        
+        // Find the route path segment to replace it with the frontend URL
+        $backendBase = route('verification.verify', ['id' => 'ID', 'hash' => 'HASH']);
+        $backendBase = str_replace(['ID', 'HASH'], '', $backendBase);
+        $backendBase = rtrim($backendBase, '/');
+
+        return str_replace($backendBase, $frontendUrl, $verifyUrl);
     }
 
     /**

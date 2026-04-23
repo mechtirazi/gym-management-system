@@ -43,9 +43,10 @@ class NutritionPlanPolicy
     public function view(User $user, NutritionPlan $nutritionPlan): bool
     {
 
-        // Member can only view their own plans
+        // Member can view if they are assigned to the plan (through legacy column OR pivot table)
         if ($user->role === 'member') {
-            return $nutritionPlan->id_member === $user->id_user;
+            return $nutritionPlan->id_member === $user->id_user || 
+                   $nutritionPlan->members()->where('users.id_user', $user->id_user)->exists();
         }
 
         // Nutritionist can only view their own plans

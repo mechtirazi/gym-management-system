@@ -23,6 +23,9 @@ class StoreGymRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'description' => 'required|string',
             'adress' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
             'open_hour' => 'sometimes|string|max:255',

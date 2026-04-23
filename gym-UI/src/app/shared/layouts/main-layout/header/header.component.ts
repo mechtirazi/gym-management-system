@@ -22,13 +22,17 @@ export class HeaderComponent {
   isDarkMode = this.themeService.darkMode;
   showNotifications = signal(false);
   showLangDropdown = signal(false);
+  showGymSwitcher = signal(false);
   currentLang = signal<'en' | 'fr'>('en');
+
+  myGyms = this.authService.myGyms;
+  connectedGymId = this.authService.connectedGymId;
 
   // Use the notification service's signals
   notifications = this.notificationService.notifications;
   hasUnread = this.notificationService.hasUnread;
 
-  isImpersonating = signal(!!localStorage.getItem('original_user'));
+  isImpersonating = this.authService.isImpersonating;
 
   toggleNotifications(): void {
     this.showNotifications.update(v => !v);
@@ -70,5 +74,14 @@ export class HeaderComponent {
 
   stopImpersonation(): void {
     this.authService.stopImpersonation();
+  }
+
+  toggleGymSwitcher(): void {
+    this.showGymSwitcher.update(v => !v);
+  }
+
+  switchGym(id: string | number): void {
+    this.authService.switchGym(id);
+    this.showGymSwitcher.set(false);
   }
 }

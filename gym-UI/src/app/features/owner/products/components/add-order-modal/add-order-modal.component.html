@@ -66,6 +66,19 @@
             <input type="text" [value]="totalPrice().toFixed(2)" readonly>
           </div>
         </div>
+
+        <!-- Payment Method -->
+        <div class="form-group full-width">
+          <label for="method">Payment Method</label>
+          <div class="input-wrapper">
+            <select id="method" [(ngModel)]="orderData.payment_method" name="payment_method" required>
+              <option value="cash">Cash</option>
+              <option value="card">Credit/Debit Card</option>
+              <option value="transfer">Transfer</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="modal-actions">

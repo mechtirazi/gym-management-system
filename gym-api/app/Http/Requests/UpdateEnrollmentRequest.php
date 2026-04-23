@@ -27,6 +27,7 @@ class UpdateEnrollmentRequest extends FormRequest
             'enrollment_date' => 'sometimes|date',
             'status' => 'sometimes|in:active,pending,cancelled,expired',
             'type' => 'sometimes|in:standard,premium,trial',
+            'id_plan' => 'sometimes|nullable|exists:membership_plans,id',
         ];
     }
 }

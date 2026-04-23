@@ -23,6 +23,7 @@ export interface DashboardData {
   expiringMemberships: ExpiringMembership[];
   activityTrends: ActivityTrend[];
   focusAreas: FocusArea[];
+  staffSnapshot: StaffSnapshotMember[];
 }
 
 export interface ActivityTrend {
@@ -56,6 +57,15 @@ export interface ExpiringMembership {
   memberName: string;
   expiryDate: string;
   daysLeft: number;
+}
+
+export interface StaffSnapshotMember {
+  name: string;
+  role: string;
+  avatar: string;
+  metric: number;
+  shift: string;
+  coaches: string;
 }
 
 export interface Checkin {

@@ -160,6 +160,7 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
 export class EditMembershipModalComponent implements OnInit {
   private membershipService = inject(MembershipService);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
 
   membership = input.required<any>();
   close = output<void>();
@@ -169,12 +170,12 @@ export class EditMembershipModalComponent implements OnInit {
   error = signal<string | null>(null);
   plans = signal<MembershipPlan[]>([]);
   private planService = inject(MembershipPlanService);
-  private authService = inject(AuthService);
+
 
   editForm = this.fb.group({
     enrollment_date: ['', Validators.required],
     status: ['', Validators.required],
-    id_plan: ['']
+    id_plan: ['', Validators.required]
   });
 
   private statusSub?: Subscription;

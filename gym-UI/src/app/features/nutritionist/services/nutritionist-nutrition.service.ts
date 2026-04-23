@@ -38,5 +38,25 @@ export class NutritionistNutritionService {
   deleteNutritionPlan(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/nutrition-plans/${id}`);
   }
+
+  getBiometrics(memberId: string): Observable<ApiListResponse<any>> {
+    return this.http.get<ApiListResponse<any>>(`${this.apiUrl}/biometrics?memberId=${memberId}`);
+  }
+
+  updateMemberAdvisory(id: string, advisory: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${id}`, { nutritionist_advisory: advisory });
+  }
+
+  updateTargetWeight(id: string, targetWeight: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${id}`, { target_weight: targetWeight });
+  }
+
+  saveBiometric(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/biometrics`, payload);
+  }
+
+  getWorkoutHistory(memberId: string): Observable<ApiListResponse<any>> {
+    return this.http.get<ApiListResponse<any>>(`${this.apiUrl}/biometrics/workouts?memberId=${memberId}`);
+  }
 }
 

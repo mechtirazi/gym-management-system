@@ -27,7 +27,7 @@ export class SettingsComponent implements OnInit {
   isLoading = signal(false);
   successMessage = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
-  
+
   // Password visibility
   showCurrent = signal(false);
   showNew = signal(false);
@@ -159,7 +159,6 @@ export class SettingsComponent implements OnInit {
   switchGym(gym: GymInfo): void {
     this.isLoading.set(true);
     this.authService.switchGym(gym.id_gym, gym.status, gym.suspension_reason);
-    
     setTimeout(() => {
       this.isLoading.set(false);
       this.successMessage.set('Switched gym context successfully!');

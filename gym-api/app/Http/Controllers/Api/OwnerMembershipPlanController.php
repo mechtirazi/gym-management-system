@@ -7,7 +7,9 @@ use App\Models\Gym;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class OwnerMembershipPlanController extends BaseApiController
+use App\Http\Controllers\Controller;
+
+class OwnerMembershipPlanController extends Controller
 {
     /**
      * Display a listing of membership plans for a specific gym.

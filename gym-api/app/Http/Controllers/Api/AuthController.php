@@ -28,7 +28,14 @@ class AuthController extends Controller
             $data = $request->validated();
             
             // Security: Enforce member role for public registration
-            $data['role'] = 'member';
+            // Unless the request is made by an authenticated owner or super_admin
+            $currentUser = auth('api')->user();
+            if (!$currentUser || !in_array($currentUser->role, ['owner', 'super_admin'])) {
+                $data['role'] = 'member';
+            } else {
+                // If an owner/admin is calling this, ensure we have a role or default to member
+                $data['role'] = $data['role'] ?? 'member';
+            }
 
             $result = $this->authService->register($data);
 
@@ -108,6 +115,9 @@ class AuthController extends Controller
         try {
             // Validate the signed URL
             if (! URL::hasValidSignature($request)) {
+                if (!$request->expectsJson()) {
+                    return redirect("http://localhost:4200/auth/verify/{$id}/{$hash}?" . $request->getQueryString());
+                }
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid or expired verification link.',
@@ -118,6 +128,9 @@ class AuthController extends Controller
 
             // Validate hash
             if (! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+                if (!$request->expectsJson()) {
+                    return redirect("http://localhost:4200/auth/verify/{$id}/{$hash}?" . $request->getQueryString());
+                }
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid verification link.',
@@ -125,6 +138,9 @@ class AuthController extends Controller
             }
 
             if ($user->hasVerifiedEmail()) {
+                if (!$request->expectsJson()) {
+                    return redirect("http://localhost:4200/auth/verify/{$id}/{$hash}?" . $request->getQueryString());
+                }
                 return response()->json([
                     'success' => true,
                     'message' => 'Email already verified.',
@@ -136,7 +152,7 @@ class AuthController extends Controller
             // Issue a token so the user can log in right away
             $token = $user->createToken('auth_token', ['*'])->accessToken;
 
-            return response()->json([
+            $responseData = [
                 'success' => true,
                 'message' => 'Email verified successfully! You can now log in.',
                 'data'    => [
@@ -144,7 +160,15 @@ class AuthController extends Controller
                     'access_token' => $token,
                     'token_type'   => 'Bearer',
                 ],
-            ], 200);
+            ];
+
+            if (!$request->expectsJson()) {
+                $frontendUrl = 'http://localhost:4200/auth/verify';
+                $queryString = $request->getQueryString();
+                return redirect("{$frontendUrl}/{$id}/{$hash}?{$queryString}");
+            }
+
+            return response()->json($responseData, 200);
 
         } catch (\Exception $e) {
             return response()->json([

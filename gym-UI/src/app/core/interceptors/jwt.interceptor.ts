@@ -1,13 +1,20 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.getToken();
-  const gymId = authService.connectedGymId();
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  let gymId: string | number | null = null;
 
-  let headers: any = {
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      gymId = user.gym_id;
+    } catch (e) {
+      // Standard cleanup if parsing fails, but don't block request
+    }
+  }
+
+  const headers: any = {
     Authorization: `Bearer ${token}`
   };
 

@@ -1,9 +1,10 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GymNotification } from '../../shared/models/notification.model';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +20,18 @@ export class NotificationService {
   unreadCount = computed(() => this._notifications().filter(n => n.unread).length);
   hasUnread = computed(() => this.unreadCount() > 0);
 
-  constructor(private http: HttpClient) {
-    this.fetchNotifications().subscribe();
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.fetchNotifications().subscribe();
+      } else {
+        this._notifications.set([]);
+      }
+    });
   }
 
   fetchNotifications(): Observable<GymNotification[]> {

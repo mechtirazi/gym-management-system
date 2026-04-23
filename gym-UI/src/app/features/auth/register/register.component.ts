@@ -20,6 +20,7 @@ export class RegisterComponent {
   registerForm: FormGroup;
   isLoading = signal(false);
   errorMessage = signal('');
+  successMessage = signal('');
   showPassword = signal(false);
 
   togglePassword() {
@@ -39,9 +40,10 @@ export class RegisterComponent {
       name: ['', [Validators.required]],
       last_name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.maxLength(20)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       password_confirmation: ['', [Validators.required]],
-      role: ['member']
+      role: ['member', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -55,6 +57,7 @@ export class RegisterComponent {
     if (this.registerForm.valid) {
       this.isLoading.set(true);
       this.errorMessage.set('');
+      this.successMessage.set('');
 
       // Send the full form value including confirmation as expected by backend
       const registrationData = {
@@ -65,7 +68,7 @@ export class RegisterComponent {
       this.authService.register(registrationData).subscribe({
         next: (res: any) => {
           this.isLoading.set(false);
-          this.router.navigate(['/auth/login'], { queryParams: { registered: true } });
+          this.successMessage.set('Registration successful! You need to do verification. Please check your email inbox (and spam folder) for the verification link.');
         },
         error: (err: any) => {
           this.isLoading.set(false);

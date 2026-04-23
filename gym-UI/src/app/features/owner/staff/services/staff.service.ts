@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, switchMap, map, throwError } from 'rxjs';
+import { Observable, switchMap, map, throwError, of, catchError } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../../core/services/auth.service';
 import { StaffMember } from '../../../../shared/models/staff-member.model';
@@ -17,23 +17,36 @@ export class StaffService {
 
   private get authHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
-    return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    const gymId = this.authService.currentUser()?.gym_id;
+    let headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    if (gymId) {
+      headers = headers.set('X-Gym-Id', gymId.toString());
+    }
+    return headers;
   }
 
-  // ─── Fetch owner's first gym id_gym ──────────────────────────────────────
+  // ─── Fetch owner's priority gym ID ───────────────────────────────────────
   /**
-   * The backend scopes /gyms to the authenticated owner automatically.
-   * We take the first gym's id_gym.
+   * Prioritizes the currently connected gym from AuthService.
+   * If none is selected, fetches all gyms and picks the first active one.
    */
   getOwnerGymId(): Observable<string> {
+    const currentGymId = this.authService.currentUser()?.gym_id;
+    if (currentGymId) {
+      return of(currentGymId.toString());
+    }
+
     return this.http.get<any>(`${this.apiUrl}/gyms`, { headers: this.authHeaders }).pipe(
       map((res: any) => {
-        // Response can be { data: [...] } or an array directly
         const gyms: any[] = Array.isArray(res) ? res : (res?.data ?? []);
         if (!gyms.length) {
           throw new Error('No gym found for this owner. Please create a gym first.');
         }
-        const gymId = gyms[0]?.id_gym;
+        
+        // Prefer an active gym, otherwise fallback to the first one
+        const targetGym = gyms.find(g => g.status === 'active') || gyms[0];
+        const gymId = targetGym?.id_gym;
+
         if (!gymId) {
           throw new Error('Could not resolve gym ID.');
         }
@@ -76,36 +89,55 @@ export class StaffService {
       role: member.role
     };
 
-    // Step 1: get gym id
     return this.getOwnerGymId().pipe(
-      switchMap((gymId: string) =>
-        // Step 2: register the new user (no auth header needed – public route)
-        this.http.post<any>(`${this.apiUrl}/auth/register`, registerPayload).pipe(
-          switchMap((registerRes: any) => {
-            // Extract id_user from the register response: { data: { user: { id_user } } }
-            const userId: string | null =
-              registerRes?.data?.user?.id_user ??
-              registerRes?.data?.user?.id ??
-              registerRes?.user?.id_user ??
-              registerRes?.id_user ??
-              null;
+      switchMap((gymId: string) => {
+        // Step 1: Try to hire directly by email (handles invitation if user exists)
+        const hirePayload = {
+          email: member.email,
+          id_gym: gymId,
+          role: member.role
+        };
 
-            if (!userId) {
-              return throwError(() =>
-                new Error('Registration succeeded but user ID could not be extracted.')
+        return this.http.post<any>(`${this.apiUrl}/gym-staff`, hirePayload, { headers: this.authHeaders }).pipe(
+          switchMap((res: any) => {
+            // Case 1: User already existed and was invited (or linked if backend allowed)
+            if (res.invitation) {
+              return of(res);
+            }
+            return of(res);
+          }),
+          // Case 2: User does not exist (404 from our new backend logic)
+          // We then proceed with the original registration + linking flow
+          catchError((err) => {
+            if (err.status === 404 || err.status === 422) {
+              // User doesn't exist or other error, try registration flow
+              return this.http.post<any>(`${this.apiUrl}/auth/register`, registerPayload, { headers: this.authHeaders }).pipe(
+                switchMap((registerRes: any) => {
+                  const userId: string | null =
+                    registerRes?.data?.user?.id_user ??
+                    registerRes?.data?.user?.id ??
+                    registerRes?.user?.id_user ??
+                    registerRes?.id_user ??
+                    null;
+
+                  if (!userId) {
+                    return throwError(() => new Error('Registration succeeded but user ID could not be extracted.'));
+                  }
+
+                  // Step 3: Link the newly registered user
+                  return this.http.post<any>(
+                    `${this.apiUrl}/gym-staff`,
+                    { id_gym: gymId, id_user: userId, email: member.email }, // Pass email too just in case
+                    { headers: this.authHeaders }
+                  );
+                })
               );
             }
-
-            // Step 3: link user to gym staff
-            const staffPayload = { id_gym: gymId, id_user: userId };
-            return this.http.post<any>(
-              `${this.apiUrl}/gym-staff`,
-              staffPayload,
-              { headers: this.authHeaders }
-            );
+            // Real error (unauthorized, etc.)
+            return throwError(() => err);
           })
-        )
-      )
+        );
+      })
     );
   }
 
@@ -117,5 +149,24 @@ export class StaffService {
   // ─── Update staff ─────────────────────────────────────────────────────────
   updateStaff(userId: string, member: Partial<StaffMember>): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/users/${userId}`, member, { headers: this.authHeaders });
+  }
+
+  // ─── Invitations ─────────────────────────────────────────────────────────
+  
+  getInvitations(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/gym-staff/invitations`, { headers: this.authHeaders });
+  }
+
+  joinGym(invitation: any): Observable<any> {
+    const payload = {
+      id_gym: invitation.id_gym,
+      role: invitation.role,
+      id_notification: invitation.id_notification
+    };
+    return this.http.post<any>(`${this.apiUrl}/gym-staff/join`, payload, { headers: this.authHeaders });
+  }
+
+  declineInvitation(notifId: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/gym-staff/decline`, { id_notification: notifId }, { headers: this.authHeaders });
   }
 }

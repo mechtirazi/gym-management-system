@@ -46,16 +46,22 @@
     <div class="form-content">
       <div class="premium-input-group">
         <label>Primary Business Email</label>
-        <div class="input-wrapper" [class.disabled]="!isEditing()">
+        <div class="input-wrapper" [class.disabled]="!isEditing()" [class.invalid]="formGroup().get('email')?.invalid && formGroup().get('email')?.touched">
           <input type="email" formControlName="email" [readonly]="!isEditing()">
         </div>
+        @if (formGroup().get('email')?.invalid && formGroup().get('email')?.touched) {
+          <small class="error-msg">Please enter a valid business email.</small>
+        }
       </div>
 
       <div class="premium-input-group">
         <label>Support Hotline</label>
-        <div class="input-wrapper" [class.disabled]="!isEditing()">
+        <div class="input-wrapper" [class.disabled]="!isEditing()" [class.invalid]="formGroup().get('phone')?.invalid && formGroup().get('phone')?.touched">
           <input type="tel" formControlName="phone" [readonly]="!isEditing()">
         </div>
+        @if (formGroup().get('phone')?.invalid && formGroup().get('phone')?.touched) {
+          <small class="error-msg">Valid phone number required (e.g., +212...).</small>
+        }
       </div>
 
       <div class="premium-input-group">

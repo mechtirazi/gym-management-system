@@ -39,15 +39,18 @@ export class GymProfileComponent implements OnInit {
   suspensionReason = signal<string | null>(null);
 
   currentGymId = signal<string | number | null>(null);
+  myGyms = signal<any[]>([]);
   initialFormValues: any = null;
   initialLogo: string | null = null;
   currentLogo = signal<string | null>(null);
   selectedFile: File | null = null;
 
+  connectedGymId = this.authService.connectedGymId;
+
   gymForm = this.fb.group({
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.required],
+    phone: ['', [Validators.required, Validators.pattern('^[0-9+\\- ]{8,15}$')]],
     address: ['', Validators.required],
     description: [''],
   });
@@ -69,18 +72,20 @@ export class GymProfileComponent implements OnInit {
           let myGym = null;
 
           if (Array.isArray(response.data)) {
+            this.myGyms.set(response.data);
             myGym = activeId ? response.data.find((g: Gym) => g.id_gym === activeId || g.id_gym === String(activeId)) : response.data[0];
             if (!myGym && response.data.length > 0) myGym = response.data[0];
           } else {
             myGym = response.data;
+            if (myGym) this.myGyms.set([myGym]);
           }
 
           if (myGym) {
             // Backend uses id_gym as the primary key
-            this.currentGymId.set(myGym.id_gym || null);
+            const gymId = myGym.id_gym || myGym.id || null;
+            this.currentGymId.set(gymId);
             this.gymStatus.set(myGym.status || null);
             this.suspensionReason.set(myGym.suspension_reason || null);
-
             const rawLogo = myGym.picture || myGym.logo || myGym.logo_url || myGym.image || null;
             const loadedLogo = this.getImageUrl(rawLogo);
             this.initialLogo = loadedLogo;
@@ -158,25 +163,36 @@ export class GymProfileComponent implements OnInit {
     this.gymService.updateGym(targetId, finalPayload)
       .pipe(finalize(() => this.isSaving.set(false)))
       .subscribe({
-        next: () => {
+        next: (response) => {
           this.initialFormValues = { ...rawValue };
           this.initialLogo = this.currentLogo();
           this.selectedFile = null;
           this.isEditing.set(false);
-          // Future: Toast Notification for successful save
+          alert('Gym profile updated successfully!');
         },
         error: (err) => {
           console.error('Failed to update gym:', err);
-          alert('Failed to save changes to backend. Please check your connection.');
+          const errorMsg = err.error?.message || 'Failed to save changes to backend. Please check your connection.';
+          alert('Error: ' + errorMsg);
         }
       });
+  }
+
+  switchGym(gym: any): void {
+    this.isLoading.set(true);
+    this.authService.switchGym(gym.id_gym, gym.status, gym.suspension_reason);
   }
 
   getImageUrl(path?: string): string | null {
     if (!path) return null;
     if (path.startsWith('http') || path.startsWith('data:')) return path;
-    const baseUrl = environment.apiUrl.replace('/api', '');
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return `${baseUrl}/${cleanPath}`;
+
+    // Ensure baseUrl doesn't end with slash and cleanPath doesn't start with slash
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '');
+
+    const finalUrl = `${baseUrl}/${cleanPath}`;
+    console.log('Resolving Image URL:', finalUrl);
+    return finalUrl;
   }
 }

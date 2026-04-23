@@ -19,9 +19,27 @@ export class AuthService {
   connectedGymId = computed(() => this.currentUser()?.gym_id);
   connectedGymStatus = computed(() => this.currentUser()?.gym_status || 'active');
   connectedGymSuspensionReason = computed(() => this.currentUser()?.gym_suspension_reason);
+  isImpersonating = signal<boolean>(!!localStorage.getItem('original_user'));
+  myGyms = signal<any[]>([]);
 
   constructor(private http: HttpClient, private router: Router) {
     this.checkAndSetDefaultGym();
+    this.fetchAllMyGyms();
+  }
+
+  private fetchAllMyGyms(): void {
+    const user = this.currentUser();
+    const rolesNeedGym = ['owner', 'receptionist', 'trainer', 'nutritionist'];
+    
+    if (user && rolesNeedGym.includes(user.role)) {
+      this.http.get<any>(`${this.API_URL}/gyms`).subscribe({
+        next: (res) => {
+          if (res.success && Array.isArray(res.data)) {
+            this.myGyms.set(res.data);
+          }
+        }
+      });
+    }
   }
 
   getApiUrl(): string {
@@ -38,7 +56,7 @@ export class AuthService {
       const isBase64 = !!params['u'];
       const userStr = isBase64 ? atob(userParam) : userParam;
       const user = JSON.parse(userStr);
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', userStr);
       this.currentUser.set(user);
@@ -56,9 +74,11 @@ export class AuthService {
   }
 
   register(userData: any): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, userData).pipe(
-      tap(response => this.handleAuthentication(response))
-    );
+    return this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, userData);
+  }
+
+  verifyEmail(id: string, hash: string, query: string): Observable<any> {
+    return this.http.get(`${this.API_URL}/auth/verify/${id}/${hash}?${query}`);
   }
 
   logout(): void {
@@ -73,7 +93,7 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
-  switchGym(gymId: string, status: string = 'active', reason: string = ''): void {
+  switchGym(gymId: string | number, status: string = 'active', reason: string = ''): void {
     const user = this.currentUser();
     if (user) {
       const updatedUser = { 
@@ -100,10 +120,10 @@ export class AuthService {
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
       this.currentUser.set(user);
-      
-      // Auto-set default gym if user has none
-      const staffRoles = ['owner', 'trainer', 'nutritionist', 'receptionist'];
-      if (staffRoles.includes(user.role) && !user.gym_id) {
+
+      // Auto-set default gym if user has none and needs one
+      const rolesNeedGym = ['owner', 'receptionist', 'trainer', 'nutritionist'];
+      if (rolesNeedGym.includes(user.role) && !user.gym_id) {
         this.checkAndSetDefaultGym();
       }
     }
@@ -111,9 +131,9 @@ export class AuthService {
 
   private checkAndSetDefaultGym(): void {
     const user = this.currentUser();
-    const staffRoles = ['owner', 'trainer', 'nutritionist', 'receptionist'];
+    const rolesNeedGym = ['owner', 'receptionist', 'trainer', 'nutritionist'];
     
-    if (user && staffRoles.includes(user.role) && !user.gym_id) {
+    if (user && rolesNeedGym.includes(user.role) && !user.gym_id) {
       this.http.get<any>(`${this.API_URL}/gyms`).subscribe({
         next: (res) => {
           if (res.success && res.data && res.data.length > 0) {
@@ -150,11 +170,12 @@ export class AuthService {
             localStorage.setItem('original_user', JSON.stringify(this.currentUser()));
             localStorage.setItem('original_token', localStorage.getItem('token') || '');
           }
-          
+
           this.handleAuthentication(res);
+          this.isImpersonating.set(true);
           // Force dashboard redirect
           this.router.navigate(['/owner/dashboard']).then(() => {
-             window.location.reload(); 
+            window.location.reload();
           });
         }
       })
@@ -168,6 +189,7 @@ export class AuthService {
     if (originalUser) {
       localStorage.removeItem('original_user');
       localStorage.removeItem('original_token');
+      this.isImpersonating.set(false);
       
       const user = JSON.parse(originalUser);
       this.currentUser.set(user);
@@ -178,7 +200,7 @@ export class AuthService {
       }
       
       this.router.navigate(['/admin/dashboard']).then(() => {
-         window.location.reload();
+        window.location.reload();
       });
     } else {
       this.logout();

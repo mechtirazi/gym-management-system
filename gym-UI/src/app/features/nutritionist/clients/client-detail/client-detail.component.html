@@ -1,0 +1,447 @@
+<div class="client-detail-page animate-fade-in">
+  <!-- Glowing subtle backgrounds -->
+  <div class="bg-glow"></div>
+
+  @if (isLoading()) {
+    <div class="loading-state glass-card">
+      <div class="spinner"></div>
+      <p>Consulting client dossier...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-card error glass-card">
+      <span class="material-symbols-rounded icon">person_off</span>
+      <h2>Access Error</h2>
+      <p>{{ error() }}</p>
+      <button class="action-btn solid" routerLink="/nutritionist/clients">Return to Roster</button>
+    </div>
+  } @else {
+    <app-page-header
+      [title]="client().name + ' ' + (client().last_name || '')"
+      [subtitle]="'Comprehensive dossier of membership status and dietary history.'"
+    >
+      <span header-icon class="material-symbols-rounded">person</span>
+      <button class="action-btn outline back-btn" routerLink="/nutritionist/clients">
+        <span class="material-symbols-rounded">arrow_back</span>
+        <span class="btn-text">Back</span>
+      </button>
+    </app-page-header>
+
+    <!-- Coach Advisory Section -->
+    <section class="advisory-area animate-slide-up">
+      <div class="advisory-banner glass-card" [class.empty]="!clientAdvisory()">
+        <div class="adv-icon-box">
+          <span class="material-symbols-rounded">campaign</span>
+        </div>
+        <div class="adv-content">
+          <div class="adv-label">Professional Advisory for {{ client().name }}</div>
+          <p class="adv-text">
+            {{ clientAdvisory() || 'No active clinical remarks for this member. Issue an advisory to provide direct guidance.' }}
+          </p>
+        </div>
+        <div class="adv-actions">
+          <button class="action-btn blur" (click)="onIssueAdvisory()">
+            {{ clientAdvisory() ? 'Update Remark' : 'Issue Remark' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="detail-grid">
+      <!-- Sidebar / Basic Info -->
+      <aside class="info-sidebar">
+        <div class="profile-card-large glass-card">
+          <div class="avatar-container">
+            <div class="avatar-ring">
+              <div class="avatar-main">
+                {{ client().name.charAt(0) }}
+              </div>
+            </div>
+            <span class="status-indicator active">Member</span>
+          </div>
+          
+          <div class="quick-meta">
+            <div class="meta-item">
+              <span class="material-symbols-rounded">mail</span>
+              <span class="val">{{ client().email }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="material-symbols-rounded">location_on</span>
+              <span class="val">{{ client().gymName || 'Default Gym' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="material-symbols-rounded">calendar_today</span>
+              <span class="val">Joined {{ client().created_at | date:'mediumDate' }}</span>
+            </div>
+          </div>
+
+          <div class="client-summary">
+            <div class="sum-card">
+              <span class="sum-val">{{ plans().length }}</span>
+              <span class="sum-label">Total Plans</span>
+            </div>
+            <div class="sum-card">
+              <span class="sum-val">{{ activePlans().length }}</span>
+              <span class="sum-label">Active</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-cards glass-card">
+          <h3>Consultation Actions</h3>
+          <div class="action-list">
+            <button class="menu-btn" (click)="onViewReport()">
+              <span class="material-symbols-rounded">description</span>
+              <span>View Report</span>
+            </button>
+            <button class="menu-btn" (click)="onInternalNotes()">
+              <span class="material-symbols-rounded">notes</span>
+              <span>Internal Notes</span>
+            </button>
+            <button class="menu-btn" (click)="onActivityLog()">
+              <span class="material-symbols-rounded">history</span>
+              <span>Activity Log</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content / Plans -->
+      <main class="content-area">
+        <section class="progress-section">
+          <div class="section-title">
+            <span class="material-symbols-rounded">analytics</span>
+            <h2>Metabolic Analysis</h2>
+          </div>
+
+          <!-- Clinical Goal Tracking Module -->
+          <div class="goal-tracking-module glass-card">
+            <div class="g-header">
+              <div class="g-title">
+                <span class="material-symbols-rounded">flag</span>
+                <h3>Clinical Target Goal</h3>
+              </div>
+              <button class="action-btn blur mini" (click)="onEditTarget()" *ngIf="!isEditingTarget()">
+                <span class="material-symbols-rounded">edit</span>
+                <span>{{ client()?.target_weight ? 'Edit Target' : 'Set Target' }}</span>
+              </button>
+            </div>
+
+            @if (isEditingTarget()) {
+              <div class="g-edit-pane animate-slide-up">
+                 <p>Define the target weight (kg) for this biological cycle:</p>
+                 <div class="input-group">
+                   <input type="number" step="0.1" [(ngModel)]="targetWeightInput" class="dark-input" placeholder="e.g. 75.0" />
+                   <button class="action-btn solid" (click)="saveTargetWeight()">Save Objective</button>
+                   <button class="action-btn outline" (click)="isEditingTarget.set(false)">Cancel</button>
+                 </div>
+              </div>
+            } @else {
+              @if (client()?.target_weight) {
+                <div class="g-progress-area">
+                  <div class="p-labels">
+                    <span class="p-start">Start: {{ progressData().length > 0 ? progressData()[progressData().length - 1].weight : '--' }}kg</span>
+                    <span class="p-current">Current: <strong>{{ progressData().length > 0 ? progressData()[0].weight : '--' }}kg</strong></span>
+                    <span class="p-target">Target: {{ client().target_weight }}kg</span>
+                  </div>
+                  
+                  <div class="p-bar-track">
+                    <div class="p-bar-fill" [style.width]="(goalProgress() || 0) + '%'"></div>
+                    <!-- Indicator dot at current pos -->
+                    <div class="p-dot" [style.left]="(goalProgress() || 0) + '%'"></div>
+                  </div>
+                  
+                  <div class="p-status">
+                    <span class="pct">{{ goalProgress() }}% Completed</span>
+                    @if (goalProgress() === 100) {
+                      <span class="badge success">Target Achieved</span>
+                    } @else {
+                      <span class="badge in-progress">In biological translation</span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="g-empty">
+                  <p>No target milestone set. Set an objective to activate predictive analytics and velocity tracking.</p>
+                </div>
+              }
+            }
+
+            <div class="macro-strategy">
+              <h4 class="st-title">Active Strategy Baseline</h4>
+              <div class="st-grid">
+                <div class="st-item"><span class="lbl">Cals</span> <span class="val">{{ client()?.manual_calories || '--' }}</span></div>
+                <div class="st-item"><span class="lbl">Pro</span> <span class="val">{{ client()?.manual_protein || '--' }}g</span></div>
+                <div class="st-item"><span class="lbl">Carb</span> <span class="val">{{ client()?.manual_carbs || '--' }}g</span></div>
+                <div class="st-item"><span class="lbl">Fat</span> <span class="val">{{ client()?.manual_fats || '--' }}g</span></div>
+              </div>
+            </div>
+          </div>
+
+          @if (progressData().length > 0) {
+            <div class="metrics-grid prof">
+              <div class="metric-card glass-card">
+                <div class="m-header">
+                  <span class="label">Weight Velocity</span>
+                  <span class="material-symbols-rounded icon-mini">speed</span>
+                </div>
+                <div class="val-group">
+                  <span class="value">{{ weightVelocity() }}</span>
+                  <span class="unit">kg/week</span>
+                </div>
+                <p class="m-desc">Average biological adaptation rate.</p>
+              </div>
+
+              <div class="metric-card glass-card">
+                <div class="m-header">
+                  <span class="label">Composition Shift</span>
+                  <span class="material-symbols-rounded icon-mini">body_fat</span>
+                </div>
+                <div class="val-group">
+                  <span class="value">{{ progressData()[0]?.body_fat }}</span>
+                  <span class="unit">% BF</span>
+                </div>
+                <p class="m-desc Status" [class.opt]="bodyCompScore() === 'Optimal'"> Status: {{ bodyCompScore() }}</p>
+              </div>
+
+              <div class="metric-card glass-card">
+                <div class="m-header">
+                  <span class="label">Training Density</span>
+                  <span class="material-symbols-rounded icon-mini">exercise</span>
+                </div>
+                <div class="val-group">
+                  <span class="value">{{ trainingData().length }}</span>
+                  <span class="unit">pulses</span>
+                </div>
+                <p class="m-desc">{{ trainingVolume() }} total sets | {{ trainingData().length > 4 ? 'High Engagement' : 'Moderate' }}</p>
+              </div>
+
+              <div class="metric-card glass-card active">
+                <div class="m-header">
+                  <span class="label">Net Evolution</span>
+                  <span class="material-symbols-rounded icon-mini">trending_up</span>
+                </div>
+                <div class="val-group">
+                  <span class="value">{{ weightTrend() }}</span>
+                  <span class="unit">kg</span>
+                </div>
+                <p class="m-desc">Total mass flux since first sync.</p>
+              </div>
+            </div>
+
+            <div class="timeline-section">
+              <div class="section-title mini">
+                <span class="material-symbols-rounded">history_edu</span>
+                <h3>Clinical Activity Timeline</h3>
+              </div>
+              
+              <div class="timeline-container">
+                @for (item of activityTimeline(); track item.id || item.id_user) {
+                  <div class="timeline-item" [class]="item.type">
+                    <div class="t-line"></div>
+                    <div class="t-dot">
+                      <span class="material-symbols-rounded">{{ item.type === 'biometric' ? 'monitor_weight' : 'exercise' }}</span>
+                    </div>
+                    <div class="t-content glass-card">
+                      <div class="t-header">
+                        <span class="t-date">{{ (item.log_date || item.workout_date) | date:'mediumDate' }}</span>
+                        <span class="t-tag">{{ item.type | uppercase }}</span>
+                      </div>
+                      <div class="t-body">
+                        @if (item.type === 'biometric') {
+                          <div class="t-stats">
+                            <div class="stat"><span>Weight:</span> <strong>{{ item.weight }}kg</strong></div>
+                            <div class="stat"><span>Fat:</span> <strong>{{ item.body_fat }}%</strong></div>
+                          </div>
+                          @if (item.notes) { <p class="t-note">"{{ item.notes }}"</p> }
+                        } @else {
+                          <div class="t-stats">
+                            <div class="stat"><span>Session:</span> <strong>{{ item.name }}</strong></div>
+                            <div class="stat"><span>Volume:</span> <strong>{{ item.exercises?.length }} Exercises</strong></div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="empty-list-state glass-card mini">
+              <div class="empty-icon-box">
+                <span class="material-symbols-rounded">bar_chart_4_bars</span>
+              </div>
+              <h3>No Progress History</h3>
+              <p>Biometric synchronization logs are missing for this member.</p>
+            </div>
+          }
+        </section>
+
+        <section id="protocol-history" class="protocols-master-container glass-card">
+          <div class="section-title mini mb-4">
+            <span class="material-symbols-rounded">restaurant</span>
+            <h3>Dietary Protocol History</h3>
+          </div>
+
+          @if (plans().length === 0) {
+            <div class="empty-list-state glass-card mini inner">
+              <div class="empty-icon-box">
+                <span class="material-symbols-rounded">list_alt</span>
+              </div>
+              <h3>No Protocols Found</h3>
+              <p>This client has no specialized nutrition plans recorded.</p>
+            </div>
+          } @else {
+            <div class="protocols-wrapper">
+              <!-- Active Plans -->
+              @if (activePlans().length > 0) {
+                <div class="p-group">
+                  <h4 class="group-title"><span class="pulse-ring"></span> Active Now</h4>
+                  <div class="plans-v-list">
+                    @for (p of activePlans(); track p.id_plan) {
+                      <app-nutrition-card [plan]="p" [readonly]="true" />
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Upcoming -->
+              @if (upcomingPlans().length > 0) {
+                <div class="p-group mt-4">
+                  <h4 class="group-title">Upcoming Protocols</h4>
+                  <div class="plans-v-list">
+                    @for (p of upcomingPlans(); track p.id_plan) {
+                      <app-nutrition-card [plan]="p" [readonly]="true" />
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Past -->
+              @if (pastPlans().length > 0) {
+                <div class="p-group mt-4">
+                  <h4 class="group-title collapsed">Archived Plans</h4>
+                  <div class="plans-v-list stale">
+                    @for (p of pastPlans(); track p.id_plan) {
+                      <div class="plan-history-row glass-card">
+                        <div class="p-details">
+                          <span class="p-goal">{{ p.goal }}</span>
+                          <span class="p-dates">{{ p.start_date | date:'shortDate' }} - {{ p.end_date | date:'shortDate' }}</span>
+                        </div>
+                        <div class="p-price">${{ p.price }}</div>
+                        <button class="action-btn icon-only outline" [routerLink]="['/nutritionist/nutrition-plans']" [queryParams]="{ memberId: clientId() }">
+                          <span class="material-symbols-rounded">visibility</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </main>
+    </div>
+  }
+</div>
+
+<!-- Modal Overlays -->
+@if (showReportModal()) {
+  <div class="modal-overlay animate-fade-in" (click)="showReportModal.set(false)">
+    <div class="modal-content report-modal glass-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="h-text">
+          <h2>Clinical Consultation Report</h2>
+          <p>Generated on {{ today | date:'medium' }}</p>
+        </div>
+        <button class="close-btn" (click)="showReportModal.set(false)">&times;</button>
+      </header>
+      
+      <div class="modal-body report-body">
+        <div class="report-id-card">
+          <div class="r-row"><strong>Member:</strong> {{ client().name }} {{ client().last_name }}</div>
+          <div class="r-row"><strong>ID Signature:</strong> {{ clientId() }}</div>
+        </div>
+        <div class="report-section">
+          <h3>Metabolic Summary</h3>
+          <div class="r-grid">
+            <div class="r-item">
+              <label>Starting Weight</label>
+              <span>{{ progressData().length > 0 ? progressData()[progressData().length - 1].weight : '—' }} kg</span>
+            </div>
+            <div class="r-item">
+              <label>Latest Weight</label>
+              <span>{{ progressData().length > 0 ? progressData()[0].weight : '—' }} kg</span>
+            </div>
+            <div class="r-item">
+              <label>Net Delta</label>
+              <span [class.success]="weightTrend() < 0" [class.warning]="weightTrend() > 0">{{ weightTrend() }} kg</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <h3>Biometric Composition</h3>
+          <div class="r-grid">
+            <div class="r-item">
+              <label>Starting Fat %</label>
+              <span>{{ progressData().length > 0 ? progressData()[progressData().length - 1].body_fat : '—' }} %</span>
+            </div>
+            <div class="r-item">
+              <label>Current Fat %</label>
+              <span>{{ progressData().length > 0 ? progressData()[0].body_fat : '—' }} %</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button class="action-btn solid" (click)="showReportModal.set(false)">Print Dossier</button>
+      </footer>
+    </div>
+  </div>
+}
+
+@if (showNotesModal()) {
+  <div class="modal-overlay animate-fade-in" (click)="showNotesModal.set(false)">
+    <div class="modal-content notes-modal glass-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Private Professional Notes</h2>
+        <button class="close-btn" (click)="showNotesModal.set(false)">&times;</button>
+      </header>
+      <div class="modal-body">
+        <textarea placeholder="Write clinical observations, dietary adjustments, or follow-up reminders..."></textarea>
+      </div>
+      <footer class="modal-footer">
+        <button class="action-btn outline" (click)="showNotesModal.set(false)">Cancel</button>
+        <button class="action-btn solid" (click)="showNotesModal.set(false)">Save Notes</button>
+      </footer>
+    </div>
+  </div>
+}
+
+@if (showAdvisoryModal()) {
+  <div class="modal-overlay animate-fade-in" (click)="showAdvisoryModal.set(false)">
+    <div class="modal-content advisory-modal glass-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="h-icon-ring alert">
+          <span class="material-symbols-rounded">campaign</span>
+        </div>
+        <div class="h-text">
+          <h2>Issue Professional Remark</h2>
+          <p>This will be pinned to the member's dashboard.</p>
+        </div>
+        <button class="close-btn" (click)="showAdvisoryModal.set(false)">&times;</button>
+      </header>
+      <div class="modal-body">
+        <div class="input-desc">Provide direct dietary feedback or priority instructions.</div>
+        <textarea #remarkInput [value]="clientAdvisory() || ''" placeholder="Example: Hydration levels are low. Increase water intake to 3.5L/day in next 48h."></textarea>
+      </div>
+      <footer class="modal-footer">
+        <button class="action-btn outline" (click)="showAdvisoryModal.set(false)">Dismiss</button>
+        <button class="action-btn solid" (click)="sendAdvisory(remarkInput.value)">Pin Advisory</button>
+      </footer>
+    </div>
+  </div>
+}
+
+

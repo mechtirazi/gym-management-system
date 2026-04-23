@@ -20,9 +20,11 @@ class CheckSubscription
         if ($user && $user->role === 'owner') {
             // If the route has a gym ID, check that specific gym
             $gymId = $request->route('id_gym') ?: $request->route('gym') ?: $request->route('id');
-            
+
             if ($gymId) {
-                $gym = \App\Models\Gym::find($gymId);
+                // If the parameter is already a Gym model (Implicit binding), use it directly.
+                // Otherwise, it's just the ID string, so we fetch it from the database.
+                $gym = $gymId instanceof \App\Models\Gym ? $gymId : \App\Models\Gym::find($gymId);
                 if ($gym && $gym->subscription_expires_at && $gym->subscription_expires_at->isPast()) {
                     return response()->json([
                         'success' => false,
@@ -33,9 +35,9 @@ class CheckSubscription
             } else {
                 // For general owner routes, check if they have at least one active gym
                 $hasActiveGym = $user->ownedGyms()
-                    ->where(function($query) {
+                    ->where(function ($query) {
                         $query->whereNull('subscription_expires_at')
-                              ->orWhere('subscription_expires_at', '>', now());
+                            ->orWhere('subscription_expires_at', '>', now());
                     })->exists();
 
                 if (!$hasActiveGym && $user->ownedGyms()->exists()) {

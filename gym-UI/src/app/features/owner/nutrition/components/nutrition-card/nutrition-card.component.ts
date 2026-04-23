@@ -11,6 +11,7 @@ import { NutritionPlan } from '../../../../../shared/models/nutrition.model';
 })
 export class NutritionCardComponent {
   plan = input.required<NutritionPlan>();
+  readonly = input<boolean>(false);
   deleteClick = output<string>();
   editClick = output<NutritionPlan>();
 }

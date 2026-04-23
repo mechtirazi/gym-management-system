@@ -10,7 +10,7 @@ class EnrollmentService extends BaseService
     public function __construct()
     {
         $this->setModel(new Enrollment());
-        $this->setRelations(['member', 'gym']);
+        $this->setRelations(['member', 'gym', 'plan']);
     }
 
     /**

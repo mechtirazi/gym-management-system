@@ -38,4 +38,8 @@ export class UserService {
       current_password: passwordData.currentPassword
     });
   }
+
+  createUser(userData: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, userData);
+  }
 }
