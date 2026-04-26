@@ -15,25 +15,27 @@
   </div>
 
   <nav class="sidebar-nav" [class.blocked-mode]="connectedGymStatus() === 'suspended'">
-    @for (item of navItems; track item.label) {
-    @if (item.isHeader) {
-    <div class="nav-header" [class.locked]="isLocked(item)">{{ item.label }}</div>
-    } @else {
-    <a [routerLink]="isLocked(item) ? null : item.route" 
-       routerLinkActive="active" 
-       class="nav-item" 
-       [class.locked]="isLocked(item)"
-       [attr.title]="isLocked(item) ? item.label + ' (Suspended)' : item.label">
-      <span class="nav-icon" [innerHTML]="getIcon(item.icon!)"></span>
-      <span class="nav-label">{{ item.label }}</span>
-      @if (isLocked(item)) {
-        <span class="lock-indicator">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-        </span>
+    <div class="nav-scroll-wrapper">
+      @for (item of navItems; track item.label) {
+      @if (item.isHeader) {
+      <div class="nav-header" [class.locked]="isLocked(item)">{{ item.label }}</div>
+      } @else {
+      <a [routerLink]="isLocked(item) ? null : item.route" 
+         routerLinkActive="active" 
+         class="nav-item" 
+         [class.locked]="isLocked(item)"
+         [attr.title]="isLocked(item) ? item.label + ' (Suspended)' : item.label">
+        <span class="nav-icon" [innerHTML]="getIcon(item.icon!)"></span>
+        <span class="nav-label">{{ item.label }}</span>
+        @if (isLocked(item)) {
+          <span class="lock-indicator">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </span>
+        }
+      </a>
       }
-    </a>
-    }
-    }
+      }
+    </div>
   </nav>
 
   <div class="sidebar-footer">

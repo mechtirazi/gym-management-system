@@ -23,8 +23,8 @@ export class AdminSidebarComponent {
 
     { label: 'System', isHeader: true },
     { label: 'Notifications', icon: 'bell', route: '/notifications', badge: 'Alert' },
-    { label: 'Monitoring', icon: 'clock', route: '/admin/monitoring', badge: 'Live' },
-    { label: 'Access Matrix', icon: 'card', route: '/admin/access-matrix' },
+    { label: 'System Status', icon: 'clock', route: '/admin/monitoring', badge: 'Live' },
+    { label: 'Permissions', icon: 'card', route: '/admin/access-matrix' },
     { label: 'Activity', icon: 'calendar', route: '/admin/activity' },
 
     { label: 'App', isHeader: true },

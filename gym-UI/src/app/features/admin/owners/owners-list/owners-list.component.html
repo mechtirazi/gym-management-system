@@ -42,7 +42,7 @@
     </div>
 
     <div class="count-tag" aria-live="polite">
-      {{ filteredData().length }} Entities found
+      {{ filteredData().length }} Owners found
     </div>
   </div>
 
@@ -63,8 +63,8 @@
       <table>
         <thead>
           <tr>
-            <th>{{ statusFilter() === 'suspended' ? 'Suspended Facility' : 'Platform Owner' }}</th>
-            <th>{{ statusFilter() === 'suspended' ? 'Operational Node' : 'Verification Status' }}</th>
+            <th>{{ statusFilter() === 'suspended' ? 'Suspended Gym' : 'Platform Owner' }}</th>
+            <th>{{ statusFilter() === 'suspended' ? 'Status' : 'Verification Status' }}</th>
             <th>{{ statusFilter() === 'suspended' ? 'Creation Date' : 'Registration Date' }}</th>
             <th>{{ statusFilter() === 'suspended' ? 'Contact / Provider' : 'Contact Info' }}</th>
             <th style="text-align: right;">Action Center</th>
@@ -94,7 +94,7 @@
                 </div>
                 <div *ngIf="owner.isGymMode" class="status-badge-mini suspended">
                   <div class="dot"></div>
-                  Suspended Node
+                  Suspended
                 </div>
               </td>
 

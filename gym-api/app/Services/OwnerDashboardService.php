@@ -264,14 +264,14 @@ class OwnerDashboardService
             ->take(2)
             ->get();
 
-        $staffSnapshot = $staffMembers->map(function ($staff) use ($currTrainers, $totalStaff) {
+        $staffSnapshot = $staffMembers->map(function ($staff) use ($trainers, $totalStaff) {
             return [
                 'name' => $staff->name . ' ' . $staff->last_name,
                 'role' => ucfirst($staff->role),
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($staff->name . '+' . $staff->last_name) . '&background=random&size=40',
                 'metric' => rand(75, 98), // Realistic dynamic metric
                 'shift' => '70', // Placeholder shift
-                'coaches' => $currTrainers . '/' . $totalStaff
+                'coaches' => ($trainers['activeTrainers'] ?? 0) . '/' . $totalStaff
             ];
         });
 

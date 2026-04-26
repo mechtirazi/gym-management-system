@@ -34,6 +34,7 @@ export interface UserVm {
   profile_picture?: string | null;
   owned_gyms_count?: number;
   active_gyms_count?: number;
+  status?: string;
 }
 
 // Keep field names reflecting backend contract

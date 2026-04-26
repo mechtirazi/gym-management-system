@@ -27,8 +27,8 @@ class SuperAdminAnalyticsController extends Controller
             // Total Active Gyms
             $totalActiveGyms = Gym::where('status', '!=', 'suspended')->count();
 
-            // Total Active Members
-            $totalActiveMembers = User::where('role', User::ROLE_MEMBER)->count();
+            // Total Active Platform Users (Owners)
+            $totalActiveMembers = User::where('role', User::ROLE_OWNER)->count();
 
             // MRR (Monthly Recurring Revenue)
             $mrr = Payment::whereYear('created_at', $now->year)

@@ -20,8 +20,14 @@ class AuthService
             // Set creation date
             $data['creation_date'] = now();
 
+            // Set default status to pending
+            $data['status'] = 'pending';
+
             // Create user (email_verified_at is null by default)
             $user = User::create($data);
+
+            // Send verification email
+            $user->notify(new VerifyEmailNotification());
 
             return [
                 'success'              => true,
@@ -143,7 +149,11 @@ class AuthService
     {
         try {
             // Revoke the current token
-            $user->token()->revoke();
+            /** @var \Laravel\Passport\Token|null $token */
+            $token = $user->token();
+            if ($token) {
+                $token->revoke();
+            }
 
             return [
                 'success' => true,
@@ -222,7 +232,11 @@ class AuthService
     {
         try {
             // Revoke old token
-            $user->token()->revoke();
+            /** @var \Laravel\Passport\Token|null $token */
+            $token = $user->token();
+            if ($token) {
+                $token->revoke();
+            }
 
             // Create new token
             $token = $user->createToken('auth_token', ['*'])->accessToken;
@@ -253,6 +267,7 @@ class AuthService
             'role',
             'phone',
             'profile_picture',
+            'status',
             'nutritionist_advisory',
         ]);
     }
@@ -271,6 +286,7 @@ class AuthService
             'phone',
             'creation_date',
             'profile_picture',
+            'status',
             'nutritionist_advisory',
         ]);
     }

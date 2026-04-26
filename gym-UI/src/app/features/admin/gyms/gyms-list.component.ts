@@ -31,10 +31,10 @@ import { environment } from '../../../../environments/environment';
         <header class="admin-header">
           <div class="admin-badge-mini">
             <mat-icon style="font-size: 14px; width: 14px; height: 14px;">storefront</mat-icon>
-            Macro Governance
+            Gym Management
           </div>
-          <h1>System Facilities</h1>
-          <p>Global oversight of gym access and operational status</p>
+          <h1>System Gyms</h1>
+          <p>Global oversight of gym access and status</p>
         </header>
 
         <button (click)="loadGyms()" class="admin-btn" [disabled]="loading()">
@@ -50,7 +50,7 @@ import { environment } from '../../../../environments/environment';
           <input type="text"
             [ngModel]="searchTerm()"
             (ngModelChange)="searchTerm.set($event)"
-            placeholder="Search by facility or provider node..."
+            placeholder="Search by gym name or owner..."
             autocomplete="off"
           >
         </div>
@@ -59,8 +59,8 @@ import { environment } from '../../../../environments/environment';
            <div class="form-field" style="width: 100%; gap: 0;">
               <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)" 
                       style="border-radius: 1rem; padding: 0.75rem 1rem 0.75rem 0.75rem;">
-                <option value="all">All Ecosystem States</option>
-                <option value="active">Operational Only</option>
+                <option value="all">All Statuses</option>
+                <option value="active">Active Only</option>
                 <option value="suspended">Suspended Only</option>
               </select>
            </div>
@@ -79,10 +79,10 @@ import { environment } from '../../../../environments/environment';
           <table>
             <thead>
               <tr>
-                <th>Facility Node</th>
-                <th>Platform Provider</th>
-                <th>Community Size</th>
-                <th>System Status</th>
+                <th>Gym Name</th>
+                <th>Platform Owner</th>
+                <th>Members Count</th>
+                <th>Status</th>
                 <th style="text-align: right;">Operations</th>
               </tr>
             </thead>
@@ -99,7 +99,7 @@ import { environment } from '../../../../environments/environment';
                 </td>
                 <td>
                   <span class="main-text">{{ gym.owner?.name }}</span>
-                  <span class="sub-text">Verified Provider</span>
+                  <span class="sub-text">Platform Owner</span>
                 </td>
                 <td>
                   <div class="community-tag">

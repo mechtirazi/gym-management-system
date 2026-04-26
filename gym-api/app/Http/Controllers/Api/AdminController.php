@@ -332,7 +332,7 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'data' => $owner,
-            'message' => 'Owner provisioned successfully.',
+            'message' => 'Owner created successfully.',
         ], 201);
     }
 
@@ -357,7 +357,7 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'data' => $owner,
-            'message' => 'Owner identity synced successfully.',
+            'message' => 'Owner updated successfully.',
         ], 200);
     }
 
@@ -374,7 +374,7 @@ class AdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Owner node decohered successfully.',
+            'message' => 'Owner deleted successfully.',
         ], 204);
     }
 }
