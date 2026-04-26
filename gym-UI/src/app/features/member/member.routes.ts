@@ -30,6 +30,10 @@ export const memberRoutes: Routes = [
     loadComponent: () => import('./courses/member-courses.component').then(m => m.MemberCoursesComponent)
   },
   {
+    path: 'events',
+    loadComponent: () => import('./events/member-events.component').then(m => m.MemberEventsComponent)
+  },
+  {
     path: 'feed',
     loadComponent: () => import('./feed/feed').then(m => m.FeedComponent)
   },

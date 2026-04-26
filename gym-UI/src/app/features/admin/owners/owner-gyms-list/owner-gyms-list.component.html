@@ -27,6 +27,12 @@
 
   <div *ngIf="!loading() && !error() && gyms().length > 0" class="nested-gym-grid animate-in zoom-in-95 duration-500">
     <div *ngFor="let gym of gyms(); trackBy: trackByGymId" class="mini-gym-card">
+      <div class="card-image" [class.has-image]="gym.picture">
+        <img *ngIf="gym.picture" [src]="getGymImageUrl(gym.picture)" [alt]="gym.name" />
+        <div class="image-fallback" *ngIf="!gym.picture">
+          <mat-icon>fitness_center</mat-icon>
+        </div>
+      </div>
       <div class="card-top">
         <h4>{{ gym.name }}</h4>
         <span class="mini-badge" [ngClass]="gym.status === 'active' ? 'active' : 'suspended'">

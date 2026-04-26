@@ -11,6 +11,8 @@ export interface Course {
     name: string;
   };
   sessions?: any[];
+  image_url?: string;
+  image?: File;
   created_at?: string;
   updated_at?: string;
 }

@@ -46,6 +46,18 @@
     color: #fff;
     box-shadow: 0 0 20px rgba(129, 140, 248, 0.3);
   }
+
+  &.gym-mode {
+    background: rgba(244, 63, 94, 0.1);
+    border-color: rgba(244, 63, 94, 0.2);
+    color: var(--admin-accent-rose);
+    
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
 }
 
 .status-badge-mini {
@@ -59,6 +71,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border: 1px solid transparent;
+  white-space: nowrap;
   
   .dot {
     width: 6px;
@@ -71,6 +84,13 @@
     color: var(--admin-accent-emerald);
     border-color: rgba(16, 185, 129, 0.2);
     .dot { background: var(--admin-accent-emerald); box-shadow: 0 0 8px var(--admin-accent-emerald); }
+  }
+
+  &.suspended {
+    background: rgba(244, 63, 94, 0.1);
+    color: var(--admin-accent-rose);
+    border-color: rgba(244, 63, 94, 0.2);
+    .dot { background: var(--admin-accent-rose); box-shadow: 0 0 8px var(--admin-accent-rose); }
   }
 
   &.pending {
@@ -208,4 +228,8 @@
 
 .rotate-180 {
   transform: rotate(180deg);
+}
+
+.cursor-default {
+  cursor: default !important;
 }

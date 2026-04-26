@@ -4,11 +4,13 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { Router } from '@angular/router';
+import { StaffService } from '../../../../features/owner/staff/services/staff.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatSnackBarModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -17,6 +19,8 @@ export class HeaderComponent {
   private themeService = inject(ThemeService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private staffService = inject(StaffService);
+  private snackBar = inject(MatSnackBar);
 
   currentUser = this.authService.currentUser;
   isDarkMode = this.themeService.darkMode;
@@ -29,7 +33,7 @@ export class HeaderComponent {
   connectedGymId = this.authService.connectedGymId;
 
   // Use the notification service's signals
-  notifications = this.notificationService.notifications;
+  notifications = this.notificationService.unreadNotifications;
   hasUnread = this.notificationService.hasUnread;
 
   isImpersonating = this.authService.isImpersonating;
@@ -83,5 +87,41 @@ export class HeaderComponent {
   switchGym(id: string | number): void {
     this.authService.switchGym(id);
     this.showGymSwitcher.set(false);
+  }
+
+  acceptInvite(notif: any): void {
+    const parts = notif.type?.split(':');
+    if (!parts || parts.length < 3) return;
+
+    const gymId = parts[1];
+    const role = parts[2];
+    
+    const payload = {
+      id_notification: notif.id,
+      id_gym: gymId,
+      role: role
+    };
+
+    this.staffService.joinGym(payload).subscribe({
+      next: () => {
+        this.snackBar.open('Invitation accepted! Welcome.', 'Awesome', { duration: 3000 });
+        this.notificationService.fetchNotifications().subscribe();
+        
+        // Reload context so the user instantly gains access to the relevant sidebars and routes
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      },
+      error: () => this.snackBar.open('Failed to join gym.', 'Close', { duration: 3000 })
+    });
+  }
+
+  declineInvite(notif: any): void {
+    this.staffService.declineInvitation(notif.id).subscribe({
+      next: () => {
+        this.snackBar.open('Invitation declined.', 'Close', { duration: 3000 });
+        this.notificationService.fetchNotifications().subscribe();
+      }
+    });
   }
 }

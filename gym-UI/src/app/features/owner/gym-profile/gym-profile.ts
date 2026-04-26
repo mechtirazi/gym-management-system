@@ -7,6 +7,7 @@ import { GymProfileHeaderComponent } from './components/header/gym-profile-heade
 import { GymProfileFormComponent } from './components/form/gym-profile-form.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { environment } from '../../../../environments/environment';
+import { ToastService } from '../../../core/services/toast.service';
 
 import { MatIconModule } from '@angular/material/icon';
 import { finalize } from 'rxjs/operators';
@@ -28,6 +29,7 @@ export class GymProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private gymService = inject(GymProfileService);
   private authService = inject(AuthService);
+  private toast = inject(ToastService);
 
 
   isEditing = signal<boolean>(false);
@@ -53,6 +55,9 @@ export class GymProfileComponent implements OnInit {
     phone: ['', [Validators.required, Validators.pattern('^[0-9+\\- ]{8,15}$')]],
     address: ['', Validators.required],
     description: [''],
+    open_mon_fri: [''],
+    open_sat: [''],
+    open_sun: [''],
   });
 
   ngOnInit() {
@@ -98,7 +103,10 @@ export class GymProfileComponent implements OnInit {
               phone: myGym.phone || '',
               // Backend has a typo (adress with one 'd')
               address: myGym.adress || myGym.address || '',
-              description: myGym.description || ''
+              description: myGym.description || '',
+              open_mon_fri: myGym.open_mon_fri || '',
+              open_sat: myGym.open_sat || '',
+              open_sun: myGym.open_sun || ''
             };
 
             this.initialFormValues = { ...fetchedData };
@@ -168,12 +176,12 @@ export class GymProfileComponent implements OnInit {
           this.initialLogo = this.currentLogo();
           this.selectedFile = null;
           this.isEditing.set(false);
-          alert('Gym profile updated successfully!');
+          this.toast.success('Gym profile updated successfully!');
         },
         error: (err) => {
           console.error('Failed to update gym:', err);
-          const errorMsg = err.error?.message || 'Failed to save changes to backend. Please check your connection.';
-          alert('Error: ' + errorMsg);
+          const errorMsg = err.error?.message || 'Failed to save changes. Please check your connection.';
+          this.toast.error(errorMsg);
         }
       });
   }

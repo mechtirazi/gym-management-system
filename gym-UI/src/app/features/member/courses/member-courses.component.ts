@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-member-courses',
@@ -20,7 +21,8 @@ export class MemberCoursesComponent implements OnInit {
 
   courses: any[] = [];
   gyms: any[] = [];
-  myEnrollmentIds: string[] = [];
+  myPaidSessionIds: string[] = [];
+  reservedSessionIds: string[] = [];
   loading = true;
   errorMessage = '';
 
@@ -47,7 +49,7 @@ export class MemberCoursesComponent implements OnInit {
   ];
 
   get filteredCourses() {
-    const filtered = this.courses.filter(course => {
+    return this.courses.filter(course => {
       const matchesSearch = !this.searchText ||
         course.name?.toLowerCase().includes(this.searchText.toLowerCase()) ||
         course.description?.toLowerCase().includes(this.searchText.toLowerCase());
@@ -60,8 +62,6 @@ export class MemberCoursesComponent implements OnInit {
 
       return matchesSearch && matchesCategory && matchesGym;
     });
-
-    return filtered;
   }
 
   get paginatedCourses() {
@@ -70,7 +70,7 @@ export class MemberCoursesComponent implements OnInit {
   }
 
   get totalPages() {
-    return Math.ceil(this.filteredCourses.length / this.itemsPerPage);
+    return Math.ceil(this.filteredCourses.length / this.itemsPerPage) || 1;
   }
 
   changePage(page: number) {
@@ -103,17 +103,25 @@ export class MemberCoursesComponent implements OnInit {
 
     forkJoin({
       allCourses: this.memberService.getAvailableCourses().pipe(catchError(() => of({ data: [] }))),
-      myEnrollments: this.memberService.getMyEnrollments().pipe(catchError(() => of({ data: [] }))),
-      mySubscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] })))
+      myPayments: this.memberService.getMyPayments().pipe(catchError(() => of({ data: [] }))),
+      mySubscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] }))),
+      myAttendances: this.memberService.getMyAttendances().pipe(catchError(() => of({ data: [] })))
     }).subscribe({
       next: (res: any) => {
         const coursesRaw = res.allCourses?.data || [];
-        const enrollmentsRaw = res.myEnrollments?.data || [];
+        const paymentsRaw = res.myPayments?.data || [];
         const subscriptionsRaw = res.mySubscriptions?.data || [];
+        const attendancesRaw = res.myAttendances?.data || [];
 
-        this.myEnrollmentIds = enrollmentsRaw.map((e: any) => e.id_course);
+        // Check session-level ownership through payment history
+        this.myPaidSessionIds = paymentsRaw
+          .filter((p: any) => p.type === 'course' && p.id_session)
+          .map((p: any) => p.id_session);
 
-        // Extract unique gyms from courses that the member has access to
+        // Store sessions the member has officially reserved
+        this.reservedSessionIds = attendancesRaw.map((a: any) => a.id_session || a.session?.id_session).filter((id: any) => !!id);
+
+        // Extract unique gyms
         this.gyms = [];
         const gymIds = new Set();
         subscriptionsRaw.forEach((sub: any) => {
@@ -123,15 +131,39 @@ export class MemberCoursesComponent implements OnInit {
           }
         });
 
-        this.courses = coursesRaw.map((course: any) => ({
-          ...course,
-          isOwned: this.myEnrollmentIds.includes(course.id_course),
-          gymName: course.gym?.name || 'Local Hub',
-          gymLogo: course.gym?.logo_url || `https://ui-avatars.com/api/?name=${course.gym?.name || 'Gym'}&background=8b5cf6&color=fff`,
-          duration: course.duration || '0',
-          members_count: course.count || 0,
-          category: course.goal || 'Fitness'
-        }));
+        this.courses = coursesRaw.map((course: any) => {
+          // Resolve correct image URL
+          let imageUrl = course.image_url || course.image;
+          if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+            const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+            const cleanPath = imageUrl.replace(/^\//, '');
+            imageUrl = `${baseUrl}/${cleanPath}`;
+          }
+
+          // Gather valid sessions
+          const activeSessions = course.sessions?.filter((s: any) => s.status !== 'completed' && s.status !== 'cancelled') || [];
+          
+          // Determine the most accurate trainer data
+          const primaryTrainer = activeSessions.length > 0 ? activeSessions[0]?.trainer : (course.trainer || null);
+          const tName = primaryTrainer?.user?.name || primaryTrainer?.name || course.trainer?.name || 'Master Coach';
+          const tAvatar = primaryTrainer?.user?.avatar || primaryTrainer?.avatar || course.trainer?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(tName)}&background=00d2ff&color=fff&bold=true`;
+
+          return {
+            ...course,
+            id_course: course.id_course || course.id,
+            imageUrl: imageUrl || 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600',
+            gymName: course.gym?.name || 'Local Hub',
+            gymLogo: course.gym?.logo_url || `https://ui-avatars.com/api/?name=${course.gym?.name || 'Gym'}&background=8b5cf6&color=fff`,
+            duration: course.duration || '0',
+            members_count: course.count || 0,
+            category: course.goal || 'Fitness',
+            activeSessions: activeSessions,
+            hasActiveSession: activeSessions.length > 0,
+            selectedSessionId: activeSessions.length > 0 ? activeSessions[0].id_session || activeSessions[0].id : null,
+            displayTrainerName: tName,
+            displayTrainerAvatar: tAvatar
+          };
+        });
 
         this.loading = false;
         this.cdr.detectChanges();
@@ -145,12 +177,39 @@ export class MemberCoursesComponent implements OnInit {
     });
   }
 
-  onEnroll(course: any): void {
-    if (course.isOwned) return;
+  onReserve(course: any): void {
+    if (course.hasActiveSession && !course.selectedSessionId) {
+      alert('Please select a session to reserve.');
+      return;
+    }
 
     this.selectedCourse = course;
+
+    // In 'Pay Per Session' model, we always trigger payment modal unless already reserved/paid
+    if (this.isSessionReserved(course)) {
+      alert('You have already reserved this timeslot.');
+      return;
+    }
+
+    // Require payment/enrollment for this specific session
     this.showPaymentModal = true;
     this.cdr.detectChanges();
+  }
+
+  private executeReservation(course: any) {
+    if (!course.selectedSessionId) {
+      alert('Please select a specific timeslot first.');
+      return;
+    }
+    this.processingPayment = true;
+    this.cdr.detectChanges();
+
+    this.memberService.reserveSession(course.selectedSessionId).subscribe({
+      next: () => {
+        this.handleSuccess('Reservation successful! Marked as pending in attendance.');
+      },
+      error: (err) => this.handleError(err)
+    });
   }
 
   closePaymentModal() {
@@ -167,10 +226,11 @@ export class MemberCoursesComponent implements OnInit {
     this.cdr.detectChanges();
 
     if (event.method === 'zen_wallet') {
-      this.memberService.enrollInCourse(this.selectedCourse.id_course).subscribe({
-        next: (res: any) => {
-          console.log('ENROLL SUCCESS:', res);
-          this.handleSuccess();
+      const courseId = this.selectedCourse.id_course || this.selectedCourse.id;
+      const sessionId = this.selectedCourse.selectedSessionId;
+      this.memberService.enrollInCourse(courseId, sessionId).subscribe({
+        next: () => {
+          this.handleSuccess('Session Secured Successfully!');
         },
         error: (err: any) => this.handleError(err)
       });
@@ -185,8 +245,12 @@ export class MemberCoursesComponent implements OnInit {
             if (result.error) {
               this.handleError({ error: { message: result.error.message } });
             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-              this.memberService.enrollInCourse(this.selectedCourse.id_course, 'credit_card').subscribe({
-                next: () => this.handleSuccess(),
+              const courseId = this.selectedCourse.id_course || this.selectedCourse.id;
+              const sessionId = this.selectedCourse.selectedSessionId;
+              this.memberService.enrollInCourse(courseId, sessionId, 'credit_card').subscribe({
+                next: () => {
+                  this.handleSuccess('Session Secured Successfully!');
+                },
                 error: (err) => this.handleError(err)
               });
             }
@@ -197,17 +261,41 @@ export class MemberCoursesComponent implements OnInit {
     }
   }
 
-  private handleSuccess() {
+  private handleSuccess(msg = 'Transaction successful!') {
     this.processingPayment = false;
+    this.paymentError = null;
     this.closePaymentModal();
+    alert(msg);
     this.loadData();
-    this.cdr.detectChanges();
   }
 
   private handleError(err: any) {
-    console.error('PURCHASE FAILURE:', err);
-    this.paymentError = err.error?.message || 'Access synchronization failed.';
+    console.error('TRANSACTION FAILURE:', err);
+    const msg = err.error?.message || 'Access synchronization failed.';
+    this.paymentError = msg;
     this.processingPayment = false;
     this.cdr.detectChanges();
+    if (!this.showPaymentModal) {
+      alert('Error: ' + msg);
+    }
+  }
+
+  getTrainerName(course: any): string {
+    if (!course) return 'Master Coach';
+    const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === course.selectedSessionId);
+    const trainer = session?.trainer || course.trainer;
+    return trainer?.name || trainer?.user?.name || 'Master Coach';
+  }
+
+  getTrainerAvatar(course: any): string {
+    if (!course) return 'https://ui-avatars.com/api/?name=Master+Coach&background=00d2ff&color=fff&bold=true';
+    const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === course.selectedSessionId);
+    const trainer = session?.trainer || course.trainer;
+    const tName = trainer?.name || trainer?.user?.name || 'Master Coach';
+    return trainer?.avatar || trainer?.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(tName)}&background=00d2ff&color=fff&bold=true`;
+  }
+
+  isSessionReserved(course: any): boolean {
+    return !!course.selectedSessionId && this.reservedSessionIds.includes(course.selectedSessionId);
   }
 }

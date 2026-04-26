@@ -63,70 +63,84 @@
       <table>
         <thead>
           <tr>
-            <th>Platform Owner</th>
-            <th>Verification Status</th>
-            <th>Registration Date</th>
-            <th>Contact Info</th>
+            <th>{{ statusFilter() === 'suspended' ? 'Suspended Facility' : 'Platform Owner' }}</th>
+            <th>{{ statusFilter() === 'suspended' ? 'Operational Node' : 'Verification Status' }}</th>
+            <th>{{ statusFilter() === 'suspended' ? 'Creation Date' : 'Registration Date' }}</th>
+            <th>{{ statusFilter() === 'suspended' ? 'Contact / Provider' : 'Contact Info' }}</th>
             <th style="text-align: right;">Action Center</th>
           </tr>
         </thead>
         <tbody>
           <ng-container *ngFor="let owner of filteredData(); trackBy: trackByOwnerId">
-            <tr class="group" (click)="toggleRow(owner.id_user)" [class.row-expanded]="expandedOwnerId() === owner.id_user">
+            <tr class="group" (click)="!owner.isGymMode && toggleRow(owner.id_user)" [class.row-expanded]="expandedOwnerId() === owner.id_user" [class.cursor-default]="owner.isGymMode">
               <td>
                 <div class="flex items-center gap-4">
-                  <div class="owner-initials-box shadow-lg" [class.active]="expandedOwnerId() === owner.id_user">
-                    {{ owner.initials }}
+                  <div class="owner-initials-box shadow-lg" [class.active]="expandedOwnerId() === owner.id_user" [class.gym-mode]="owner.isGymMode">
+                    <mat-icon *ngIf="owner.isGymMode && !owner.profile_picture">fitness_center</mat-icon>
+                    <img *ngIf="owner.profile_picture" [src]="getProfileImageUrl(owner.profile_picture)" [alt]="owner.fullName" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" />
+                    <span *ngIf="!owner.isGymMode && !owner.profile_picture">{{ owner.initials }}</span>
                   </div>
                   <div>
                     <span class="main-text">{{ owner.fullName }}</span>
-                    <span class="sub-text">{{ owner.email }}</span>
+                    <span class="sub-text">{{ owner.isGymMode ? owner.email : owner.email }}</span>
                   </div>
                 </div>
               </td>
 
               <td>
-                <div class="status-badge-mini" [ngClass]="owner.verified ? 'verified' : 'pending'">
+                <div *ngIf="!owner.isGymMode" class="status-badge-mini" [ngClass]="owner.verified ? 'verified' : 'pending'">
                   <div class="dot"></div>
                   {{ owner.verificationStatus }}
+                </div>
+                <div *ngIf="owner.isGymMode" class="status-badge-mini suspended">
+                  <div class="dot"></div>
+                  Suspended Node
                 </div>
               </td>
 
               <td>
                 <span class="main-text">{{ owner.created_at ? (owner.created_at | date:'MMM d, y') : '—' }}</span>
-                <span class="sub-text">Registered Date</span>
+                <span class="sub-text">{{ owner.isGymMode ? 'Setup Date' : 'Registered Date' }}</span>
               </td>
 
               <td>
-                <span class="main-text" style="font-size: 0.75rem;">{{ owner.phone || '—' }}</span>
-                <span class="sub-text">Phone Number</span>
+                <span class="main-text" style="font-size: 0.75rem;">{{ owner.isGymMode ? owner.ownerName : (owner.phone || '—') }}</span>
+                <span class="sub-text">{{ owner.isGymMode ? owner.ownerEmail : 'Phone Number' }}</span>
               </td>
 
               <td style="text-align: right;">
                 <div class="flex items-center justify-end gap-3">
                   <div class="action-btns opacity-0 group-hover:opacity-100 transition-all duration-300" (click)="$event.stopPropagation()">
-                    <button (click)="impersonateOwner(owner)" class="btn-icon blue" matTooltip="Access Account">
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                    
-                    <button *ngIf="(+owner.active_gyms_count! || 0) > 0" (click)="disableAllGyms(owner)" class="btn-icon amber" matTooltip="Suspend Gyms">
-                      <mat-icon>block</mat-icon>
-                    </button>
+                    <ng-container *ngIf="!owner.isGymMode">
+                      <button (click)="impersonateOwner(owner)" class="btn-icon blue" matTooltip="Access Account">
+                        <mat-icon>visibility</mat-icon>
+                      </button>
+                      
+                      <button *ngIf="(+owner.active_gyms_count! || 0) > 0" (click)="disableAllGyms(owner)" class="btn-icon amber" matTooltip="Suspend Gyms">
+                        <mat-icon>block</mat-icon>
+                      </button>
+    
+                      <button *ngIf="(+owner.active_gyms_count! || 0) === 0 && (+owner.owned_gyms_count! || 0) > 0" (click)="activateAllGyms(owner)" class="btn-icon emerald" matTooltip="Activate Gyms">
+                        <mat-icon>check_circle</mat-icon>
+                      </button>
+    
+                      <button (click)="editOwner(owner)" class="btn-icon" matTooltip="Edit Owner">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </ng-container>
+
+                    <ng-container *ngIf="owner.isGymMode">
+                      <button (click)="activateGymFromResult(owner)" class="btn-icon emerald" matTooltip="Reactivate Facility">
+                        <mat-icon>play_circle</mat-icon>
+                      </button>
+                    </ng-container>
   
-                    <button *ngIf="(+owner.active_gyms_count! || 0) === 0 && (+owner.owned_gyms_count! || 0) > 0" (click)="activateAllGyms(owner)" class="btn-icon emerald" matTooltip="Activate Gyms">
-                      <mat-icon>check_circle</mat-icon>
-                    </button>
-  
-                    <button (click)="editOwner(owner)" class="btn-icon" matTooltip="Edit Owner">
-                      <mat-icon>edit</mat-icon>
-                    </button>
-  
-                    <button (click)="deleteOwner(owner)" class="btn-icon rose" matTooltip="Delete Owner">
+                    <button (click)="owner.isGymMode ? null : deleteOwner(owner)" *ngIf="!owner.isGymMode" class="btn-icon rose" matTooltip="Delete Owner">
                       <mat-icon>delete_outline</mat-icon>
                     </button>
                   </div>
 
-                  <mat-icon class="text-slate-700 transition-transform duration-500" [class.rotate-180]="expandedOwnerId() === owner.id_user">
+                  <mat-icon *ngIf="!owner.isGymMode" class="text-slate-700 transition-transform duration-500" [class.rotate-180]="expandedOwnerId() === owner.id_user">
                     expand_more
                   </mat-icon>
                 </div>

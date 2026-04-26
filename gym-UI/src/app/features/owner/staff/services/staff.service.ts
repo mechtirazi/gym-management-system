@@ -72,19 +72,19 @@ export class StaffService {
    *  - Valid roles: trainer | receptionist | nutritionist | owner | member
    */
   addStaff(member: {
-    name: string;
-    last_name: string;
+    name?: string;
+    last_name?: string;
     email: string;
-    phone: string;
+    phone?: string;
     role: string;
-    password: string;
-  }): Observable<any> {
+    password?: string;
+  }, isExistingUserMode: boolean = false): Observable<any> {
     const registerPayload = {
-      name: member.name,
-      last_name: member.last_name,
+      name: member.name || '',
+      last_name: member.last_name || '',
       email: member.email,
-      password: member.password,
-      password_confirmation: member.password,
+      password: member.password || '',
+      password_confirmation: member.password || '',
       phone: member.phone || null,
       role: member.role
     };
@@ -109,6 +109,14 @@ export class StaffService {
           // Case 2: User does not exist (404 from our new backend logic)
           // We then proceed with the original registration + linking flow
           catchError((err) => {
+            if (isExistingUserMode) {
+              // If we only intended to invite an existing user, abort if not found
+              if (err.status === 404) {
+                return throwError(() => new Error('User not found. Please switch to New Hire mode or check the email.'));
+              }
+              return throwError(() => err);
+            }
+
             if (err.status === 404 || err.status === 422) {
               // User doesn't exist or other error, try registration flow
               return this.http.post<any>(`${this.apiUrl}/auth/register`, registerPayload, { headers: this.authHeaders }).pipe(
@@ -127,7 +135,7 @@ export class StaffService {
                   // Step 3: Link the newly registered user
                   return this.http.post<any>(
                     `${this.apiUrl}/gym-staff`,
-                    { id_gym: gymId, id_user: userId, email: member.email }, // Pass email too just in case
+                    { id_gym: gymId, id_user: userId }, // Omit email to enforce direct link
                     { headers: this.authHeaders }
                   );
                 })

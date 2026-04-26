@@ -2,7 +2,7 @@
   <app-member-header title="Manage Your Members"
     subtitle="Efficiently oversee gym members, subscriptions, and enrollment status." (addClick)="openAddModal()">
 
-    <app-member-controls [searchQuery]="searchQuery()" (searchChange)="searchQuery.set($event)"
+    <app-member-controls [searchQuery]="searchQuery()" (searchChange)="onSearchChange($event)"
       searchPlaceholder="Search by name, email or status..." [selectedStatus]="selectedStatus()"
       (statusChange)="onStatusChange($event)">
     </app-member-controls>
@@ -33,6 +33,45 @@
       <app-member-card [member]="member" (profileClick)="openProfileModal(member)" (editMember)="openEdit($event)" (removeClick)="deleteMember($event)">
       </app-member-card>
       }
+    </div>
+
+    <!-- High-Fidelity Pagination Controls -->
+    <div class="pagination-wrapper animate-fade-in">
+      <div class="pagination-container">
+        <!-- Prev Button -->
+        <button class="nav-btn prev" [disabled]="currentPage() === 1" (click)="prevPage()" aria-label="Previous Page">
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+
+        <!-- Page Numbers -->
+        <div class="page-numbers">
+          @for (p of getVisiblePages(); track p) {
+            @if (p === -1) {
+              <div class="page-ellipsis">...</div>
+            } @else {
+              <button 
+                class="page-bubble" 
+                [class.active]="p === currentPage()" 
+                (click)="goToPage(p)"
+              >
+                {{ p }}
+              </button>
+            }
+          }
+        </div>
+
+        <!-- Next Button -->
+        <button class="nav-btn next" [disabled]="currentPage() === lastPage()" (click)="nextPage()" aria-label="Next Page">
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+      </div>
+
+      <div class="pagination-meta">
+        <span class="meta-label">Viewing</span>
+        <span class="meta-value">{{ (currentPage() - 1) * pageSize() + 1 }} - {{ Math.min(currentPage() * pageSize(), totalItems()) }}</span>
+        <span class="meta-label">of</span>
+        <span class="meta-badge">{{ totalItems() }} Members</span>
+      </div>
     </div>
     }
   </main>

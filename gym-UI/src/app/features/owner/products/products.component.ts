@@ -73,6 +73,41 @@ export class ProductManagementComponent implements OnInit {
     return list;
   });
 
+  // Pagination Signals
+  currentPage = signal<number>(1);
+  itemsPerPage = signal<number>(8);
+
+  totalPages = computed(() => {
+    return Math.ceil(this.filteredProducts().length / this.itemsPerPage()) || 1;
+  });
+
+  paginatedProducts = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.filteredProducts().slice(startIndex, startIndex + this.itemsPerPage());
+  });
+
+  onSearchChange(query: string) {
+    this.searchQuery.set(query);
+    this.currentPage.set(1);
+  }
+
+  onFilterChange(category: string) {
+    this.selectedFilter.set(category);
+    this.currentPage.set(1);
+  }
+
+  nextPage() {
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.update(p => p + 1);
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(p => p - 1);
+    }
+  }
+
   ngOnInit() {
     this.loadProducts();
   }

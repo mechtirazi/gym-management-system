@@ -67,7 +67,7 @@
 
       &.active {
         background: var(--text-main);
-        color: white;
+        color: var(--text-inverse);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
     }
@@ -107,7 +107,7 @@
     width: 80px;
     height: 80px;
     background: var(--text-main);
-    color: white;
+    color: var(--text-inverse);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -256,9 +256,9 @@
   border: none;
 
   &.btn-primary {
-    background: var(--text-main);
-    color: var(--bg-main);
-    &:hover { background: var(--text-muted); transform: scale(1.02); }
+    background: var(--primary-color);
+    color: white;
+    &:hover { background: var(--color-primary-600); transform: scale(1.02); }
     &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   }
 

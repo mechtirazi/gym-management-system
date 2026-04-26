@@ -25,9 +25,14 @@
   border: 1px solid var(--admin-item-border);
   color: var(--admin-text-secondary);
   display: flex;
-  align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+
+  &.no-image {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.08));
+    color: var(--admin-accent-indigo);
+    border-color: rgba(99, 102, 241, 0.1);
+  }
 
   mat-icon { font-size: 24px; width: 24px; height: 24px; }
 }

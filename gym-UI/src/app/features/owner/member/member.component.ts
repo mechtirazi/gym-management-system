@@ -39,6 +39,12 @@ export class MemberManagementComponent implements OnInit {
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
 
+  // Pagination signals
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
+  totalItems = signal<number>(0);
+  lastPage = signal<number>(1);
+
   // Modal signals
   isAddModalOpen = signal<boolean>(false);
   isProfileModalOpen = signal<boolean>(false);
@@ -46,40 +52,17 @@ export class MemberManagementComponent implements OnInit {
   isEditMode = signal<boolean>(false);
 
   members = computed(() => {
-    const status = this.selectedStatus();
-    const query = this.searchQuery().toLowerCase();
-
-    return this.allMembers().filter((member) => {
-      // Filter by status
-      let matchesStatus = true;
-      if (status !== 'All') {
-        const filterStatus = status.toLowerCase();
-        const memberStatus = (member.status || 'Active').toLowerCase();
-        
-        if (filterStatus === 'inactive') {
-          matchesStatus = ['inactive', 'expired', 'cancelled'].includes(memberStatus);
-        } else {
-          matchesStatus = memberStatus === filterStatus;
-        }
-      }
-
-      // Filter by query
-      let matchesQuery = true;
-      if (query) {
-        matchesQuery = (member.name || '').toLowerCase().includes(query) ||
-          (member.email || '').toLowerCase().includes(query) ||
-          (member.phone || '').toLowerCase().includes(query) ||
-          (member.status || '').toLowerCase().includes(query);
-      }
-
-      return matchesStatus && matchesQuery;
-    });
+    // Current server-side pagination means signals store only current page
+    // No frontend filtering here if we want to rely on backend
+    return this.allMembers();
   });
 
   stats = computed(() => {
+    // Note: Stats now might only represent the current page unless we have a backend stats endpoint
+    // Assuming backend returns some total stats or we use the list size
     const list = this.allMembers();
     return {
-      total: list.length,
+      total: this.totalItems(),
       active: list.filter(m => (m.status || '').toLowerCase() === 'active').length,
       pending: list.filter(m => (m.status || '').toLowerCase() === 'pending').length,
       expired: list.filter(m => ['inactive', 'expired', 'cancelled'].includes((m.status || '').toLowerCase())).length
@@ -100,20 +83,27 @@ export class MemberManagementComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.memberService.getMembers()
+    const filters = {
+      status: this.selectedStatus(),
+      search: this.searchQuery()
+    };
+
+    this.memberService.getMembers(this.currentPage(), this.pageSize(), filters)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (response: any) => {
           console.log('Backend Response:', response);
 
-          // SMART MAPPING: Handles both list of relationships and direct user arrays
           let memberItems: any[] = [];
 
           if (response && Array.isArray(response.data)) {
             memberItems = response.data;
-          } else {
-            console.log('Backed error En Member items');
-            this.error.set('Could not fetch the members list. Check your connection.');
+            this.totalItems.set(response.total || 0);
+            this.lastPage.set(response.last_page || 1);
+            this.currentPage.set(response.current_page || 1);
+          } else if (Array.isArray(response)) {
+            memberItems = response;
+            this.totalItems.set(response.length);
           }
 
           const team = memberItems.map((item: any) => {
@@ -144,8 +134,72 @@ export class MemberManagementComponent implements OnInit {
       });
   }
 
+  nextPage() {
+    if (this.currentPage() < this.lastPage()) {
+      this.currentPage.update(p => p + 1);
+      this.refreshMembers();
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(p => p - 1);
+      this.refreshMembers();
+    }
+  }
+
+  Math = Math;
+
+  getVisiblePages(): number[] {
+    const current = this.currentPage();
+    const last = this.lastPage();
+    const delta = 2;
+    const range: number[] = [];
+    const rangeWithDots: number[] = [];
+    let l: number | undefined;
+
+    range.push(1);
+    for (let i = current - delta; i <= current + delta; i++) {
+      if (i < last && i > 1) {
+        range.push(i);
+      }
+    }
+    if (last > 1) {
+      range.push(last);
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push(-1);
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  }
+
+  goToPage(page: number) {
+    if (page !== this.currentPage()) {
+      this.currentPage.set(page);
+      this.refreshMembers();
+    }
+  }
+
   onStatusChange(status: string) {
     this.selectedStatus.set(status);
+    this.currentPage.set(1);
+    this.refreshMembers();
+  }
+
+  onSearchChange(query: string) {
+    this.searchQuery.set(query);
+    this.currentPage.set(1);
+    this.refreshMembers();
   }
 
   openAddModal() {

@@ -143,10 +143,22 @@
           @for (notif of notifications(); track notif.id) {
           <div class="notification-item-card" [class.unread]="notif.unread">
             <div class="item-primary">
-              <div class="notif-icon-square">
+              <div class="notif-icon-square" [class.info]="notif.type === 'info' || notif.type.startsWith('staff_invitation')" [class.success]="notif.type === 'success'" [class.warning]="notif.type === 'warning'" [class.error]="notif.type === 'error'">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  @if (notif.type === 'info' || notif.type.startsWith('staff_invitation')) { 
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  } @else if (notif.type === 'success') {
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  } @else if (notif.type === 'warning') {
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  } @else {
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  }
                 </svg>
               </div>
               <div class="item-content">
@@ -154,12 +166,18 @@
                   <span class="item-title">{{ notif.title }}</span>
                   <span class="item-time">{{ notif.time }}</span>
                 </div>
+                <!-- Shorten the abstract for staff invitations to avoid overflow -->
                 <p class="item-desc">{{ notif.description }}</p>
               </div>
             </div>
             <div class="item-actions">
-              <button class="action-link">View</button>
-              <button class="action-link" (click)="markAsRead(notif.id)" *ngIf="notif.unread">Mark as read</button>
+              @if (notif.type.startsWith('staff_invitation')) {
+                <button class="action-link accept" (click)="acceptInvite(notif)">Accept</button>
+                <button class="action-link decline" (click)="declineInvite(notif)">Decline</button>
+              } @else {
+                <button class="action-link" (click)="viewAllNotifications()">View</button>
+                <button class="action-link" (click)="markAsRead(notif.id)" *ngIf="notif.unread">Mark as read</button>
+              }
             </div>
           </div>
           } @empty {

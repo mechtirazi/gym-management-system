@@ -22,20 +22,46 @@
        </div>
     </div>
 
-    <div class="form-field">
-      <label><mat-icon>business</mat-icon> Gym Name</label>
-      <div class="input-glow-wrap">
-         <input formControlName="name" type="text" placeholder="e.g. Downtown Fitness Center" autocomplete="off" />
+    <div class="two-col-grid">
+      <div class="form-field">
+        <label><mat-icon>business</mat-icon> Gym Name</label>
+        <div class="input-glow-wrap">
+           <input formControlName="name" type="text" placeholder="e.g. Downtown Fitness Center" autocomplete="off" />
+        </div>
+        <p class="error-text" *ngIf="gymForm.get('name')?.touched && gymForm.get('name')?.errors?.['required']">Gym name is required</p>
       </div>
-      <p class="error-text" *ngIf="gymForm.get('name')?.touched && gymForm.get('name')?.errors?.['required']">Gym name is required</p>
+      <div class="form-field">
+        <label><mat-icon>email</mat-icon> Business Email</label>
+        <div class="input-glow-wrap">
+           <input formControlName="email" type="email" placeholder="contact@gym.com" autocomplete="off" />
+        </div>
+        <p class="error-text" *ngIf="gymForm.get('email')?.touched && gymForm.get('email')?.invalid">Valid email is required</p>
+      </div>
+    </div>
+
+    <div class="two-col-grid">
+      <div class="form-field">
+        <label><mat-icon>location_on</mat-icon> Street Address</label>
+        <div class="input-glow-wrap">
+           <input formControlName="adress" type="text" placeholder="123 Example St, City" autocomplete="off" />
+        </div>
+        <p class="error-text" *ngIf="gymForm.get('adress')?.touched && gymForm.get('adress')?.errors?.['required']">Address is required</p>
+      </div>
+      <div class="form-field">
+        <label><mat-icon>phone</mat-icon> Phone Number</label>
+        <div class="input-glow-wrap">
+           <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
+        </div>
+        <p class="error-text" *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.invalid">Phone is required</p>
+      </div>
     </div>
 
     <div class="form-field">
-      <label><mat-icon>location_on</mat-icon> Street Address</label>
+      <label><mat-icon>description</mat-icon> Description</label>
       <div class="input-glow-wrap">
-         <input formControlName="adress" type="text" placeholder="123 Example St, City" autocomplete="off" />
+         <textarea formControlName="description" placeholder="Brief description of the gym facilities..." rows="2"></textarea>
       </div>
-      <p class="error-text" *ngIf="gymForm.get('adress')?.touched && gymForm.get('adress')?.errors?.['required']">Address is required</p>
+      <p class="error-text" *ngIf="gymForm.get('description')?.touched && gymForm.get('description')?.invalid">Description is required (min 10 chars)</p>
     </div>
 
     <div class="two-col-grid">
@@ -44,14 +70,14 @@
           <div class="input-glow-wrap">
              <input formControlName="capacity" type="number" placeholder="100" />
           </div>
-          <p class="error-text" *ngIf="gymForm.get('capacity')?.touched && gymForm.get('capacity')?.errors?.['min']">Minimum capacity is 1</p>
+          <p class="error-text" *ngIf="gymForm.get('capacity')?.touched && gymForm.get('capacity')?.errors?.['min']">Min 1</p>
        </div>
        <div class="form-field">
           <label><mat-icon>schedule</mat-icon> Mon - Fri Hours</label>
           <div class="input-glow-wrap">
              <input formControlName="open_mon_fri" type="text" placeholder="08:00-22:00" />
           </div>
-          <p class="error-text" *ngIf="gymForm.get('open_mon_fri')?.touched && gymForm.get('open_mon_fri')?.invalid">Format: HH:mm-HH:mm</p>
+          <p class="error-text" *ngIf="gymForm.get('open_mon_fri')?.touched && gymForm.get('open_mon_fri')?.invalid">Invalid format</p>
        </div>
     </div>
 
@@ -61,23 +87,13 @@
           <div class="input-glow-wrap">
              <input formControlName="open_sat" type="text" placeholder="08:00-20:00" />
           </div>
-          <p class="error-text" *ngIf="gymForm.get('open_sat')?.touched && gymForm.get('open_sat')?.invalid">Format: HH:mm-HH:mm</p>
        </div>
        <div class="form-field">
           <label><mat-icon>event_busy</mat-icon> Sunday Hours</label>
           <div class="input-glow-wrap">
              <input formControlName="open_sun" type="text" placeholder="08:00-16:00" />
           </div>
-          <p class="error-text" *ngIf="gymForm.get('open_sun')?.touched && gymForm.get('open_sun')?.invalid">Format: HH:mm-HH:mm</p>
        </div>
-    </div>
-
-    <div class="form-field">
-      <label><mat-icon>phone</mat-icon> Phone Number (Optional)</label>
-      <div class="input-glow-wrap">
-         <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
-      </div>
-      <p class="error-text" *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.invalid">Invalid phone format</p>
     </div>
 
     <div class="admin-dialog-footer">

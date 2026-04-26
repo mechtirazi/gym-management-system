@@ -355,6 +355,26 @@
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
 
+    &.info {
+      background: var(--admin-accent-indigo, #6366f1);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+    
+    &.success {
+      background: var(--admin-accent-emerald, #10b981);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    
+    &.warning {
+      background: #f59e0b;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    &.error {
+      background: var(--admin-accent-rose, #f43f5e);
+      box-shadow: 0 2px 8px rgba(244, 63, 94, 0.3);
+    }
+
     :host-context(.dark) & {
       background: #4a3a3a;
       color: #ff8a6d;
@@ -402,23 +422,36 @@
 
   .item-actions {
     display: flex;
-    gap: 1.5rem;
-    padding-left: 3rem;
-
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    
     .action-link {
       background: none;
       border: none;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #34495e;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 700;
       cursor: pointer;
       padding: 0;
-
-      :host-context(.dark) & {
-        color: #ddd;
+      transition: color 0.2s;
+      
+      &:hover { color: var(--text-main); }
+      
+      &.accept {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        &:hover { background: rgba(16, 185, 129, 0.2); }
       }
 
-      &:hover { text-decoration: underline; }
+      &.decline {
+        color: #f43f5e;
+        background: rgba(244, 63, 94, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        &:hover { background: rgba(244, 63, 94, 0.2); }
+      }
     }
   }
 }

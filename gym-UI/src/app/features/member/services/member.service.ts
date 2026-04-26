@@ -47,8 +47,22 @@ export class MemberService {
     return this.http.get<any>(`${this.apiUrl}/enrollments`);
   }
 
+  getMyPayments(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/payments`);
+  }
+
   getMyAttendances(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/attendances`);
+  }
+
+  reserveSession(sessionId: string): Observable<any> {
+    const userId = this.authService.currentUser()?.id_user;
+    const payload = {
+      id_member: userId,
+      id_session: sessionId,
+      status: 'pending'
+    };
+    return this.http.post<any>(`${this.apiUrl}/attendances`, payload);
   }
 
   getMyNutritionPlans(): Observable<any> {
@@ -111,8 +125,19 @@ export class MemberService {
     return this.http.get<any>(`${this.apiUrl}/gyms/${gymId}/reviews`);
   }
 
-  enrollInCourse(courseId: string, paymentMethod: string = 'zen_wallet'): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/member/courses/${courseId}/enroll`, { payment_method: paymentMethod });
+  enrollInCourse(courseId: string, sessionId: string, paymentMethod: string = 'zen_wallet'): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/courses/${courseId}/enroll`, { 
+      payment_method: paymentMethod, 
+      id_session: sessionId 
+    });
+  }
+
+  getMyEventAttendances(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/member/attendance-events`);
+  }
+
+  enrollInEvent(eventId: string, paymentMethod: string = 'zen_wallet'): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/events/${eventId}/enroll`, { payment_method: paymentMethod });
   }
 
   purchaseMembership(gymId: string, paymentMethod: string = 'zen_wallet', type: string = 'standard', idPlan?: string): Observable<any> {

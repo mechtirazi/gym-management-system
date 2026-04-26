@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/services/auth.service';
 
 import { DashboardStats, DashboardData, Checkin, RevenueData, ActivityTrend } from '../../../shared/models/dashboard.model';
 
@@ -11,6 +12,7 @@ import { DashboardStats, DashboardData, Checkin, RevenueData, ActivityTrend } fr
 })
 export class OwnerDashboardService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
 
   /**
@@ -44,7 +46,15 @@ export class OwnerDashboardService {
   /**
    * Posts a new member to the backend.
    */
-  addMember(memberData: { firstName: string, lastName: string, email: string, phone: string, password: string }): Observable<any> {
+  addMember(memberData: { 
+    firstName: string, 
+    lastName: string, 
+    email: string, 
+    phone: string, 
+    password: string,
+    id_plan: string,
+    startDate: string
+  }): Observable<any> {
 
     // Auto-generate the precise creation_date timestamp expected by the DB (YYYY-MM-DD HH:mm:ss)
     const now = new Date();
@@ -53,6 +63,8 @@ export class OwnerDashboardService {
       .slice(0, 19)
       .replace('T', ' ');
 
+    const gymId = this.authService.currentUser()?.gym_id;
+
     const payload = {
       name: memberData.firstName,
       last_name: memberData.lastName,
@@ -60,7 +72,10 @@ export class OwnerDashboardService {
       role: 'member', // Using standard 'member' role
       password: memberData.password,
       phone: memberData.phone,
-      creation_date: creation_date
+      creation_date: creation_date,
+      id_gym: gymId,
+      id_plan: memberData.id_plan,
+      enrollment_date: memberData.startDate
     };
 
     return this.http.post(`${this.apiUrl}/users`, payload);

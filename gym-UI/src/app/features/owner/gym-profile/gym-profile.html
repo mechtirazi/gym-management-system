@@ -19,8 +19,7 @@
   <!-- Hero Profile Header -->
   <app-gym-profile-header [name]="gymForm.get('name')?.value || ''" [address]="gymForm.get('address')?.value || ''"
     [logo]="currentLogo()" [isEditing]="isEditing()" [isSaving]="isSaving()" [canSave]="gymForm.valid && !isSaving()"
-    [myGyms]="myGyms()" [connectedGymId]="connectedGymId() || 0"
-    [gymStatus]="gymStatus() || ''"
+    [myGyms]="myGyms()" [connectedGymId]="connectedGymId() || 0" [gymStatus]="gymStatus() || ''"
     (onToggleEdit)="toggleEdit()" (onSave)="saveProfile()" (onCoverFotoSelected)="handleCoverPhoto($event)"
     (onSwitchGym)="switchGym($event)">
   </app-gym-profile-header>

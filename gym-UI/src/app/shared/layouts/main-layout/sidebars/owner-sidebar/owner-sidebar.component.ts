@@ -30,7 +30,6 @@ export class OwnerSidebarComponent {
     { label: 'Memberships', icon: 'card', route: '/owner/memberships', sensitive: true },
     { label: 'Courses', icon: 'calendar', route: '/owner/courses', sensitive: true },
     { label: 'Events', icon: 'star', route: '/owner/events', sensitive: true },
-    { label: 'Equipment', icon: 'settings', route: '/owner/equipment', sensitive: true },
     { label: 'Products', icon: 'store', route: '/owner/products', sensitive: true },
 
     { label: 'Financials', isHeader: true, sensitive: true },

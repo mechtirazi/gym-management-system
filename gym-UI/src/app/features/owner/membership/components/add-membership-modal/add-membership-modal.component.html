@@ -32,9 +32,9 @@
     }
 
     <form [formGroup]="membershipForm" class="modal-form">
-      <div class="form-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0 0.5rem;">
-        <h3 style="font-size: 1rem; font-weight: 700; color: #1e293b;">Member Details</h3>
-        <button type="button" class="text-btn" (click)="toggleCreationMode()" style="background: none; border: none; color: #3b82f6; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline;">
+      <div class="form-header-row">
+        <h3>Member Details</h3>
+        <button type="button" class="text-btn" (click)="toggleCreationMode()">
           {{ isNewMember() ? '← Back to List' : '+ New Member Account' }}
         </button>
       </div>

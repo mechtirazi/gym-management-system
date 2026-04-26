@@ -23,14 +23,13 @@ export class AddOrderModalComponent implements OnInit {
   isSubmitting = signal(false);
   error = signal<string | null>(null);
 
-  orderData = {
-    id_member: '',
-    quantity: 1,
-    payment_method: 'cash'
-  };
+  // Use individual signals for better reactivity with computed
+  idMember = signal<string>('');
+  quantity = signal<number>(1);
+  paymentMethod = signal<string>('cash');
 
   totalPrice = computed(() => {
-    return this.orderData.quantity * Number(this.product().price);
+    return this.quantity() * Number(this.product().price);
   });
 
   ngOnInit() {
@@ -41,12 +40,9 @@ export class AddOrderModalComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     
-    // Fetch users (or enrollments) to get a list of valid members
-    // using /api/users for now to get a general list of users the owner can see
     this.http.get<any>(`${environment.apiUrl}/users`, { headers }).subscribe({
       next: (res) => {
         const users = res.data || (Array.isArray(res) ? res : []);
-        // Only show users with the 'member' role in the selection
         this.members.set(users.filter((u: any) => u.role === 'member'));
       },
       error: (err) => {
@@ -56,18 +52,13 @@ export class AddOrderModalComponent implements OnInit {
     });
   }
 
-  calculateTotal() {
-    // This empty method forces Angular to trigger change detection 
-    // for the computed totalPrice signal when the quantity input changes
-  }
-
   onSubmit() {
-    if (!this.orderData.id_member || this.orderData.quantity < 1) {
+    if (!this.idMember() || this.quantity() < 1) {
       this.error.set('Please select a valid member and quantity.');
       return;
     }
 
-    if (this.orderData.quantity > this.product().stock) {
+    if (this.quantity() > this.product().stock) {
       this.error.set(`Cannot order more than ${this.product().stock} units.`);
       return;
     }
@@ -79,14 +70,14 @@ export class AddOrderModalComponent implements OnInit {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
     const payload = {
-      order_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-      status: 'completed', // Direct purchases assumed completed initially
-      id_member: this.orderData.id_member,
-      payment_method: this.orderData.payment_method,
+      order_date: new Date().toISOString().split('T')[0],
+      status: 'completed',
+      id_member: this.idMember(),
+      payment_method: this.paymentMethod(),
       products: [
         {
           id_product: this.product().id_product,
-          quantity: this.orderData.quantity,
+          quantity: this.quantity(),
           price: this.product().price
         }
       ]

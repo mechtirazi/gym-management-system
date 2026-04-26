@@ -34,6 +34,7 @@ export class MemberSidebarComponent {
     { label: 'Gyms Hub', icon: 'users', routePath: '/member/gyms' },
     { label: 'Memberships', icon: 'users', routePath: '/member/subscriptions' },
     { label: 'Training Hub', icon: 'book', routePath: '/member/courses' },
+    { label: 'Events Hub', icon: 'calendar', routePath: '/member/events' },
     { label: 'Settings', isHeader: true },
     { label: 'Account Settings', icon: 'settings', routePath: '/member/settings' }
   ];

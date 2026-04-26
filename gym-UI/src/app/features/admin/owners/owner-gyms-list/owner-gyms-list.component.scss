@@ -50,6 +50,48 @@
     background: rgba(255, 255, 255, 0.04);
   }
 
+  .card-image {
+    width: calc(100% + 3rem);
+    height: 120px;
+    margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .image-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--admin-accent-indigo);
+      
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        opacity: 0.2;
+        transform: rotate(-10deg);
+        transition: all 0.5s ease;
+      }
+    }
+  }
+
+  &:hover {
+    .card-image img { transform: scale(1.1); }
+    .image-fallback mat-icon { 
+      opacity: 0.5; 
+      transform: rotate(0deg) scale(1.1); 
+    }
+  }
+
   .card-top {
     display: flex;
     justify-content: space-between;

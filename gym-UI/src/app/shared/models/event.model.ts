@@ -8,6 +8,8 @@ export interface EventModel {
   id_gym: string;
   reward_amount?: number;
   is_rewarded?: boolean;
+  image_url?: string;
+  image?: File;
   gym?: {
     name: string;
   };

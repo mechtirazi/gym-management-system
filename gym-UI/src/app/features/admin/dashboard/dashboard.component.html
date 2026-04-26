@@ -170,7 +170,27 @@
 
         <form [formGroup]="broadcastForm" (ngSubmit)="sendBroadcast()" class="admin-form-group">
           <div class="form-field">
-            <label>Global Announcement</label>
+            <div class="field-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+              <label style="margin: 0;">Global Announcement</label>
+              <div class="compact-type-selector">
+                <label class="type-btn info">
+                  <input type="radio" formControlName="type" value="info">
+                  <div class="type-content" title="Information"><mat-icon>info</mat-icon></div>
+                </label>
+                <label class="type-btn success">
+                  <input type="radio" formControlName="type" value="success">
+                  <div class="type-content" title="Success"><mat-icon>check_circle</mat-icon></div>
+                </label>
+                <label class="type-btn warning">
+                  <input type="radio" formControlName="type" value="warning">
+                  <div class="type-content" title="Warning"><mat-icon>warning</mat-icon></div>
+                </label>
+                <label class="type-btn error">
+                  <input type="radio" formControlName="type" value="error">
+                  <div class="type-content" title="Alert"><mat-icon>error</mat-icon></div>
+                </label>
+              </div>
+            </div>
             <textarea formControlName="message" placeholder="Type your system-wide announcement here..."></textarea>
           </div>
           <button type="submit" [disabled]="broadcastForm.invalid || broadcasting()" class="admin-btn btn-primary">
@@ -199,7 +219,27 @@
             </select>
           </div>
           <div class="form-field">
-            <label>Direct Alert</label>
+            <div class="field-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+              <label style="margin: 0;">Direct Alert</label>
+              <div class="compact-type-selector">
+                <label class="type-btn info">
+                  <input type="radio" formControlName="type" value="info">
+                  <div class="type-content" title="Information"><mat-icon>info</mat-icon></div>
+                </label>
+                <label class="type-btn success">
+                  <input type="radio" formControlName="type" value="success">
+                  <div class="type-content" title="Success"><mat-icon>check_circle</mat-icon></div>
+                </label>
+                <label class="type-btn warning">
+                  <input type="radio" formControlName="type" value="warning">
+                  <div class="type-content" title="Warning"><mat-icon>warning</mat-icon></div>
+                </label>
+                <label class="type-btn error">
+                  <input type="radio" formControlName="type" value="error">
+                  <div class="type-content" title="Alert"><mat-icon>error</mat-icon></div>
+                </label>
+              </div>
+            </div>
             <textarea formControlName="message" style="min-height: 80px;" placeholder="Type your direct alert for this owner..."></textarea>
           </div>
           <button type="submit" [disabled]="targetedForm.invalid || sendingTargeted()" class="admin-btn btn-primary">

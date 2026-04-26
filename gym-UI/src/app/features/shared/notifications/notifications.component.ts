@@ -92,10 +92,22 @@ import { UserVm } from '../../../core/models/api.models';
             <div class="notifications-list" *ngIf="paginatedNotifications().length > 0; else emptyState">
               @for (notif of paginatedNotifications(); track notif.id) {
                 <div class="notification-card" [class.unread]="notif.unread">
-                  <div class="card-icon" [class.info]="notif.type === 'info'" [class.error]="notif.type === 'error'">
+                  <div class="card-icon" [class.info]="notif.type === 'info'" [class.success]="notif.type === 'success'" [class.warning]="notif.type === 'warning'" [class.error]="notif.type === 'error'">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                      @if (notif.type === 'info') { 
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                      } @else if (notif.type === 'success') {
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      } @else if (notif.type === 'warning') {
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                      } @else {
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                      }
                     </svg>
                   </div>
                   <div class="card-content">
@@ -105,9 +117,14 @@ import { UserVm } from '../../../core/models/api.models';
                     </div>
                     <p class="card-desc">{{ notif.description }}</p>
                     <div class="card-actions">
-                      <button class="action-btn secondary" (click)="markAsRead(notif.id)" *ngIf="notif.unread">
-                        Mark as read
-                      </button>
+                      @if (notif.type.startsWith('staff_invitation')) {
+                        <button class="action-btn accept" (click)="acceptInviteAction(notif)">Accept</button>
+                        <button class="action-btn decline" (click)="declineInviteAction(notif)">Decline</button>
+                      } @else {
+                        <button class="action-btn secondary" (click)="markAsRead(notif.id)" *ngIf="notif.unread">
+                          Mark as read
+                        </button>
+                      }
                     </div>
                   </div>
                 </div>
@@ -170,6 +187,40 @@ import { UserVm } from '../../../core/models/api.models';
                     <label class="radio-btn">
                       <input type="radio" formControlName="recipientType" value="single">
                       <span class="btn-content">Single</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="form-field">
+                  <label>Notification Type</label>
+                  <div class="type-selector">
+                    <label class="type-btn info">
+                      <input type="radio" formControlName="type" value="info">
+                      <div class="type-content" title="Information">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Info</span>
+                      </div>
+                    </label>
+                    <label class="type-btn success">
+                      <input type="radio" formControlName="type" value="success">
+                      <div class="type-content" title="Success">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>Success</span>
+                      </div>
+                    </label>
+                    <label class="type-btn warning">
+                      <input type="radio" formControlName="type" value="warning">
+                      <div class="type-content" title="Warning">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <span>Warning</span>
+                      </div>
+                    </label>
+                    <label class="type-btn error">
+                      <input type="radio" formControlName="type" value="error">
+                      <div class="type-content" title="Alert">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        <span>Alert</span>
+                      </div>
                     </label>
                   </div>
                 </div>
@@ -378,6 +429,8 @@ import { UserVm } from '../../../core/models/api.models';
       color: var(--admin-text-primary);
 
       &.info { color: var(--admin-accent-indigo); background: rgba(99, 102, 241, 0.1); }
+      &.success { color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.1); }
+      &.warning { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
       &.error { color: var(--admin-accent-rose); background: rgba(244, 63, 94, 0.1); }
       svg { width: 22px; height: 22px; }
     }
@@ -401,6 +454,7 @@ import { UserVm } from '../../../core/models/api.models';
       font-weight: 800;
       cursor: pointer;
       transition: all 0.3s;
+      border: none;
       
       &.secondary {
         background: var(--admin-item-bg);
@@ -411,6 +465,24 @@ import { UserVm } from '../../../core/models/api.models';
           color: white;
           border-color: var(--admin-accent-indigo);
           transform: translateY(-2px);
+        }
+      }
+
+      &.accept {
+        background: var(--admin-accent-emerald);
+        color: white;
+        margin-right: 0.5rem;
+        &:hover { 
+          transform: translateY(-2px); 
+          box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+      }
+
+      &.decline {
+        background: rgba(244, 63, 94, 0.1);
+        color: var(--admin-accent-rose);
+        &:hover { 
+          background: rgba(244, 63, 94, 0.2); 
         }
       }
     }
@@ -477,6 +549,66 @@ import { UserVm } from '../../../core/models/api.models';
         background: var(--admin-accent-indigo);
         color: white;
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+      }
+    }
+    
+    .type-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    
+    .type-btn {
+      cursor: pointer;
+      input { display: none; }
+      
+      .type-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 0.5rem;
+        border-radius: 16px;
+        border: 1px solid var(--admin-item-border);
+        background: var(--admin-item-bg);
+        color: var(--admin-text-secondary);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        
+        svg { width: 1.25rem; height: 1.25rem; }
+        span { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        &:hover {
+          transform: translateY(-2px);
+          border-color: var(--admin-accent-indigo);
+        }
+      }
+      
+      &.info input:checked + .type-content {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--admin-accent-indigo);
+        color: var(--admin-accent-indigo);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+      }
+      
+      &.success input:checked + .type-content {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: var(--admin-accent-emerald);
+        color: var(--admin-accent-emerald);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+      }
+      
+      &.warning input:checked + .type-content {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: #f59e0b;
+        color: #d97706;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+      }
+      
+      &.error input:checked + .type-content {
+        background: rgba(244, 63, 94, 0.1);
+        border-color: var(--admin-accent-rose);
+        color: var(--admin-accent-rose);
+        box-shadow: 0 4px 12px rgba(244, 63, 94, 0.1);
       }
     }
 
@@ -817,6 +949,7 @@ export class NotificationsComponent implements OnInit {
 
   dispatchForm = this.fb.group({
     recipientType: ['all', Validators.required],
+    type: ['info', Validators.required],
     targetId: [''],
     message: ['', [Validators.required, Validators.minLength(5)]]
   });
@@ -931,13 +1064,13 @@ export class NotificationsComponent implements OnInit {
     if (this.dispatchForm.invalid) return;
     
     this.isDispatching.set(true);
-    const { recipientType, targetId, message } = this.dispatchForm.value;
+    const { recipientType, type, targetId, message } = this.dispatchForm.value;
 
     let finalTargets: UserVm[] = [];
 
     if (recipientType === 'all') {
       if (this.isSuperAdmin() || (this.isAdmin() && !this.isOwner())) {
-        this.notificationService.sendToAllUsers(message!).subscribe({
+        this.notificationService.sendToAllUsers(message!, type!).subscribe({
           next: () => this.handleSuccess('Announcement broadcasted to all users.'),
           error: () => this.handleError('Failed to broadcast message.')
         });
@@ -951,7 +1084,7 @@ export class NotificationsComponent implements OnInit {
       finalTargets = this.targets().filter(t => t.role === 'member');
     } else {
       // Single target
-      this.notificationService.sendToUser(targetId!, message!).subscribe({
+      this.notificationService.sendToUser(targetId!, message!, type!).subscribe({
         next: () => this.handleSuccess('Direct message sent.'),
         error: () => this.handleError('Failed to send target message.')
       });
@@ -966,7 +1099,7 @@ export class NotificationsComponent implements OnInit {
     let completed = 0;
     let errors = 0;
     finalTargets.forEach(t => {
-      this.notificationService.sendToUser(t.id_user, message!).subscribe({
+      this.notificationService.sendToUser(t.id_user, message!, type!).subscribe({
         next: () => {
           completed++;
           if (completed + errors === finalTargets.length) {
@@ -996,7 +1129,7 @@ export class NotificationsComponent implements OnInit {
   }
 
   resetForm() {
-    this.dispatchForm.reset({ recipientType: 'all', targetId: '', message: '' });
+    this.dispatchForm.reset({ recipientType: 'all', type: 'info', targetId: '', message: '' });
   }
 
   markAsRead(id: string) {
@@ -1005,5 +1138,40 @@ export class NotificationsComponent implements OnInit {
 
   markAllAsRead() {
     this.notificationService.markAllAsRead();
+  }
+
+  acceptInviteAction(notif: any): void {
+    const parts = notif.type?.split(':');
+    if (!parts || parts.length < 3) return;
+
+    const gymId = parts[1];
+    const role = parts[2];
+    
+    const payload = {
+      id_notification: notif.id,
+      id_gym: gymId,
+      role: role
+    };
+
+    this.staffService.joinGym(payload).subscribe({
+      next: () => {
+        this.snackBar.open('Invitation accepted! Welcome.', 'Awesome', { duration: 3000 });
+        this.notificationService.fetchNotifications().subscribe();
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      },
+      error: () => this.snackBar.open('Failed to join gym.', 'Close', { duration: 3000 })
+    });
+  }
+
+  declineInviteAction(notif: any): void {
+    this.staffService.declineInvitation(notif.id).subscribe({
+      next: () => {
+        this.snackBar.open('Invitation declined.', 'Close', { duration: 3000 });
+        this.notificationService.fetchNotifications().subscribe();
+      }
+    });
   }
 }

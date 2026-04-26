@@ -41,17 +41,22 @@
       [class.is-owned]="course.isOwned">
       <div class="course-poster">
         <img
-          [src]="course.image || 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600'"
-          [alt]="course.name">
+          [src]="course.imageUrl"
+          [alt]="course.name"
+          (error)="course.imageUrl = 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600'">
         <div class="category-badge">{{ course.category || 'Elite' }}</div>
       </div>
 
       <div class="course-details">
-        <div class="vendor-info">
-          <img
-            [src]="course.trainer?.avatar || 'https://ui-avatars.com/api/?name=Trainer&background=00d2ff&color=fff&bold=true'"
-            class="trainer-avatar">
-          <span class="trainer-name">{{ course.trainer?.name || 'Master Coach' }}</span>
+        <div class="vendor-header">
+          <div class="gym-badge">
+            <span class="material-symbols-rounded">domain</span>
+            <span>{{ course.gymName }}</span>
+          </div>
+          <div class="vendor-info">
+            <img [src]="getTrainerAvatar(course)" class="trainer-avatar" [alt]="getTrainerName(course)">
+            <span class="trainer-name">{{ getTrainerName(course) }}</span>
+          </div>
         </div>
 
         <h3 class="course-title">{{ course.name }}</h3>
@@ -59,24 +64,69 @@
 
         <div class="course-meta-modern">
           <div class="meta-node">
-            <span class="meta-label">SCHEDULE</span>
+            <span class="meta-label">DURATION</span>
             <span class="meta-value">{{ formatDuration(course.duration) }}</span>
           </div>
           <div class="meta-node">
-            <span class="meta-label">GROUPS</span>
+            <span class="meta-label">SESSIONS</span>
+            <span class="meta-value">{{ course.activeSessions?.length || 0 }} ACTIVE</span>
+          </div>
+          <div class="meta-node">
+            <span class="meta-label">MEMBERS</span>
             <span class="meta-value">{{ course.members_count }} ENROLLED</span>
           </div>
+          @if (course.hasActiveSession) {
+            <div class="meta-node highlight">
+              <span class="meta-label">STATUS</span>
+              <span class="meta-value live-ping"><span class="dot"></span>Live Session</span>
+            </div>
+          }
         </div>
 
-        <div class="card-footer">
+        @if (course.activeSessions?.length > 1) {
+          <div class="session-selection-area">
+            <span class="area-label">SELECT YOUR TIMESLOT</span>
+            <div class="session-pills-wrapper">
+              @for (s of course.activeSessions; track s.id_session || s.id) {
+                <button class="session-pill" 
+                  [class.active]="course.selectedSessionId === (s.id_session || s.id)"
+                  (click)="course.selectedSessionId = (s.id_session || s.id)">
+                  <span class="pill-date">{{ s.date_session | date:'E, MMM d' }}</span>
+                  <span class="pill-time">{{ (s.start_time || '').substring(0,5) }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="card-footer" [class.no-border]="course.activeSessions?.length > 1">
           <div class="price-tag">
             <span class="currency">$</span>
             <span class="amount">{{ course.price || '49.99' }}</span>
           </div>
-          <button class="enroll-btn" [disabled]="course.isOwned" (click)="onEnroll(course)">
-            {{ course.isOwned ? 'Enrolled' : 'Enroll Now' }}
-            <span class="material-symbols-rounded">{{ course.isOwned ? 'verified' : 'arrow_forward' }}</span>
-          </button>
+          <div class="actions-group">
+            @if (course.activeSessions?.length > 0) {
+              @if (course.activeSessions?.length === 1) {
+                <div class="single-session-badge">
+                  <span class="material-symbols-rounded">event</span>
+                  {{ course.activeSessions[0].date_session | date:'MMM d' }} | {{ (course.activeSessions[0].start_time || '').substring(0,5) }}
+                </div>
+              }
+              <button class="reserve-btn" 
+                [class.reserved]="isSessionReserved(course)"
+                [disabled]="isSessionReserved(course)"
+                (click)="onReserve(course)" 
+                [title]="isSessionReserved(course) ? 'You have officially reserved this timeslot' : 'Reserve your spot'">
+                <span class="material-symbols-rounded">{{ isSessionReserved(course) ? 'check_circle' : 'calendar_add_on' }}</span>
+                {{ isSessionReserved(course) ? 'Reserved' : 'Reserve' }}
+              </button>
+            } @else {
+              <div class="not-available-badge">
+                <span class="material-symbols-rounded">block</span>
+                Pas Disponible
+              </div>
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -127,7 +177,7 @@
     [stripePublicKey]="stripePublicKey"
     [headerTitle]="'Unlock Program Access'" [itemTitle]="selectedCourse?.name || 'Program'"
     [itemSubtitle]="selectedCourse?.category || 'Elite Training'"
-    [itemImage]="selectedCourse?.image || 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600'"
+    [itemImage]="selectedCourse?.imageUrl"
     [purchaseTerms]="'Enrolling grants you full access to all future sessions and training materials for this program duration.'"
     (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
   </app-payment-modal>

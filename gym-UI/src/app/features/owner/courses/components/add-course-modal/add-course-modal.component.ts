@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CourseService } from '../../services/course.service';
 import { finalize } from 'rxjs';
+import { environment } from '../../../../../../environments/environment';
 
 @Component({
   selector: 'app-add-course-modal',
@@ -23,6 +24,8 @@ export class AddCourseModalComponent implements OnInit {
 
   isAdding = signal<boolean>(false);
   addError = signal<string | null>(null);
+  imagePreview = signal<string | null>(null);
+  selectedFile: File | null = null;
 
   get isEditMode(): boolean {
     return !!this.editCourse();
@@ -52,7 +55,36 @@ export class AddCourseModalComponent implements OnInit {
         count:        existing.count,
         duration:     existing.duration
       });
+      const rawImage = existing.image_url || existing.image || existing.picture || existing.logo || existing.logo_url;
+      if (rawImage) {
+        this.imagePreview.set(this.getImageUrl(rawImage));
+      }
     }
+  }
+
+  getImageUrl(path?: string): string {
+    if (!path) return '';
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${baseUrl}/${cleanPath}`;
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview.set(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage() {
+    this.selectedFile = null;
+    this.imagePreview.set(null);
   }
 
   cancelAdd() {
@@ -67,15 +99,22 @@ export class AddCourseModalComponent implements OnInit {
       return;
     }
 
-    const payload = this.addForm.value;
-    this.isAdding.set(true);
+    const formData = new FormData();
+    Object.keys(this.addForm.controls).forEach(key => {
+      formData.append(key, this.addForm.get(key)?.value);
+    });
 
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile);
+    }
+
+    this.isAdding.set(true);
     const existing = this.editCourse();
 
     if (existing) {
       // EDIT mode
       const id = existing.id_course || existing.id;
-      this.courseService.updateCourse(id, payload).pipe(finalize(() => this.isAdding.set(false))).subscribe({
+      this.courseService.updateCourse(id, formData).pipe(finalize(() => this.isAdding.set(false))).subscribe({
         next: () => {
           this.courseAdded.emit();
           this.close.emit();
@@ -87,7 +126,7 @@ export class AddCourseModalComponent implements OnInit {
       });
     } else {
       // ADD mode
-      this.courseService.createCourse(payload).pipe(finalize(() => this.isAdding.set(false))).subscribe({
+      this.courseService.createCourse(formData).pipe(finalize(() => this.isAdding.set(false))).subscribe({
         next: () => {
           this.courseAdded.emit();
           this.close.emit();
