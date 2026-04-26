@@ -14,19 +14,41 @@ class PaymentService extends BaseService
     }
 
     /**
-     * Get all payments filtered by user access
+     * Get all payments filtered by user access and active gym
      */
     public function getAllScoped($user, ?int $perPage = null)
     {
-        $query = $this->query();
+        $query = $this->query()->orderBy('created_at', 'desc');
 
-        // Staff can see all payments (filtered by gym joins if implemented)
-        if (in_array($user->role, [User::ROLE_OWNER, User::ROLE_RECEPTIONIST])) {
-            return $query->get();
+        // Apply Date Filters if present
+        if (request()->has('start_date')) {
+            $query->whereDate('created_at', '>=', request()->query('start_date'));
+        }
+        if (request()->has('end_date')) {
+            $query->whereDate('created_at', '<=', request()->query('end_date'));
         }
 
-        // Other users only see their own payments
-        return $query->where('id_user', $user->id_user)->get();
+        // Super Admin sees everything
+        if ($user->role === User::ROLE_SUPER_ADMIN) {
+            return $perPage ? $query->paginate($perPage) : $query->get();
+        }
+
+        // Apply Gym Scope using X-Gym-Id or manual gym_id
+        $this->applyActiveGymScope($query, $user);
+
+        // If user is receptionist or owner, they can see all in that gym
+        if (!$this->getActiveGymId()) {
+            if ($user->role !== User::ROLE_SUPER_ADMIN) {
+                $query->whereIn('id_gym', $user->allowedGymIds());
+            }
+        }
+
+        // Members only see their own
+        if ($user->role === User::ROLE_MEMBER) {
+            $query->where('id_user', $user->id_user);
+        }
+
+        return $perPage ? $query->paginate($perPage) : $query->get();
     }
 
     /**
@@ -37,11 +59,15 @@ class PaymentService extends BaseService
         return $this->getBy('id_user', $userId);
     }
 
-    /**
-     * Get payments by method
-     */
-    public function getPaymentsByMethod($method)
-    {
-        return $this->getBy('method', $method);
-    }
+     /**
+      * Get total intake for today scoped to gym
+      */
+     public function getTodaysTotal($user)
+     {
+         $query = $this->query();
+         $this->applyActiveGymScope($query, $user);
+         
+         return $query->whereDate('created_at', now()->toDateString())
+                      ->sum('amount');
+     }
 }

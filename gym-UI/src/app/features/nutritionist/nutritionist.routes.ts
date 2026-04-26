@@ -20,6 +20,13 @@ export const nutritionistRoutes: Routes = [
           import('./clients/clients.component').then(m => m.NutritionistClientsComponent)
       },
       {
+        path: 'clients/:id',
+        loadComponent: () =>
+          import('./clients/client-detail/client-detail.component').then(
+            m => m.ClientDetailComponent
+          )
+      },
+      {
         path: 'nutrition-plans',
         loadComponent: () =>
           import('./nutrition-plans/nutrition-plans.component').then(

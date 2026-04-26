@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminGymsService, GymDto } from '../../../core/services/admin-gyms.service';
 import { SuspendDialogComponent } from './suspend-dialog.component';
 import { computed } from '@angular/core';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-gyms-list',
@@ -89,8 +90,9 @@ import { computed } from '@angular/core';
               <tr *ngFor="let gym of filteredGyms()" class="group">
                 <td>
                   <div class="flex items-center gap-4">
-                    <div class="gym-icon-box shadow-lg">
-                      <mat-icon>business</mat-icon>
+                    <div class="gym-icon-box shadow-lg" [class.no-image]="!gym.picture">
+                      <mat-icon *ngIf="!gym.picture">fitness_center</mat-icon>
+                      <img *ngIf="gym.picture" [src]="getGymImageUrl(gym.picture)" [alt]="gym.name" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" />
                     </div>
                     <span class="main-text">{{ gym.name }}</span>
                   </div>
@@ -237,5 +239,17 @@ export class GymsListComponent implements OnInit {
       },
       error: () => this.actionInProgress.set(false)
     });
+  }
+
+  getGymImageUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '');
+    
+    if (cleanPath.startsWith('storage/')) {
+        return `${baseUrl}/${cleanPath}`;
+    }
+    return `${baseUrl}/storage/${cleanPath}`;
   }
 }

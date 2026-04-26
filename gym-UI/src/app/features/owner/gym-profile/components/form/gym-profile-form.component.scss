@@ -1,1 +1,227 @@
 @import "../../gym-profile.scss";
+
+/* Layout overrides */
+.profile-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 2.5rem;
+  align-items: start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-content-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.sidebar-col {
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Enhancements for main cards */
+.pulse-glow {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(59, 130, 246, 0.1)) !important;
+  color: #3b82f6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .5;
+  }
+}
+
+.title-meta {
+  h3 {
+    margin-bottom: 4px !important;
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+/* Vertical Operating Matrix */
+.matrix-vertical {
+  padding: 2rem;
+  background: linear-gradient(165deg, var(--bg-card) 0%, rgba(15, 23, 42, 0.4) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  .card-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px dashed var(--border-glass);
+
+    .pulse-indigo {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(139, 92, 246, 0.15));
+      color: #8b5cf6;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+    }
+  }
+}
+
+.matrix-grid-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .matrix-card {
+    background: var(--bg-main);
+    border: 1px solid var(--border-glass);
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--color-primary-500);
+      opacity: 0;
+      transition: opacity 0.3s;
+      border-radius: 4px 0 0 4px;
+    }
+
+    &:hover {
+      background: var(--bg-hover);
+      transform: translateX(6px);
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    &.editing {
+      background: rgba(99, 102, 241, 0.03);
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
+
+      &::before {
+        opacity: 1;
+        background: #10b981;
+      }
+    }
+
+    .m-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .day-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--color-primary-600);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        background: rgba(99, 102, 241, 0.1);
+        padding: 4px 10px;
+        border-radius: 8px;
+      }
+
+      .day-range {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text-main);
+      }
+    }
+
+    .m-body {
+      .time-val {
+        font-size: 1.3rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--text-main) 0%, var(--text-muted) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        &::before {
+          content: '';
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #10b981, #059669);
+          box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+          flex-shrink: 0;
+        }
+      }
+
+      input {
+        width: 100%;
+        background: var(--bg-card);
+        border: 2px solid rgba(99, 102, 241, 0.2);
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-align: center;
+        transition: all 0.3s;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        &:focus {
+          outline: none;
+          border-color: var(--color-primary-500);
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.05);
+          transform: scale(1.02);
+        }
+      }
+    }
+  }
+}
+
+.focus-ring {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  pointer-events: none;
+  transition: all 0.3s;
+}
+
+.input-wrapper:focus-within .focus-ring {
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: scale(1.01);
+}

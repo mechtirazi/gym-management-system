@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subscribe extends Model
 {
-    /** @use HasFactory<\Database\Factories\SubscribeFactory> */
     use HasFactory;
     use HasUuids;
+    use \App\Traits\HasSocialInteractions;
 
     protected $table = 'subscribe';
 
@@ -21,7 +21,7 @@ class Subscribe extends Model
 
     protected $keyType = 'string';
 
-    protected $appends = ['end_date'];
+    protected $appends = ['end_date', 'is_liked', 'likes_count', 'comments_count'];
 
     public function getEndDateAttribute()
     {

@@ -9,7 +9,7 @@ import { RecentCheckinsComponent } from './components/recent-checkins/recent-che
 import { AddMemberModalComponent } from './components/add-member-modal/add-member-modal';
 import { finalize } from 'rxjs/operators';
 
-import { DashboardData, UpcomingSession, InventoryAlert, ExpiringMembership, Checkin, FocusArea } from '../../../shared/models/dashboard.model';
+import { DashboardData, UpcomingSession, InventoryAlert, ExpiringMembership, Checkin, FocusArea, StaffSnapshotMember } from '../../../shared/models/dashboard.model';
 
 @Component({
   selector: 'app-owner-dashboard',
@@ -41,6 +41,7 @@ export class OwnerDashboardComponent implements OnInit {
   inventoryAlerts = signal<InventoryAlert[]>([]);
   expiringMemberships = signal<ExpiringMembership[]>([]);
   focusAreas = signal<FocusArea[]>([]);
+  staffSnapshot = signal<StaffSnapshotMember[]>([]);
 
 
   ngOnInit() {
@@ -60,6 +61,7 @@ export class OwnerDashboardComponent implements OnInit {
           this.inventoryAlerts.set(data.inventoryAlerts || []);
           this.expiringMemberships.set(data.expiringMemberships || []);
           this.focusAreas.set(data.focusAreas || []);
+          this.staffSnapshot.set(data.staffSnapshot || []);
 
         }
       });

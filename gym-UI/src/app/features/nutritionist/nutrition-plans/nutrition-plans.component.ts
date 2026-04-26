@@ -73,6 +73,11 @@ export class NutritionistNutritionPlansComponent implements OnInit {
     this.loadGyms();
     this.loadMembers();
     this.loadPlans();
+
+    // Support for direct "Assign Plan" action from Client Details
+    if (this.route.snapshot.queryParamMap.get('autoOpen') === 'true') {
+      setTimeout(() => this.onAddPlan(), 500);
+    }
   }
 
   ngOnDestroy(): void {
@@ -197,6 +202,8 @@ export class NutritionistNutritionPlansComponent implements OnInit {
       return;
     }
 
+    const preselectedMember = this.memberIdFilter();
+
     this.modalMode.set('add');
     this.planForm.set({
       id_plan: '',
@@ -204,7 +211,7 @@ export class NutritionistNutritionPlansComponent implements OnInit {
       start_date: '',
       end_date: '',
       id_nutritionist: me,
-      id_members: [],
+      id_members: preselectedMember ? [preselectedMember] : [],
       price: 0
     });
     this.showModal.set(true);

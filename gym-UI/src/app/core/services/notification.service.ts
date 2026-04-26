@@ -1,9 +1,10 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GymNotification } from '../../shared/models/notification.model';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,11 +17,22 @@ export class NotificationService {
   
   // Public exposure
   notifications = this._notifications.asReadonly();
-  unreadCount = computed(() => this._notifications().filter(n => n.unread).length);
+  unreadNotifications = computed(() => this._notifications().filter(n => n.unread));
+  unreadCount = computed(() => this.unreadNotifications().length);
   hasUnread = computed(() => this.unreadCount() > 0);
 
-  constructor(private http: HttpClient) {
-    this.fetchNotifications().subscribe();
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.fetchNotifications().subscribe();
+      } else {
+        this._notifications.set([]);
+      }
+    });
   }
 
   fetchNotifications(): Observable<GymNotification[]> {
@@ -83,17 +95,17 @@ export class NotificationService {
     );
   }
 
-  sendToAllUsers(text: string): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/admin/notifications/all`, { text });
+  sendToAllUsers(text: string, type: string = 'info'): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/admin/notifications/all`, { text, type });
   }
 
-  sendToOwner(ownerId: string, text: string): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/admin/notifications/owner/${ownerId}`, { text });
+  sendToOwner(ownerId: string, text: string, type: string = 'info'): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/admin/notifications/owner/${ownerId}`, { text, type });
   }
 
-  sendToUser(userId: string, text: string): Observable<any> {
+  sendToUser(userId: string, text: string, type: string = 'info'): Observable<any> {
     // Uses the generic store endpoint which requires id_user and text
-    return this.http.post(`${this.API_URL}`, { id_user: userId, text: text, type: 'info' });
+    return this.http.post(`${this.API_URL}`, { id_user: userId, text: text, type: type });
   }
 
   private mapNotification(n: any): GymNotification {

@@ -22,6 +22,7 @@ class SubscribeService extends BaseService
 
         // Owners only see subscriptions to their gyms
         if ($user->role === User::ROLE_OWNER) {
+            $this->applyActiveGymScope($query, $user, 'id_gym');
             return $query->whereHas('gym', function ($q) use ($user) {
                 $q->where('id_owner', $user->id_user);
             })->get();

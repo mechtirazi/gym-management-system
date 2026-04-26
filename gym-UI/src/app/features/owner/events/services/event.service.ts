@@ -22,21 +22,31 @@ export class EventService {
     return this.http.get<any>(`${this.apiUrl}/events?page=${page}&per_page=${perPage}`);
   }
 
-  createEvent(event: any): Observable<any> {
+  private prepareFormData(data: FormData): FormData {
     const activeGymId = this.authService.connectedGymId();
     if (!activeGymId) {
       throw new Error('No active gym selected. Please switch to a gym first.');
     }
-    const payload = { ...event, id_gym: activeGymId };
-    return this.http.post<any>(`${this.apiUrl}/events`, payload);
+    if (!data.has('id_gym')) {
+      data.append('id_gym', activeGymId.toString());
+    }
+    return data;
+  }
+
+  createEvent(eventData: FormData): Observable<any> {
+    const data = this.prepareFormData(eventData);
+    return this.http.post<any>(`${this.apiUrl}/events`, data);
   }
 
   deleteEvent(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/events/${id}`);
   }
 
-  updateEvent(id: string, event: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/events/${id}`, event);
+  updateEvent(id: string, eventData: FormData): Observable<any> {
+    const data = this.prepareFormData(eventData);
+    // For multipart/form-data PUT requests, use POST with _method=PUT
+    data.append('_method', 'PUT');
+    return this.http.post(`${this.apiUrl}/events/${id}`, data);
   }
 
   getEventAttendances(eventId: string): Observable<any> {

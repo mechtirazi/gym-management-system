@@ -77,7 +77,7 @@ class MemberController extends Controller
             ->where('id_gym', $course->id_gym)
             ->where('status', 'active')
             ->exists();
-        
+
         if ($exists) {
             return response()->json(['success' => false, 'message' => 'Your biometric signature is already synced with a training node in this facility.'], 400);
         }
@@ -86,7 +86,7 @@ class MemberController extends Controller
         if ($method === 'zen_wallet') {
             if (!$wallet || $wallet->balance < $course->price) {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Insufficient Zen Credits (Points). Current balance: ' . ($wallet ? $wallet->balance : '0') . ' pts',
                     'required' => $course->price
                 ], 400);
@@ -157,11 +157,11 @@ class MemberController extends Controller
         $user = $request->user();
         $wallet = $user->wallet;
         $method = $request->input('payment_method', 'zen_wallet');
-        
+
         // Handle Dynamic Plans
         $planId = $request->input('id_plan');
         $plan = null;
-        
+
         if ($planId) {
             $plan = \App\Models\MembershipPlan::find($planId);
             if (!$plan) {
@@ -262,7 +262,7 @@ class MemberController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $method === 'zen_wallet' 
+                'message' => $method === 'zen_wallet'
                     ? "Bio-Pulse Activated! Enrollment complete for {$gym->name}."
                     : "Payment processed successfully via {$method}. Your access node at {$gym->name} is now live.",
                 'data' => [
@@ -280,11 +280,11 @@ class MemberController extends Controller
     public function checkIn(Request $request)
     {
         $user = $request->user();
-        
+
         $activeEnroll = Enrollment::where('id_member', $user->id_user)
             ->where('status', 'active')
             ->first();
-            
+
         if (!$activeEnroll) {
             return response()->json([
                 'success' => false,
@@ -294,7 +294,7 @@ class MemberController extends Controller
 
         $attendance = Attendance::create([
             'id_member' => $user->id_user,
-            'id_session' => null, 
+            'id_session' => null,
             'status' => 'present'
         ]);
 
@@ -311,7 +311,7 @@ class MemberController extends Controller
     public function updateBiometrics(Request $request)
     {
         $user = $request->user();
-        
+
         $request->validate([
             'calories' => 'integer|min:0',
             'protein' => 'integer|min:0',
@@ -326,12 +326,18 @@ class MemberController extends Controller
         $isNewDay = !$lastUpdate || !Carbon::parse($lastUpdate)->isToday();
 
         // Update values
-        if ($request->has('calories')) $user->manual_calories = $request->calories;
-        if ($request->has('protein')) $user->manual_protein = $request->protein;
-        if ($request->has('carbs')) $user->manual_carbs = $request->carbs;
-        if ($request->has('fats')) $user->manual_fats = $request->fats;
-        if ($request->has('water')) $user->manual_water = $request->water;
-        if ($request->has('weight')) $user->manual_weight = $request->weight;
+        if ($request->has('calories'))
+            $user->manual_calories = $request->calories;
+        if ($request->has('protein'))
+            $user->manual_protein = $request->protein;
+        if ($request->has('carbs'))
+            $user->manual_carbs = $request->carbs;
+        if ($request->has('fats'))
+            $user->manual_fats = $request->fats;
+        if ($request->has('water'))
+            $user->manual_water = $request->water;
+        if ($request->has('weight'))
+            $user->manual_weight = $request->weight;
 
         // Reward points ONLY once per day for biometric synchronization to prevent farming
         if ($isNewDay) {

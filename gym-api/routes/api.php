@@ -14,6 +14,10 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SubscribeController;
+// BIO-SYNC INTEGRITY TEST (Bypass all middleware)
+Route::get('bio-sync-test', function() {
+    return response()->json(['status' => 'online', 'module' => 'Biometric intelligence Hub']);
+});
 use App\Http\Controllers\Api\NutritionPlanController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\EnrollmentController;
@@ -26,6 +30,8 @@ use App\Http\Controllers\Api\SuperAdminAnalyticsController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ReceptionistDashboardController;
 use App\Http\Controllers\Api\TrainerController;
+use App\Http\Controllers\Api\BiometricController;
+use App\Http\Controllers\Api\SocialController;
 
 // Public Auth Routes (no authentication required)
 Route::prefix('auth')->group(function () {
@@ -38,7 +44,11 @@ Route::prefix('auth')->group(function () {
     Route::get('verify/{id}/{hash}', [AuthController::class, 'verify'])->name('verification.verify');
     Route::post('resend-verification', [AuthController::class, 'resendVerification'])->name('verification.resend');
 
-    // Social Media Login
+    Route::get('health', function () {
+    return response()->json(['success' => true, 'status' => 'optimal', 'timestamp' => now()]);
+});
+
+// Social Media Login
     Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])->name('auth.social.redirect');
     Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])->name('auth.social.callback');
 });
@@ -98,6 +108,8 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     // Nutrition Plan routes
     Route::get('nutrition-plans/available', [NutritionPlanController::class, 'available'])->name('nutrition-plans.available');
     Route::post('nutrition-plans/{nutritionPlan}/purchase', [NutritionPlanController::class, 'purchase'])->name('nutrition-plans.purchase');
+    Route::post('nutrition-plans/meals/{nutritionMeal}/toggle', [NutritionPlanController::class, 'toggleMealLog'])->name('nutrition-plans.meals.toggle');
+    Route::post('nutrition-plans/water-log', [NutritionPlanController::class, 'logWater'])->name('nutrition-plans.water.log');
     Route::apiResource('nutrition-plans', NutritionPlanController::class);
 
     // Notification routes
@@ -108,7 +120,14 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     // Enrollment routes
     Route::apiResource('enrollments', EnrollmentController::class);
 
+    // Biometric Progress routes
+    Route::get('biometrics/workouts', [BiometricController::class, 'getWorkouts']);
+    Route::apiResource('biometrics', BiometricController::class);
+
     // Gym Staff routes
+    Route::get('gym-staff/invitations', [GymStaffController::class, 'getInvitations'])->name('gym-staff.invitations');
+    Route::post('gym-staff/join', [GymStaffController::class, 'joinGym'])->name('gym-staff.join');
+    Route::post('gym-staff/decline', [GymStaffController::class, 'declineInvitation'])->name('gym-staff.decline');
     Route::apiResource('gym-staff', GymStaffController::class);
 
     // Receptionist dashboard (aggregated stats)
@@ -146,6 +165,11 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::put('biometrics', [App\Http\Controllers\Api\MemberController::class, 'updateBiometrics'])->name('member.biometrics');
         Route::post('workouts', [App\Http\Controllers\Api\MemberController::class, 'storeWorkoutLog'])->name('member.workouts.save');
         Route::get('workouts/history', [App\Http\Controllers\Api\MemberController::class, 'getWorkoutHistory'])->name('member.workouts.history');
+        
+        // Social Interactions
+        Route::post('social/like', [SocialController::class, 'toggleLike']);
+        Route::post('social/comment', [SocialController::class, 'addComment']);
+        Route::get('social/comments', [SocialController::class, 'getComments']);
     });
 
     // Trainer Dashboard routes

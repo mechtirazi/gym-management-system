@@ -17,6 +17,7 @@ use App\Models\Wallet;
  * @property int $manual_fats
  * @property float $manual_water
  * @property float $manual_weight
+ * @property float $target_weight
  * @property int $evolution_points
  */
 class User extends Authenticatable implements MustVerifyEmail
@@ -81,7 +82,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'manual_fats',
         'manual_water',
         'manual_weight',
+        'target_weight',
         'evolution_points',
+        'nutritionist_advisory',
     ];
 
     /**
@@ -226,6 +229,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Course::class, 'enrollments', 'id_member', 'id_course')
             ->withPivot('status')
             ->withTimestamps();
+    }
+
+    public function biometricLogs()
+    {
+        return $this->hasMany(BiometricLog::class, 'id_member', 'id_user');
     }
 
     /**

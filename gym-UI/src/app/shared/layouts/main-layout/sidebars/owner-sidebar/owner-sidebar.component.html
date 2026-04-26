@@ -14,7 +14,7 @@
     </div>
   </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" [class.blocked-mode]="connectedGymStatus() === 'suspended'">
     @for (item of navItems; track item.label) {
     @if (item.isHeader) {
     <div class="nav-header" [class.locked]="isLocked(item)">{{ item.label }}</div>

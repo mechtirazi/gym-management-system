@@ -47,8 +47,22 @@ export class MemberService {
     return this.http.get<any>(`${this.apiUrl}/enrollments`);
   }
 
+  getMyPayments(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/payments`);
+  }
+
   getMyAttendances(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/attendances`);
+  }
+
+  reserveSession(sessionId: string): Observable<any> {
+    const userId = this.authService.currentUser()?.id_user;
+    const payload = {
+      id_member: userId,
+      id_session: sessionId,
+      status: 'pending'
+    };
+    return this.http.post<any>(`${this.apiUrl}/attendances`, payload);
   }
 
   getMyNutritionPlans(): Observable<any> {
@@ -65,6 +79,18 @@ export class MemberService {
 
   purchaseNutritionPlan(planId: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/nutrition-plans/${planId}/purchase`, {});
+  }
+
+  getNutritionPlanDetails(planId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/nutrition-plans/${planId}`);
+  }
+
+  toggleMealCompletion(mealId: string, isCompleted: boolean): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/nutrition-plans/meals/${mealId}/toggle`, { is_completed: isCompleted });
+  }
+
+  logHydration(amountMl: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/nutrition-plans/water-log`, { amount_ml: amountMl });
   }
 
   getAvailableCourses(): Observable<any> {
@@ -87,16 +113,35 @@ export class MemberService {
     return this.http.get<any>(`${this.apiUrl}/notifications`);
   }
 
+  getEvents(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/events`);
+  }
+
+  getProducts(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/products`);
+  }
+
   getGymReviews(gymId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/gyms/${gymId}/reviews`);
   }
 
-  enrollInCourse(courseId: string, paymentMethod: string = 'zen_wallet'): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/member/courses/${courseId}/enroll`, { payment_method: paymentMethod });
+  enrollInCourse(courseId: string, sessionId: string, paymentMethod: string = 'zen_wallet'): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/courses/${courseId}/enroll`, { 
+      payment_method: paymentMethod, 
+      id_session: sessionId 
+    });
+  }
+
+  getMyEventAttendances(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/member/attendance-events`);
+  }
+
+  enrollInEvent(eventId: string, paymentMethod: string = 'zen_wallet'): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/events/${eventId}/enroll`, { payment_method: paymentMethod });
   }
 
   purchaseMembership(gymId: string, paymentMethod: string = 'zen_wallet', type: string = 'standard', idPlan?: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/member/gyms/${gymId}/purchase`, { 
+    return this.http.post<any>(`${this.apiUrl}/member/gyms/${gymId}/purchase`, {
       payment_method: paymentMethod,
       type: type,
       id_plan: idPlan
@@ -154,5 +199,17 @@ export class MemberService {
 
   deleteReview(reviewId: string): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/reviews/${reviewId}`);
+  }
+
+  toggleLike(id: string, type: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/social/like`, { id, type });
+  }
+
+  addComment(id: string, type: string, content: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/social/comment`, { id, type, content });
+  }
+
+  getComments(id: string, type: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/member/social/comments?id=${id}&type=${type}`);
   }
 }

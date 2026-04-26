@@ -19,51 +19,87 @@
     <form (ngSubmit)="onSubmit()" class="modal-body">
       @if (error()) {
       <div class="error-alert">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <p>{{ error() }}</p>
+        <div class="alert-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="alert-content">
+          <h4>Action Required</h4>
+          <p>{{ error() }}</p>
+        </div>
       </div>
       }
 
-      <div class="form-grid">
-        <!-- Member Selection -->
-        <div class="form-group full-width">
-          <label for="member">Select Member</label>
-          <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <select id="member" [(ngModel)]="orderData.id_member" name="id_member" required>
-              <option value="" disabled selected>Choose a member</option>
-              @for (member of members(); track member.id_user) {
-              <option [value]="member.id_user">{{ member.name }} {{ member.last_name }}</option>
-              }
-            </select>
+      <div class="modal-split-layout">
+        <!-- Left Panel: Form Inputs -->
+        <div class="left-panel">
+          <div class="form-grid">
+            <!-- Member Selection -->
+            <div class="form-group full-width">
+              <label for="member">Select Member</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <select id="member" [ngModel]="idMember()" (ngModelChange)="idMember.set($event)" name="id_member" required>
+                  <option value="" disabled selected>Choose a member</option>
+                  @for (member of members(); track member.id_user) {
+                  <option [value]="member.id_user">{{ member.name }} {{ member.last_name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="form-group">
+              <label for="quantity">Quantity</label>
+              <div class="input-wrapper">
+                <input type="number" id="quantity" [ngModel]="quantity()" (ngModelChange)="quantity.set($event)" name="quantity" min="1"
+                  [max]="product().stock" required>
+              </div>
+              <p class="help-text">{{ product().stock }} units available</p>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-group">
+              <label for="method">Payment Method</label>
+              <div class="input-wrapper">
+                <select id="method" [ngModel]="paymentMethod()" (ngModelChange)="paymentMethod.set($event)" name="payment_method" required>
+                  <option value="cash">Cash</option>
+                  <option value="card">Card</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Quantity -->
-        <div class="form-group">
-          <label for="quantity">Quantity</label>
-          <div class="input-wrapper">
-            <input type="number" id="quantity" [(ngModel)]="orderData.quantity" name="quantity" min="1"
-              [max]="product().stock" (ngModelChange)="calculateTotal()" required>
-          </div>
-          <p class="help-text">{{ product().stock }} units available</p>
-        </div>
-
-        <!-- Total Price (Read Only) -->
-        <div class="form-group">
-          <label>Unit Price</label>
-          <div class="input-wrapper total-display">
-            <span class="currency">$</span>
-            <input type="text" [value]="totalPrice().toFixed(2)" readonly>
+        <!-- Right Panel: Order Summary -->
+        <div class="right-panel">
+          <div class="order-summary-container">
+            <div class="summary-card">
+              <div class="summary-header">
+                <span>Order Summary</span>
+                <span class="unit-price">Unit Price: ${{ product().price }}</span>
+              </div>
+              <div class="summary-body">
+                <div class="summary-row">
+                  <span class="label">Subtotal ({{ quantity() }} units)</span>
+                  <span class="value">${{ totalPrice().toFixed(2) }}</span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-row total">
+                  <span class="label">Total Montant</span>
+                  <span class="value">${{ totalPrice().toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -71,11 +107,11 @@
       <div class="modal-actions">
         <button type="button" class="secondary-btn" (click)="close.emit()" [disabled]="isSubmitting()">Cancel</button>
         <button type="submit" class="primary-btn"
-          [disabled]="isSubmitting() || !orderData.id_member || orderData.quantity < 1 || orderData.quantity > product().stock">
+          [disabled]="isSubmitting() || !idMember() || quantity() < 1 || quantity() > product().stock">
           @if (isSubmitting()) {
           <span class="spinner"></span> Processing...
           } @else {
-          Confirm Order
+          Confirm Order (${{ totalPrice().toFixed(2) }})
           }
         </button>
       </div>

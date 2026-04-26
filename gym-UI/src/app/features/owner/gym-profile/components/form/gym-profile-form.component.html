@@ -1,67 +1,151 @@
-<form class="profile-details-grid" [formGroup]="formGroup()">
+<form class="profile-layout-grid" [formGroup]="formGroup()">
 
-  <!-- Primary Profile Identity -->
-  <div class="details-card glass-card">
-    <div class="card-header">
-      <div class="icon-box">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-        </svg>
-      </div>
-      <h3>Gym Identity</h3>
-    </div>
-
-    <div class="form-content">
-      <div class="premium-input-group">
-        <label>Legal Business Name</label>
-        <div class="input-wrapper" [class.disabled]="!isEditing()">
-          <input type="text" formControlName="name" placeholder="Gym Name" [readonly]="!isEditing()">
+  <div class="main-content-col">
+    <!-- Primary Profile Identity -->
+    <div class="details-card glass-card">
+      <div class="card-header">
+        <div class="icon-box pulse-glow">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        <div class="title-meta">
+          <h3>Gym Identity</h3>
+          <p>Core business details and branding</p>
         </div>
       </div>
 
-      <div class="premium-input-group">
-        <label>Executive Motto / Description</label>
-        <div class="input-wrapper" [class.disabled]="!isEditing()">
-          <textarea formControlName="description" rows="4" placeholder="Brief description..."
-            [readonly]="!isEditing()"></textarea>
+      <div class="form-content">
+        <div class="premium-input-group">
+          <label>Legal Business Name</label>
+          <div class="input-wrapper" [class.disabled]="!isEditing()">
+            <input type="text" formControlName="name" placeholder="Gym Name" [readonly]="!isEditing()">
+            <div class="focus-ring"></div>
+          </div>
+        </div>
+
+        <div class="premium-input-group">
+          <label>Executive Motto / Description</label>
+          <div class="input-wrapper" [class.disabled]="!isEditing()">
+            <textarea formControlName="description" rows="5"
+              placeholder="Brief description of your facility's vision..." [readonly]="!isEditing()"></textarea>
+            <div class="focus-ring"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public Reach & Access -->
+    <div class="details-card glass-card">
+      <div class="card-header">
+        <div class="icon-box pulse-glow">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+        </div>
+        <div class="title-meta">
+          <h3>Contact Channels</h3>
+          <p>How members and leads can reach you</p>
+        </div>
+      </div>
+
+      <div class="form-content">
+        <div class="premium-input-group">
+          <label>Primary Business Email</label>
+          <div class="input-wrapper" [class.disabled]="!isEditing()"
+            [class.invalid]="formGroup().get('email')?.invalid && formGroup().get('email')?.touched">
+            <input type="email" formControlName="email" placeholder="contact@gym.com" [readonly]="!isEditing()">
+            <div class="focus-ring"></div>
+          </div>
+          @if (formGroup().get('email')?.invalid && formGroup().get('email')?.touched) {
+          <small class="error-msg">Please enter a valid business email.</small>
+          }
+        </div>
+
+        <div class="premium-input-group">
+          <label>Support Hotline</label>
+          <div class="input-wrapper" [class.disabled]="!isEditing()"
+            [class.invalid]="formGroup().get('phone')?.invalid && formGroup().get('phone')?.touched">
+            <input type="tel" formControlName="phone" placeholder="+212..." [readonly]="!isEditing()">
+            <div class="focus-ring"></div>
+          </div>
+          @if (formGroup().get('phone')?.invalid && formGroup().get('phone')?.touched) {
+          <small class="error-msg">Valid phone number required (e.g., +212...).</small>
+          }
+        </div>
+
+        <div class="premium-input-group">
+          <label>Operational Address</label>
+          <div class="input-wrapper" [class.disabled]="!isEditing()">
+            <input type="text" formControlName="address" placeholder="123 Main St, City..." [readonly]="!isEditing()">
+            <div class="focus-ring"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Public Reach & Access -->
-  <div class="details-card glass-card">
-    <div class="card-header">
-      <div class="icon-box">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path
-            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-        </svg>
-      </div>
-      <h3>Contact Channels</h3>
-    </div>
-
-    <div class="form-content">
-      <div class="premium-input-group">
-        <label>Primary Business Email</label>
-        <div class="input-wrapper" [class.disabled]="!isEditing()">
-          <input type="email" formControlName="email" [readonly]="!isEditing()">
+  <div class="sidebar-col">
+    <!-- Operational Timeline Cards -->
+    <div class="details-card glass-card matrix-vertical">
+      <div class="card-header">
+        <div class="icon-box pulse-indigo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        <div class="title-meta">
+          <h3>Operating Matrix</h3>
+          <p>Facility's weekly synchronization windows</p>
         </div>
       </div>
 
-      <div class="premium-input-group">
-        <label>Support Hotline</label>
-        <div class="input-wrapper" [class.disabled]="!isEditing()">
-          <input type="tel" formControlName="phone" [readonly]="!isEditing()">
+      <div class="matrix-grid-vertical">
+        <div class="matrix-card" [class.editing]="isEditing()">
+          <div class="m-header">
+            <span class="day-label">Weekdays</span>
+            <span class="day-range">Mon — Fri</span>
+          </div>
+          <div class="m-body">
+            @if (isEditing()) {
+            <input type="text" formControlName="open_mon_fri" placeholder="06:00 - 22:00">
+            } @else {
+            <span class="time-val">{{ formGroup().get('open_mon_fri')?.value || 'Closed' }}</span>
+            }
+          </div>
         </div>
-      </div>
 
-      <div class="premium-input-group">
-        <label>Operational Address</label>
-        <div class="input-wrapper" [class.disabled]="!isEditing()">
-          <input type="text" formControlName="address" [readonly]="!isEditing()">
+        <div class="matrix-card" [class.editing]="isEditing()">
+          <div class="m-header">
+            <span class="day-label">Weekend Core</span>
+            <span class="day-range">Saturday</span>
+          </div>
+          <div class="m-body">
+            @if (isEditing()) {
+            <input type="text" formControlName="open_sat" placeholder="08:00 - 20:00">
+            } @else {
+            <span class="time-val">{{ formGroup().get('open_sat')?.value || 'Closed' }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="matrix-card" [class.editing]="isEditing()">
+          <div class="m-header">
+            <span class="day-label">Weekend Rest</span>
+            <span class="day-range">Sunday / Holidays</span>
+          </div>
+          <div class="m-body">
+            @if (isEditing()) {
+            <input type="text" formControlName="open_sun" placeholder="08:00 - 16:00">
+            } @else {
+            <span class="time-val">{{ formGroup().get('open_sun')?.value || 'Closed' }}</span>
+            }
+          </div>
         </div>
       </div>
     </div>

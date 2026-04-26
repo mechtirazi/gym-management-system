@@ -1,5 +1,4 @@
 <div class="feed-container">
-  <!-- Dynamic Background Nodes -->
   <div class="bg-glow purple"></div>
   <div class="bg-glow blue"></div>
 
@@ -12,10 +11,10 @@
         <div class="text-group">
           <div class="status-pill">
             <span class="pulse-node"></span>
-            LIVE SYNC
+            LIVE NETWORK SYNC
           </div>
-          <h1>Zenith Feed</h1>
-          <p>Real-time heartbeat from your fitness network</p>
+          <h1>Zenith Pulse</h1>
+          <p>The latest activity from your elite fitness ecosystem</p>
         </div>
       </div>
       <div class="header-stats">
@@ -23,54 +22,81 @@
           <span class="val">{{ activities.length }}</span>
           <span class="lab">Active Nodes</span>
         </div>
-        <div class="h-stat" *ngIf="activeSubscription">
-          <span class="val">{{ activeSubscription?.plan?.name?.split(' ')[0] }}</span>
-          <span class="lab">Tier</span>
-        </div>
       </div>
     </div>
   </header>
 
   <div class="main-feed" *ngIf="!loading; else skeleton">
-    <div *ngIf="activities.length > 0; else emptyFeed" class="bento-grid-feed">
+    <div *ngIf="activities.length > 0; else emptyFeed">
         
-        @for (act of activities; track act.timestamp) {
-            <div class="feed-node-container animate-slide-up" [style.animation-delay]="$index * 0.05 + 's'">
-                <div class="feed-card glass-modern">
-                    <div class="card-glow" [style.background]="'radial-gradient(circle at top right, ' + act.color + '15, transparent)'"></div>
-                    
+        @for (act of activities; track (act.type + '_' + act.id)) {
+            <div class="feed-node-container animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'">
+                <div class="feed-card">
+                    <!-- Header -->
+                    <div class="card-header">
+                        <div class="gym-avatar">
+                            <span class="material-icons">location_on</span>
+                        </div>
+                        <div class="header-info">
+                            <span class="gym-name">{{ act.gymName || 'Global Hub' }}</span>
+                            <span class="post-time">{{ act.time }}</span>
+                        </div>
+                        <div class="type-badge" [style.color]="act.color" [style.background]="act.color + '15'">
+                            {{ act.type.replace('_', ' ') }}
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="card-body">
+                        <h2>{{ act.title }}</h2>
+                        <p>{{ act.content }}</p>
+                        
+                        <div class="price-box" *ngIf="act.price">
+                            <div class="price-tag">
+                                <span class="material-icons">payments</span>
+                                {{ act.price }}
+                            </div>
+                            <span class="price-label">Credits</span>
+                        </div>
+                    </div>
+
+                    <!-- Hero Image -->
                     <div class="card-hero" *ngIf="act.image">
-                        <img [src]="act.image" [alt]="act.title">
+                        <img [src]="act.image" [alt]="act.title" onerror="this.onerror=null; this.src='assets/images/custom-logo.png'">
                         <div class="hero-overlay"></div>
                     </div>
 
-                    <div class="card-header">
-                        <div class="gym-badge">
-                            <span class="material-icons">location_on</span>
-                            {{ act.gymName || 'Global Hub' }}
-                        </div>
-                        <div class="time-meta">
-                            <span class="material-icons">schedule</span>
-                            {{ act.time }}
-                        </div>
-                    </div>
-                    
-                    <div class="card-body">
-                        <div class="type-indicator" [style.background]="act.color + '20'" [style.color]="act.color">
-                            {{ act.type }}
-                        </div>
-                        <h2>{{ act.title || 'Broadcast Update' }}</h2>
-                        <p class="content-text">{{ act.content }}</p>
-                    </div>
-
+                    <!-- Footer / Social -->
                     <div class="card-footer">
-                        <div class="social-actions">
-                            <button class="action-btn glass" (click)="likePulse(act)" [class.active-like]="act?.liked"><span class="material-symbols-rounded">{{ act?.liked ? 'favorite' : 'favorite_border' }}</span></button>
-                            <button class="action-btn glass" (click)="commentPulse(act)"><span class="material-symbols-rounded">chat_bubble_outline</span></button>
-                            <button class="action-btn glass" (click)="sharePulse(act)"><span class="material-symbols-rounded">share</span></button>
+                        <div class="social-summary" *ngIf="act.likesCount || act.commentsCount">
+                            <span class="count-item" *ngIf="act.likesCount">
+                                <span class="material-icons" style="font-size: 16px; color: var(--admin-accent-rose, #f43f5e);">favorite</span>
+                                {{ act.likesCount }} Loves
+                            </span>
+                            <span class="count-item" *ngIf="act.commentsCount">
+                                <span class="material-icons" style="font-size: 16px;">chat_bubble</span>
+                                {{ act.commentsCount }} Transmissions
+                            </span>
                         </div>
-                        <button class="view-btn" [style.background]="act?.color" (click)="viewDetails(act)">
-                            Details
+
+                        <div class="social-actions" style="width: 100%;">
+                            <button class="social-btn" (click)="likePulse(act)" [class.active]="act?.liked">
+                                <span class="material-symbols-rounded">{{ act?.liked ? 'favorite' : 'favorite_border' }}</span>
+                                {{ act?.liked ? 'Loved' : 'Love' }}
+                            </button>
+                            <button class="social-btn" (click)="commentPulse(act)">
+                                <span class="material-symbols-rounded">chat_bubble_outline</span>
+                                Comment
+                            </button>
+                            <button class="social-btn" (click)="sharePulse(act)">
+                                <span class="material-symbols-rounded">share</span>
+                                Share
+                            </button>
+                        </div>
+                    </div>
+                    <div class="view-btn-container">
+                        <button class="view-btn" (click)="viewDetails(act)">
+                            Explore Pulse
                             <span class="material-icons">arrow_forward</span>
                         </button>
                     </div>
@@ -80,56 +106,114 @@
     </div>
   </div>
 
+  <!-- ... (skeleton and emptyFeed templates) ... -->
   <ng-template #skeleton>
-    <div class="bento-grid-feed">
-        @for (s of [1,2,3,4,5,6]; track s) {
-            <div class="skeleton-node glass-modern skeleton-pulse"></div>
+    <div class="main-feed">
+        @for (s of [1,2,3]; track s) {
+            <div class="skeleton-card"></div>
         }
     </div>
   </ng-template>
 
   <ng-template #emptyFeed>
     <div class="empty-feed animate-fade-in">
-        <div class="empty-orb">✨</div>
-        <h2>Atmospheric Silence</h2>
-        <p>No pulses detected in your network today. Check back later for fresh activity nodes.</p>
-        <button class="btn-refresh glass" (click)="loadRealFeed()">Sync Network</button>
+        <div class="empty-icon">🕳️</div>
+        <h2>Echo Chamber</h2>
+        <p>Your network is quiet. No new events, courses, or protocols have been synchronized recently.</p>
+        <button class="btn-refresh" (click)="loadRealFeed()">Sync Network</button>
     </div>
   </ng-template>
 
-<div class="toast-hub-container" *ngIf="toastMessage">
+  <!-- Toast Notification -->
+  <div class="toast-hub-container" *ngIf="toastMessage">
     <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
-      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' :
-        'info') }}</span>
+      <div class="toast-indicator">
+          <span class="material-symbols-rounded">{{ toastType === 'success' ? 'verified' : (toastType === 'error' ? 'error' : 'info') }}</span>
+      </div>
       <div class="toast-content">
-        <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System Notice') }}</strong>
+        <strong>{{ toastType === 'success' ? 'Network Confirmed' : (toastType === 'error' ? 'Sync Failure' : 'System Information') }}</strong>
         <p>{{ toastMessage }}</p>
       </div>
     </div>
-</div>
+  </div>
 
-<div class="feed-modal-backdrop" *ngIf="activeModalAct" (click)="closeModal()">
-    <div class="feed-modal glass-modern animate-slide-up" (click)="$event.stopPropagation()">
+  <!-- Details & Comment Modal -->
+  <div class="feed-modal-backdrop" *ngIf="activeModalAct" (click)="closeModal()">
+    <div class="feed-modal animate-slide-up" (click)="$event.stopPropagation()">
         <div class="modal-header">
-            <h3>{{ modalMode === 'comment' ? 'Transmit Response' : 'Diagnostic Data' }}</h3>
-            <button class="action-btn glass" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
+            <h3>{{ modalMode === 'comment' ? 'Network Transmission' : 'Intelligence Report' }}</h3>
+            <button class="action-btn" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
         </div>
-        <div class="modal-body" *ngIf="modalMode === 'comment'">
-            <p style="color:#94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem;">Replying to: <strong style="color:white">{{ activeModalAct.title }}</strong></p>
-            <textarea #commentInput class="glass-input" rows="4" placeholder="Enter transmission..."></textarea>
-            <button class="view-btn" (click)="submitComment(commentInput.value)">Transmit <span class="material-symbols-rounded">send</span></button>
-        </div>
-        <div class="modal-body" *ngIf="modalMode === 'details'">
-            <div class="type-indicator" [style.background]="activeModalAct.color + '20'" [style.color]="activeModalAct.color" style="display: inline-block; padding: 0.4rem 1rem; border-radius: 1rem; font-size: 0.7rem; font-weight: 950; letter-spacing: 2px; margin-bottom: 1.2rem;">
-                {{ activeModalAct.type }}
+        
+        <div class="modal-body-scroll">
+            <div class="modal-content" *ngIf="modalMode === 'comment'">
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1.05rem;">Broadcasting response to: <strong style="color: var(--text-main);">{{ activeModalAct.title }}</strong></p>
+                <div class="comment-split-layout">
+                    <div class="comment-input-area">
+                        <textarea #commentInput class="glass-input" rows="5" placeholder="Compose your transmission..."></textarea>
+                        <div style="text-align: right; margin-bottom: 2rem;">
+                            <button class="view-btn" (click)="submitComment(commentInput.value); commentInput.value=''">
+                                Broadcast <span class="material-symbols-rounded" style="font-size: 1.2rem;">send</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="comments-section side-by-side">
+                        <div class="section-label">LATEST TRANSMISSIONS</div>
+                        <div *ngIf="commentsLoading" class="loader-mini">Synchronizing stream...</div>
+                        <div class="comments-list" *ngIf="!commentsLoading">
+                            <div *ngFor="let comment of currentComments" class="comment-item animate-fade-in">
+                                <div class="comment-user">
+                                    <div class="user-orb">{{ comment.user?.name?.[0] }}</div>
+                                    <div class="user-meta">
+                                        <span class="u-name">{{ comment.user?.name }} {{ comment.user?.last_name }}</span>
+                                        <span class="u-time">Network ID: {{ comment.id }}</span>
+                                    </div>
+                                </div>
+                                <div class="comment-text">{{ comment.content }}</div>
+                            </div>
+                            <div *ngIf="currentComments.length === 0" class="no-comments">No transmissions logged for this node.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <h2 style="font-size: 2rem; font-weight: 950; letter-spacing: -1px; margin-bottom: 1.5rem; color: #fff;">{{ activeModalAct.title }}</h2>
-            <p class="content-text" style="font-size: 1.1rem; line-height: 1.6; color: #94a3b8; margin-bottom: 2rem;">{{ activeModalAct.content }}</p>
-            <div class="time-meta" style="color: #64748b; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 0.6rem;">
-                <span class="material-symbols-rounded" style="font-size:1.1rem">schedule</span>
-                {{ activeModalAct.time }} | via {{ activeModalAct.gymName }}
+
+            <div class="modal-content" *ngIf="modalMode === 'details'">
+                <div class="type-badge" [style.color]="activeModalAct.color" [style.background]="activeModalAct.color + '15'">
+                    {{ activeModalAct.type }}
+                </div>
+                <h2 style="font-size: 2.2rem; margin-top: 1rem; color: var(--text-main);">{{ activeModalAct.title }}</h2>
+                <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.7; margin: 1.5rem 0;">{{ activeModalAct.content }}</p>
+                
+                <div style="display:flex; gap: 2rem; border-top: 1px solid var(--border-color); padding: 1.5rem 0;">
+                    <div class="meta-item">
+                        <small style="display:block; color: var(--text-muted); font-weight:900; letter-spacing:1px; margin-bottom:0.3rem;">FACILITY</small>
+                        <strong style="color: var(--text-main);">{{ activeModalAct.gymName }}</strong>
+                    </div>
+                    <div class="meta-item">
+                        <small style="display:block; color: var(--text-muted); font-weight:900; letter-spacing:1px; margin-bottom:0.3rem;">TIMESTAMP</small>
+                        <strong style="color: var(--text-main);">{{ activeModalAct.time }}</strong>
+                    </div>
+                </div>
+
+                <div class="comments-section" style="margin-top: 2rem;">
+                    <div class="section-label">NETWORK FEEDBACK</div>
+                    <div *ngIf="commentsLoading" class="loader-mini">Synchronizing stream...</div>
+                    <div class="comments-list" *ngIf="!commentsLoading">
+                        <div *ngFor="let comment of currentComments" class="comment-item">
+                            <div class="comment-user">
+                                <div class="user-orb" [style.background]="activeModalAct.color">{{ comment.user?.name?.[0] }}</div>
+                                <div class="user-meta">
+                                    <span class="u-name">{{ comment.user?.name }} {{ comment.user?.last_name }}</span>
+                                </div>
+                            </div>
+                            <div class="comment-text">{{ comment.content }}</div>
+                        </div>
+                        <div *ngIf="currentComments.length === 0" class="no-comments">Stream empty. Be the first to synchronize feedback.</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+  </div>
 </div>

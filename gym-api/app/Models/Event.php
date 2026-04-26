@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Event extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventFactory> */
     use HasFactory;
     use HasUuids;
+    use \App\Traits\HasSocialInteractions;
 
     protected $primaryKey = 'id_event';
+
+    protected $appends = ['is_liked', 'likes_count', 'comments_count'];
 
     public $incrementing = false;
 
@@ -21,6 +23,7 @@ class Event extends Model
     protected $fillable = [
         'title',
         'description',
+        'image',
         'reward_amount',
         'is_rewarded',
         'start_date',

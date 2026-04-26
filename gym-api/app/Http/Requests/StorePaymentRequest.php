@@ -18,6 +18,7 @@ class StorePaymentRequest extends FormRequest
     {
         return [
             'id_user' => 'required|exists:users,id_user',
+            'id_gym' => 'required|exists:gyms,id_gym',
             'amount' => 'required|numeric|min:0',
             'method' => 'required|string',
             'type' => 'nullable|string|in:membership,product,course,nutrition,other',
@@ -30,6 +31,8 @@ class StorePaymentRequest extends FormRequest
         return [
             'id_user.required' => 'User ID is required',
             'id_user.exists' => 'User not found',
+            'id_gym.required' => 'Gym ID is required',
+            'id_gym.exists' => 'Gym not found',
             'amount.required' => 'Amount is required',
             'amount.numeric' => 'Amount must be a number',
             'amount.min' => 'Amount must be at least 0',

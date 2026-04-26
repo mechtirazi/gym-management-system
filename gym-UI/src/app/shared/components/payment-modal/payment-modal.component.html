@@ -1,163 +1,175 @@
 <div class="payment-modal-overlay" [class.active]="showModal" (click)="closeModal()">
-  <div class="checkout-vault-card" (click)="$event.stopPropagation()">
-      <button class="btn-close-modal" (click)="closeModal()">
-          <span class="material-symbols-rounded">close</span>
-      </button>
+    <div class="checkout-vault-card" (click)="$event.stopPropagation()">
+        <button class="btn-close-modal" (click)="closeModal()">
+            <span class="material-symbols-rounded">close</span>
+        </button>
 
-      <div class="modal-header">
-          <div class="security-badge">
-              <span class="material-symbols-rounded">security</span>
-              Secure End-to-End Encryption
-          </div>
-          <h2>{{ headerTitle }}</h2>
-          <div class="checkout-stepper">
-              <div class="step-dot" [class.active]="paymentStepper >= 1">1</div>
-              <div class="step-line" [class.active]="paymentStepper >= 2"></div>
-              <div class="step-dot" [class.active]="paymentStepper >= 2">2</div>
-              <div class="step-line" [class.active]="paymentStepper >= 3"></div>
-              <div class="step-dot" [class.active]="paymentStepper >= 3">3</div>
-          </div>
-      </div>
+        <div class="modal-header">
+            <div class="security-badge">
+                <span class="material-symbols-rounded">security</span>
+                Secure End-to-End Encryption
+            </div>
+            <h2>{{ headerTitle }}</h2>
+            <div class="checkout-stepper">
+                <div class="step-dot" [class.active]="paymentStepper >= 1">1</div>
+                <div class="step-line" [class.active]="paymentStepper >= 2"></div>
+                <div class="step-dot" [class.active]="paymentStepper >= 2">2</div>
+                <div class="step-line" [class.active]="paymentStepper >= 3"></div>
+                <div class="step-dot" [class.active]="paymentStepper >= 3">3</div>
+            </div>
+        </div>
 
-      <div class="modal-body">
-          <!-- Step 1: Recap & Plan Selection -->
-          <div class="step-view" [style.display]="paymentStepper === 1 ? 'block' : 'none'">
-              <div class="order-recap">
-                  <div class="item-preview-mini">
-                      <img [src]="itemImage" alt="Item Image" onerror="this.src='https://ui-avatars.com/api/?name=Hub&background=1e293b&color=10b981&bold=true'">
-                      <div class="preview-text">
-                          <h3>{{ itemTitle }}</h3>
-                          <p>{{ selectedPlan ? selectedPlan.name : itemSubtitle }}</p>
-                      </div>
-                      <div class="item-price-pill" *ngIf="!selectedPlan">VERIFIED</div>
-                      <div class="item-price-pill price-dynamic" *ngIf="selectedPlan">
-                        ${{ selectedPlan.price }}
-                      </div>
-                  </div>
-
-                  <!-- Dynamic Plan Selection Tiers -->
-                  <div class="plan-selection-hub" *ngIf="plans && plans.length > 0">
-                    <h4 class="hub-label">Select Synchronization Tier</h4>
-                    <div class="plans-grid">
-                      <div class="plan-tier-card" 
-                           *ngFor="let plan of plans" 
-                           [class.active]="selectedPlan?.id === plan.id"
-                           (click)="selectPlan(plan)">
-                        <div class="tier-header">
-                          <span class="tier-name">{{ plan.name }}</span>
-                          <span class="tier-price">${{ plan.price }}</span>
+        <div class="modal-body">
+            <!-- Step 1: Recap & Plan Selection -->
+            <div class="step-view" [style.display]="paymentStepper === 1 ? 'block' : 'none'">
+                <div class="order-recap">
+                    <div class="item-preview-mini">
+                        <img [src]="itemImage" alt="Item Image"
+                            onerror="this.src='https://ui-avatars.com/api/?name=Hub&background=1e293b&color=10b981&bold=true'">
+                        <div class="preview-text">
+                            <h3>{{ itemTitle }}</h3>
+                            <p>{{ selectedPlan ? selectedPlan.name : itemSubtitle }}</p>
                         </div>
-                        <p class="tier-desc">{{ plan.description }}</p>
-                        <div class="tier-check" *ngIf="selectedPlan?.id === plan.id">
-                          <span class="material-symbols-rounded">check</span>
+                        <div class="item-price-pill" *ngIf="!selectedPlan">VERIFIED</div>
+                        <div class="item-price-pill price-dynamic" *ngIf="selectedPlan">
+                            ${{ selectedPlan.price }}
                         </div>
-                      </div>
                     </div>
-                  </div>
 
-                  <div class="vault-terms" *ngIf="!plans || plans.length === 0">
-                      <p>{{ purchaseTerms }}</p>
-                  </div>
-              </div>
-              <button class="btn-primary-glow" (click)="nextStep()">Proceed to Payment</button>
-          </div>
+                    <!-- Dynamic Plan Selection Tiers -->
+                    <div class="plan-selection-hub" *ngIf="plans && plans.length > 0">
+                        <h4 class="hub-label">Select Synchronization Tier</h4>
+                        <div class="plans-grid">
+                            <ng-container *ngFor="let plan of plans">
+                                <div class="plan-tier-card" *ngIf="plan"
+                                    [class.active]="(selectedPlan?.id_plan || selectedPlan?.id) === (plan?.id_plan || plan?.id)" 
+                                    (click)="selectPlan(plan)">
+                                    <div class="tier-header">
+                                        <span class="tier-name">{{ plan?.name }}</span>
+                                        <span class="tier-price">${{ plan?.price }}</span>
+                                    </div>
+                                    <p class="tier-desc">{{ plan?.description }}</p>
+                                    <div class="tier-check" *ngIf="(selectedPlan?.id_plan || selectedPlan?.id) === (plan?.id_plan || plan?.id)">
+                                        <span class="material-symbols-rounded">check</span>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
 
-          <div class="step-view" [style.display]="paymentStepper === 2 ? 'block' : 'none'">
-              <div class="payment-method-selector">
-                  <div class="method-card" [class.active]="selectedMethod === 'zen_wallet'" (click)="selectMethod('zen_wallet')">
-                      <div class="method-icon">
-                          <span class="material-symbols-rounded">currency_exchange</span>
-                      </div>
-                      <div class="method-info">
-                          <h4>Zen Wallet</h4>
-                          <p>Redeem your Evolution Points</p>
-                      </div>
-                      <div class="method-check" *ngIf="selectedMethod === 'zen_wallet'">
-                          <span class="material-symbols-rounded">check_circle</span>
-                      </div>
-                  </div>
+                    <div class="vault-terms" *ngIf="!plans || plans.length === 0">
+                        <p>{{ purchaseTerms }}</p>
+                    </div>
+                </div>
+                <button class="btn-primary-glow" (click)="nextStep()">Proceed to Payment</button>
+            </div>
 
-                  <div class="method-card" [class.active]="selectedMethod === 'credit_card'" (click)="selectMethod('credit_card')">
-                      <div class="method-icon">
-                          <span class="material-symbols-rounded">credit_card</span>
-                      </div>
-                      <div class="method-info">
-                          <h4>Credit Card</h4>
-                          <p>Secure PCI-Compliant Payment</p>
-                      </div>
-                      <div class="method-check" *ngIf="selectedMethod === 'credit_card'">
-                          <span class="material-symbols-rounded">check_circle</span>
-                      </div>
-                  </div>
-              </div>
+            <div class="step-view" [style.display]="paymentStepper === 2 ? 'block' : 'none'">
+                <div class="payment-method-selector">
+                    <div class="method-card" [class.active]="selectedMethod === 'zen_wallet'"
+                        (click)="selectMethod('zen_wallet')">
+                        <div class="method-icon">
+                            <span class="material-symbols-rounded">currency_exchange</span>
+                        </div>
+                        <div class="method-info">
+                            <h4>Zen Wallet</h4>
+                            <p>Redeem your Evolution Points</p>
+                        </div>
+                        <div class="method-check" *ngIf="selectedMethod === 'zen_wallet'">
+                            <span class="material-symbols-rounded">check_circle</span>
+                        </div>
+                    </div>
 
-              <div class="vault-form mt-4" [style.display]="selectedMethod === 'credit_card' ? 'block' : 'none'">
-                  
-                  <div class="holographic-card">
-                      <div class="holo-glare"></div>
-                      <div class="card-header-row">
-                          <div class="card-chip"></div>
-                          <div class="card-brand-logo">
-                              <img *ngIf="cardBrand === 'visa'" src="https://cdn.simpleicons.org/visa/white" alt="Visa">
-                              <img *ngIf="cardBrand === 'mastercard'" src="https://cdn.simpleicons.org/mastercard" alt="Mastercard">
-                              <img *ngIf="cardBrand === 'amex'" src="https://cdn.simpleicons.org/americanexpress/white" alt="Amex">
-                              <img *ngIf="cardBrand === 'discover'" src="https://cdn.simpleicons.org/discover/white" alt="Discover">
-                              
-                              <span *ngIf="!['visa', 'mastercard', 'amex', 'discover'].includes(cardBrand)" class="material-symbols-rounded default-icon">credit_score</span>
-                          </div>
-                      </div>
+                    <div class="method-card" [class.active]="selectedMethod === 'credit_card'"
+                        (click)="selectMethod('credit_card')">
+                        <div class="method-icon">
+                            <span class="material-symbols-rounded">credit_card</span>
+                        </div>
+                        <div class="method-info">
+                            <h4>Credit Card</h4>
+                            <p>Secure PCI-Compliant Payment</p>
+                        </div>
+                        <div class="method-check" *ngIf="selectedMethod === 'credit_card'">
+                            <span class="material-symbols-rounded">check_circle</span>
+                        </div>
+                    </div>
+                </div>
 
-                      <div class="card-body-row">
-                          <div class="form-row">
-                              <label>CARD NUMBER</label>
-                              <div id="card-number" class="holo-input stripe-element"></div>
-                          </div>
-                          
-                          <div class="form-row grid-2">
-                              <div>
-                                  <label>VALID THRU</label>
-                                  <div id="card-expiry" class="holo-input stripe-element"></div>
-                              </div>
-                              <div>
-                                  <label>CVC / CVV</label>
-                                  <div id="card-cvc" class="holo-input stripe-element"></div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
+                <div class="vault-form mt-4" [style.display]="selectedMethod === 'credit_card' ? 'block' : 'none'">
 
-                  <div id="card-errors" role="alert" class="error-node">{{ cardError }}</div>
-              </div>
+                    <div class="holographic-card">
+                        <div class="holo-glare"></div>
+                        <div class="card-header-row">
+                            <div class="card-chip"></div>
+                            <div class="card-brand-logo">
+                                <img *ngIf="cardBrand === 'visa'" src="https://cdn.simpleicons.org/visa/white"
+                                    alt="Visa">
+                                <img *ngIf="cardBrand === 'mastercard'" src="https://cdn.simpleicons.org/mastercard"
+                                    alt="Mastercard">
+                                <img *ngIf="cardBrand === 'amex'"
+                                    src="https://cdn.simpleicons.org/americanexpress/white" alt="Amex">
+                                <img *ngIf="cardBrand === 'discover'" src="https://cdn.simpleicons.org/discover/white"
+                                    alt="Discover">
 
-              <button class="btn-primary-glow" 
-                      (click)="nextStep()"
-                      [disabled]="selectedMethod === 'credit_card' && !isCardValid"
-                      [style.opacity]="(selectedMethod === 'credit_card' && !isCardValid) ? '0.5' : '1'"
-                      [style.cursor]="(selectedMethod === 'credit_card' && !isCardValid) ? 'not-allowed' : 'pointer'">
-                {{ selectedMethod === 'zen_wallet' ? 'Sync via Wallet' : 'Authorize Transaction' }}
-              </button>
-          </div>
+                                <span *ngIf="!['visa', 'mastercard', 'amex', 'discover'].includes(cardBrand)"
+                                    class="material-symbols-rounded default-icon">credit_score</span>
+                            </div>
+                        </div>
 
-          <div class="step-view centering" [style.display]="paymentStepper === 3 ? 'block' : 'none'">
-              <div class="sync-animation" [class.syncing]="processingPayment" [class.error]="!processingPayment && paymentError" [class.success]="!processingPayment && !paymentError">
-                  <div class="sync-ring"></div>
-                  <div class="sync-core">
-                      <span class="material-symbols-rounded">{{ processingPayment ? 'sync' : (paymentError ? 'warning' : 'check_circle') }}</span>
-                  </div>
-              </div>
-              <h3 class="sync-label">
-                <ng-container *ngIf="processingPayment">Connecting Nodes...</ng-container>
-                <ng-container *ngIf="!processingPayment && !paymentError">Transaction Confirmed</ng-container>
-                <ng-container *ngIf="!processingPayment && paymentError">Synchronization Failure</ng-container>
-              </h3>
-              <p class="sync-desc" *ngIf="paymentError" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem;">
-                {{ paymentError }}
-              </p>
+                        <div class="card-body-row">
+                            <div class="form-row">
+                                <label>CARD NUMBER</label>
+                                <div id="card-number" class="holo-input stripe-element"></div>
+                            </div>
 
-              <button *ngIf="!processingPayment && paymentError" (click)="retry()" class="btn-primary-glow" style="margin-top: 20px;">
-                Retry Authorization
-              </button>
-          </div>
-      </div>
-  </div>
+                            <div class="form-row grid-2">
+                                <div>
+                                    <label>VALID THRU</label>
+                                    <div id="card-expiry" class="holo-input stripe-element"></div>
+                                </div>
+                                <div>
+                                    <label>CVC / CVV</label>
+                                    <div id="card-cvc" class="holo-input stripe-element"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="card-errors" role="alert" class="error-node">{{ cardError }}</div>
+                </div>
+
+                <button class="btn-primary-glow" (click)="nextStep()"
+                    [disabled]="selectedMethod === 'credit_card' && !isCardValid"
+                    [style.opacity]="(selectedMethod === 'credit_card' && !isCardValid) ? '0.5' : '1'"
+                    [style.cursor]="(selectedMethod === 'credit_card' && !isCardValid) ? 'not-allowed' : 'pointer'">
+                    {{ selectedMethod === 'zen_wallet' ? 'Sync via Wallet' : 'Authorize Transaction' }}
+                </button>
+            </div>
+
+            <div class="step-view centering" [style.display]="paymentStepper === 3 ? 'block' : 'none'">
+                <div class="sync-animation" [class.syncing]="processingPayment"
+                    [class.error]="!processingPayment && paymentError"
+                    [class.success]="!processingPayment && !paymentError">
+                    <div class="sync-ring"></div>
+                    <div class="sync-core">
+                        <span class="material-symbols-rounded">{{ processingPayment ? 'sync' : (paymentError ? 'warning'
+                            : 'check_circle') }}</span>
+                    </div>
+                </div>
+                <h3 class="sync-label">
+                    <ng-container *ngIf="processingPayment">Connecting Nodes...</ng-container>
+                    <ng-container *ngIf="!processingPayment && !paymentError">Transaction Confirmed</ng-container>
+                    <ng-container *ngIf="!processingPayment && paymentError">Synchronization Failure</ng-container>
+                </h3>
+                <p class="sync-desc" *ngIf="paymentError" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem;">
+                    {{ paymentError }}
+                </p>
+
+                <button *ngIf="!processingPayment && paymentError" (click)="retry()" class="btn-primary-glow"
+                    style="margin-top: 20px;">
+                    Retry Authorization
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

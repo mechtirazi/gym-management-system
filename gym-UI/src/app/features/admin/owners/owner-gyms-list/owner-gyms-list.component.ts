@@ -9,6 +9,7 @@ import { AdminOwnersService } from '../../../../core/services/admin-owners.servi
 import { AdminGymsService } from '../../../../core/services/admin-gyms.service';
 import { GymDialogComponent } from '../gym-dialog/gym-dialog.component';
 import { SuspendDialogComponent } from '../../gyms/suspend-dialog.component';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-owner-gyms-list',
@@ -54,7 +55,8 @@ export class OwnerGymsListComponent implements OnInit {
 
   openAddGymDialog() {
     const dialogRef = this.dialog.open(GymDialogComponent, {
-      width: '420px',
+      width: '640px',
+      maxWidth: '95vw',
       data: { ownerId: this.ownerId, ownerName: this.ownerName }
     });
 
@@ -96,4 +98,16 @@ export class OwnerGymsListComponent implements OnInit {
   }
 
   trackByGymId = (_: number, gym: GymDto) => gym.id_gym;
+
+  getGymImageUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '');
+    
+    if (cleanPath.startsWith('storage/')) {
+        return `${baseUrl}/${cleanPath}`;
+    }
+    return `${baseUrl}/storage/${cleanPath}`;
+  }
 }

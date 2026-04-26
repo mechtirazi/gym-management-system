@@ -14,11 +14,34 @@ class Enrollment extends Model
 
     protected $primaryKey = 'id';
 
+    protected $with = ['plan', 'member', 'gym'];
+
     public $incrementing = false;
 
     protected $keyType = 'string';
 
     protected $appends = ['end_date', 'start_date'];
+
+    protected static function booted()
+    {
+        static::creating(function ($enrollment) {
+            if ($enrollment->id_plan && (!$enrollment->type || $enrollment->type === 'standard')) {
+                $plan = MembershipPlan::find($enrollment->id_plan);
+                if ($plan) {
+                    $enrollment->type = $plan->type;
+                }
+            }
+        });
+
+        static::updating(function ($enrollment) {
+            if ($enrollment->isDirty('id_plan')) {
+                $plan = MembershipPlan::find($enrollment->id_plan);
+                if ($plan) {
+                    $enrollment->type = $plan->type;
+                }
+            }
+        });
+    }
 
     protected $fillable = [
         'id_member',

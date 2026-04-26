@@ -34,7 +34,7 @@ export class GymService {
   }
 
   getGymById(id: string): Observable<GymInfo | null> {
-    return this.http.get<{success: boolean, data: GymInfo}>(`${this.apiUrl}/gyms/${id}`).pipe(
+    return this.http.get<{ success: boolean, data: GymInfo }>(`${this.apiUrl}/gyms/${id}`).pipe(
       map(res => res.data),
       catchError(() => of(null))
     );

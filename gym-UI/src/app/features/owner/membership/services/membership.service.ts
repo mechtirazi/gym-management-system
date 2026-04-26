@@ -40,4 +40,8 @@ export class MembershipService {
   getUsers(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/users`);
   }
+
+  getSubscribers(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/subscribes`);
+  }
 }

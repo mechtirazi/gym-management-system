@@ -1,75 +1,149 @@
-<div class="clients-page">
+<div class="clients-page animate-fade-in">
+  <!-- Glowing background blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+
   <app-page-header
-    [title]="'Clients'"
-    [subtitle]="'Members you can support (based on your assigned gyms).'"
+    [title]="'Members & Clients'"
+    [subtitle]="'Manage your professional relationships and plan assignments across your assigned gyms.'"
   >
     <span header-icon class="material-symbols-rounded">groups</span>
   </app-page-header>
 
-  <div class="controls">
-    <app-filter-controls
-      [searchQuery]="rawSearchQuery()"
-      (searchChange)="onSearchChange($event)"
-      [searchPlaceholder]="'Search clients by name or email...'"
-      [selectedFilter]="selectedFilter()"
-      (filterChange)="onFilterChange($event)"
-      [filterOptions]="filterOptions"
-      [allText]="'All'"
-    />
+  <div class="stats-row">
+    <div class="stat-card glass-card premium-hover">
+      <div class="stat-icon clients">
+        <span class="material-symbols-rounded">group</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Total Members</span>
+        <span class="stat-value text-gradient-indigo">{{ totalClientsCount() }}</span>
+      </div>
+    </div>
+    <div class="stat-card glass-card premium-hover">
+      <div class="stat-icon plans">
+        <span class="material-symbols-rounded">nutrition</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Clients with Plans</span>
+        <span class="stat-value text-gradient-emerald">{{ activePlansCount() }}</span>
+      </div>
+    </div>
+    <div class="stat-card glass-card premium-hover">
+      <div class="stat-icon coverage">
+        <span class="material-symbols-rounded">analytics</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Plan Coverage</span>
+        <span class="stat-value text-gradient-amber">{{ planCoveragePercentage() }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-wrapper">
+    <div class="controls glass-card premium-hover">
+      <app-filter-controls
+        [searchQuery]="rawSearchQuery()"
+        (searchChange)="onSearchChange($event)"
+        [searchPlaceholder]="'Search your active clients...'"
+        [selectedFilter]="selectedFilter()"
+        (filterChange)="onFilterChange($event)"
+        [filterOptions]="filterOptions"
+        [allText]="'All My Clients'"
+      />
+    </div>
   </div>
 
   @if (isLoading()) {
-    <div class="table-card skeleton-wrap">
-      @for (_ of [1,2,3,4,5]; track $index) {
-        <div class="skeleton-row"></div>
-      }
+    <div class="loading-state glass-card">
+      <div class="spinner-core">
+        <div class="spinner-ring"></div>
+      </div>
+      <p>Synchronizing your professional client roster...</p>
     </div>
   } @else if (error()) {
-    <div class="state error">
-      {{ error() }}
-      <button class="btn" (click)="load()">Retry</button>
+    <div class="state-card error glass-card">
+      <span class="icon material-symbols-rounded">error</span>
+      <p>{{ error() }}</p>
+      <button class="action-btn solid" (click)="load()">Retry Connection</button>
     </div>
   } @else if (filteredClients().length === 0) {
-    <div class="state">No clients found.</div>
+    <div class="state-card empty glass-card">
+      <div class="empty-icon-wrapper">
+        <span class="icon material-symbols-rounded">person_search</span>
+      </div>
+      <h2>No Clients Found</h2>
+      <p>No members found matching your search. Try adjusting filters or keywords.</p>
+    </div>
   } @else {
-    <div class="table-card">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Client</th>
-            <th>Email</th>
-            <th style="text-align: right;">Plans</th>
-            <th style="text-align: right;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of pagedClients(); track c.id_user) {
-            <tr>
-              <td class="name">
-                <div class="avatar">{{ (c.name?.charAt(0) || 'M') }}</div>
-                <div>
-                  <div class="full">{{ c.name }} {{ c.last_name }}</div>
-                  <div class="muted">Member</div>
+    <div class="clients-grid">
+      @for (c of pagedClients(); track c.id_user) {
+        <div class="dossier-card glass-card premium-hover">
+          <div class="d-header">
+            <div class="d-avatar-ring" [class.has-protocols]="(plansByMemberId()[c.id_user] || 0) > 0">
+              <div class="d-avatar">{{ (c.name?.charAt(0) || 'M') }}</div>
+            </div>
+            <div class="d-status">
+              @if ((plansByMemberId()[c.id_user] || 0) > 0) {
+                <span class="badge active"><span class="pulse"></span> Active Protocols</span>
+              } @else {
+                <span class="badge idle">Consultation Need</span>
+              }
+            </div>
+          </div>
+
+          <div class="d-body">
+            <h3 class="d-name">{{ c.name }} {{ c.last_name }}</h3>
+            <div class="d-contact">
+              <span class="material-symbols-rounded">mail</span>
+              <span class="email text-truncate">{{ c.email }}</span>
+            </div>
+
+            <div class="d-divider"></div>
+
+            <div class="d-protocols">
+              <h4 class="p-title">Assigned Protocols</h4>
+              @if (c.protocols && c.protocols.length > 0) {
+                <div class="p-list">
+                  @for (p of c.protocols; track p.id) {
+                    <div class="p-chip">
+                      <span class="material-symbols-rounded">nutrition</span>
+                      <span class="text-truncate">{{ p.name }}</span>
+                    </div>
+                  }
                 </div>
-              </td>
-              <td class="muted">{{ c.email }}</td>
-              <td style="text-align: right; font-weight: 800;">{{ plansByMemberId()[c.id_user] || 0 }}</td>
-              <td style="text-align: right;">
-                <a class="btn link" [routerLink]="'/nutritionist/nutrition-plans'" [queryParams]="{ memberId: c.id_user }">
-                  View plans
-                </a>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+              } @else {
+                <p class="p-empty">No active metabolic programs recorded.</p>
+              }
+            </div>
+          </div>
+
+          <div class="d-footer">
+            <a class="action-btn solid full" [routerLink]="['/nutritionist/clients', c.id_user]">
+              <span class="material-symbols-rounded">monitoring</span>
+              <span>Open Dossier</span>
+            </a>
+          </div>
+        </div>
+      }
     </div>
 
     @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="btn" [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">Prev</button>
-        <div class="muted">Page {{ currentPage() }} / {{ totalPages() }}</div>
-        <button class="btn" [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">Next</button>
+      <div class="pagination-footer glass-card premium-hover">
+        <button class="nav-btn" [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">
+          <span class="material-symbols-rounded">chevron_left</span> 
+          <span class="btn-text">Previous</span>
+        </button>
+        <div class="page-indicator">
+          <span class="light">Viewing Page</span>
+          <span class="bold">{{ currentPage() }}</span>
+          <span class="light">of</span>
+          <span class="bold">{{ totalPages() }}</span>
+        </div>
+        <button class="nav-btn" [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">
+          <span class="btn-text">Next</span>
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
       </div>
     }
   }

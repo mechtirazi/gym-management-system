@@ -51,6 +51,39 @@ class AttendanceController extends BaseApiController
         }
     }
 
+    public function store(\Illuminate\Http\Request $request)
+    {
+        $response = parent::store($request);
+        $data = $response->getData();
+        if ($data->success) {
+            $data->data = new AttendanceResource($this->service->getById($data->data->id_attendance));
+            $response->setData($data);
+        }
+        return $response;
+    }
+
+    public function show($id)
+    {
+        $response = parent::show($id);
+        $data = $response->getData();
+        if ($data->success) {
+            $data->data = new AttendanceResource($this->service->getById($id));
+            $response->setData($data);
+        }
+        return $response;
+    }
+
+    public function update(\Illuminate\Http\Request $request, $id)
+    {
+        $response = parent::update($request, $id);
+        $data = $response->getData();
+        if ($data->success) {
+            $data->data = new AttendanceResource($this->service->getById($id));
+            $response->setData($data);
+        }
+        return $response;
+    }
+
     protected function getModelClass()
     {
         return Attendance::class;

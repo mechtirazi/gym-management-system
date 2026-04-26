@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { EventService } from '../../services/event.service';
 import { EventModel } from '../../../../../shared/models/event.model';
 import { finalize } from 'rxjs';
+import { environment } from '../../../../../../environments/environment';
 
 @Component({
   selector: 'app-add-event-modal',
@@ -24,6 +25,8 @@ export class AddEventModalComponent implements OnInit {
 
   isAdding = signal<boolean>(false);
   addError = signal<string | null>(null);
+  selectedFile: File | null = null;
+  imagePreview = signal<string | null>(null);
 
   get isEditMode(): boolean {
     return !!this.editEvent();
@@ -55,7 +58,36 @@ export class AddEventModalComponent implements OnInit {
         is_rewarded:      existing.is_rewarded,
         reward_amount:    existing.reward_amount
       });
+      const rawImage = existing.image_url || (existing as any).image || (existing as any).picture || (existing as any).logo || (existing as any).logo_url;
+      if (rawImage) {
+        this.imagePreview.set(this.getImageUrl(rawImage));
+      }
     }
+  }
+
+  getImageUrl(path?: string): string {
+    if (!path) return '';
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${baseUrl}/${cleanPath}`;
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview.set(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage() {
+    this.selectedFile = null;
+    this.imagePreview.set(null);
   }
 
   cancelAdd() {
@@ -70,12 +102,21 @@ export class AddEventModalComponent implements OnInit {
       return;
     }
 
+    const formData = new FormData();
+    Object.keys(this.addForm.controls).forEach(key => {
+      formData.append(key, this.addForm.get(key)?.value);
+    });
+
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile);
+    }
+
     this.isAdding.set(true);
     const existing = this.editEvent();
 
     if (existing) {
       // EDIT mode
-      this.eventService.updateEvent(existing.id_event, this.addForm.value)
+      this.eventService.updateEvent(existing.id_event, formData)
         .pipe(finalize(() => this.isAdding.set(false)))
         .subscribe({
           next: () => {
@@ -88,7 +129,7 @@ export class AddEventModalComponent implements OnInit {
         });
     } else {
       // ADD mode
-      this.eventService.createEvent(this.addForm.value)
+      this.eventService.createEvent(formData)
         .pipe(finalize(() => this.isAdding.set(false)))
         .subscribe({
           next: () => {

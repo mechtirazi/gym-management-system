@@ -119,28 +119,27 @@
                 </tr>
               </thead>
               <tbody>
+                @for (staff of staffSnapshot(); track staff.name) {
                 <tr>
                   <td>
                     <div class="flex-align-gap" style="gap: 0.75rem;">
-                      <img src="https://ui-avatars.com/api/?name=Sarah+A&background=random&size=24" class="avatar-sm">
-                      <span class="fw-bold">Sarah A. Supervisors</span>
+                      <img [src]="staff.avatar" class="avatar-sm" [alt]="staff.name">
+                      <div class="flex flex-col">
+                        <span class="fw-bold">{{ staff.name }}</span>
+                        <span class="text-xs text-muted">{{ staff.role }}</span>
+                      </div>
                     </div>
                   </td>
-                  <td style="text-align: center;">90</td>
-                  <td style="text-align: center;">70</td>
-                  <td style="text-align: right; color: #0ea5e9; font-weight: 800;">2/28</td>
+                  <td style="text-align: center;">{{ staff.metric }}</td>
+                  <td style="text-align: center;">{{ staff.shift }}</td>
+                  <td style="text-align: right; color: #0ea5e9; font-weight: 800;">{{ staff.coaches }}</td>
                 </tr>
+                } @empty {
                 <tr>
-                  <td>
-                    <div class="flex-align-gap" style="gap: 0.75rem;">
-                      <img src="https://ui-avatars.com/api/?name=Mike+B&background=random&size=24" class="avatar-sm">
-                      <span class="fw-bold">Mike B. Team v</span>
-                    </div>
-                  </td>
-                  <td style="text-align: center;">75</td>
-                  <td style="text-align: center;">70</td>
-                  <td style="text-align: right; color: #0ea5e9; font-weight: 800;">2/28</td>
+                  <td colspan="4" style="text-align: center; padding: 1.5rem 0;" class="text-muted font-medium">No staff
+                    data available.</td>
                 </tr>
+                }
               </tbody>
             </table>
           </div>
@@ -156,17 +155,17 @@
       <div class="dashboard-card">
         <h2 class="kpi-title" style="text-align: left; margin-bottom: 1.25rem;">Quick Actions</h2>
         <div class="flex-col-gap" style="gap: 0.75rem;">
-          <button class="quick-action-btn">
-            <span class="qa-title hover-cyan">Launch Retention Email</span>
-            <span class="qa-desc">Launch retention email</span>
+          <button class="quick-action-btn" (click)="showMemberModal.set(true)">
+            <span class="qa-title hover-cyan">New Member Enrollment</span>
+            <span class="qa-desc">Add a new member to the gym</span>
           </button>
-          <button class="quick-action-btn" routerLink="/owner/courses">
-            <span class="qa-title hover-emerald">Post Schedule Update</span>
-            <span class="qa-desc">Post schedule update</span>
+          <button class="quick-action-btn" routerLink="/owner/revenue">
+            <span class="qa-title hover-emerald">Revenue Analytics</span>
+            <span class="qa-desc">View detailed financial reports</span>
           </button>
-          <button class="quick-action-btn">
-            <span class="qa-title hover-amber">View Facility Alerts</span>
-            <span class="qa-desc">HVAC maintenance needed</span>
+          <button class="quick-action-btn" routerLink="/owner/products">
+            <span class="qa-title hover-amber">Inventory Management</span>
+            <span class="qa-desc">Manage gym products and stock</span>
           </button>
           <button class="quick-action-btn" routerLink="/settings">
             <span class="qa-title hover-purple" style="color: #a855f7;">Preferences & Settings</span>
@@ -261,4 +260,10 @@
 
     </div>
   </div>
+
+  <!-- Real Modals & Overlay Features -->
+  @if (showMemberModal()) {
+  <app-add-member-modal (close)="showMemberModal.set(false)" (memberAdded)="fetchDashboardData()">
+  </app-add-member-modal>
+  }
 </div>

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from './services/product.service';
 import { PageHeaderComponent } from '../components/page-header/page-header.component';
-import { FilterControlsComponent } from '../components/filter-controls/filter-controls.component';
 import { ProductCardComponent } from './components/product-card/product-card.component';
 import { AddProductModalComponent } from './components/add-product-modal/add-product-modal.component';
 import { EditProductModalComponent } from './components/edit-product-modal/edit-product-modal.component';
@@ -21,7 +20,6 @@ import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.se
     CommonModule,
     FormsModule,
     PageHeaderComponent,
-    FilterControlsComponent,
     ProductCardComponent,
     AddProductModalComponent,
     EditProductModalComponent,
@@ -74,6 +72,41 @@ export class ProductManagementComponent implements OnInit {
     }
     return list;
   });
+
+  // Pagination Signals
+  currentPage = signal<number>(1);
+  itemsPerPage = signal<number>(8);
+
+  totalPages = computed(() => {
+    return Math.ceil(this.filteredProducts().length / this.itemsPerPage()) || 1;
+  });
+
+  paginatedProducts = computed(() => {
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.filteredProducts().slice(startIndex, startIndex + this.itemsPerPage());
+  });
+
+  onSearchChange(query: string) {
+    this.searchQuery.set(query);
+    this.currentPage.set(1);
+  }
+
+  onFilterChange(category: string) {
+    this.selectedFilter.set(category);
+    this.currentPage.set(1);
+  }
+
+  nextPage() {
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.update(p => p + 1);
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(p => p - 1);
+    }
+  }
 
   ngOnInit() {
     this.loadProducts();

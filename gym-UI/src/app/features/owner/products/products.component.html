@@ -41,17 +41,17 @@
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <input type="text" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
+        <input type="text" [value]="searchQuery()" (input)="onSearchChange($any($event.target).value)"
           placeholder="Search by product name...">
       </div>
 
       <div class="category-filter">
-        <button class="filter-chip" [class.active]="selectedFilter() === 'All'" (click)="selectedFilter.set('All')">
+        <button class="filter-chip" [class.active]="selectedFilter() === 'All'" (click)="onFilterChange('All')">
           All
         </button>
         @for (category of filterOptions(); track category) {
         <button class="filter-chip" [class.active]="selectedFilter() === category"
-          (click)="selectedFilter.set(category)">
+          (click)="onFilterChange(category)">
           {{ category }}
         </button>
         }
@@ -79,13 +79,34 @@
     </div>
     } @else {
     <div class="products-grid">
-      @for (product of filteredProducts(); track $index) {
+      @for (product of paginatedProducts(); track product.id_product) {
       <app-product-card [product]="product" [allowInventoryEdit]="canManageInventory()"
         (deleteClick)="onDeleteProduct($event)" (editClick)="openEditModal($event)"
         (ordersClick)="openOrdersModal($event)" (addOrderClick)="openAddOrderModal($event)">
       </app-product-card>
       }
     </div>
+
+    <!-- Pagination Controls -->
+    @if (totalPages() > 1) {
+    <div class="pagination-wrapper">
+      <div class="pagination-controls">
+        <button class="icon-btn" (click)="prevPage()" [disabled]="currentPage() === 1" aria-label="Previous page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <div class="page-info">
+          Page <span>{{ currentPage() }}</span> of {{ totalPages() }}
+        </div>
+        <button class="icon-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()" aria-label="Next page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+    }
     }
   </main>
 

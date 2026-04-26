@@ -9,6 +9,9 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Http\Response;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
 use Laravel\Passport\Passport;
 use App\Models\User;
 use App\Models\Course;
@@ -74,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Enrollment::class, EnrollmentPolicy::class);
         
         Enrollment::observe(\App\Observers\EnrollmentObserver::class);
+        User::observe(\App\Observers\UserObserver::class);
 
         // custom rate limiter for login route (5 per minute per IP+email)
         RateLimiter::for('login', function (Request $request) {
@@ -89,5 +93,24 @@ class AppServiceProvider extends ServiceProvider
                         });
         });
 
+        VerifyEmail::createUrlUsing(function ($notifiable) {
+            $frontendUrl = 'http://localhost:4200/auth/verify';
+            
+            $verifyUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                Carbon::now()->addMinutes(60),
+                [
+                    'id' => $notifiable->getKey(),
+                    'hash' => sha1($notifiable->getEmailForVerification()),
+                ]
+            );
+
+            // Find the route path segment to replace it with the frontend URL
+            $backendBase = route('verification.verify', ['id' => 'ID', 'hash' => 'HASH']);
+            $backendBase = str_replace(['ID', 'HASH'], '', $backendBase);
+            $backendBase = rtrim($backendBase, '/');
+
+            return str_replace($backendBase, $frontendUrl, $verifyUrl);
+        });
     }
 }

@@ -5,18 +5,24 @@ export interface User {
   email: string;
   phone: string;
   role:
-    | 'super_admin'
-    | 'admin'
-    | 'owner'
-    | 'trainer'
-    | 'nutritionist'
-    | 'receptionist'
-    | 'staff'
-    | 'member';
-  gym_id?: string;
+  | 'super_admin'
+  | 'admin'
+  | 'owner'
+  | 'trainer'
+  | 'nutritionist'
+  | 'receptionist'
+  | 'staff'
+  | 'member';
+  gym_id?: string | number;
   gym_status?: 'active' | 'suspended';
   gym_suspension_reason?: string;
   profile_picture?: string;
+  target_weight?: number;
+  manual_weight?: number;
+  manual_protein?: number;
+  manual_carbs?: number;
+  manual_fats?: number;
+  manual_calories?: number;
 }
 
 export interface AuthResponse {

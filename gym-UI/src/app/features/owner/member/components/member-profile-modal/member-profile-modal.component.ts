@@ -47,7 +47,7 @@ export class MemberProfileModalComponent implements OnInit {
     this.editForm = this.fb.group({
       firstName: [firstName, Validators.required],
       lastName: [lastName, Validators.required],
-      email: [this.member().email || '', [Validators.required, Validators.email]],
+      email: [this.member().email === 'N/A' || !this.member().email ? '' : this.member().email, [Validators.email]],
       phone: [this.member().phone || ''],
       status: [this.member().status || 'active', Validators.required],
       id_plan: [this.member()['id_plan'] || '']
@@ -72,7 +72,7 @@ export class MemberProfileModalComponent implements OnInit {
       this.editForm.patchValue({
         firstName,
         lastName,
-        email: this.member().email || '',
+        email: this.member().email === 'N/A' || !this.member().email ? '' : this.member().email,
         phone: this.member().phone || '',
         status: (this.member().status || 'active').toLowerCase(),
         id_plan: this.member()['id_plan'] || ''

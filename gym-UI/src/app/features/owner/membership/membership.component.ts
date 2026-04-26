@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MembershipService } from './services/membership.service';
 import { PageHeaderComponent } from '../components/page-header/page-header.component';
-import { FilterControlsComponent } from '../components/filter-controls/filter-controls.component';
 import { MembershipCardComponent } from './components/membership-card/membership-card.component';
 import { AddMembershipModalComponent } from './components/add-membership-modal/add-membership-modal.component';
 import { ViewMembershipModalComponent } from './components/view-membership-modal/view-membership-modal.component';
@@ -18,7 +17,6 @@ import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.se
     CommonModule,
     FormsModule,
     PageHeaderComponent,
-    FilterControlsComponent,
     MembershipCardComponent,
     AddMembershipModalComponent,
     ViewMembershipModalComponent,

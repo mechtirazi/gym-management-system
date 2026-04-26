@@ -10,19 +10,30 @@
     <aside class="settings-sidebar">
       <nav class="nav-links">
         <button [class.active]="activeTab() === 'profile'" (click)="setTab('profile')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
           General Profile
         </button>
         <button [class.active]="activeTab() === 'security'" (click)="setTab('security')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
           Security & Password
         </button>
         <button [class.active]="activeTab() === 'notifications'" (click)="setTab('notifications')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
           Notifications
         </button>
         <button *ngIf="userRole() === 'owner'" [class.active]="activeTab() === 'gym'" (click)="setTab('gym')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 20V10M12 20V4M6 20v-6" />
+            <line x1="3" y1="20" x2="21" y2="20" />
+          </svg>
           Gym Configuration
         </button>
       </nav>
@@ -32,11 +43,17 @@
       <div class="card glass">
         <!-- Success/Error Messages -->
         <div class="message success" *ngIf="successMessage()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
           {{ successMessage() }}
         </div>
         <div class="message error" *ngIf="errorMessage()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
           {{ errorMessage() }}
         </div>
 
@@ -48,7 +65,8 @@
           <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
             <div class="avatar-row">
               <div class="avatar">
-                <img *ngIf="currentUser()?.profile_picture" [src]="getAvatarUrl(currentUser()?.profile_picture)" alt="Avatar">
+                <img *ngIf="currentUser()?.profile_picture" [src]="getAvatarUrl(currentUser()?.profile_picture)"
+                  alt="Avatar">
                 <span *ngIf="!currentUser()?.profile_picture">{{ currentUser()?.name?.charAt(0) || 'U' }}</span>
               </div>
               <div class="avatar-actions">
@@ -92,10 +110,18 @@
               <div class="form-group maxWidth">
                 <label>Current Password</label>
                 <div class="password-wrapper">
-                  <input [type]="showCurrent() ? 'text' : 'password'" formControlName="currentPassword" placeholder="••••••••">
+                  <input [type]="showCurrent() ? 'text' : 'password'" formControlName="currentPassword"
+                    placeholder="••••••••">
                   <button type="button" class="eye-toggle" (click)="toggleShow('current')">
-                    <svg *ngIf="!showCurrent()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <svg *ngIf="showCurrent()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <svg *ngIf="!showCurrent()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <svg *ngIf="showCurrent()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -105,26 +131,43 @@
                 <div class="password-wrapper">
                   <input [type]="showNew() ? 'text' : 'password'" formControlName="newPassword" placeholder="••••••••">
                   <button type="button" class="eye-toggle" (click)="toggleShow('new')">
-                    <svg *ngIf="!showNew()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <svg *ngIf="showNew()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <svg *ngIf="!showNew()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <svg *ngIf="showNew()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
                   </button>
                 </div>
                 <div class="password-meter" *ngIf="passwordForm.get('newPassword')?.value">
                   <div class="meter-bar" [class.strong]="passwordForm.get('newPassword')?.valid"></div>
-                  <span class="meter-text" *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Too short (min 8 chars)</span>
+                  <span class="meter-text" *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Too short (min
+                    8 chars)</span>
                 </div>
               </div>
 
               <div class="form-group maxWidth">
                 <label>Confirm Password</label>
                 <div class="password-wrapper">
-                  <input [type]="showConfirm() ? 'text' : 'password'" formControlName="confirmPassword" placeholder="••••••••">
+                  <input [type]="showConfirm() ? 'text' : 'password'" formControlName="confirmPassword"
+                    placeholder="••••••••">
                   <button type="button" class="eye-toggle" (click)="toggleShow('confirm')">
-                    <svg *ngIf="!showConfirm()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <svg *ngIf="showConfirm()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <svg *ngIf="!showConfirm()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <svg *ngIf="showConfirm()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
                   </button>
                 </div>
-                <span class="error-text" *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('confirmPassword')?.touched">
+                <span class="error-text"
+                  *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('confirmPassword')?.touched">
                   Passwords don't match.
                 </span>
               </div>
@@ -184,7 +227,7 @@
         <section *ngIf="activeTab() === 'gym'" class="settings-section animate-fade">
           <h3>Workplace & Gyms</h3>
           <p class="section-desc">Manage which gym you are currently managing/connected to.</p>
-          
+
           <div class="gyms-grid" *ngIf="myGyms().length > 0; else noGyms">
             <div class="gym-card" *ngFor="let gym of myGyms()" [class.active]="currentGymId() === gym.id_gym" [class.is-suspended]="gym.status === 'suspended'">
               <div class="gym-info">
@@ -208,16 +251,18 @@
               </div>
             </div>
           </div>
-          
+
           <ng-template #noGyms>
             <div class="empty-info">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
               <p>No gyms found associated with your account.</p>
             </div>
           </ng-template>
 
           <div class="divider"></div>
-          
+
           <div class="gym-cta">
             <p>Need to update gym details like opening hours or equipment?</p>
             <a routerLink="/owner/gym-profile" class="btn btn-outline small">Go to Gym Profile</a>

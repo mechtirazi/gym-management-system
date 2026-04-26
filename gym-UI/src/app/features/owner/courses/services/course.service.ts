@@ -22,17 +22,27 @@ export class CourseService {
     return this.http.get<any>(`${this.apiUrl}/courses`);
   }
 
-  createCourse(course: any): Observable<any> {
+  private prepareFormData(data: FormData): FormData {
     const activeGymId = this.authService.connectedGymId();
     if (!activeGymId) {
       throw new Error('No active gym selected. Please switch to a gym first.');
     }
-    const payload = { ...course, id_gym: activeGymId };
-    return this.http.post(`${this.apiUrl}/courses`, payload);
+    if (!data.has('id_gym')) {
+      data.append('id_gym', activeGymId.toString());
+    }
+    return data;
   }
 
-  updateCourse(id: string, course: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/courses/${id}`, course);
+  createCourse(courseData: FormData): Observable<any> {
+    const data = this.prepareFormData(courseData);
+    return this.http.post(`${this.apiUrl}/courses`, data);
+  }
+
+  updateCourse(id: string, courseData: FormData): Observable<any> {
+    const data = this.prepareFormData(courseData);
+    // Method spoofing for PUT since it's FormData
+    data.append('_method', 'PUT');
+    return this.http.post(`${this.apiUrl}/courses/${id}`, data);
   }
 
   deleteCourse(id: string): Observable<any> {

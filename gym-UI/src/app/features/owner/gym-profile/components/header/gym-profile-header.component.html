@@ -1,18 +1,22 @@
 <header class="hero-profile-header glass-card">
   <!-- Top Banner Section -->
-  <div class="hero-banner" [style.background-image]="'url(' + (logo() || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop') + ')'" style="background-position: center; background-size: cover; background-repeat: no-repeat;">
+  <div class="hero-banner"
+    [style.background-image]="'url(' + logo() + '), url(https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop)'"
+    style="background-position: center; background-size: cover; background-repeat: no-repeat;">
     <div class="banner-overlay"></div>
     <div class="hero-actions-top">
       @if (isEditing()) {
-        <button class="btn-premium secondary frosted-btn" style="background: rgba(15, 23, 42, 0.5); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(16px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); padding: 0.6rem 1.2rem; font-size: 0.9rem;" (click)="coverInput.click()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-          Update Cover Photo
-        </button>
-        <input type="file" #coverInput hidden accept="image/*" (change)="onCoverChange($event)">
+      <button class="btn-premium secondary frosted-btn"
+        style="background: rgba(15, 23, 42, 0.5); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(16px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); padding: 0.6rem 1.2rem; font-size: 0.9rem;"
+        (click)="coverInput.click()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        Update Cover Photo
+      </button>
+      <input type="file" #coverInput hidden accept="image/*" (change)="onCoverChange($event)">
       }
     </div>
   </div>
@@ -21,7 +25,11 @@
   <div class="hero-bottom-info">
     <div class="avatar-container">
       <div class="gym-logo-frame">
+        @if (logo() && !imageError) {
+        <img [src]="logo()" class="gym-logo-img" alt="Gym Logo" (error)="onHandleImageError()">
+        } @else {
         <span class="avatar-initials">{{ getInitials(name()) }}</span>
+        }
         <div class="verify-badge">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
@@ -32,7 +40,46 @@
     </div>
 
     <div class="hero-text-content">
-      <h1 class="gym-brand">{{ name() || 'Unnamed Establishment' }}</h1>
+      <div class="brand-row">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <h1 class="gym-brand" style="margin: 0;">{{ name() || 'Unnamed Establishment' }}</h1>
+          <span class="badge suspended" *ngIf="gymStatus() === 'suspended'" style="background: #ef4444; color: white; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 14px; height: 14px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Suspended
+          </span>
+        </div>
+        <div class="switcher-wrapper" *ngIf="myGyms().length > 1">
+          <button class="switch-trigger" (click)="toggleSwitcher()" [class.active]="showSwitcher">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M7 11l5 5 5-5M7 13l5 5 5-5" />
+            </svg>
+            Switch
+          </button>
+
+          <div class="switcher-dropdown glass" *ngIf="showSwitcher">
+            <div class="dropdown-header">Workspaces</div>
+            <div class="dropdown-items">
+              <div class="gym-option" *ngFor="let gym of myGyms()" [class.active]="connectedGymId() === gym.id_gym"
+                (click)="selectGym(gym)">
+                <div class="gym-mini-logo">
+                  <img *ngIf="gym.picture || gym.logo || gym.image"
+                    [src]="getImageUrl(gym.picture || gym.logo || gym.image)" [alt]="gym.name">
+                  <span *ngIf="!(gym.picture || gym.logo || gym.image)">{{ getInitials(gym.name) }}</span>
+                </div>
+                <div class="gym-opt-info">
+                  <span class="opt-name">{{ gym.name }}</span>
+                  <span class="opt-addr">{{ gym.adress || gym.address }}</span>
+                </div>
+                <div class="active-indicator" *ngIf="connectedGymId() === gym.id_gym">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="meta-row">
         <div class="status-badge"><span class="status-dot"></span> Managed by GymUI</div>
         <div class="location-tag" [title]="address()">
@@ -48,31 +95,31 @@
 
     <div class="hero-actions">
       @if (!isEditing()) {
-        <button class="btn-premium primary" (click)="onToggleEdit.emit()">
+      <button class="btn-premium primary" (click)="onToggleEdit.emit()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+        Modify Profile
+      </button>
+      } @else {
+      <div class="edit-btn-group" style="display: flex; gap: 1rem;">
+        <button class="btn-premium secondary" (click)="onToggleEdit.emit()" [disabled]="isSaving()">
+          Discard
+        </button>
+        <button class="btn-premium primary" (click)="onSave.emit()" [disabled]="!canSave()">
+          @if (isSaving()) {
+          <div class="mini-spinner"></div> Saving...
+          } @else {
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            <polyline points="20 6 9 17 4 12" />
           </svg>
-          Modify Profile
+          Confirm Changes
+          }
         </button>
-      } @else {
-        <div class="edit-btn-group" style="display: flex; gap: 1rem;">
-          <button class="btn-premium secondary" (click)="onToggleEdit.emit()" [disabled]="isSaving()">
-            Discard
-          </button>
-          <button class="btn-premium primary" (click)="onSave.emit()" [disabled]="!canSave()">
-            @if (isSaving()) {
-              <div class="mini-spinner"></div> Saving...
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Confirm Changes
-            }
-          </button>
-        </div>
+      </div>
       }
     </div>
   </div>

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { socialCallbackGuard } from './core/guards/social-callback.guard';
 import { roleRedirectGuard } from './core/guards/role-redirect.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,10 @@ export const routes: Routes = [
         canActivate: [socialCallbackGuard],
         loadComponent: () => import('./features/auth/social-callback/social-callback').then(m => m.SocialCallback)
       },
+      {
+        path: 'verify/:id/:hash',
+        loadComponent: () => import('./features/auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent)
+      },
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },
@@ -34,7 +39,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./shared/layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
     children: [
       {
         path: 'settings',

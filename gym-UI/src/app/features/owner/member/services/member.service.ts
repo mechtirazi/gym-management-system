@@ -4,13 +4,25 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 
 import { GymMember } from '../../../../shared/models/gym-member.model';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MemberService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
+
+  private get authHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    const gymId = this.authService.currentUser()?.gym_id;
+    let headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    if (gymId) {
+      headers = headers.set('X-Gym-Id', gymId.toString());
+    }
+    return headers;
+  }
 
   /**
    * Fetches members from the backend with server-side pagination and filtering.
@@ -25,35 +37,22 @@ export class MemberService {
       url += `&search=${filters.search}`;
     }
 
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.get<any>(url, { headers });
+    return this.http.get<any>(url, { headers: this.authHeaders });
   }
 
   addMember(member: Partial<GymMember>): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.post<any>(`${this.apiUrl}/enrollments`, member, { headers });
+    return this.http.post<any>(`${this.apiUrl}/enrollments`, member, { headers: this.authHeaders });
   }
 
   updateMember(userId: string, member: Partial<GymMember>): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.put<any>(`${this.apiUrl}/users/${userId}`, member, { headers });
+    return this.http.put<any>(`${this.apiUrl}/users/${userId}`, member, { headers: this.authHeaders });
   }
 
   updateEnrollment(enrollmentId: string, enrollmentData: any): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.put<any>(`${this.apiUrl}/enrollments/${enrollmentId}`, enrollmentData, { headers });
+    return this.http.put<any>(`${this.apiUrl}/enrollments/${enrollmentId}`, enrollmentData, { headers: this.authHeaders });
   }
 
   deleteMember(id: string): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.delete(`${this.apiUrl}/enrollments/${id}`, { headers });
+    return this.http.delete(`${this.apiUrl}/enrollments/${id}`, { headers: this.authHeaders });
   }
 }

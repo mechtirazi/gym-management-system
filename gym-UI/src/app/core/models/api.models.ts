@@ -57,10 +57,11 @@ export interface GymDto {
   name: string;
   adress: string;
   capacity: number;
-  open_hour: string;
   open_mon_fri?: string;
+  open_sat?: string;
   open_sun?: string;
   id_owner: string;
+  phone?: string;
   picture?: string;
   plan: 'basic' | 'pro';
   members_count: number;

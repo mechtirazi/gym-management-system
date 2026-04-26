@@ -62,10 +62,11 @@ class AIService
                     if (is_array($scores)) {
                         foreach ($scores as $s) {
                             if (isset($s['label'])) {
-                                if ($s['label'] === 'POSITIVE') {
+                                $label = strtoupper($s['label']);
+                                if ($label === 'POSITIVE' || $label === 'LABEL_1') {
                                     return (float) $s['score'];
                                 }
-                                if ($s['label'] === 'NEGATIVE') {
+                                if ($label === 'NEGATIVE' || $label === 'LABEL_0') {
                                     return (float) (1 - $s['score']);
                                 }
                             }

@@ -6,7 +6,12 @@
     </div>
     <div class="member-info">
       <h3 class="member-name">{{ member().name || 'Unnamed Employee' }}</h3>
-      <span class="member-role badge">{{ member().role || 'Personnel' }}</span>
+      <div class="role-row">
+        <span class="member-role badge">{{ member().role || 'Personnel' }}</span>
+        @if (member().status?.toLowerCase() === 'pending') {
+          <span class="status-badge pending">Pending Invite</span>
+        }
+      </div>
     </div>
   </div>
 

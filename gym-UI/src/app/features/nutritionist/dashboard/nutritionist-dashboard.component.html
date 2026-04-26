@@ -1,70 +1,102 @@
-<div class="dash">
-  <div class="dash-header">
-    <div>
-      <h1>Nutritionist Dashboard</h1>
-      <p class="muted">Welcome, {{ nutritionistName() }}.</p>
+<div class="nutritionist-dashboard animate-fade-in">
+  @if (isLoading()) {
+  <div class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Loading your nutrition command center...</p>
+  </div>
+  } @else {
+  <header class="dashboard-header glass-card">
+    <div class="header-content">
+      <div class="welcome-text">
+        <div class="header-main-title">
+          <div class="title-with-context">
+            <h1>Welcome back, {{ nutritionistName() }}</h1>
+          </div>
+        </div>
+        <p>You're logged in as a dedicated Nutritionist. Here's a snapshot of your clients and plans.</p>
+      </div>
+      <div class="current-time">
+        <span class="date">{{ currentTime() | date:'fullDate' }}</span>
+        <span class="time">{{ currentTime() | date:'shortTime' }}</span>
+      </div>
     </div>
-    <div class="actions">
-      <a class="btn primary" routerLink="/nutritionist/nutrition-plans">Create plan</a>
-      <a class="btn" routerLink="/nutritionist/clients">View clients</a>
+  </header>
+
+  <div class="stats-row">
+    <div class="stat-card glass-card">
+      <div class="icon-box cyan">👥</div>
+      <div class="stat-data">
+        <span class="value">{{ clientsCount() }}</span>
+        <span class="label">Total Clients</span>
+      </div>
+      <div class="trend positive">Active Members</div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="icon-box amber">📋</div>
+      <div class="stat-data">
+        <span class="value">{{ activePlansCount() }}</span>
+        <span class="label">Active Plans</span>
+      </div>
+      <div class="trend">{{ plansCount() }} Total Created</div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="icon-box emerald">⏳</div>
+      <div class="stat-data">
+        <span class="value">{{ expiringSoonCount() }}</span>
+        <span class="label">Expiring Soon</span>
+      </div>
+      <div class="trend negative">Action Required</div>
     </div>
   </div>
 
-  @if (error()) {
-    <div class="card error">
-      {{ error() }}
-      <button class="btn small" (click)="load()">Retry</button>
-    </div>
-  }
-
-  <div class="grid">
-    <div class="card">
-      <div class="label">Clients</div>
-      <div class="value">{{ clientsCount() }}</div>
-      <div class="hint">Members in your gyms</div>
-    </div>
-    <div class="card">
-      <div class="label">My plans</div>
-      <div class="value">{{ plansCount() }}</div>
-      <div class="hint">Total assigned plans</div>
-    </div>
-    <div class="card">
-      <div class="label">Active plans</div>
-      <div class="value">{{ activePlansCount() }}</div>
-      <div class="hint">Currently running</div>
-    </div>
-    <div class="card">
-      <div class="label">Expiring soon</div>
-      <div class="value">{{ expiringSoonCount() }}</div>
-      <div class="hint">Within 7 days</div>
-    </div>
-    <div class="card">
-      <div class="label">Unread notifications</div>
-      <div class="value">{{ unreadNotifications() }}</div>
-      <div class="hint">From your account inbox</div>
-    </div>
-  </div>
-
-  <div class="card notifications">
-    <div class="notifications-head">
-      <div class="label">Recent notifications</div>
-      <button class="btn small" (click)="markAllNotificationsRead()">Mark all as read</button>
-    </div>
-    @if (latestNotifications().length === 0) {
-      <div class="hint">No notifications yet.</div>
-    } @else {
-      @for (n of latestNotifications(); track n.id) {
-        <div class="notification-row">
-          <div>
-            <div class="n-title">{{ n.title }}</div>
-            <div class="hint">{{ n.description }} - {{ n.time }}</div>
+  <div class="dashboard-main-grid">
+    <section class="notifications-section glass-card">
+      <div class="section-header">
+        <h3>Recent Notifications</h3>
+        <button class="text-link" (click)="markAllNotificationsRead()">Mark all as read</button>
+      </div>
+      
+      <div class="notifications-list">
+        @for (n of latestNotifications(); track n.id) {
+        <div class="notification-item" [class.unread]="n.unread">
+          <div class="n-icon">🔔</div>
+          <div class="n-info">
+            <span class="n-title">{{ n.title }}</span>
+            <span class="n-desc">{{ n.description }}</span>
+            <span class="n-time">{{ n.time }}</span>
           </div>
           @if (n.unread) {
-            <button class="btn small" (click)="markNotificationRead(n.id)">Mark read</button>
+            <button class="read-btn" (click)="markNotificationRead(n.id)">Mark read</button>
           }
         </div>
-      }
-    }
+        } @empty {
+        <div class="empty-state">
+          <p>No recent notifications.</p>
+        </div>
+        }
+      </div>
+    </section>
+
+    <section class="quick-actions glass-card">
+      <h3>Command Bar</h3>
+      <div class="actions-grid">
+        <button class="action-btn" routerLink="/nutritionist/nutrition-plans">
+          <span class="icon">➕</span>
+          <span class="txt">Create Plan</span>
+        </button>
+        <button class="action-btn active" routerLink="/nutritionist/clients">
+          <span class="icon">👥</span>
+          <span class="txt">View Clients</span>
+        </button>
+        <button class="action-btn" routerLink="/settings">
+          <span class="icon">⚙️</span>
+          <span class="txt">Settings</span>
+        </button>
+      </div>
+    </section>
   </div>
+  }
 </div>
 

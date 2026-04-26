@@ -7,17 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    /** @use HasFactory<\Database\Factories\CourseFactory> */
     use HasFactory;
     use \Illuminate\Database\Eloquent\Concerns\HasUuids;
+    use \App\Traits\HasSocialInteractions;
 
     protected $primaryKey = 'id_course';
+    protected $appends = ['is_liked', 'likes_count', 'comments_count'];
     public $incrementing = false;
     protected $keyType = 'string';
     
     protected $fillable = [
         'name',
         'description',
+        'image',
         'id_gym',
         'price',
         'max_capacity',

@@ -34,6 +34,15 @@ class SubscribeResource extends JsonResource
                 'id_plan' => $this->plan->id_plan,
                 'name' => $this->plan->name,
             ] : null,
+
+            // Member info
+            'user' => $this->user ? [
+                'id_user' => $this->user->id_user,
+                'name' => $this->user->name,
+                'last_name' => $this->user->last_name,
+                'email' => $this->user->email,
+                'phone' => $this->user->phone,
+            ] : null,
         ];
     }
 }

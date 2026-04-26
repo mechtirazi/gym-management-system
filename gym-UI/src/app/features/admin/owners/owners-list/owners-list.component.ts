@@ -20,6 +20,40 @@ import { OwnerDialogComponent } from '../owner-dialog/owner-dialog.component';
 import { OwnerGymsListComponent } from '../owner-gyms-list/owner-gyms-list.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { forkJoin } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
+
+export interface OwnerRowVm {
+  id_user: string;
+  fullName: string;
+  email: string;
+  verificationStatus: string;
+  verified: boolean;
+  initials: string;
+  isGymMode: boolean;
+  created_at?: string;
+  phone?: string;
+  profile_picture?: string | null;
+
+  // Fields for cross-referencing
+  ownerName: string;
+  ownerEmail: string;
+  id_gym: string;
+  adress: string;
+
+  // Owner specific
+  owned_gyms_count?: number;
+  active_gyms_count?: number;
+  gymNames: string;
+  myGyms: GymDto[];
+
+  // Gym specific (from GymDto)
+  capacity?: number;
+  id_owner?: string;
+  plan?: string;
+  members_count?: number;
+  status?: string;
+}
+
 
 @Component({
   selector: 'app-owners-list',
@@ -56,14 +90,54 @@ export class OwnersListComponent implements OnInit {
     this.expandedOwnerId.set(this.expandedOwnerId() === ownerId ? null : ownerId);
   }
 
-  filteredData = computed(() => {
+  filteredData = computed<OwnerRowVm[]>(() => {
     const term = this.searchTerm().toLowerCase();
+
     const status = this.statusFilter();
     const gyms = this.gymsData();
+    const owners = this.ownersData();
+
+    // If status is suspended, we show GYMS instead of owners, but formatted for the table
+    if (status === 'suspended') {
+      const suspendedGyms = gyms.filter(g => g.status === 'suspended');
+      
+      let gymResults = suspendedGyms.map(g => {
+        const owner = owners.find(o => String(o.id_user) === String(g.id_owner));
+        return {
+          ...g,
+          id_user: g.id_gym, 
+          fullName: g.name,
+          email: g.adress,
+          ownerName: owner ? `${owner.name} ${owner.last_name}` : 'Unknown Owner',
+          ownerEmail: owner?.email || '',
+          verificationStatus: 'Suspended',
+          verified: false,
+          initials: 'GYM',
+          isGymMode: true,
+          created_at: g.created_at,
+          phone: g.phone || '',
+          profile_picture: g.picture,
+          // Add dummy fields to satisfy the union type if needed by template
+          owned_gyms_count: 0,
+          active_gyms_count: 0,
+          gymNames: '',
+          myGyms: [] as GymDto[]
+        };
+      }) as OwnerRowVm[];
+
+      if (term) {
+        gymResults = gymResults.filter(g => 
+          g.fullName.toLowerCase().includes(term) || 
+          g.ownerName.toLowerCase().includes(term) ||
+          g.email.toLowerCase().includes(term)
+        );
+      }
+      return gymResults;
+    }
     
-    let data = this.ownersData().map(o => {
+    let data = owners.map(o => {
       // Find gyms belonging to this owner for deep searching
-      const myGyms = gyms.filter(g => g.id_owner === o.id_user || g.id_owner === String(o.id_user));
+      const myGyms = gyms.filter(g => String(g.id_owner) === String(o.id_user));
       const gymNamesStr = myGyms.map(g => g.name).join(', ');
       
       return {
@@ -73,18 +147,30 @@ export class OwnersListComponent implements OnInit {
         verified: !!o.email_verified_at,
         initials: this.getInitials(o.name, o.last_name),
         gymNames: gymNamesStr,
-        myGyms: myGyms
-      };
+        myGyms: myGyms,
+        isGymMode: false,
+        // Add dummy fields to satisfy the union type
+        ownerName: '',
+        ownerEmail: '',
+        id_gym: '',
+        adress: '',
+        // Consistent fields for GymDto part
+        capacity: 0,
+        id_owner: '',
+        plan: '',
+        members_count: 0,
+        status: ''
+      } as OwnerRowVm;
+
     });
 
-    // Apply Status Filter
+    // Apply Status Filter for Owners (Active / Pending)
     if (status !== 'all') {
       data = data.filter(o => {
         const ownedCount = +o.owned_gyms_count! || 0;
         const activeCount = +o.active_gyms_count! || 0;
 
         if (status === 'active') return activeCount > 0;
-        if (status === 'suspended') return activeCount === 0 && ownedCount > 0;
         if (status === 'pending') return ownedCount === 0;
         return true;
       });
@@ -282,12 +368,53 @@ export class OwnersListComponent implements OnInit {
     });
   }
 
-  trackByOwnerId = (_: number, owner: any) => owner?.id_user ?? owner?.email ?? _;
+  activateGymFromResult(gymRow: any) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '500px',
+      disableClose: true,
+      data: {
+        title: 'Instant Reactivation',
+        message: `Are you sure you want to reactivate the facility <strong>${gymRow.fullName}</strong> for provider <strong>${gymRow.ownerName}</strong>?`,
+        icon: 'play_circle',
+        confirmText: 'Activate Facility'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res) {
+        this.loading.set(true);
+        this.gymsService.activateGym(gymRow.id_gym).subscribe({
+          next: () => {
+             this.snackBar.open(`Facility ${gymRow.fullName} is now operational.`, 'Dismiss', { duration: 3000 });
+             this.loadOwners();
+          },
+          error: (err) => {
+             this.snackBar.open(err.error?.message || 'Failed to activate gym.', 'Dismiss', { duration: 4000 });
+             this.loading.set(false);
+          }
+        });
+      }
+    });
+  }
+
+  trackByOwnerId = (_: number, owner: any) => owner?.id_user ?? owner?.id_gym ?? owner?.email ?? _;
 
   private getInitials(first?: string | null, last?: string | null): string {
     const a = (first || '').trim().charAt(0);
     const b = (last || '').trim().charAt(0);
     const initials = `${a}${b}`.toUpperCase();
     return initials || '??';
+  }
+
+  getProfileImageUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '');
+    
+    if (cleanPath.startsWith('storage/')) {
+        return `${baseUrl}/${cleanPath}`;
+    }
+    return `${baseUrl}/storage/${cleanPath}`;
   }
 }

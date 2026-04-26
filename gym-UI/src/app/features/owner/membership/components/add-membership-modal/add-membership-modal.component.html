@@ -32,21 +32,51 @@
     }
 
     <form [formGroup]="membershipForm" class="modal-form">
+      <div class="form-header-row">
+        <h3>Member Details</h3>
+        <button type="button" class="text-btn" (click)="toggleCreationMode()">
+          {{ isNewMember() ? '← Back to List' : '+ New Member Account' }}
+        </button>
+      </div>
+
       <div class="form-grid">
-        <!-- Member Selection -->
+        @if (!isNewMember()) {
+        <!-- Member Selection (Subscribers) -->
         <div class="form-group full-width">
-          <label for="id_user">Select Member</label>
+          <label for="id_user">Select Subscriber</label>
           <select id="id_user" formControlName="id_user"
             [class.invalid]="membershipForm.get('id_user')?.touched && membershipForm.get('id_user')?.invalid">
-            <option value="" disabled selected>Choose a member</option>
-            @for (member of members(); track member.id || member.id_user || $index) {
-            <option [value]="member.id_user">{{ member.name }} {{ member.last_name }}</option>
+            <option value="" disabled selected>{{ isLoadingData() ? 'Loading interest list...' : 'Choose a subscriber' }}</option>
+            @for (member of members(); track member.id_user) {
+            <option [value]="member.id_user">{{ member.name }} {{ member.last_name }} ({{ member.email }})</option>
             }
           </select>
+          @if (members().length === 0 && !isLoadingData()) {
+            <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; display: block;">No interested users found for this gym.</small>
+          }
           @if (membershipForm.get('id_user')?.touched && membershipForm.get('id_user')?.invalid) {
-          <span class="error-text">Please select a valid member.</span>
+            <span class="error-text">Please select a subscriber.</span>
           }
         </div>
+        } @else {
+        <!-- Quick Create Fields -->
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" formControlName="first_name" placeholder="John">
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" formControlName="last_name" placeholder="Doe">
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" formControlName="email" placeholder="john@example.com">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" formControlName="phone" placeholder="+123 456 789">
+        </div>
+        }
 
 
         <!-- Status -->

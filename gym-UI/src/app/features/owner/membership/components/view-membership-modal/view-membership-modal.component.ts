@@ -35,8 +35,8 @@ import { CommonModule } from '@angular/common';
               <div class="details-grid">
                 <div class="detail-card">
                   <span class="label">Membership Tier</span>
-                  <span class="value tier-tag" [class]="membership().type || 'standard'">
-                    {{ membership().type || 'Standard' | titlecase }}
+                  <span class="value tier-tag" [class]="membership().plan?.type || membership().type || 'standard'">
+                    {{ (membership().plan?.name || membership().type || 'Standard') | titlecase }}
                   </span>
                 </div>
                 <div class="detail-card">

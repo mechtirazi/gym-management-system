@@ -33,8 +33,7 @@ export class SubscriptionManagementComponent implements OnInit {
     return {
       total: list.length,
       active,
-      expired,
-      revenue: active * 49.99
+      expired
     };
   });
 

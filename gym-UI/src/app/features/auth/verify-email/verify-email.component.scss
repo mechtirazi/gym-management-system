@@ -1,0 +1,177 @@
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url('/assets/images/login-bg.png') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%);
+        z-index: 1;
+    }
+}
+
+.glass-card {
+    position: relative;
+    z-index: 10;
+    width: min(100%, 420px);
+    padding: 2rem 1.75rem;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.5s ease;
+
+    @media (max-width: 640px) {
+        padding: 1.5rem 1.25rem;
+        width: 90%;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.gym-logo {
+    width: 64px;
+    height: 64px;
+    background: rgba(14, 165, 233, 0.1);
+    border-radius: 16px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(14, 165, 233, 0.2);
+
+    svg {
+        width: 32px;
+        height: 32px;
+        color: #0ea5e9;
+    }
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
+p {
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 1rem;
+}
+
+.status-content {
+    margin: 2rem 0;
+}
+
+.loading-wrapper {
+    text-align: center;
+    
+    p {
+        margin-top: 1rem;
+    }
+}
+
+.spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    animation: spin 1s linear infinite;
+    color: #0ea5e9;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.success-card {
+    text-align: center;
+    padding: 1rem 0;
+    animation: fadeIn 0.5s ease;
+
+    h3 {
+        color: white;
+        margin: 1rem 0 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    p {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+    
+    &.error-card {
+        h3 {
+            color: #f87171;
+        }
+    }
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border: 2px solid rgba(34, 197, 94, 0.2);
+
+    svg {
+        width: 32px;
+        height: 32px;
+    }
+    
+    &.error-icon {
+        background: rgba(239, 68, 68, 0.1);
+        color: #f87171;
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -10px #0284c7;
+    }
+}
+
+.mt-6 { margin-top: 1.5rem; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

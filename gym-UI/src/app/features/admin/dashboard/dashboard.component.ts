@@ -64,11 +64,13 @@ export class DashboardComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   broadcastForm = this.fb.group({
+    type: ['info', Validators.required],
     message: ['', [Validators.required, Validators.minLength(5)]]
   });
 
   targetedForm = this.fb.group({
     ownerId: ['', Validators.required],
+    type: ['info', Validators.required],
     message: ['', [Validators.required, Validators.minLength(5)]]
   });
 
@@ -165,11 +167,11 @@ export class DashboardComponent implements OnInit {
   sendBroadcast() {
     if (this.broadcastForm.invalid) return;
     this.broadcasting.set(true);
-    const msg = this.broadcastForm.value.message!;
-    this.notificationsService.sendToAllUsers(msg).subscribe({
+    const { type, message } = this.broadcastForm.value;
+    this.notificationsService.sendToAllUsers(message!, type!).subscribe({
       next: () => {
         this.snackBar.open('Announcement broadcasted to all users.', 'Dismiss', { duration: 3000 });
-        this.broadcastForm.reset();
+        this.broadcastForm.reset({ type: 'info', message: '' });
         this.broadcasting.set(false);
         this.refreshData();
       },
@@ -183,11 +185,11 @@ export class DashboardComponent implements OnInit {
   sendTargeted() {
     if (this.targetedForm.invalid) return;
     this.sendingTargeted.set(true);
-    const { ownerId, message } = this.targetedForm.value;
-    this.notificationsService.sendToOwner(ownerId!, message!).subscribe({
+    const { ownerId, type, message } = this.targetedForm.value;
+    this.notificationsService.sendToOwner(ownerId!, message!, type!).subscribe({
       next: () => {
         this.snackBar.open('Direct alert sent to owner.', 'Dismiss', { duration: 3000 });
-        this.targetedForm.reset();
+        this.targetedForm.reset({ ownerId: '', type: 'info', message: '' });
         this.sendingTargeted.set(false);
         this.refreshData();
       },

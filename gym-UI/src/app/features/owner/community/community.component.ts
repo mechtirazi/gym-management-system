@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CommunityService } from '../services/community.service';
 import { Review } from '../../../shared/models/review.model';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-community',
@@ -14,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 export class CommunityComponent implements OnInit {
   private communityService = inject(CommunityService);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
   protected Math = Math;
 
   reviews: Review[] = [];
@@ -29,8 +31,17 @@ export class CommunityComponent implements OnInit {
     positiveRate: 0
   };
 
+  constructor() {
+    effect(() => {
+      const gymId = this.authService.connectedGymId();
+      if (gymId) {
+        this.loadReviews();
+      }
+    });
+  }
+
   ngOnInit(): void {
-    this.loadReviews();
+    // Data is loaded by the effect in the constructor based on connectedGymId
   }
 
   loadReviews(): void {

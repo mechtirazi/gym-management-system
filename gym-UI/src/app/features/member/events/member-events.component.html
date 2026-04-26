@@ -1,0 +1,138 @@
+<div class="events-container animate-fade-in">
+  <header class="header-hub">
+    <div class="glass-card header-content">
+      <div class="text-group">
+        <h1>Exclusive Events</h1>
+        <p>Workshops, seminars, and challenges from your elite gym network.</p>
+      </div>
+
+      <div class="header-filters">
+        <div class="search-box">
+          <span class="material-symbols-rounded">search</span>
+          <input type="text" [(ngModel)]="searchText" (ngModelChange)="onFilterChange()"
+            placeholder="Search events or workshops..." />
+        </div>
+
+        <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="gym-node-selector">
+          <option value="all">Global Hub (All Gyms)</option>
+          <option *ngFor="let gym of gyms" [value]="gym.id_gym">{{ gym.name }}</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="errorMessage" class="error-hub">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  @if (!loading) {
+  <div class="events-grid" *ngIf="paginatedEvents.length > 0; else noEvents">
+    @for (event of paginatedEvents; track event.id_event) {
+    <div class="event-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'"
+      [class.is-reserved]="isEventReserved(event)">
+      <div class="event-poster">
+        <img
+          [src]="event.imageUrl"
+          [alt]="event.title"
+          (error)="event.imageUrl = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800'">
+        <div class="date-overlay">
+          <span class="day">{{ event.start_date | date:'dd' }}</span>
+          <span class="month">{{ event.start_date | date:'MMM' }}</span>
+        </div>
+      </div>
+
+      <div class="event-details">
+        <div class="vendor-header">
+          <div class="gym-badge">
+            <span class="material-symbols-rounded">location_on</span>
+            <span>{{ event.gymName }}</span>
+          </div>
+          <div class="status-badge" [class.live]="isEventReserved(event)">
+             {{ isEventReserved(event) ? 'ENROLLED' : 'AVAILABLE' }}
+          </div>
+        </div>
+
+        <h3 class="event-title">{{ event.title }}</h3>
+        <p class="event-desc">{{ (event.description | slice:0:100) + '...' }}</p>
+
+        <div class="event-meta-modern">
+          <div class="meta-node">
+            <span class="meta-label">TIME</span>
+            <span class="meta-value">{{ event.start_date | date:'HH:mm' }} - {{ event.end_date | date:'HH:mm' }}</span>
+          </div>
+          <div class="meta-node">
+            <span class="meta-label">CAPACITY</span>
+            <span class="meta-value">{{ event.participantsCount }}/{{ event.max_participants || '∞' }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="price-tag">
+            <span class="currency">$</span>
+            <span class="amount">{{ event.price || '0.00' }}</span>
+          </div>
+          <div class="actions-group">
+            <button class="reserve-btn" 
+              [class.reserved]="isEventReserved(event)"
+              [disabled]="isEventReserved(event)"
+              (click)="onReserve(event)" 
+              [title]="isEventReserved(event) ? 'Already secured' : 'Secure your spot'">
+              <span class="material-symbols-rounded">{{ isEventReserved(event) ? 'verified' : 'stadium' }}</span>
+              {{ isEventReserved(event) ? 'Secured' : 'Get Access' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Pagination Hub -->
+  <div class="pagination-hub animate-fade-in" *ngIf="totalPages > 1">
+    <button class="nav-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+      <span class="material-icons">chevron_left</span>
+    </button>
+
+    <div class="page-indicators">
+      <button *ngFor="let p of [].constructor(totalPages); let i = index" class="page-pill"
+        [class.active]="currentPage === i + 1" (click)="changePage(i + 1)">
+        {{ i + 1 }}
+      </button>
+    </div>
+
+    <button class="nav-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+      <span class="material-icons">chevron_right</span>
+    </button>
+  </div>
+
+  <ng-template #noEvents>
+    <div class="empty-state">
+      <h3>No upcoming events found</h3>
+      <p>Check back later for new workshops and challenges.</p>
+    </div>
+  </ng-template>
+  } @else {
+  <div class="events-grid">
+    @for (s of [1,2,3]; track s) {
+    <div class="skeleton-card glass-card">
+      <div class="skeleton-media"></div>
+      <div class="skeleton-body">
+        <div class="line title"></div>
+        <div class="line desc"></div>
+        <div class="line meta"></div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
+    [paymentError]="paymentError"
+    [stripePublicKey]="stripePublicKey"
+    [headerTitle]="'Secure Event Node'" [itemTitle]="selectedEvent?.title || 'Event Access'"
+    [itemSubtitle]="selectedEvent?.gymName || 'Elite Facility'"
+    [itemImage]="selectedEvent?.imageUrl"
+    [purchaseTerms]="'Securing this node grants you full access to the event and all associated rewards mentioned in the description.'"
+    (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
+  </app-payment-modal>
+</div>
