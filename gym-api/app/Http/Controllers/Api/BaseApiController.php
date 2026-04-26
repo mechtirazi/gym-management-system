@@ -71,6 +71,7 @@ abstract class BaseApiController extends Controller
 
             // If the data is paginated, merge the paginator array (which contains 'data', 'current_page', etc.)
             if ($data instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
+                /** @var \Illuminate\Pagination\LengthAwarePaginator $data */
                 return response()->json(array_merge([
                     'success' => true,
                     'message' => ucfirst($this->modelName) . ' retrieved successfully',

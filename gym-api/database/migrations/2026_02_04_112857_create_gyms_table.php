@@ -15,7 +15,6 @@ return new class () extends Migration {
             $table->string('name');
             $table->string('adress');
             $table->integer('capacity');
-            $table->string('open_hour');
             $table->foreignUuid('id_owner')->constrained('users', 'id_user')->onDelete('cascade');
             $table->timestamps();
         });

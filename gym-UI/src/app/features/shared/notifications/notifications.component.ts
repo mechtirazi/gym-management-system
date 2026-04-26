@@ -20,9 +20,9 @@ import { UserVm } from '../../../core/models/api.models';
     trigger('slideIn', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-10px)' }),
-        animate('0.3s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
+        animate('0.3s ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
   ],
   template: `
     <div class="notifications-page">
@@ -112,7 +112,12 @@ import { UserVm } from '../../../core/models/api.models';
                   </div>
                   <div class="card-content">
                     <div class="card-header">
-                      <h3 class="card-title">{{ notif.title }}</h3>
+                      <div class="card-title-section">
+                        <h3 class="card-title">{{ notif.title }}</h3>
+                        <span class="card-sender" *ngIf="notif.sender"
+                          >{{ notif.sender.name }} {{ notif.sender.last_name }}</span
+                        >
+                      </div>
                       <span class="card-time">{{ notif.time }}</span>
                     </div>
                     <p class="card-desc">{{ notif.description }}</p>
@@ -173,6 +178,7 @@ import { UserVm } from '../../../core/models/api.models';
                   <label>Recipients</label>
                   <div class="radio-group">
                     <label class="radio-btn">
+<<<<<<< Updated upstream
                       <input type="radio" formControlName="recipientType" value="all">
                       <span class="btn-content">All</span>
                     </label>
@@ -221,6 +227,14 @@ import { UserVm } from '../../../core/models/api.models';
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                         <span>Alert</span>
                       </div>
+=======
+                      <input type="radio" formControlName="recipientType" value="all" />
+                      <span class="btn-content">All {{ isTrainer() ? 'Members' : 'Users' }}</span>
+                    </label>
+                    <label class="radio-btn">
+                      <input type="radio" formControlName="recipientType" value="single" />
+                      <span class="btn-content">{{ isTrainer() ? 'Member' : 'Owner' }}</span>
+>>>>>>> Stashed changes
                     </label>
                   </div>
                 </div>
@@ -242,14 +256,29 @@ import { UserVm } from '../../../core/models/api.models';
 
                 <div class="form-field">
                   <label>Message Content</label>
-                  <textarea formControlName="message" placeholder="Type your notification message..."></textarea>
-                  <div class="char-count">{{ dispatchForm.get('message')?.value?.length || 0 }} chars</div>
+                  <textarea
+                    formControlName="message"
+                    placeholder="Type your notification message..."
+                  ></textarea>
+                  <div class="char-count">
+                    {{ dispatchForm.get('message')?.value?.length || 0 }} chars
+                  </div>
                 </div>
 
                 <div class="form-actions">
-                  <button type="submit" [disabled]="dispatchForm.invalid || isDispatching()" class="dispatch-btn">
+                  <button
+                    type="submit"
+                    [disabled]="dispatchForm.invalid || isDispatching()"
+                    class="dispatch-btn"
+                  >
                     <span *ngIf="!isDispatching()">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; margin-right: 8px;">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        style="width: 18px; margin-right: 8px;"
+                      >
                         <path d="M22 2L11 13"></path>
                         <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
                       </svg>
@@ -257,7 +286,14 @@ import { UserVm } from '../../../core/models/api.models';
                     </span>
                     <span *ngIf="isDispatching()" class="loader-state">
                       <svg class="spinner" viewBox="0 0 50 50">
-                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                        <circle
+                          class="path"
+                          cx="25"
+                          cy="25"
+                          r="20"
+                          fill="none"
+                          stroke-width="5"
+                        ></circle>
                       </svg>
                     </span>
                   </button>
@@ -265,7 +301,7 @@ import { UserVm } from '../../../core/models/api.models';
                 </div>
               </form>
             </div>
-            
+
             <div class="tips-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -280,153 +316,67 @@ import { UserVm } from '../../../core/models/api.models';
           </div>
         </div>
       </div>
+    </div>
   `,
-  styles: [`
-    .notifications-page {
-      padding: clamp(1.5rem, 5vw, 4rem);
-      max-width: 1440px;
-      margin: 0 auto;
-      min-height: 100vh;
-      background: radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.03) 0%, transparent 50%),
-                  radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.03) 0%, transparent 50%);
-    }
-
-    .page-header {
-      margin-bottom: 4rem;
-      animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-
-      h1 {
-        font-size: clamp(2.5rem, 8vw, 4rem);
-        font-weight: 900;
-        letter-spacing: -0.05em;
-        background: linear-gradient(135deg, var(--admin-accent-indigo) 0%, var(--admin-accent-emerald) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 0;
-        line-height: 1.1;
+  styles: [
+    `
+      .notifications-page {
+        padding: clamp(1.5rem, 5vw, 4rem);
+        max-width: 1440px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.03) 0%, transparent 50%),
+          radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.03) 0%, transparent 50%);
       }
 
-      .subtitle {
-        font-size: 1.2rem;
-        font-weight: 500;
-        color: var(--admin-text-secondary);
-        margin-top: 1rem;
-        max-width: 600px;
-        line-height: 1.6;
-        opacity: 0.8;
-      }
-    }
+      .page-header {
+        margin-bottom: 4rem;
+        animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+        h1 {
+          font-size: clamp(2.5rem, 8vw, 4rem);
+          font-weight: 900;
+          letter-spacing: -0.05em;
+          background: linear-gradient(
+            135deg,
+            var(--admin-accent-indigo) 0%,
+            var(--admin-accent-emerald) 100%
+          );
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin: 0;
+          line-height: 1.1;
+        }
 
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 440px;
-      gap: 3rem;
-      align-items: start;
-    }
-
-    /* Activity Log (LEFT) */
-    .activity-column {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    .section-badge {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 0.5rem 0;
-
-      h2 {
-        font-size: 1rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        color: var(--admin-text-primary);
-        margin: 0;
-      }
-
-      svg { 
-        width: 20px; 
-        height: 20px; 
-        color: var(--admin-accent-indigo);
-      }
-
-      .count-badge {
-        background: var(--admin-accent-indigo);
-        color: white;
-        font-size: 0.75rem;
-        font-weight: 900;
-        padding: 2px 10px;
-        border-radius: 100px;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-      }
-    }
-
-    .notifications-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .notification-card {
-      background: var(--admin-glass);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--admin-glass-border);
-      box-shadow: var(--admin-glass-shadow);
-      border-radius: 24px;
-      padding: 1.75rem;
-      display: flex;
-      gap: 1.5rem;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
-      overflow: hidden;
-
-      &:hover {
-        transform: translateY(-4px) scale(1.01);
-        border-color: var(--admin-accent-indigo);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-      }
-
-      &.unread {
-        background: linear-gradient(135deg, var(--admin-glass), rgba(99, 102, 241, 0.05));
-        border-left: 4px solid var(--admin-accent-indigo);
-        
-        &::before {
-          content: '';
-          position: absolute;
-          top: 1.5rem; right: 1.5rem;
-          width: 8px; height: 8px;
-          background: var(--admin-accent-indigo);
-          border-radius: 50%;
-          box-shadow: 0 0 15px var(--admin-accent-indigo);
-          animation: pulse 2s infinite;
+        .subtitle {
+          font-size: 1.2rem;
+          font-weight: 500;
+          color: var(--admin-text-secondary);
+          margin-top: 1rem;
+          max-width: 600px;
+          line-height: 1.6;
+          opacity: 0.8;
         }
       }
-    }
 
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.5); opacity: 0.5; }
-      100% { transform: scale(1); opacity: 1; }
-    }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-    .card-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      background: var(--admin-item-bg);
-      border: 1px solid var(--admin-item-border);
-      color: var(--admin-text-primary);
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 440px;
+        gap: 3rem;
+        align-items: start;
+      }
 
       &.info { color: var(--admin-accent-indigo); background: rgba(99, 102, 241, 0.1); }
       &.success { color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.1); }
@@ -435,17 +385,27 @@ import { UserVm } from '../../../core/models/api.models';
       svg { width: 22px; height: 22px; }
     }
 
-    .card-content { flex: 1; min-width: 0; }
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-    .card-title { font-size: 1.1rem; font-weight: 800; color: var(--admin-text-primary); margin: 0; }
-    .card-time { font-size: 0.8rem; font-weight: 600; color: var(--admin-text-secondary); opacity: 0.6; }
-    .card-desc { font-size: 0.95rem; color: var(--admin-text-secondary); line-height: 1.6; margin: 0; }
+      /* Activity Log (LEFT) */
+      .activity-column {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
 
-    .card-actions {
-      margin-top: 1rem;
-      display: flex;
-      justify-content: flex-end;
-    }
+      .section-badge {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0;
+
+        h2 {
+          font-size: 1rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: var(--admin-text-primary);
+          margin: 0;
+        }
 
     .action-btn {
       padding: 0.5rem 1rem;
@@ -460,14 +420,48 @@ import { UserVm } from '../../../core/models/api.models';
         background: var(--admin-item-bg);
         border: 1px solid var(--admin-item-border);
         color: var(--admin-text-primary);
-        &:hover { 
-          background: var(--admin-accent-indigo); 
+        &:hover {
+          background: var(--admin-accent-indigo);
           color: white;
           border-color: var(--admin-accent-indigo);
           transform: translateY(-2px);
         }
       }
+    }
 
+      .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--admin-item-bg);
+        border: 1px solid var(--admin-item-border);
+        color: var(--admin-text-primary);
+
+        &.info {
+          color: var(--admin-accent-indigo);
+          background: rgba(99, 102, 241, 0.1);
+        }
+        &.success {
+          color: var(--admin-accent-green);
+          background: rgba(34, 197, 94, 0.1);
+        }
+        &.warning {
+          color: var(--admin-accent-yellow);
+          background: rgba(245, 158, 11, 0.1);
+        }
+        &.error {
+          color: var(--admin-accent-rose);
+          background: rgba(244, 63, 94, 0.1);
+        }
+        svg {
+          width: 22px;
+          height: 22px;
+        }
+      }
       &.accept {
         background: var(--admin-accent-emerald);
         color: white;
@@ -485,36 +479,52 @@ import { UserVm } from '../../../core/models/api.models';
           background: rgba(244, 63, 94, 0.2); 
         }
       }
-    }
 
-    /* Dispatch Column (RIGHT) */
-    .dispatch-sticky {
-      position: sticky;
-      top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    .dispatch-card {
-      background: var(--admin-glass);
-      backdrop-filter: blur(20px);
-      border-radius: 32px;
-      padding: 2.5rem;
-      border: 1px solid var(--admin-glass-border);
-      box-shadow: var(--admin-glass-shadow);
-      position: relative;
-      overflow: hidden;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; height: 4px;
-        background: linear-gradient(90deg, var(--admin-accent-indigo), var(--admin-accent-emerald));
+      .card-content {
+        flex: 1;
+        min-width: 0;
       }
-    }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+      }
+      .card-title-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .card-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--admin-text-primary);
+        margin: 0;
+      }
+      .card-sender {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--admin-accent-indigo);
+        margin: 0;
+      }
+      .card-time {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--admin-text-secondary);
+        opacity: 0.6;
+      }
+      .card-desc {
+        font-size: 0.95rem;
+        color: var(--admin-text-secondary);
+        line-height: 1.6;
+        margin: 0;
+      }
 
-    .dispatch-form { display: flex; flex-direction: column; gap: 1.5rem; }
+      .card-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+      }
 
     .form-field {
       display: flex;
@@ -540,15 +550,186 @@ import { UserVm } from '../../../core/models/api.models';
         justify-content: center; 
         padding: 0.6rem; 
         border-radius: 10px;
-        font-size: 0.85rem; 
-        font-weight: 700; 
-        color: var(--admin-text-secondary); 
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--admin-text-secondary);
         transition: all 0.3s;
       }
       input:checked + .btn-content {
         background: var(--admin-accent-indigo);
         color: white;
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+      }
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.3s;
+
+        &.secondary {
+          background: var(--admin-item-bg);
+          border: 1px solid var(--admin-item-border);
+          color: var(--admin-text-primary);
+          &:hover {
+            background: var(--admin-accent-indigo);
+            color: white;
+            border-color: var(--admin-accent-indigo);
+            transform: translateY(-2px);
+          }
+        }
+      }
+
+      /* Dispatch Column (RIGHT) */
+      .dispatch-sticky {
+        position: sticky;
+        top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .dispatch-card {
+        background: var(--admin-glass);
+        backdrop-filter: blur(20px);
+        border-radius: 32px;
+        padding: 2.5rem;
+        border: 1px solid var(--admin-glass-border);
+        box-shadow: var(--admin-glass-shadow);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(
+            90deg,
+            var(--admin-accent-indigo),
+            var(--admin-accent-emerald)
+          );
+        }
+      }
+
+      .dispatch-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        label {
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: var(--admin-text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+      }
+
+      .radio-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: var(--admin-item-bg);
+        padding: 4px;
+        border-radius: 14px;
+        border: 1px solid var(--admin-item-border);
+      }
+
+      .radio-btn {
+        cursor: pointer;
+        input {
+          display: none;
+        }
+        .btn-content {
+          display: flex;
+          justify-content: center;
+          padding: 0.6rem;
+          border-radius: 10px;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: var(--admin-text-secondary);
+          transition: all 0.3s;
+        }
+        input:checked + .btn-content {
+          background: var(--admin-accent-indigo);
+          color: white;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+      }
+
+      .form-field select,
+      .form-field textarea {
+        padding: 1rem;
+        border-radius: 16px;
+        border: 1px solid var(--admin-item-border);
+        background: var(--admin-item-bg);
+        color: var(--admin-text-primary);
+        font-size: 0.95rem;
+        font-weight: 500;
+        outline: none;
+        transition: all 0.3s;
+
+        &:focus {
+          border-color: var(--admin-accent-indigo);
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+      }
+
+      .form-field textarea {
+        height: 140px;
+        resize: none;
+        line-height: 1.6;
+      }
+      .char-count {
+        align-self: flex-end;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--admin-text-secondary);
+        opacity: 0.6;
+        margin-top: 0.5rem;
+      }
+
+      .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .dispatch-btn {
+        background: var(--admin-accent-indigo);
+        color: white;
+        border: none;
+        padding: 1rem;
+        border-radius: 16px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover:not(:disabled) {
+          background: #4f46e5;
+          transform: translateY(-2px);
+          box-shadow: 0 12px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
       }
     }
     
@@ -610,102 +791,111 @@ import { UserVm } from '../../../core/models/api.models';
         color: var(--admin-accent-rose);
         box-shadow: 0 4px 12px rgba(244, 63, 94, 0.1);
       }
-    }
 
-    .form-field select, .form-field textarea {
-      padding: 1rem; 
-      border-radius: 16px; 
-      border: 1px solid var(--admin-item-border); 
-      background: var(--admin-item-bg);
-      color: var(--admin-text-primary);
-      font-size: 0.95rem; 
-      font-weight: 500; 
-      outline: none; 
-      transition: all 0.3s;
-      
-      &:focus {
-        border-color: var(--admin-accent-indigo);
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+      .reset-btn {
+        background: transparent;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--admin-text-secondary);
+        cursor: pointer;
+        transition: color 0.2s;
+        &:hover {
+          color: var(--admin-text-primary);
+        }
       }
-    }
 
-    .form-field textarea { height: 140px; resize: none; line-height: 1.6; }
-    .char-count { align-self: flex-end; font-size: 0.7rem; font-weight: 600; color: var(--admin-text-secondary); opacity: 0.6; margin-top: 0.5rem; }
+      .tips-box {
+        background: var(--admin-glass);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--admin-glass-border);
+        border-radius: 24px;
+        padding: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
 
-    .form-actions { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
-
-    .dispatch-btn {
-      background: var(--admin-accent-indigo);
-      color: white; 
-      border: none; 
-      padding: 1rem; 
-      border-radius: 16px;
-      font-size: 1rem; 
-      font-weight: 800; 
-      cursor: pointer; 
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      
-      &:hover:not(:disabled) {
-        background: #4f46e5;
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px rgba(99, 102, 241, 0.3);
+        svg {
+          width: 20px;
+          height: 20px;
+          color: var(--admin-accent-indigo);
+          flex-shrink: 0;
+        }
+        p {
+          font-size: 0.85rem;
+          color: var(--admin-text-secondary);
+          margin: 0;
+          line-height: 1.5;
+          font-weight: 500;
+        }
       }
-      
-      &:disabled { opacity: 0.5; cursor: not-allowed; }
-    }
 
-    .reset-btn {
-      background: transparent; border: none; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-secondary);
-      cursor: pointer; transition: color 0.2s;
-      &:hover { color: var(--admin-text-primary); }
-    }
+      .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: var(--admin-glass);
+        border-radius: 32px;
+        border: 1px dashed var(--admin-glass-border);
 
-    .tips-box {
-      background: var(--admin-glass);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--admin-glass-border);
-      border-radius: 24px;
-      padding: 1.5rem;
-      display: flex; gap: 1rem;
-      align-items: center;
-      
-      svg { width: 20px; height: 20px; color: var(--admin-accent-indigo); flex-shrink: 0; }
-      p { font-size: 0.85rem; color: var(--admin-text-secondary); margin: 0; line-height: 1.5; font-weight: 500; }
-    }
-
-    .empty-state { 
-      text-align: center; 
-      padding: 5rem 2rem;
-      background: var(--admin-glass);
-      border-radius: 32px;
-      border: 1px dashed var(--admin-glass-border);
-      
-      .empty-icon { 
-        width: 80px; height: 80px; 
-        background: var(--admin-item-bg); 
-        border-radius: 50%; 
-        display: flex; align-items: center; justify-content: center; 
-        margin: 0 auto 2rem; 
-        color: var(--admin-text-secondary); 
-        opacity: 0.3;
-        svg { width: 40px; height: 40px; } 
+        .empty-icon {
+          width: 80px;
+          height: 80px;
+          background: var(--admin-item-bg);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 2rem;
+          color: var(--admin-text-secondary);
+          opacity: 0.3;
+          svg {
+            width: 40px;
+            height: 40px;
+          }
+        }
+        h2 {
+          font-size: 1.5rem;
+          font-weight: 900;
+          color: var(--admin-text-primary);
+          margin-bottom: 0.5rem;
+        }
+        p {
+          font-size: 1rem;
+          color: var(--admin-text-secondary);
+        }
       }
-      h2 { font-size: 1.5rem; font-weight: 900; color: var(--admin-text-primary); margin-bottom: 0.5rem; }
-      p { font-size: 1rem; color: var(--admin-text-secondary); }
-    }
 
-    .spinner { animation: rotate 2s linear infinite; width: 20px; height: 20px; }
-    .path { stroke: white; stroke-linecap: round; animation: dash 1.5s ease-in-out infinite; }
-    @keyframes rotate { 100% { transform: rotate(360deg); } }
-    @keyframes dash { 
-      0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; } 
-      50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; } 
-      100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; } 
-    }
+      .spinner {
+        animation: rotate 2s linear infinite;
+        width: 20px;
+        height: 20px;
+      }
+      .path {
+        stroke: white;
+        stroke-linecap: round;
+        animation: dash 1.5s ease-in-out infinite;
+      }
+      @keyframes rotate {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes dash {
+        0% {
+          stroke-dasharray: 1, 150;
+          stroke-dashoffset: 0;
+        }
+        50% {
+          stroke-dasharray: 90, 150;
+          stroke-dashoffset: -35;
+        }
+        100% {
+          stroke-dasharray: 90, 150;
+          stroke-dashoffset: -124;
+        }
+      }
 
+<<<<<<< Updated upstream
     /* Filters Styles */
     .log-filters {
       display: flex;
@@ -880,6 +1070,21 @@ import { UserVm } from '../../../core/models/api.models';
       .dispatch-card { max-width: 100%; } 
     }
   `]
+=======
+      @media (max-width: 1200px) {
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+        .dispatch-sticky {
+          position: static;
+        }
+        .dispatch-card {
+          max-width: 100%;
+        }
+      }
+    `,
+  ],
+>>>>>>> Stashed changes
 })
 export class NotificationsComponent implements OnInit {
   private notificationService = inject(NotificationService);
@@ -951,14 +1156,14 @@ export class NotificationsComponent implements OnInit {
     recipientType: ['all', Validators.required],
     type: ['info', Validators.required],
     targetId: [''],
-    message: ['', [Validators.required, Validators.minLength(5)]]
+    message: ['', [Validators.required, Validators.minLength(5)]],
   });
 
   ngOnInit() {
     this.loadTargets();
     this.loadInvitations();
 
-    this.dispatchForm.get('recipientType')?.valueChanges.subscribe(type => {
+    this.dispatchForm.get('recipientType')?.valueChanges.subscribe((type) => {
       const targetControl = this.dispatchForm.get('targetId');
       if (type === 'single') {
         targetControl?.setValidators([Validators.required]);
@@ -1002,7 +1207,7 @@ export class NotificationsComponent implements OnInit {
 
   loadTargets() {
     if (this.isAdmin()) {
-      this.ownersService.getOwners().subscribe(owners => {
+      this.ownersService.getOwners().subscribe((owners) => {
         this.targets.set(owners);
       });
     } else if (this.isTrainer()) {
@@ -1017,7 +1222,7 @@ export class NotificationsComponent implements OnInit {
             });
             this.targets.set(Array.from(map.values()));
           }
-        }
+        },
       });
     } else if (this.isOwner() || this.isReceptionist()) {
       const requests: any = {
@@ -1062,7 +1267,7 @@ export class NotificationsComponent implements OnInit {
 
   onDispatch() {
     if (this.dispatchForm.invalid) return;
-    
+
     this.isDispatching.set(true);
     const { recipientType, type, targetId, message } = this.dispatchForm.value;
 
@@ -1072,9 +1277,38 @@ export class NotificationsComponent implements OnInit {
       if (this.isSuperAdmin() || (this.isAdmin() && !this.isOwner())) {
         this.notificationService.sendToAllUsers(message!, type!).subscribe({
           next: () => this.handleSuccess('Announcement broadcasted to all users.'),
-          error: () => this.handleError('Failed to broadcast message.')
+          error: () => this.handleError('Failed to broadcast message.'),
         });
+<<<<<<< Updated upstream
         return;
+=======
+      } else if (this.isTrainer()) {
+        // Technically this triggers 1 request per member. For scaling, backend should have a bulk endpoint.
+        const allTargets = this.targets();
+        if (allTargets.length === 0) {
+          this.handleError('No active members to message.');
+          return;
+        }
+        let completed = 0;
+        let errors = 0;
+        allTargets.forEach((t) => {
+          this.notificationService.sendToUser(t.id_user, message!).subscribe({
+            next: () => {
+              completed++;
+              if (completed + errors === allTargets.length) {
+                this.handleSuccess(`Messages sent to ${completed} members.`);
+              }
+            },
+            error: () => {
+              errors++;
+              if (completed + errors === allTargets.length) {
+                if (completed === 0) this.handleError('Failed to send messages.');
+                else this.handleSuccess(`Messages sent with ${errors} errors.`);
+              }
+            },
+          });
+        });
+>>>>>>> Stashed changes
       }
       // Owners and Trainers should only send to their specific targets
       finalTargets = this.targets();

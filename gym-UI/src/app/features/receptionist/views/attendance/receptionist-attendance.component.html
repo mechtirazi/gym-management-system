@@ -47,6 +47,7 @@
             <option [value]="s.id_session">
               {{ s.course?.name || s.course?.title || ('Session ' + s.id_session) }}
               {{ s.date ? '(' + s.date + ')' : '' }}
+              @if (s.start_time) { · {{ s.start_time }}{{ s.end_time ? ' - ' + s.end_time : '' }} }
             </option>
           }
         </select>

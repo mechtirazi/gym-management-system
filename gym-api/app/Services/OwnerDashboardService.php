@@ -25,32 +25,8 @@ class OwnerDashboardService
         return (int) round((($current - $previous) / $previous) * 100);
     }
 
-    private function getActiveGymIds(User $user): array
+    private function getRevenueStats(array $gymIdsArray, Carbon $now, Carbon $prevMonthStart, Carbon $prevMonthEnd): array
     {
-        $allowedGymIds = $user->allowedGymIds()->toArray();
-        $activeGymId = request()->header('X-Gym-Id');
-
-        // If an active gym is requested and the user has access to it
-        if ($activeGymId && in_array($activeGymId, $allowedGymIds)) {
-            return [$activeGymId];
-        }
-
-        // Default to all allowed gyms
-        return $allowedGymIds;
-    }
-
-    public function getDashboardStats(User $user): array
-    {
-        $now = Carbon::now();
-        $gymIdsArray = $this->getActiveGymIds($user);
-
-        // Reset submonth correctly by using start of months
-        $currMonthStart = $now->copy()->startOfMonth();
-        $prevMonthStart = $now->copy()->subMonthNoOverflow()->startOfMonth();
-        $prevMonthEnd = $now->copy()->startOfMonth()->subSecond();
-
-        // 1. Stats Calculation
-        // Revenue (current month vs previous month)
         $currRevenue = Payment::whereIn('id_gym', $gymIdsArray)
             ->whereMonth('created_at', $now->month)
             ->whereYear('created_at', $now->year)
@@ -60,9 +36,14 @@ class OwnerDashboardService
             ->whereBetween('created_at', [$prevMonthStart, $prevMonthEnd])
             ->sum('amount');
 
-        $revenueTrend = $this->calculateTrend($currRevenue, $prevRevenue);
+        return [
+            'totalRevenue' => (float) $currRevenue,
+            'revenueTrend' => $this->calculateTrend($currRevenue, $prevRevenue)
+        ];
+    }
 
-        // 2. Active Members (Unique users with ROLE_MEMBER)
+    private function getMemberStatsData(array $gymIdsArray, Carbon $currMonthStart): array
+    {
         $currActiveMembers = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
             ->whereIn('enrollments.id_gym', $gymIdsArray)
             ->where('enrollments.status', 'active')
@@ -78,9 +59,14 @@ class OwnerDashboardService
             ->distinct('enrollments.id_member')
             ->count('enrollments.id_member');
 
-        $membersTrend = $this->calculateTrend($currActiveMembers, $prevActiveMembers);
+        return [
+            'activeMembers' => $currActiveMembers,
+            'membersTrend' => $this->calculateTrend($currActiveMembers, $prevActiveMembers)
+        ];
+    }
 
-        // 3. New Memberships (ROLE_MEMBER only)
+    private function getMembershipsStats(array $gymIdsArray, Carbon $currMonthStart, Carbon $prevMonthStart, Carbon $prevMonthEnd): array
+    {
         $currNewMem = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
             ->whereIn('enrollments.id_gym', $gymIdsArray)
             ->where('enrollments.created_at', '>=', $currMonthStart)
@@ -93,9 +79,14 @@ class OwnerDashboardService
             ->where('users.role', User::ROLE_MEMBER)
             ->count();
 
-        $membershipsTrend = $this->calculateTrend($currNewMem, $prevNewMem);
+        return [
+            'newMemberships' => $currNewMem,
+            'membershipsTrend' => $this->calculateTrend($currNewMem, $prevNewMem)
+        ];
+    }
 
-        // 4. Active Trainers
+    private function getTrainerStats(array $gymIdsArray, Carbon $currMonthStart): array
+    {
         $currTrainers = User::where('role', User::ROLE_TRAINER)->whereHas('gymStaff', function ($q) use ($gymIdsArray) {
             $q->whereIn('id_gym', $gymIdsArray);
         })->count();
@@ -104,9 +95,14 @@ class OwnerDashboardService
             $q->whereIn('id_gym', $gymIdsArray);
         })->where('created_at', '<', $currMonthStart)->count();
 
-        $trainersTrend = $this->calculateTrend($currTrainers, $prevTrainers);
+        return [
+            'activeTrainers' => $currTrainers,
+            'trainersTrend' => $this->calculateTrend($currTrainers, $prevTrainers)
+        ];
+    }
 
-        // 5. Upcoming Sessions
+    private function getUpcomingSessionsData(array $gymIdsArray, Carbon $now): \Illuminate\Support\Collection
+    {
         $upcomingSessions = Session::with(['course', 'trainer'])
             ->whereHas('course', function ($q) use ($gymIdsArray) {
                 $q->whereIn('id_gym', $gymIdsArray);
@@ -116,7 +112,7 @@ class OwnerDashboardService
             ->take(4)
             ->get();
 
-        $sessionData = $upcomingSessions->map(function ($session) {
+        return $upcomingSessions->map(function ($session) {
             return [
                 'id' => $session->id_session,
                 'courseName' => $session->course->name,
@@ -125,15 +121,10 @@ class OwnerDashboardService
                 'status' => $session->status
             ];
         });
+    }
 
-        // 6. Inventory Alerts (Low Stock)
-        $inventoryAlerts = Product::whereIn('id_gym', $gymIdsArray)
-            ->where('stock', '<', 10)
-            ->orderBy('stock', 'asc')
-            ->take(3)
-            ->get(['name', 'stock', 'price']);
-
-        // 7. Expiring Memberships (Assuming 30-day validity from subscribe_date)
+    private function getExpiringMembershipsData(array $gymIdsArray, Carbon $now): \Illuminate\Support\Collection
+    {
         $expiringMemberships = Subscribe::with('user')
             ->whereIn('id_gym', $gymIdsArray)
             ->where('status', Subscribe::STATUS_ACTIVE)
@@ -142,7 +133,7 @@ class OwnerDashboardService
             ->take(3)
             ->get();
 
-        $expiringData = $expiringMemberships->map(function ($sub) use ($now) {
+        return $expiringMemberships->map(function ($sub) use ($now) {
             $endDate = Carbon::parse($sub->subscribe_date)->addDays(30);
             return [
                 'memberName' => $sub->user->name . ' ' . $sub->user->last_name,
@@ -150,8 +141,10 @@ class OwnerDashboardService
                 'daysLeft' => max(0, $now->diffInDays($endDate, false))
             ];
         });
+    }
 
-        // 8. Activity Trends (Daily - Last 14 Days)
+    private function getActivityTrendsData(array $gymIdsArray): array
+    {
         $activityTrends = [];
         for ($i = 13; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
@@ -180,8 +173,11 @@ class OwnerDashboardService
                 'cancellations' => $cancellations
             ];
         }
+        return $activityTrends;
+    }
 
-        // 9. Key Focus Areas
+    private function getFocusAreasData(array $gymIdsArray, int $currActiveMembers, Carbon $now): array
+    {
         $totalMembers = Enrollment::whereIn('id_gym', $gymIdsArray)->count();
         $retentionRate = $totalMembers > 0 ? round(($currActiveMembers / $totalMembers) * 100) : 0;
 
@@ -212,22 +208,51 @@ class OwnerDashboardService
             ->distinct('id_session')
             ->count('id_session');
         $staffEfficiency = $totalSessionsToday > 0 ? round(($attendedSessionsToday / $totalSessionsToday) * 100) : 0;
-
-        $focusAreas = [
-            ['label' => 'Retention Campaigns', 'value' => $retentionRate, 'color' => 'bg-cyan-500'],
-            ['label' => 'New Member Onboarding', 'value' => $onboardingRate, 'color' => 'bg-teal-500'],
-            ['label' => 'Equipment Upgrades', 'value' => $equipmentHealth, 'color' => 'bg-amber-500'],
-            ['label' => 'Staff Efficiency', 'value' => $staffEfficiency, 'color' => 'bg-purple-500'],
+        return [
+            ['label' => 'Retention Campaigns', 'value' => (int)$retentionRate, 'color' => 'bg-cyan-500'],
+            ['label' => 'New Member Onboarding', 'value' => (int)$onboardingRate, 'color' => 'bg-teal-500'],
+            ['label' => 'Equipment Upgrades', 'value' => (int)$equipmentHealth, 'color' => 'bg-amber-500'],
+            ['label' => 'Staff Efficiency', 'value' => (int)$staffEfficiency, 'color' => 'bg-purple-500'],
         ];
+    }
 
-        // 10. Gym Occupancy
-        $gym = Gym::whereIn('id_gym', $gymIdsArray)->first();
-        $currentPresent = Attendance::whereHas('session.course', function ($q) use ($gymIdsArray) {
-            $q->whereIn('id_gym', $gymIdsArray);
-        })
-            ->where('status', Attendance::STATUS_PRESENT)
-            ->whereDate('created_at', Carbon::today())
-            ->count();
+    private function getInventoryAlertsData(array $gymIdsArray): \Illuminate\Support\Collection
+    {
+        return Product::whereIn('id_gym', $gymIdsArray)
+            ->where('stock', '<', 10)
+            ->orderBy('stock', 'asc')
+            ->take(3)
+            ->get(['name', 'stock', 'price']);
+    }
+
+    private function getActiveGymIds(User $user): array
+    {
+        $allowedGymIds = $user->allowedGymIds()->toArray();
+        $activeGymId = request()->header('X-Gym-Id');
+
+        // If an active gym is requested and the user has access to it
+        if ($activeGymId && in_array($activeGymId, $allowedGymIds)) {
+            return [$activeGymId];
+        }
+
+        // Default to all allowed gyms
+        return $allowedGymIds;
+    }
+
+    public function getDashboardStats(User $user): array
+    {
+        $now = Carbon::now();
+        $gymIdsArray = $this->getActiveGymIds($user);
+
+        // Reset submonth correctly by using start of months
+        $currMonthStart = $now->copy()->startOfMonth();
+        $prevMonthStart = $now->copy()->subMonthNoOverflow()->startOfMonth();
+        $prevMonthEnd = $now->copy()->startOfMonth()->subSecond();
+
+        $revenue = $this->getRevenueStats($gymIdsArray, $now, $prevMonthStart, $prevMonthEnd);
+        $members = $this->getMemberStatsData($gymIdsArray, $currMonthStart);
+        $memberships = $this->getMembershipsStats($gymIdsArray, $currMonthStart, $prevMonthStart, $prevMonthEnd);
+        $trainers = $this->getTrainerStats($gymIdsArray, $currMonthStart);
 
         // 11. Staff Snapshot (Dynamic)
         $totalStaff = GymStaff::whereIn('id_gym', $gymIdsArray)->distinct('id_user')->count();
@@ -251,21 +276,12 @@ class OwnerDashboardService
         });
 
         return [
-            "stats" => [
-                "totalRevenue" => (float) $currRevenue,
-                "revenueTrend" => $revenueTrend,
-                "activeMembers" => $currActiveMembers,
-                "membersTrend" => $membersTrend,
-                "newMemberships" => $currNewMem,
-                "membershipsTrend" => $membershipsTrend,
-                "activeTrainers" => $currTrainers,
-                "trainersTrend" => $trainersTrend
-            ],
-            "upcomingSessions" => $sessionData,
-            "inventoryAlerts" => $inventoryAlerts,
-            "expiringMemberships" => $expiringData,
-            "activityTrends" => $activityTrends,
-            "focusAreas" => $focusAreas,
+            "stats" => array_merge($revenue, $members, $memberships, $trainers),
+            "upcomingSessions" => $this->getUpcomingSessionsData($gymIdsArray, $now),
+            "inventoryAlerts" => $this->getInventoryAlertsData($gymIdsArray),
+            "expiringMemberships" => $this->getExpiringMembershipsData($gymIdsArray, $now),
+            "activityTrends" => $this->getActivityTrendsData($gymIdsArray),
+            "focusAreas" => $this->getFocusAreasData($gymIdsArray, $members['activeMembers'], $now),
             "staffSnapshot" => $staffSnapshot,
         ];
     }
@@ -498,10 +514,10 @@ class OwnerDashboardService
             ->get();
 
         // 6. Enrollment Progress
-        $activeEnrollments = \App\Models\Enrollment::whereIn('id_gym', $gymIdsArray)
+        $activeEnrollments = Enrollment::whereIn('id_gym', $gymIdsArray)
             ->where('status', 'active')
             ->count();
-        $totalEnrollments = \App\Models\Enrollment::whereIn('id_gym', $gymIdsArray)->count();
+        $totalEnrollments = Enrollment::whereIn('id_gym', $gymIdsArray)->count();
         $enrollmentRate = $totalEnrollments > 0 ? round(($activeEnrollments / $totalEnrollments) * 100, 2) : 0;
 
         // Recent Enrollment Growth (this month)
@@ -536,7 +552,7 @@ class OwnerDashboardService
             ->take(4)
             ->get();
 
-        $activeEventsCount = \App\Models\Event::whereIn('id_gym', $gymIdsArray)
+        $activeEventsCount = Event::whereIn('id_gym', $gymIdsArray)
             ->where('end_date', '>=', $now)
             ->count();
 
@@ -592,7 +608,7 @@ class OwnerDashboardService
 
         $attendances = $query->take($limit)->get();
 
-        return $attendances->map(function ($attendance) {
+        return $attendances->map(function (Attendance $attendance) {
             $member = $attendance->member;
 
             $nameStr = 'Unknown Member';

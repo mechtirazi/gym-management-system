@@ -649,7 +649,7 @@ export class TrainerAnalyticsComponent implements OnInit {
     if (points.length === 0) return '';
     
     // Create smooth cubic bezier curve
-    return points.reduce((path, point, i) => {
+    return points.reduce((path: string, point: { x: number, y: number }, i: number) => {
       if (i === 0) return `M ${point.x},${point.y}`;
       const prev = points[i - 1];
       const cp1x = prev.x + (point.x - prev.x) / 2;

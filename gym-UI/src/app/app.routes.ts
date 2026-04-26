@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { socialCallbackGuard } from './core/guards/social-callback.guard';
 import { roleRedirectGuard } from './core/guards/role-redirect.guard';
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -71,6 +71,8 @@ export const routes: Routes = [
       },
       {
         path: 'owner',
+        canActivate: [roleGuard],
+        data: { roles: ['owner'] },
         children: [
           { path: 'dashboard', loadComponent: () => import('./features/owner/dashboard/owner-dashboard.component').then(m => m.OwnerDashboardComponent) },
           { path: 'gym-profile', loadComponent: () => import('./features/owner/gym-profile/gym-profile').then(m => m.GymProfileComponent) },
@@ -93,18 +95,26 @@ export const routes: Routes = [
       },
       {
         path: 'trainer',
+        canActivate: [roleGuard],
+        data: { roles: ['trainer'] },
         loadChildren: () => import('./features/trainer/trainer.routes').then(m => m.trainerRoutes)
       },
       {
         path: 'nutritionist',
+        canActivate: [roleGuard],
+        data: { roles: ['nutritionist'] },
         loadChildren: () => import('./features/nutritionist/nutritionist.routes').then(m => m.nutritionistRoutes)
       },
       {
         path: 'receptionist',
+        canActivate: [roleGuard],
+        data: { roles: ['receptionist'] },
         loadChildren: () => import('./features/receptionist/receptionist.routes').then(m => m.receptionistRoutes)
       },
       {
         path: 'admin',
+        canActivate: [roleGuard],
+        data: { roles: ['super_admin'] },
         children: [
           {
             path: 'dashboard',
@@ -140,6 +150,8 @@ export const routes: Routes = [
       },
       {
         path: 'member',
+        canActivate: [roleGuard],
+        data: { roles: ['member'] },
         loadChildren: () => import('./features/member/member.routes').then(m => m.memberRoutes)
       }
     ]

@@ -18,7 +18,7 @@
     <div class="gym-context-selector-sidebar">
       <div class="context-label">📍 Active Facility</div>
       <div class="selector-wrapper">
-        <select [value]="activeGymId()" (change)="onGymChange($event)">
+        <select [ngModel]="activeGymId()" (ngModelChange)="onGymChange($event)">
           <option *ngFor="let gym of assignedGyms()" [value]="gym.id_gym">
             {{ gym.name }}
           </option>
@@ -30,10 +30,18 @@
 
   <nav class="sidebar-nav">
     <ng-container *ngFor="let item of navItems">
-      <div *ngIf="item.isHeader" class="nav-header">{{ item.label }}</div>
-      <a *ngIf="!item.isHeader" [routerLink]="item.routePath" routerLinkActive="active" class="nav-item">
+      <div *ngIf="item.isHeader" class="nav-header" [class.locked]="isLocked(item)">{{ item.label }}</div>
+      <a *ngIf="!item.isHeader"
+         [routerLink]="isLocked(item) ? null : item.routePath"
+         routerLinkActive="active"
+         class="nav-item"
+         [class.locked]="isLocked(item)"
+         [attr.title]="isLocked(item) ? item.label + ' (Suspended)' : item.label">
         <div class="nav-icon" [innerHTML]="getIcon(item.icon || '')"></div>
         <span class="nav-label">{{ item.label }}</span>
+        <span *ngIf="isLocked(item)" class="lock-indicator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </span>
       </a>
     </ng-container>
   </nav>
@@ -45,10 +53,6 @@
         <div class="support-title">Coach Center</div>
         <div class="support-desc">Manage your team.</div>
       </div>
-      <button class="support-btn">
-        <span class="material-symbols-rounded">rocket_launch</span>
-        <span>Go Pro</span>
-      </button>
     </div>
   </div>
 </aside>
