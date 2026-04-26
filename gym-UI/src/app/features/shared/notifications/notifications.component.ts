@@ -90,7 +90,7 @@ import { UserVm } from '../../../core/models/api.models';
 
           <div class="notifications-scroll">
             <div class="notifications-list" *ngIf="paginatedNotifications().length > 0; else emptyState">
-              @for (notif of paginatedNotifications(); track notif.id) {
+              @for (notif of paginatedNotifications(); track notif.id || $index) {
                 <div class="notification-card" [class.unread]="notif.unread">
                   <div class="card-icon" [class.info]="notif.type === 'info'" [class.success]="notif.type === 'success'" [class.warning]="notif.type === 'warning'" [class.error]="notif.type === 'error'">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
