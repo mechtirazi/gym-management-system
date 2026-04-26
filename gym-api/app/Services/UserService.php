@@ -37,7 +37,7 @@ class UserService extends BaseService
         $creator = auth()->user();
         if ($creator && in_array($creator->role, [User::ROLE_OWNER, User::ROLE_RECEPTIONIST])) {
             $gymIds = [];
-            
+
             if (isset($data['id_gym'])) {
                 $gymIds[] = $data['id_gym'];
             } elseif (isset($data['gym_id'])) {
@@ -62,14 +62,14 @@ class UserService extends BaseService
 
             if (!empty($gymIds)) {
                 $gymId = $gymIds[0];
-                
+
                 if ($newUser->role === User::ROLE_MEMBER) {
                     \App\Models\Enrollment::create([
                         'id_member' => $newUser->id_user,
                         'id_gym' => $gymId,
-                        'enrollment_date' => $newUser->creation_date ?? now(),
+                        'id_plan' => $data['id_plan'] ?? null,
+                        'enrollment_date' => $data['enrollment_date'] ?? ($newUser->creation_date ?? now()),
                         'status' => 'active',
-                        'type' => 'standard',
                     ]);
                 } else if (in_array($newUser->role, [User::ROLE_TRAINER, User::ROLE_NUTRITIONIST, User::ROLE_RECEPTIONIST])) {
                     \App\Models\GymStaff::create([
@@ -160,11 +160,11 @@ class UserService extends BaseService
                 $q->whereHas('gymStaff', function ($sq) use ($gymIds) {
                     $sq->whereIn('id_gym', $gymIds);
                 })
-                // OR Users who are enrolled in my gyms
+                    // OR Users who are enrolled in my gyms
                     ->orWhereHas('enrollments', function ($sq) use ($gymIds) {
                         $sq->whereIn('id_gym', $gymIds);
                     })
-                // OR Myself
+                    // OR Myself
                     ->orWhere('id_user', auth()->id());
             });
         }
@@ -172,10 +172,10 @@ class UserService extends BaseService
         // Other roles (Staff) can only see members in their same gym
         if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
             $query = $query->where('role', User::ROLE_MEMBER);
-            
+
             // Respect active gym context using standardized helper
-            $this->applyActiveGymScope($query, $user, 'id_gym', function($q, $gymId) {
-                $q->whereHas('enrollments', function($sq) use ($gymId) {
+            $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) {
+                $q->whereHas('enrollments', function ($sq) use ($gymId) {
                     $sq->where('id_gym', $gymId);
                 });
             });

@@ -48,6 +48,9 @@ class StoreUserRequest extends FormRequest
                 'phone' => 'required|string|max:20',
                 'creation_date' => 'required|date',
                 'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'id_gym' => 'nullable|string|exists:gyms,id_gym',
+                'id_plan' => 'nullable|string|exists:membership_plans,id',
+                'enrollment_date' => 'nullable|date'
             ];
         }
 
@@ -62,6 +65,9 @@ class StoreUserRequest extends FormRequest
                 'phone' => 'required|string|max:20',
                 'creation_date' => 'required|date',
                 'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'id_gym' => 'nullable|string|exists:gyms,id_gym',
+                'id_plan' => 'nullable|string|exists:membership_plans,id',
+                'enrollment_date' => 'nullable|date'
             ];
         }
 
@@ -75,6 +81,9 @@ class StoreUserRequest extends FormRequest
             'phone' => 'required|string|max:20',
             'creation_date' => 'nullable|date',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'id_gym' => 'nullable|string',
+            'id_plan' => 'nullable|string',
+            'enrollment_date' => 'nullable|date'
         ];
     }
 

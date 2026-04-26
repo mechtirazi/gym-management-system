@@ -35,8 +35,13 @@ class GymStaffController extends BaseApiController
             return response()->json(['success' => false, 'message' => 'Gym ID is required'], 400);
         }
 
-        // 1. Check if user exists by email
-        $user = User::where('email', $email)->first();
+        $userId = $request->input('id_user');
+
+        // 1. Check if user exists by email AND we are not forcing a direct link
+        $user = null;
+        if ($email && !$userId) {
+            $user = User::where('email', $email)->first();
+        }
 
         if ($user) {
             // User Exists -> Invitation Flow (Only if they aren't already staff)
@@ -68,7 +73,6 @@ class GymStaffController extends BaseApiController
         }
 
         // 2. User Does Not Exist -> Direct Link Flow
-        $userId = $request->input('id_user');
         if (!$userId) {
              return response()->json(['success' => false, 'message' => 'User not found. Register them first or provide an existing email.'], 404);
         }

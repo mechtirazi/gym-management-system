@@ -49,16 +49,14 @@ class AttendancePolicy
         return false;
     }
 
-    /**
-     * Determine if the user can create attendance record
-     */
     public function create(User $user): bool
     {
-        // Only trainer, owner, and receptionist can create attendance
+        // Allowed roles: members can reserve, staff can add explicitly.
         return in_array($user->role, [
             User::ROLE_OWNER,
             User::ROLE_TRAINER,
-            User::ROLE_RECEPTIONIST
+            User::ROLE_RECEPTIONIST,
+            User::ROLE_MEMBER
         ]);
     }
 

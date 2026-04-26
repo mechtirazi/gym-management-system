@@ -29,6 +29,7 @@ class UpdateCourseRequest extends FormRequest
             'max_capacity' => 'sometimes|integer|min:1',
             'count' => 'sometimes|integer|min:0',
             'duration' => 'sometimes|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
 

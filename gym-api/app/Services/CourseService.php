@@ -10,7 +10,7 @@ class CourseService extends BaseService
     public function __construct()
     {
         $this->setModel(new Course());
-        $this->setRelations(['gym', 'sessions']);
+        $this->setRelations(['gym', 'sessions', 'sessions.trainer']);
     }
 
     /**

@@ -32,6 +32,9 @@ class CheckGymStatus
             'api/owner/revenue-stats',   // Allow revenue overview
             'api/owner/recent-checkins', // Meta dashboards
             'api/notifications',    // Platform communication
+            'api/gym-staff/invitations', // Allow viewing invitations
+            'api/gym-staff/join',        // Allow accepting invitations
+            'api/gym-staff/decline',     // Allow declining invitations
         ];
 
         foreach ($safeRoutes as $safeRoute) {

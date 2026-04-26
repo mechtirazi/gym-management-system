@@ -30,6 +30,7 @@ class StoreEventRequest extends FormRequest
             'id_gym' => 'required|exists:gyms,id_gym',
             'reward_amount' => 'nullable|numeric|min:0',
             'is_rewarded' => 'nullable|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
 

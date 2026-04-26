@@ -85,4 +85,31 @@ class AttendanceService extends BaseService
     {
         return $this->getBy('id_member', $memberId);
     }
+    /**
+     * Create a new attendance record with ownership validation
+     */
+    public function create(array $data): \Illuminate\Database\Eloquent\Model
+    {
+        $user = auth()->user();
+
+        // Security Lock: Verify course synchronization for members
+        if ($user && $user->role === User::ROLE_MEMBER) {
+            $sessionId = $data['id_session'] ?? null;
+            if ($sessionId) {
+                $session = \App\Models\Session::find($sessionId);
+                if ($session) {
+                    $isPaid = \App\Models\Payment::where('id_user', $user->id_user)
+                        ->where('id_session', $sessionId)
+                        ->where('type', 'course')
+                        ->exists();
+
+                    if (!$isPaid) {
+                        throw new \Exception('Node synchronization required: You must pay for this specific session timeslot before completing the reservation.');
+                    }
+                }
+            }
+        }
+
+        return parent::create($data);
+    }
 }

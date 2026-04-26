@@ -159,6 +159,8 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::middleware(['role:member'])->prefix('member')->group(function () {
         Route::get('dashboard-stats', [App\Http\Controllers\Api\MemberController::class, 'getDashboardStats'])->name('member.dashboard-stats');
         Route::post('courses/{course}/enroll', [App\Http\Controllers\Api\MemberController::class, 'enrollCourse'])->name('member.courses.enroll');
+        Route::post('events/{event}/enroll', [App\Http\Controllers\Api\MemberController::class, 'enrollEvent'])->name('member.events.enroll');
+        Route::get('attendance-events', [App\Http\Controllers\Api\MemberController::class, 'getMyAttendanceEvents'])->name('member.events.history');
         Route::post('gyms/{gym}/purchase', [App\Http\Controllers\Api\MemberController::class, 'purchaseMembership'])->name('member.gyms.purchase');
         Route::post('gyms/{gym}/payment-intent', [App\Http\Controllers\Api\MemberController::class, 'createPaymentIntent'])->name('member.gyms.payment-intent');
         Route::post('check-in', [App\Http\Controllers\Api\MemberController::class, 'checkIn'])->name('member.check-in');

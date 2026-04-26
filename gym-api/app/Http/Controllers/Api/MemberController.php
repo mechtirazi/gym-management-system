@@ -64,22 +64,27 @@ class MemberController extends Controller
     }
 
     /**
-     * Enroll a member in a course. Supports Zen Credits (Points) or Credit Card.
+     * Pay for and Reserve a specific Session. Supports Zen Credits (Points) or Credit Card.
      */
     public function enrollCourse(Request $request, Course $course)
     {
         $user = $request->user();
         $wallet = $user->wallet;
         $method = $request->input('payment_method', 'zen_wallet');
+        $idSession = $request->input('id_session');
 
-        // 1. Check if already enrolled in this SPECIFIC gym (Business Rule: 1 active enrollment per node)
-        $exists = Enrollment::where('id_member', $user->id_user)
-            ->where('id_gym', $course->id_gym)
-            ->where('status', 'active')
+        if (!$idSession) {
+            return response()->json(['success' => false, 'message' => 'Node Error: A specific training timeslot (session) is required for synchronization.'], 400);
+        }
+
+        // 1. Check if already paid for this SPECIFIC session
+        $exists = Payment::where('id_user', $user->id_user)
+            ->where('id_session', $idSession)
+            ->where('type', 'course')
             ->exists();
 
         if ($exists) {
-            return response()->json(['success' => false, 'message' => 'Your biometric signature is already synced with a training node in this facility.'], 400);
+            return response()->json(['success' => false, 'message' => 'Your biometric signature is already synced with this specific timeslot.'], 400);
         }
 
         // 2. Logic based on payment method
@@ -87,66 +92,147 @@ class MemberController extends Controller
             if (!$wallet || $wallet->balance < $course->price) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient Zen Credits (Points). Current balance: ' . ($wallet ? $wallet->balance : '0') . ' pts',
+                    'message' => 'Insufficient Zen Credits. balance: ' . ($wallet ? $wallet->balance : '0') . ' pts',
                     'required' => $course->price
                 ], 400);
             }
         }
 
-        return DB::transaction(function () use ($user, $course, $wallet, $method) {
+        return DB::transaction(function () use ($user, $course, $wallet, $method, $idSession) {
             $transactionId = 'ZEN-' . strtoupper(Str::random(12));
 
             if ($method === 'zen_wallet') {
-                // Deduct Points
                 $wallet->decrement('balance', $course->price);
 
                 WalletTransaction::create([
                     'wallet_id' => $wallet->id,
                     'amount' => $course->price,
                     'type' => 'debit',
-                    'description' => "Training Program Sync via Points: {$course->name}",
+                    'description' => "Session Sync via Points: {$course->name}",
                     'reference_type' => Course::class,
                     'reference_id' => $course->id_course
                 ]);
-            } else {
-                // Mocking Credit Card Success
-                $transactionId = 'PROG-' . strtoupper(Str::random(12));
             }
 
-            // 5. Create Payment Record (Revenue Insight)
+            // 3. Create Session-Specific Payment Record
             Payment::create([
                 'id_user' => $user->id_user,
                 'id_gym' => $course->id_gym,
                 'id_course' => $course->id_course,
+                'id_session' => $idSession,
                 'amount' => $course->price,
                 'method' => $method,
                 'type' => 'course',
                 'id_transaction' => $transactionId
             ]);
 
-            // 6. Create Enrollment Record
-            $enrollment = Enrollment::updateOrCreate(
-                [
-                    'id_member' => $user->id_user,
-                    'id_gym' => $course->id_gym,
-                ],
-                [
-                    'enrollment_date' => now(),
-                    'status' => 'active',
-                    'type' => 'premium'
-                ]
-            );
+            // 4. Automatically Create Attendance (Reservation) upon payment
+            $attendance = Attendance::create([
+                'id_member' => $user->id_user,
+                'id_session' => $idSession,
+                'status' => 'pending'
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Program Synchronization Complete! Program: ' . $course->name,
+                'message' => 'Session Secured! Program: ' . $course->name,
                 'data' => [
-                    'enrollment' => $enrollment,
+                    'attendance' => $attendance,
                     'payment_method' => $method,
                     'new_balance' => $wallet ? $wallet->fresh()->balance : 0
                 ]
             ]);
         });
+    }
+
+    /**
+     * Pay for and Secure a node at an Event.
+     */
+    public function enrollEvent(Request $request, \App\Models\Event $event)
+    {
+        $user = $request->user();
+        $wallet = $user->wallet;
+        $method = $request->input('payment_method', 'zen_wallet');
+
+        // 1. Check if already synced with this event
+        $exists = Payment::where('id_user', $user->id_user)
+            ->where('id_event', $event->id_event)
+            ->where('type', 'event')
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['success' => false, 'message' => 'Your biometric signature is already synced with this event node.'], 400);
+        }
+
+        // 2. Logic based on payment method
+        if ($method === 'zen_wallet') {
+            if (!$wallet || $wallet->balance < $event->price) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient Zen Credits. balance: ' . ($wallet ? $wallet->balance : '0') . ' pts',
+                    'required' => $event->price
+                ], 400);
+            }
+        }
+
+        return DB::transaction(function () use ($user, $event, $wallet, $method) {
+            $transactionId = 'ZEN-EVT-' . strtoupper(Str::random(12));
+
+            if ($method === 'zen_wallet') {
+                $wallet->decrement('balance', $event->price);
+
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'amount' => $event->price,
+                    'type' => 'debit',
+                    'description' => "Event Pulse Sync via Points: {$event->title}",
+                    'reference_type' => \App\Models\Event::class,
+                    'reference_id' => $event->id_event
+                ]);
+            }
+
+            // 3. Create Event-Specific Payment Record
+            Payment::create([
+                'id_user' => $user->id_user,
+                'id_gym' => $event->id_gym,
+                'id_event' => $event->id_event,
+                'amount' => $event->price,
+                'method' => $method,
+                'type' => 'event',
+                'id_transaction' => $transactionId
+            ]);
+
+            // 4. Automatically Create Attendance Event record
+            \App\Models\AttendanceEvent::create([
+                'id_member' => $user->id_user,
+                'id_event' => $event->id_event,
+                'status' => 'upcoming'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Event Secured! Node Title: ' . $event->title,
+                'data' => [
+                    'payment_method' => $method,
+                    'new_balance' => $wallet ? $wallet->fresh()->balance : 0
+                ]
+            ]);
+        });
+    }
+
+    /**
+     * Get member's event reservation history.
+     */
+    public function getMyAttendanceEvents(Request $request)
+    {
+        $events = \App\Models\AttendanceEvent::where('id_member', $request->user()->id_user)
+            ->with('event.gym')
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $events
+        ]);
     }
 
     /**

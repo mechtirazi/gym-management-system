@@ -24,7 +24,7 @@ class StoreAttendanceRequest extends FormRequest
         return [
             'id_member' => 'required|exists:users,id_user',
             'id_session' => 'required|exists:sessions,id_session',
-            'status' => 'required|in:absent,present,late',
+            'status' => 'required|in:absent,present,late,pending',
         ];
     }
 

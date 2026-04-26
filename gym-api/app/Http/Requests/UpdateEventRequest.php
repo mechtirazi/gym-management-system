@@ -30,6 +30,7 @@ class UpdateEventRequest extends FormRequest
             'id_gym' => 'sometimes|exists:gyms,id_gym',
             'reward_amount' => 'sometimes|numeric|min:0',
             'is_rewarded' => 'sometimes|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
 

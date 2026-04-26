@@ -29,6 +29,8 @@ class Attendance extends Model
 
     public const STATUS_LATE = 'late';
 
+    public const STATUS_PENDING = 'pending';
+
     protected $fillable = [
         'id_member',
         'id_session',

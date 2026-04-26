@@ -29,6 +29,7 @@ class StoreCourseRequest extends FormRequest
             'max_capacity' => 'required|integer|min:1',
             'count' => 'required|integer|min:0',
             'duration' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
 
