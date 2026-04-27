@@ -6,8 +6,8 @@
         <mat-icon style="font-size: 14px; width: 14px; height: 14px;">bolt</mat-icon>
         Super Admin
       </div>
-      <h1>Platform Command</h1>
-      <p>Real-time intelligence across all gyms, owners, and operations</p>
+      <h1>Platform Dashboard</h1>
+      <p>Real-time data across all gyms, owners, and operations</p>
     </div>
 
     <div class="header-actions">
@@ -67,7 +67,7 @@
           <mat-icon>groups</mat-icon>
         </div>
         <div class="metric-info">
-          <p class="label">Total Members</p>
+          <p class="label">Total Owners</p>
           <div *ngIf="!loadingMetrics(); else loadingState">
             <h2 class="value">{{ activeMembers() | number }}</h2>
           </div>
@@ -116,12 +116,12 @@
           <div class="icon-box">
             <mat-icon>shield</mat-icon>
           </div>
-          <h3>Security Protocol</h3>
+          <h3>Platform Summary</h3>
         </div>
         
         <div class="status-row">
           <div class="status-info">
-            <p class="label">Total Managed Owners</p>
+            <p class="label">Total Registered Owners</p>
             <div class="value">{{ loading() ? '...' : totalOwners() }}</div>
           </div>
           <div class="status-tag">
@@ -135,7 +135,7 @@
       <div class="system-event-feed">
         <div class="feed-header">
           <h2>System Events</h2>
-          <div (click)="goToNotifications()" class="action-link">FULL AUDIT</div>
+          <div (click)="goToNotifications()" class="action-link">VIEW ALL</div>
         </div>
 
         <div class="feed-list" *ngIf="notifications().length > 0">
@@ -165,7 +165,7 @@
           <div class="icon-box" style="color: var(--admin-accent-indigo);">
             <mat-icon>campaign</mat-icon>
           </div>
-          <h3>Broadcast Center</h3>
+          <h3>Platform Announcements</h3>
         </div>
 
         <form [formGroup]="broadcastForm" (ngSubmit)="sendBroadcast()" class="admin-form-group">
@@ -207,7 +207,7 @@
           <div class="icon-box" style="color: var(--admin-accent-emerald);">
             <mat-icon>notification_important</mat-icon>
           </div>
-          <h3>Targeted Command</h3>
+          <h3>Direct Message</h3>
         </div>
 
         <form [formGroup]="targetedForm" (ngSubmit)="sendTargeted()" class="admin-form-group">
@@ -245,7 +245,7 @@
           <button type="submit" [disabled]="targetedForm.invalid || sendingTargeted()" class="admin-btn btn-primary">
             <mat-icon *ngIf="!sendingTargeted()">mail</mat-icon>
             <mat-icon *ngIf="sendingTargeted()" class="is-spinning">refresh</mat-icon>
-            <span>{{ sendingTargeted() ? 'Dispatching...' : 'Send Direct Alert' }}</span>
+            <span>{{ sendingTargeted() ? 'Sending...' : 'Send Direct Alert' }}</span>
           </button>
         </form>
       </div>

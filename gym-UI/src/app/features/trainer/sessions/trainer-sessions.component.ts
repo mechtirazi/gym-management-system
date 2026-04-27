@@ -2,17 +2,20 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { finalize } from 'rxjs/operators';
 import { TrainerService } from '../services/trainer.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { BroadcastDialogComponent } from '../components/broadcast-dialog/broadcast-dialog.component';
 
 @Component({
   selector: 'app-trainer-sessions',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    BroadcastDialogComponent
   ],
   templateUrl: './trainer-sessions.component.html',
   styleUrl: './trainer-sessions.component.scss'
@@ -21,6 +24,7 @@ export class TrainerSessionsComponent implements OnInit {
   private http = inject(HttpClient);
   private trainerService = inject(TrainerService);
   private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
   private readonly apiUrl = environment.apiUrl;
 
   activeGymId = this.authService.connectedGymId;
@@ -33,6 +37,11 @@ export class TrainerSessionsComponent implements OnInit {
   attendances = signal<any[]>([]);
   isLoadingAttendances = signal<boolean>(false);
   attendanceError = signal<string | null>(null);
+
+  broadcastSession = signal<any | null>(null);
+  broadcastMessage = signal<string | null>(null);
+
+  isSavingNotes = signal<boolean>(false);
 
   // Filtering
   searchQuery = signal<string>('');
@@ -62,6 +71,11 @@ export class TrainerSessionsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['q']) {
+        this.searchQuery.set(params['q']);
+      }
+    });
     this.loadSessions();
   }
 
@@ -130,5 +144,31 @@ export class TrainerSessionsComponent implements OnInit {
           this.attendanceError.set('Failed to update attendance status.');
         }
       });
+  }
+
+  saveNotes() {
+    const session = this.selectedSession();
+    if (!session) return;
+
+    this.isSavingNotes.set(true);
+    this.trainerService.saveSessionNotes(session.id_session || session.id, session.coaching_notes)
+      .pipe(finalize(() => this.isSavingNotes.set(false)))
+      .subscribe({
+        next: (res) => {
+          // Success logic if needed
+        },
+        error: (err) => {
+          console.error('Failed to save notes:', err);
+        }
+      });
+  }
+
+  openBroadcast(session: any) {
+    this.broadcastSession.set(session);
+  }
+
+  onBroadcastSuccess(message: string) {
+    this.broadcastMessage.set(message);
+    setTimeout(() => this.broadcastMessage.set(null), 5000);
   }
 }

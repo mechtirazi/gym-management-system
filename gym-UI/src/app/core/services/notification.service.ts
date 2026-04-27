@@ -7,7 +7,7 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
   private readonly API_URL = `${environment.apiUrl}/notifications`;
@@ -37,7 +37,7 @@ export class NotificationService {
 
   fetchNotifications(): Observable<GymNotification[]> {
     return this.http.get<any>(this.API_URL).pipe(
-      map(response => {
+      map((response) => {
         const data = Array.isArray(response) ? response : response.data || [];
         // Sort by created_at descending if available
         data.sort((a: any, b: any) => {
@@ -47,32 +47,30 @@ export class NotificationService {
         const mapped = data.map((n: any) => this.mapNotification(n));
         this._notifications.set(mapped);
         return mapped;
-      })
+      }),
     );
   }
 
   markAsRead(id: string): void {
     this.http.post(`${this.API_URL}/${id}/read`, {}).subscribe({
       next: () => {
-        this._notifications.update(notifs =>
-          notifs.map(n => n.id === id ? { ...n, unread: false } : n)
+        this._notifications.update((notifs) =>
+          notifs.map((n) => (n.id === id ? { ...n, unread: false } : n)),
         );
-      }
+      },
     });
   }
 
   markAllAsRead(): void {
     this.http.post(`${this.API_URL}/read-all`, {}).subscribe({
       next: () => {
-        this._notifications.update(notifs =>
-          notifs.map(n => ({ ...n, unread: false }))
-        );
-      }
+        this._notifications.update((notifs) => notifs.map((n) => ({ ...n, unread: false })));
+      },
     });
   }
 
   addNotification(notification: Omit<GymNotification, 'id' | 'unread' | 'time'>): void {
-    // This can be used to send a notification to the server if needed, 
+    // This can be used to send a notification to the server if needed,
     // but usually notifications are triggered by backend events.
     // For now, let's keep it as local addition for UI feedback or implement backend call
     const payload = {
@@ -84,15 +82,13 @@ export class NotificationService {
     this.http.post(this.API_URL, payload).subscribe({
       next: (response: any) => {
         const newNotif = this.mapNotification(response.data || response);
-        this._notifications.update(notifs => [newNotif, ...notifs]);
-      }
+        this._notifications.update((notifs) => [newNotif, ...notifs]);
+      },
     });
   }
 
   getNotifications(): Observable<any[]> {
-    return this.http.get<any>(this.API_URL).pipe(
-      map(response => response.data || response)
-    );
+    return this.http.get<any>(this.API_URL).pipe(map((response) => response.data || response));
   }
 
   sendToAllUsers(text: string, type: string = 'info'): Observable<any> {
@@ -119,7 +115,15 @@ export class NotificationService {
       description: n.text,
       time: this.formatTime(n.created_at),
       unread: !n.is_read,
-      type: n.type || 'info'
+      type: n.type || 'info',
+      sender: n.user
+        ? {
+            id_user: n.user.id_user,
+            name: n.user.name,
+            last_name: n.user.last_name,
+            profile_picture: n.user.profile_picture,
+          }
+        : undefined,
     };
   }
 

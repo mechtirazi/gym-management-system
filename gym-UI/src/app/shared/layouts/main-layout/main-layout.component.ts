@@ -38,6 +38,16 @@ export class MainLayoutComponent {
   gymStatus = this.authService.connectedGymStatus;
   suspensionReason = this.authService.connectedGymSuspensionReason;
 
+  shouldShowSuspensionBanner = () => {
+    const role = this.userRole();
+    return ['owner', 'trainer', 'nutritionist', 'receptionist'].includes(role || '') && this.gymStatus() === 'suspended';
+  };
+
+  suspensionBannerTitle = () => {
+    const role = this.userRole();
+    return role === 'owner' ? 'Administrative Action Required' : 'Limited Access Enabled';
+  };
+
   constructor() {
     // When role is admin, ensure we are in a premium dark experience for the features
     effect(() => {

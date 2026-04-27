@@ -1,0 +1,157 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h1>Attendance Management</h1>
+      <p class="subtitle">Record attendance for your coaching sessions</p>
+    </div>
+    <button class="btn" (click)="loadSessions()" [disabled]="isLoading()">Refresh sessions</button>
+  </div>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <h2>1. Choose Course</h2>
+        <p class="section-desc">Select the course you want to manage attendance for</p>
+      </div>
+      <div class="selection-grid">
+        @for (c of courses(); track c.id_course) {
+          <div class="selection-item" 
+               [class.active]="selectedCourseId() === c.id_course"
+               (click)="selectCourse(c.id_course)">
+            <span class="item-name">{{ c.name || c.title }}</span>
+            <div class="status-indicator" [class.on]="selectedCourseId() === c.id_course"></div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card" [class.disabled]="!selectedCourseId()">
+      <div class="card-header">
+        <h2>2. Choose Session</h2>
+        @if (selectedCourseId()) {
+          <p class="section-desc">Select a specific date and time</p>
+        } @else {
+          <p class="section-desc">Please select a course first</p>
+        }
+      </div>
+      
+      <div class="session-grid">
+        @for (s of filteredSessions(); track s.id_session) {
+          <div class="session-card" 
+               [class.active]="selectedSessionId() === s.id_session"
+               (click)="selectSession(s.id_session)">
+            <div class="session-info">
+              <span class="course-name">{{ s.course?.name || s.course?.title || 'Session ' + s.id_session }}</span>
+              <div class="session-meta">
+                <span class="date">📅 {{ s.date || 'TBA' }}</span>
+                <span class="time">⏰ {{ s.start_time || '--:--' }} {{ s.end_time ? '- ' + s.end_time : '' }}</span>
+              </div>
+            </div>
+            <div class="status-indicator" [class.on]="selectedSessionId() === s.id_session"></div>
+          </div>
+        } @empty {
+          <div class="empty-sessions">
+            <p>{{ selectedCourseId() ? 'No sessions found for this course.' : 'Selection pending...' }}</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (false) {
+      <div class="card">
+        <div class="card-header">
+          <span class="step-badge">2</span>
+          <h2>Quick mark member</h2>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="quickAdd()" class="form">
+          <label>
+            <span>Select Member</span>
+            <select formControlName="id_member" [class.error]="form.get('id_member')?.invalid && form.get('id_member')?.touched" [disabled]="membersLoading()">
+              <option value="">
+                @if (membersLoading()) {
+                  -- Loading Members --
+                } @else if (members().length === 0) {
+                  -- No Members Available --
+                } @else {
+                  -- Choose Member --
+                }
+              </option>
+              @for (m of members(); track m.userId) {
+                <option [value]="m.userId">{{ m.name }}</option>
+              }
+            </select>
+            <!-- Error message hidden -->
+            <!-- @if (form.get('id_member')?.hasError('required') && form.get('id_member')?.touched) {
+              <small class="error-text">Member is required</small>
+            } -->
+          </label>
+          <label>
+            <span>Status</span>
+            <select formControlName="status" [class.error]="form.get('status')?.invalid && form.get('status')?.touched">
+              <option value="present">present</option>
+              <option value="late">late</option>
+              <option value="absent">absent</option>
+            </select>
+            @if (form.get('status')?.hasError('required') && form.get('status')?.touched) {
+              <small class="error-text">Status is required</small>
+            }
+          </label>
+          <button class="btn primary" type="submit" [disabled]="isLoading() || !selectedSessionId()">Save Record</button>
+        </form>
+      </div>
+    }
+
+    <div class="card wide">
+      <div class="list-header">
+        <h2>Attendances (selected session)</h2>
+        <button class="btn secondary" (click)="refreshAttendances()" [disabled]="isLoading() || !selectedSessionId()">Refresh List</button>
+      </div>
+
+      @if (!selectedSessionId()) {
+        <div class="empty-state">
+           <div class="empty-icon">📅</div>
+           <p>Select a session to see its attendance list.</p>
+        </div>
+      } @else if (isLoading() && !attendances().length) {
+        <div class="loading-state">
+           <div class="spinner"></div>
+           <p>Loading attendance data...</p>
+        </div>
+      } @else if (!attendances().length) {
+        <div class="empty-state">
+           <p>No attendance records yet for this session.</p>
+        </div>
+      } @else {
+        <div class="table">
+          <div class="row head">
+            <div>Member</div>
+            <div>Status</div>
+            <div class="right-align">Actions</div>
+          </div>
+          @for (a of attendances(); track a.id_attendance) {
+            <div class="row animate-in">
+              <div class="member-info">
+                 <div class="member-avatar">{{ a.member?.name?.charAt(0) }}</div>
+                 <span class="member-name">{{ a.member?.name ? (a.member?.name + ' ' + (a.member?.last_name || '')) : a.id_member }}</span>
+              </div>
+              <div>
+                <span class="pill" [class.p-present]="a.status==='present'" [class.p-late]="a.status==='late'" [class.p-absent]="a.status==='absent'">
+                  {{ a.status | titlecase }}
+                </span>
+              </div>
+              <div class="right">
+                <button class="btn tiny" (click)="upsertAttendanceForMember(a.id_member, 'present')" [disabled]="isLoading()">Present</button>
+                <button class="btn tiny" (click)="upsertAttendanceForMember(a.id_member, 'late')" [disabled]="isLoading()">Late</button>
+                <button class="btn tiny" (click)="upsertAttendanceForMember(a.id_member, 'absent')" [disabled]="isLoading()">Absent</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

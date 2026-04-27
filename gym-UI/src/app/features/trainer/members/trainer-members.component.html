@@ -2,7 +2,9 @@
   <header class="members-header glass-card">
     <div class="header-main">
       <div class="title-section">
-        <div class="icon-bubble">👥</div>
+        <div class="icon-bubble">
+          <span class="material-symbols-rounded">groups</span>
+        </div>
         <div class="text-content">
           <h1>My Clients</h1>
           <p class="subtitle">View your assigned members and monitor their progress.</p>
@@ -22,8 +24,12 @@
 
     <div class="members-controls">
       <div class="search-wrap">
-        <input type="text" [value]="searchQuery()" (input)="onSearchChange($event)"
-          placeholder="Search by name or email...">
+        <input
+          type="text"
+          [value]="searchQuery()"
+          (input)="onSearchChange($event)"
+          placeholder="Search by name or email..."
+        >
       </div>
       <div class="status-filter">
         @for (status of ['All', 'Active', 'Pending', 'Inactive']; track status) {
@@ -52,39 +58,59 @@
       <article class="member-card glass-card hover-elevate" (click)="viewMemberDetails(member)">
         <div class="card-header">
           <div class="member-avatar">
-            <span class="initials">{{ (member.name|| 'M').charAt(0) }}</span>
+            <span class="initials">{{ (member.name || 'M').charAt(0) }}</span>
           </div>
           <div class="member-info">
             <h2 class="member-name">{{ member.name }}</h2>
-            <span class="member-status badge" [ngClass]="member.status?.toLowerCase()">{{ member.status }}</span>
+            <div class="badge-row">
+              <span class="member-status badge" [ngClass]="member.status?.toLowerCase()">{{ member.status }}</span>
+              @if (!member.latestPayment) {
+              <span class="badge payment-pending">No Payment Record</span>
+              }
+            </div>
           </div>
         </div>
 
         <ul class="contact-details">
           <li>
-            <span class="icon">✉️</span>
+            <span class="icon">Email</span>
             <span>{{ member.email }}</span>
           </li>
           <li>
-            <span class="icon">📞</span>
+            <span class="icon">Phone</span>
             <span>{{ member.phone }}</span>
           </li>
         </ul>
 
+        <div class="course-summary">
+          <div class="course-summary-label">Programs</div>
+          @if (member.courses?.length) {
+          <div class="course-chip-list">
+            @for (course of member.courses; track course) {
+            <span class="course-chip">{{ course }}</span>
+            }
+          </div>
+          } @else {
+          <div class="course-empty">No trainer course assigned yet</div>
+          }
+        </div>
+
         <div class="card-footer">
           <span class="join-date">Joined: {{ member.joinedAt | date:'mediumDate' }}</span>
-          <button class="text-link">Deep Dive →</button>
+          <button class="text-link" type="button">Deep Dive</button>
         </div>
       </article>
       } @empty {
       <div class="empty-state">
-        <div class="icon-bubble empty-icon">📭</div>
+        <div class="icon-bubble empty-icon">
+          <span class="material-symbols-rounded">person_off</span>
+        </div>
         <h3>No Clients Found</h3>
         <p>You don't have any clients assigned or matching this filter.</p>
       </div>
       }
     </div>
-    
+
     @if (totalPages() > 1) {
     <div class="pagination-controls glass-card">
       <button class="page-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">
@@ -104,16 +130,20 @@
   </main>
 </div>
 
-<!-- DETAILS SIDEBAR -->
 @if (selectedMember()) {
 <div class="details-overlay" (click)="closeDetails()">
   <div class="details-sidebar glass-card" (click)="$event.stopPropagation()">
     <header class="details-header">
-      <button class="close-icon-btn" (click)="closeDetails()">✕</button>
+      <button class="close-icon-btn" (click)="closeDetails()">×</button>
       <div class="profile-hero">
         <div class="avatar-xl">{{ selectedMember().name.charAt(0) }}</div>
         <h2>{{ selectedMember().name }}</h2>
-        <span class="status-pill" [ngClass]="selectedMember().status.toLowerCase()">{{ selectedMember().status }}</span>
+        <div class="badge-row centered">
+          <span class="status-pill" [ngClass]="selectedMember().status.toLowerCase()">{{ selectedMember().status }}</span>
+          @if (!selectedMember().latestPayment) {
+          <span class="status-pill warning">No Payment Record</span>
+          }
+        </div>
       </div>
     </header>
 
@@ -121,12 +151,76 @@
       <section class="details-section">
         <h3>Contact Information</h3>
         <div class="info-list">
-          <div class="info-row"><span class="lbl">Email</span><span class="val">{{ selectedMember().email }}</span>
+          <div class="info-row"><span class="lbl">Email</span><span class="val">{{ selectedMember().email }}</span></div>
+          <div class="info-row"><span class="lbl">Phone</span><span class="val">{{ selectedMember().phone }}</span></div>
+          <div class="info-row"><span class="lbl">Joined Since</span><span class="val">{{ selectedMember().joinedAt | date }}</span></div>
+        </div>
+      </section>
+
+      <section class="details-section">
+        <h3>Course Enrollments</h3>
+        <div class="history-list">
+          @if (selectedMember().courses?.length) {
+          @for (course of selectedMember().courses; track course) {
+          <div class="history-item">
+            <div class="hist-main">
+              <span class="course-name">{{ course }}</span>
+              <span class="enroll-date">Assigned to this coach</span>
+            </div>
           </div>
-          <div class="info-row"><span class="lbl">Phone</span><span class="val">{{ selectedMember().phone }}</span>
+          }
+          } @else {
+          <p class="empty-txt">No trainer course enrollments found.</p>
+          }
+        </div>
+      </section>
+
+      <section class="details-section">
+        <h3>Send Direct Message</h3>
+        <div class="message-card">
+          <div class="message-type-toggle">
+            <button
+              type="button"
+              [class.active]="directMessage().type === 'info'"
+              (click)="updateDirectMessage('type', 'info')"
+            >
+              Update
+            </button>
+            <button
+              type="button"
+              [class.active]="directMessage().type === 'warning'"
+              (click)="updateDirectMessage('type', 'warning')"
+            >
+              Alert
+            </button>
           </div>
-          <div class="info-row"><span class="lbl">Joined Since</span><span class="val">{{ selectedMember().joinedAt |
-              date }}</span></div>
+
+          <label class="message-label">
+            <span>Title</span>
+            <input
+              type="text"
+              [ngModel]="directMessage().title"
+              (ngModelChange)="updateDirectMessage('title', $event)"
+              placeholder="Message title"
+            >
+          </label>
+
+          <label class="message-label">
+            <span>Message</span>
+            <textarea
+              rows="4"
+              [ngModel]="directMessage().text"
+              (ngModelChange)="updateDirectMessage('text', $event)"
+              placeholder="Write something helpful for this member..."
+            ></textarea>
+          </label>
+
+          @if (messageError()) {
+          <p class="message-feedback error">{{ messageError() }}</p>
+          }
+          @if (messageSuccess()) {
+          <p class="message-feedback success">{{ messageSuccess() }}</p>
+          }
         </div>
       </section>
 
@@ -138,6 +232,9 @@
         </div>
         } @else {
         <div class="history-list">
+          @if (attendanceAccessError()) {
+          <p class="empty-txt">{{ attendanceAccessError() }}</p>
+          } @else {
           @for (a of attendances(); track a.id_attendance) {
           <div class="history-item">
             <div class="hist-main">
@@ -149,12 +246,15 @@
           } @empty {
           <p class="empty-txt">No attendance history found.</p>
           }
+          }
         </div>
         }
       </section>
 
       <div class="details-actions">
-        <button class="primary-btn w-full">Send Message</button>
+        <button class="primary-btn w-full" [disabled]="isSendingMessage()" (click)="sendMessage()">
+          {{ isSendingMessage() ? 'Sending...' : 'Send Message' }}
+        </button>
       </div>
     </div>
   </div>

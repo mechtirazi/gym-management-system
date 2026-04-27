@@ -143,8 +143,8 @@ export class OwnersListComponent implements OnInit {
       return {
         ...o,
         fullName: `${o.name} ${o.last_name}`,
-        verificationStatus: o.email_verified_at ? 'Verified' : 'Pending',
-        verified: !!o.email_verified_at,
+        verificationStatus: o.status === 'active' ? 'Verified' : 'Pending',
+        verified: o.status === 'active',
         initials: this.getInitials(o.name, o.last_name),
         gymNames: gymNamesStr,
         myGyms: myGyms,
@@ -253,10 +253,10 @@ export class OwnersListComponent implements OnInit {
       width: '450px',
       disableClose: true,
       data: {
-        title: 'Confirm Validation',
-        message: `Are you sure you want to securely impersonate <strong>${ownerObj.fullName}</strong>?`,
+        title: 'Confirm Access',
+        message: `Are you sure you want to securely access the account for <strong>${ownerObj.fullName}</strong>?`,
         icon: 'admin_panel_settings',
-        confirmText: 'Impersonate'
+        confirmText: 'Access Account'
       } as ConfirmDialogData
     });
 
@@ -275,13 +275,13 @@ export class OwnersListComponent implements OnInit {
 
   disableAllGyms(ownerObj: any) {
     const gymCount = ownerObj.owned_gyms_count || 0;
-    const msg = `Are you sure you want to completely disable all gyms for <strong>${ownerObj.fullName}</strong>?<br><br>This will set ${gymCount} nodes to completely inactive status. The core identity will remain unaffected.`;
+    const msg = `Are you sure you want to disable all gyms for <strong>${ownerObj.fullName}</strong>?<br><br>This will set ${gymCount} gyms to inactive. The owner's account will remain unaffected.`;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '500px',
       disableClose: true,
       data: {
-        title: 'Mass Suspension Procedure',
+        title: 'Bulk Suspension',
         message: msg,
         icon: 'gpp_bad',
         isDestructive: true,
@@ -308,13 +308,13 @@ export class OwnersListComponent implements OnInit {
 
   activateAllGyms(ownerObj: any) {
     const gymCount = ownerObj.owned_gyms_count || 0;
-    const msg = `Are you sure you want to reactivate all operation nodes for <strong>${ownerObj.fullName}</strong>?<br><br>This will instantly set ${gymCount} gyms back to operational status.`;
+    const msg = `Are you sure you want to reactivate all gyms for <strong>${ownerObj.fullName}</strong>?<br><br>This will instantly set ${gymCount} gyms back to active status.`;
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '500px',
       disableClose: true,
       data: {
-        title: 'Mass Reactivation Procedure',
+        title: 'Bulk Reactivation',
         message: msg,
         icon: 'published_with_changes',
         confirmText: 'Activate All'
@@ -343,11 +343,11 @@ export class OwnersListComponent implements OnInit {
       width: '450px',
       disableClose: true,
       data: {
-        title: 'Decoherence Confirmation',
-        message: `Are you absolutely certain you want to permanently delete the identity node for <strong>${ownerObj.fullName}</strong>?<br><br>This irreversible action will destroy all associated node records.`,
+        title: 'Delete Confirmation',
+        message: `Are you absolutely certain you want to permanently delete the account for <strong>${ownerObj.fullName}</strong>?<br><br>This action is irreversible and will delete all associated records.`,
         icon: 'warning',
         isDestructive: true,
-        confirmText: 'Obliterate Node'
+        confirmText: 'Delete Owner'
       } as ConfirmDialogData
     });
 

@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { GymService, GymInfo } from '../../../../../core/services/gym.service';
@@ -9,7 +10,7 @@ import { signal, OnInit } from '@angular/core';
 @Component({
   selector: 'app-trainer-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './trainer-sidebar.component.html',
   styleUrl: './trainer-sidebar.component.scss'
 })
@@ -20,24 +21,26 @@ export class TrainerSidebarComponent implements OnInit {
 
   assignedGyms = signal<GymInfo[]>([]);
   activeGymId = this.authService.connectedGymId;
+  connectedGymStatus = this.authService.connectedGymStatus;
 
   navItems = [
-    { label: 'Overview', isHeader: true },
-    { label: 'Dashboard', icon: 'dashboard', routePath: '/trainer/dashboard' },
+    { label: 'Overview', isHeader: true, sensitive: false },
+    { label: 'Dashboard', icon: 'dashboard', routePath: '/trainer/dashboard', sensitive: false },
 
-    { label: 'Coaching', isHeader: true },
-    { label: 'Sessions', icon: 'clock', routePath: '/trainer/sessions' },
-    { label: 'Clients', icon: 'users', routePath: '/trainer/members' },
-    { label: 'Courses', icon: 'fitness_center', routePath: '/trainer/courses' },
+    { label: 'Coaching', isHeader: true, sensitive: true },
+    { label: 'Sessions', icon: 'clock', routePath: '/trainer/sessions', sensitive: true },
+    { label: 'Attendance', icon: 'calendar', routePath: '/trainer/attendance', sensitive: true },
+    { label: 'Clients', icon: 'users', routePath: '/trainer/members', sensitive: true },
+    { label: 'Courses', icon: 'fitness_center', routePath: '/trainer/courses', sensitive: true },
 
-    { label: 'Planning', isHeader: true },
-    { label: 'Calendar', icon: 'calendar', routePath: '/trainer/calendar' },
-    { label: 'Community', icon: 'star', routePath: '/trainer/community' },
+    { label: 'Planning', isHeader: true, sensitive: true },
+    { label: 'Calendar', icon: 'calendar', routePath: '/trainer/calendar', sensitive: true },
+    { label: 'Reviews & Feedback', icon: 'star', routePath: '/trainer/community', sensitive: true },
 
-    { label: 'System', isHeader: true },
-    { label: 'Analytics', icon: 'trending-up', routePath: '/trainer/analytics' },
-    { label: 'Notifications', icon: 'bell', routePath: '/notifications' },
-    { label: 'Settings', icon: 'settings', routePath: '/settings' }
+    { label: 'System', isHeader: true, sensitive: false },
+    { label: 'Analytics', icon: 'trending-up', routePath: '/trainer/analytics', sensitive: true },
+    { label: 'Notifications', icon: 'bell', routePath: '/notifications', sensitive: false },
+    { label: 'Settings', icon: 'settings', routePath: '/settings', sensitive: false }
   ];
 
   ngOnInit() {
@@ -50,12 +53,15 @@ export class TrainerSidebarComponent implements OnInit {
     });
   }
 
-  onGymChange(event: any) {
-    const gymId = event.target.value;
+  onGymChange(gymId: string) {
     if (gymId) {
       const selectedGym = this.assignedGyms().find(g => g.id_gym === gymId);
       this.authService.switchGym(gymId, selectedGym?.status, selectedGym?.suspension_reason);
     }
+  }
+
+  isLocked(item: any): boolean {
+    return item.sensitive && this.connectedGymStatus() === 'suspended';
   }
 
   getIcon(name: string): SafeHtml {

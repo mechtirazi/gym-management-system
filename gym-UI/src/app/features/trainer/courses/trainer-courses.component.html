@@ -9,10 +9,21 @@
         </div>
       </div>
     </div>
-    
+
+    @if (broadcastMessage()) {
+      <div class="success-toast">
+        {{ broadcastMessage() }}
+      </div>
+    }
+
     <div class="courses-controls">
       <div class="search-wrap">
-        <input type="text" [value]="searchQuery()" (input)="onSearchChange($event)" placeholder="Search courses by name or description...">
+        <input
+          type="text"
+          [value]="searchQuery()"
+          (input)="onSearchChange($event)"
+          placeholder="Search courses by name or description..."
+        />
       </div>
       <div class="filter-wrap">
         <select [value]="selectedType()" (change)="onTypeChange($event)">
@@ -45,13 +56,143 @@
     } @else {
       <div class="courses-grid">
         @for (course of filteredCourses(); track course.id_course) {
-          <article class="course-card glass-card">
+          <article class="course-card glass-card" [class]="'status-' + getCourseStatus(course)">
+            <!-- Header: Type & Status -->
             <div class="course-header">
-              <span class="course-type">{{ course.type || 'General' }}</span>
+              <div class="header-left">
+                <span class="course-type">{{ course.type || 'General' }}</span>
+                <span class="course-status" [class]="'status-' + getCourseStatus(course)">
+                  @switch (getCourseStatus(course)) {
+                    @case ('active') {
+                      🟢 Active
+                    }
+                    @case ('completed') {
+                      ⚫ Inactive
+                    }
+                    @default {
+                      ⚫ Scheduled
+                    }
+                  }
+                </span>
+              </div>
+              @if (course.gym?.name) {
+                <span class="course-gym">{{ course.gym.name }}</span>
+              }
             </div>
+
+            <!-- Title & Description -->
             <div class="course-body">
               <h2 class="course-name">{{ course.name }}</h2>
-              <p class="course-desc" [title]="course.description">{{ course.description || 'No description provided.' }}</p>
+              <p class="course-desc" [title]="course.description">
+                {{ course.description || 'No description provided.' }}
+              </p>
+            </div>
+
+            <!-- Metrics Section 1: Enrollment & Capacity -->
+            <div class="metrics-section">
+              <div class="metric-item enrollment">
+                <div class="metric-label">👥 Members</div>
+                <div class="metric-value">
+                  {{ getTotalMembers(course) }}/{{ course.max_capacity || '∞' }}
+                </div>
+                @if (course.max_capacity) {
+                  <div class="capacity-bar">
+                    <div
+                      class="capacity-fill"
+                      [style.width.%]="getEnrollmentPercentage(course)"
+                      [class]="'fill-' + getEnrollmentStatus(course)"
+                    ></div>
+                  </div>
+                  <div class="capacity-text">{{ getEnrollmentPercentage(course) }}% full</div>
+                }
+              </div>
+              <div class="metric-item sessions">
+                <div class="metric-label">📅 Sessions</div>
+                <div class="metric-value">{{ getActiveSessionCount(course) }}</div>
+                <div class="metric-subtext">active</div>
+              </div>
+            </div>
+
+            <!-- Metrics Section 2: Duration & Price -->
+            <div class="metrics-section">
+              @if (course.duration) {
+                <div class="metric-item duration">
+                  <div class="metric-label">⏱️ Duration</div>
+                  <div class="metric-value">{{ course.duration }}</div>
+                </div>
+              }
+              @if (course.price) {
+                <div class="metric-item price">
+                  <div class="metric-label">💰 Price</div>
+                  <div class="metric-value">{{ formatPrice(course.price) }}</div>
+                </div>
+              }
+              @if (getAttendanceRate(course) > 0) {
+                <div class="metric-item attendance">
+                  <div class="metric-label">📊 Attendance</div>
+                  <div class="metric-value">{{ getAttendanceRate(course) }}%</div>
+                </div>
+              }
+            </div>
+
+            <!-- Metrics Section 3: Session History -->
+            <div class="metrics-section">
+              <div class="metric-item last-session">
+                <div class="metric-label">📍 Last Session</div>
+                <div class="metric-value">{{ getLastSessionDate(course) }}</div>
+              </div>
+              <div class="metric-item completed-sessions">
+                <div class="metric-label">✅ Completed</div>
+                <div class="metric-value">{{ getTotalCompletedSessions(course) }}</div>
+                <div class="metric-subtext">sessions</div>
+              </div>
+            </div>
+
+            <!-- Next Session Info -->
+            @if (getNextSession(course)) {
+              <div class="next-session">
+                <div class="session-label">📍 Next Session</div>
+                <div class="session-info">
+                  <span class="session-date">{{
+                    formatDate(getNextSession(course).date_session)
+                  }}</span>
+                  @if (getNextSession(course).start_time) {
+                    <span class="session-time">at {{ getNextSession(course).start_time }}</span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="course-actions">
+              <button
+                class="action-btn secondary"
+                title="View detailed course information"
+                (click)="viewDetails(course)"
+              >
+                📊 Details
+              </button>
+              <button
+                class="action-btn secondary"
+                title="View all sessions for this course"
+                (click)="viewSessions(course)"
+              >
+                📅 Sessions
+              </button>
+              <button
+                class="action-btn secondary"
+                title="View enrolled members"
+                (click)="viewMembers(course)"
+              >
+                👥 Members
+              </button>
+              <button
+                class="action-btn primary announce-btn"
+                title="Send announcement to all members of this course"
+                (click)="openBroadcast(course)"
+              >
+                📢 Announce
+              </button>
             </div>
           </article>
         }
@@ -59,3 +200,19 @@
     }
   </main>
 </div>
+
+@if (selectedCourse()) {
+  <app-trainer-course-details 
+    [course]="selectedCourse()" 
+    (close)="closeDetails()">
+  </app-trainer-course-details>
+}
+
+@if (broadcastCourse()) {
+  <app-broadcast-dialog
+    [targetName]="broadcastCourse().name"
+    [idCourse]="broadcastCourse().id_course"
+    (close)="broadcastCourse.set(null)"
+    (success)="onBroadcastSuccess($event)">
+  </app-broadcast-dialog>
+}

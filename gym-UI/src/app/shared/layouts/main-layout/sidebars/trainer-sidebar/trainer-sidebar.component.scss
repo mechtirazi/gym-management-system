@@ -277,6 +277,10 @@
     padding: 1.8rem 1.8rem 0.6rem;
     overflow: visible;
   }
+
+  &.locked {
+    color: var(--gray-400);
+  }
 }
 
 .nav-item {
@@ -323,6 +327,21 @@
       color: white;
     }
   }
+
+  &.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.locked:hover {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-muted);
+
+    .nav-icon {
+      transform: none;
+    }
+  }
 }
 
 .nav-icon {
@@ -356,6 +375,31 @@
     opacity: 1;
     transform: translateX(0);
     pointer-events: auto;
+  }
+}
+
+.lock-indicator {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .sidebar:hover & {
+    opacity: 1;
+    width: 18px;
+    margin-left: auto;
   }
 }
 

@@ -169,8 +169,43 @@ class UserService extends BaseService
             });
         }
 
-        // Other roles (Staff) can only see members in their same gym
-        if (in_array($user->role, [User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
+        // Trainers only see members tied to their own course enrollments.
+        if ($user->role === User::ROLE_TRAINER) {
+            $activeGymId = $this->getActiveGymId();
+
+            $query->with([
+                'enrollments' => function ($enrQuery) use ($user, $activeGymId) {
+                    $enrQuery->whereHas('course.sessions', function ($sessionQuery) use ($user) {
+                        $sessionQuery->where('id_trainer', $user->id_user);
+                    })->with(['latestCoursePayment', 'course']);
+
+                    if ($activeGymId) {
+                        $enrQuery->where('id_gym', $activeGymId);
+                    }
+                }
+            ]);
+
+            $query = $query->where('role', User::ROLE_MEMBER)
+                ->whereHas('enrolledCourses', function ($sq) use ($user) {
+                    $sq->whereHas('sessions', function ($sessionQuery) use ($user) {
+                        $sessionQuery->where('id_trainer', $user->id_user);
+                    });
+                });
+
+            $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) use ($user) {
+                $q->whereHas('enrolledCourses', function ($sq) use ($user, $gymId) {
+                    $sq->where('courses.id_gym', $gymId)
+                        ->whereHas('sessions', function ($sessionQuery) use ($user) {
+                            $sessionQuery->where('id_trainer', $user->id_user);
+                        });
+                });
+            });
+
+            return $query->distinct();
+        }
+
+        // Nutritionists can only see members in their same gym
+        if ($user->role === User::ROLE_NUTRITIONIST) {
             $query = $query->where('role', User::ROLE_MEMBER);
 
             // Respect active gym context using standardized helper

@@ -36,6 +36,7 @@ class Session extends Model
         'id_course',
         'status',
         'id_trainer',
+        'coaching_notes',
     ];
 
     // Relationships

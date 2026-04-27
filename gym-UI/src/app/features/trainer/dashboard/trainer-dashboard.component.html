@@ -14,7 +14,7 @@
             
             <div class="gym-context-selector" *ngIf="assignedGyms().length > 0">
               <span class="location-icon">📍</span>
-              <select [ngModel]="activeGymId()" (change)="onGymChange($event)" class="gym-dropdown">
+              <select [ngModel]="activeGymId()" (ngModelChange)="onGymChange($event)" class="gym-dropdown">
                 <option value="" disabled>Select a Gym Context</option>
                 <option *ngFor="let gym of assignedGyms()" [value]="gym.id_gym">
                   {{ gym.name }}

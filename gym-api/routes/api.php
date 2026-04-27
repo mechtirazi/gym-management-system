@@ -184,6 +184,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::get('sessions', [TrainerController::class, 'getSessions'])->name('trainer.sessions');
         Route::get('analytics', [TrainerController::class, 'getAnalytics'])->name('trainer.analytics');
         Route::post('broadcast', [TrainerController::class, 'broadcast'])->name('trainer.broadcast');
+        Route::post('sessions/{session}/notes', [TrainerController::class, 'saveSessionNotes'])->name('trainer.sessions.notes');
 
         Route::get('clients', [UserController::class, 'index'])->name('trainer.clients');
         Route::post('clients', [UserController::class, 'store'])->name('trainer.clients.store');

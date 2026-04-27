@@ -10,6 +10,10 @@ export const trainerRoutes: Routes = [
     loadComponent: () => import('./sessions/trainer-sessions.component').then(m => m.TrainerSessionsComponent)
   },
   {
+    path: 'attendance',
+    loadComponent: () => import('./views/attendance/trainer-attendance.component').then(m => m.TrainerAttendanceComponent)
+  },
+  {
     path: 'analytics',
     loadComponent: () => import('./analytics/trainer-analytics.component').then(m => m.TrainerAnalyticsComponent)
   },

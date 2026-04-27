@@ -12,23 +12,23 @@ import { MatIconModule } from '@angular/material/icon';
       <header class="admin-header">
         <div class="admin-badge-mini">
           <mat-icon class="text-xs">security</mat-icon>
-          Security Architecture
+          Security Settings
         </div>
-        <h1>Governance Matrix</h1>
-        <p>Hardcoded platform capability constraints and domain isolation policies</p>
+        <h1>Permissions & Roles</h1>
+        <p>Manage user roles and platform permissions.</p>
       </header>
 
-      <!-- Protocol Abstract -->
+      <!-- Role Overview -->
       <div class="protocol-hero">
         <div class="hero-icon-box">
           <mat-icon>policy</mat-icon>
         </div>
         <div class="hero-content">
-          <h3>Systematic Role Governance</h3>
+          <h3>Role Hierarchy</h3>
           <p>
             Platform roles follow a strict hierarchical structure. 
-            <span style="color: #fff; font-weight: 800; font-style: italic;">Super Admin</span> nodes operate as global observers with provisioning authority, while 
-            <span style="color: var(--admin-accent-indigo); font-weight: 800;">Owners</span> act as isolated Tenant Controllers. Cross-boundary access is strictly prohibited at the kernel level.
+            <span style="color: #fff; font-weight: 800; font-style: italic;">Super Admin</span> users manage the platform and all users, while 
+            <span style="color: var(--admin-accent-indigo); font-weight: 800;">Owners</span> manage their own gyms and members. Data is strictly isolated between different owners.
           </p>
         </div>
       </div>
@@ -44,25 +44,25 @@ import { MatIconModule } from '@angular/material/icon';
             </div>
             <div class="card-title-group">
               <h3>Super Admin</h3>
-              <div class="card-tag">Global Operational Logic</div>
+              <div class="card-tag">Full Access</div>
             </div>
           </div>
 
           <div class="card-body">
-            <h4>Authorized Kernels</h4>
+            <h4>Available Actions</h4>
             <ul class="protocol-list">
               <li class="protocol-item">
                 <mat-icon class="item-icon">verified_user</mat-icon>
                 <div class="item-content">
-                  <span class="item-text-main">Owner Profile Lifecycle</span>
-                  <span class="item-text-sub">Manage global tenant identities</span>
+                  <span class="item-text-main">Manage Owners</span>
+                  <span class="item-text-sub">Create and manage platform owners</span>
                 </div>
               </li>
               <li class="protocol-item">
                 <mat-icon class="item-icon">verified_user</mat-icon>
                 <div class="item-content">
-                  <span class="item-text-main">Infrastructure Monitoring</span>
-                  <span class="item-text-sub">Real-time health telemetry</span>
+                  <span class="item-text-main">System Status</span>
+                  <span class="item-text-sub">View server and system health</span>
                 </div>
               </li>
               <li class="protocol-item item-locked">
@@ -89,12 +89,12 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
 
           <div class="card-body">
-            <h4>Authorized Kernels</h4>
+            <h4>Available Actions</h4>
             <ul class="protocol-list">
               <li class="protocol-item">
                 <mat-icon class="item-icon">verified_user</mat-icon>
                 <div class="item-content">
-                  <span class="item-text-main">Facility Operations</span>
+                  <span class="item-text-main">Gym Access</span>
                   <span class="item-text-sub">Manage gyms, courses, schedules</span>
                 </div>
               </li>
@@ -102,14 +102,14 @@ import { MatIconModule } from '@angular/material/icon';
                 <mat-icon class="item-icon">verified_user</mat-icon>
                 <div class="item-content">
                   <span class="item-text-main">Revenue Management</span>
-                  <span class="item-text-sub">Subscriptions and billing logic</span>
+                  <span class="item-text-sub">Subscriptions and billing</span>
                 </div>
               </li>
               <li class="protocol-item item-locked">
                 <mat-icon class="item-icon lock-icon">lock_outline</mat-icon>
                 <div class="item-content">
-                  <span class="item-text-main">Cross-Tenant Provisioning</span>
-                  <span class="item-text-sub">Boundary constraint active</span>
+                  <span class="item-text-main">Global Access</span>
+                  <span class="item-text-sub">Restricted to Super Admin</span>
                 </div>
               </li>
             </ul>

@@ -99,7 +99,7 @@ export class OwnerGymsListComponent implements OnInit {
 
   trackByGymId = (_: number, gym: GymDto) => gym.id_gym;
 
-  getGymImageUrl(path: string | null | undefined): string | null {
+  public getGymImageUrl(path: string | null | undefined): string | null {
     if (!path) return null;
     if (path.startsWith('http')) return path;
     const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');

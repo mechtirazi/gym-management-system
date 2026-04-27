@@ -148,6 +148,7 @@ class AuthController extends Controller
             }
 
             $user->markEmailAsVerified();
+            $user->update(['status' => 'active']);
 
             // Issue a token so the user can log in right away
             $token = $user->createToken('auth_token', ['*'])->accessToken;

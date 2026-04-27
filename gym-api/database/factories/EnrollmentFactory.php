@@ -22,8 +22,8 @@ class EnrollmentFactory extends Factory
     public function definition(): array
     {
         return [
-            'id_member' => User::factory(),
-            'id_gym' => Gym::factory(),
+            'id_member' => null, // Set in seeder
+            'id_gym' => null, // Set in seeder
             'enrollment_date' => $this->faker->dateTimeBetween('-6 months', 'now'),
         ];
     }

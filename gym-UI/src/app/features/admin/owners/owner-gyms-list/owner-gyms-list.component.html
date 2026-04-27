@@ -2,10 +2,10 @@
   <div class="nested-header">
     <h3>
       <mat-icon>storefront</mat-icon>
-      Governed Nodes: {{ ownerName }}
+      Gyms belonging to: {{ ownerName }}
     </h3>
     <button (click)="openAddGymDialog()" class="admin-btn" style="padding: 0.5rem 1rem; font-size: 0.625rem;">
-      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">add</mat-icon> Provision New Gym
+      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">add</mat-icon> Create New Gym
     </button>
   </div>
 
@@ -21,8 +21,8 @@
 
   <div *ngIf="!loading() && !error() && gyms().length === 0" class="empty-nested">
     <mat-icon>gym</mat-icon>
-    <p>No gyms assigned to this provider node</p>
-    <div class="sub">Provision a new facility to begin governance</div>
+    <p>No gyms assigned to this owner</p>
+    <div class="sub">Create a new gym to get started.</div>
   </div>
 
   <div *ngIf="!loading() && !error() && gyms().length > 0" class="nested-gym-grid animate-in zoom-in-95 duration-500">
