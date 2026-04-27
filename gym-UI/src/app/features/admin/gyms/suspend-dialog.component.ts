@@ -42,7 +42,7 @@ import { MatIconModule } from '@angular/material/icon';
           [disabled]="!reason.trim()"
           (click)="dialogRef.close(reason)"
         >
-          <mat-icon>block</mat-icon> Suspend All
+          <mat-icon>block</mat-icon> Suspend Gym
         </button>
       </div>
     </div>
@@ -55,5 +55,5 @@ export class SuspendDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<SuspendDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { gymName: string }
-  ) {}
+  ) { }
 }

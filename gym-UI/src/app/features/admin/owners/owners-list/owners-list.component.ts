@@ -100,12 +100,12 @@ export class OwnersListComponent implements OnInit {
     // If status is suspended, we show GYMS instead of owners, but formatted for the table
     if (status === 'suspended') {
       const suspendedGyms = gyms.filter(g => g.status === 'suspended');
-      
+
       let gymResults = suspendedGyms.map(g => {
         const owner = owners.find(o => String(o.id_user) === String(g.id_owner));
         return {
           ...g,
-          id_user: g.id_gym, 
+          id_user: g.id_gym,
           fullName: g.name,
           email: g.adress,
           ownerName: owner ? `${owner.name} ${owner.last_name}` : 'Unknown Owner',
@@ -126,20 +126,20 @@ export class OwnersListComponent implements OnInit {
       }) as OwnerRowVm[];
 
       if (term) {
-        gymResults = gymResults.filter(g => 
-          g.fullName.toLowerCase().includes(term) || 
+        gymResults = gymResults.filter(g =>
+          g.fullName.toLowerCase().includes(term) ||
           g.ownerName.toLowerCase().includes(term) ||
           g.email.toLowerCase().includes(term)
         );
       }
       return gymResults;
     }
-    
+
     let data = owners.map(o => {
       // Find gyms belonging to this owner for deep searching
       const myGyms = gyms.filter(g => String(g.id_owner) === String(o.id_user));
       const gymNamesStr = myGyms.map(g => g.name).join(', ');
-      
+
       return {
         ...o,
         fullName: `${o.name} ${o.last_name}`,
@@ -212,7 +212,7 @@ export class OwnersListComponent implements OnInit {
 
   loadOwners() {
     this.loading.set(true);
-    
+
     // Fetch both owners and gyms in parallel to enable client-side deep searching
     forkJoin({
       owners: this.ownersService.getOwners(),
@@ -385,12 +385,12 @@ export class OwnersListComponent implements OnInit {
         this.loading.set(true);
         this.gymsService.activateGym(gymRow.id_gym).subscribe({
           next: () => {
-             this.snackBar.open(`Facility ${gymRow.fullName} is now operational.`, 'Dismiss', { duration: 3000 });
-             this.loadOwners();
+            this.snackBar.open(`Facility ${gymRow.fullName} is now operational.`, 'Dismiss', { duration: 3000 });
+            this.loadOwners();
           },
           error: (err) => {
-             this.snackBar.open(err.error?.message || 'Failed to activate gym.', 'Dismiss', { duration: 4000 });
-             this.loading.set(false);
+            this.snackBar.open(err.error?.message || 'Failed to activate gym.', 'Dismiss', { duration: 4000 });
+            this.loading.set(false);
           }
         });
       }
@@ -411,9 +411,9 @@ export class OwnersListComponent implements OnInit {
     if (path.startsWith('http')) return path;
     const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
     const cleanPath = path.replace(/^\//, '');
-    
+
     if (cleanPath.startsWith('storage/')) {
-        return `${baseUrl}/${cleanPath}`;
+      return `${baseUrl}/${cleanPath}`;
     }
     return `${baseUrl}/storage/${cleanPath}`;
   }
