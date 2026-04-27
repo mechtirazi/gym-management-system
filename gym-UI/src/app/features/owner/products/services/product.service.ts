@@ -27,11 +27,22 @@ export class ProductService {
     if (!activeGymId) {
       throw new Error('No active gym selected. Please switch to a gym first.');
     }
+    
+    if (product instanceof FormData) {
+      product.append('id_gym', activeGymId.toString());
+      return this.http.post<any>(`${this.apiUrl}/products`, product);
+    }
+
     const payload = { ...product, id_gym: activeGymId };
     return this.http.post<any>(`${this.apiUrl}/products`, payload);
   }
 
   updateProduct(id: string, product: any): Observable<any> {
+    if (product instanceof FormData) {
+      // Use POST with _method override for Laravel to handle FormData on PUT/PATCH
+      product.append('_method', 'PUT');
+      return this.http.post<any>(`${this.apiUrl}/products/${id}`, product);
+    }
     return this.http.put<any>(`${this.apiUrl}/products/${id}`, product);
   }
 

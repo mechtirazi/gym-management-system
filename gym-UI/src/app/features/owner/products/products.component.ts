@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ProductService } from './services/product.service';
 import { PageHeaderComponent } from '../components/page-header/page-header.component';
 import { ProductCardComponent } from './components/product-card/product-card.component';
+import { environment } from '../../../../environments/environment';
 import { AddProductModalComponent } from './components/add-product-modal/add-product-modal.component';
 import { EditProductModalComponent } from './components/edit-product-modal/edit-product-modal.component';
 import { ProductOrdersModalComponent } from './components/product-orders-modal/product-orders-modal.component';
@@ -119,10 +120,18 @@ export class ProductManagementComponent implements OnInit {
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (response) => {
-          if (response && response.data) {
-            this.allProducts.set(response.data);
-          } else if (Array.isArray(response)) {
-            this.allProducts.set(response);
+          let data = response.data || response;
+          if (Array.isArray(data)) {
+            const mappedData = data.map(p => {
+              let imageUrl = p.image || '';
+              if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+                const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+                const cleanPath = imageUrl.replace(/^\//, '');
+                imageUrl = `${baseUrl}/${cleanPath}`;
+              }
+              return { ...p, imageUrl };
+            });
+            this.allProducts.set(mappedData);
           }
         },
         error: (err) => {

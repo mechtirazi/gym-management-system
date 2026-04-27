@@ -191,9 +191,30 @@ export class MemberCoursesComponent implements OnInit {
       return;
     }
 
+    if (!course.price || parseFloat(course.price) <= 0) {
+      this.completeFreeCourseEnrollment();
+      return;
+    }
+
     // Require payment/enrollment for this specific session
     this.showPaymentModal = true;
     this.cdr.detectChanges();
+  }
+
+  private completeFreeCourseEnrollment() {
+    if (!this.selectedCourse) return;
+    this.processingPayment = true;
+    this.cdr.detectChanges();
+
+    const courseId = this.selectedCourse.id_course || this.selectedCourse.id;
+    const sessionId = this.selectedCourse.selectedSessionId;
+    
+    this.memberService.enrollInCourse(courseId, sessionId, 'free').subscribe({
+      next: () => {
+        this.handleSuccess('Session Secured Successfully!');
+      },
+      error: (err: any) => this.handleError(err)
+    });
   }
 
   private executeReservation(course: any) {

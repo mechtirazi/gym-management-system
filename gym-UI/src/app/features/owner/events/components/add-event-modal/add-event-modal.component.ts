@@ -39,10 +39,14 @@ export class AddEventModalComponent implements OnInit {
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.maxLength(1000)]],
       start_date: ['', Validators.required],
+      start_time: [''],
       end_date: ['', Validators.required],
+      end_time: [''],
       max_participants: [50, [Validators.required, Validators.min(1)]],
+      price: [0, [Validators.required, Validators.min(0)]],
       is_rewarded: [false],
-      reward_amount: [0, [Validators.min(0)]]
+      reward_amount: [0, [Validators.min(0)]],
+      max_winners: [1, [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -53,10 +57,14 @@ export class AddEventModalComponent implements OnInit {
         title:            existing.title,
         description:      existing.description,
         start_date:       existing.start_date ? existing.start_date.toString().split('T')[0] : '',
+        start_time:       existing.start_time || '',
         end_date:         existing.end_date   ? existing.end_date.toString().split('T')[0]   : '',
+        end_time:         existing.end_time || '',
         max_participants: existing.max_participants,
+        price:            existing.price,
         is_rewarded:      existing.is_rewarded,
-        reward_amount:    existing.reward_amount
+        reward_amount:    existing.reward_amount,
+        max_winners:      existing.max_winners || 1
       });
       const rawImage = existing.image_url || (existing as any).image || (existing as any).picture || (existing as any).logo || (existing as any).logo_url;
       if (rawImage) {
@@ -104,7 +112,12 @@ export class AddEventModalComponent implements OnInit {
 
     const formData = new FormData();
     Object.keys(this.addForm.controls).forEach(key => {
-      formData.append(key, this.addForm.get(key)?.value);
+      let value = this.addForm.get(key)?.value;
+      // Convert booleans to 1/0 for Laravel's boolean validator when using FormData
+      if (typeof value === 'boolean') {
+        value = value ? '1' : '0';
+      }
+      formData.append(key, value);
     });
 
     if (this.selectedFile) {

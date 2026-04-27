@@ -73,10 +73,10 @@ export class SettingsComponent implements OnInit {
 
     // Notifications Form
     this.notificationsForm = this.fb.group({
-      emailNotifications: [true],
-      smsNotifications: [false],
-      marketingEmails: [true],
-      appUpdates: [true]
+      emailNotifications: [(user as any)?.notification_email ?? true],
+      smsNotifications: [(user as any)?.notification_sms ?? false],
+      marketingEmails: [(user as any)?.notification_marketing ?? true],
+      appUpdates: [(user as any)?.notification_app_updates ?? true]
     });
   }
 
@@ -147,13 +147,35 @@ export class SettingsComponent implements OnInit {
   }
 
   updateNotifications(): void {
+    if (this.notificationsForm.invalid) return;
     this.isLoading.set(true);
     this.clearMessages();
 
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.successMessage.set('Notification preferences saved!');
-    }, 1000);
+    const user = this.currentUser();
+    if (!user) return;
+
+    const notifData = {
+      notification_email: this.notificationsForm.value.emailNotifications,
+      notification_sms: this.notificationsForm.value.smsNotifications,
+      notification_marketing: this.notificationsForm.value.marketingEmails,
+      notification_app_updates: this.notificationsForm.value.appUpdates
+    };
+
+    this.userService.updateProfile(user.id_user, notifData).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.authService.updateCurrentUser(response.data);
+          this.successMessage.set('Notification preferences saved!');
+        } else {
+          this.errorMessage.set(response.message || 'Failed to save preferences.');
+        }
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.message || 'An error occurred.');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   switchGym(gym: GymInfo): void {

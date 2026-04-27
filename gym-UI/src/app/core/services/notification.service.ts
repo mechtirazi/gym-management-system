@@ -14,7 +14,7 @@ export class NotificationService {
 
   // State
   private _notifications = signal<GymNotification[]>([]);
-  
+
   // Public exposure
   notifications = this._notifications.asReadonly();
   unreadNotifications = computed(() => this._notifications().filter(n => n.unread));
@@ -54,7 +54,7 @@ export class NotificationService {
   markAsRead(id: string): void {
     this.http.post(`${this.API_URL}/${id}/read`, {}).subscribe({
       next: () => {
-        this._notifications.update(notifs => 
+        this._notifications.update(notifs =>
           notifs.map(n => n.id === id ? { ...n, unread: false } : n)
         );
       }
@@ -64,7 +64,7 @@ export class NotificationService {
   markAllAsRead(): void {
     this.http.post(`${this.API_URL}/read-all`, {}).subscribe({
       next: () => {
-        this._notifications.update(notifs => 
+        this._notifications.update(notifs =>
           notifs.map(n => ({ ...n, unread: false }))
         );
       }
@@ -108,6 +108,10 @@ export class NotificationService {
     return this.http.post(`${this.API_URL}`, { id_user: userId, text: text, type: type });
   }
 
+  contactSupport(message: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/support/contact`, { message });
+  }
+
   private mapNotification(n: any): GymNotification {
     return {
       id: n.id_notification,
@@ -124,7 +128,7 @@ export class NotificationService {
     const date = new Date(dateStr);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
+
     if (diffInSeconds < 60) return 'Just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;

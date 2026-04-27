@@ -60,4 +60,8 @@ export class EventService {
       map(res => res?.data)
     );
   }
+
+  rewardWinnerEvent(attendanceId: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/attendance-events/${attendanceId}/reward`, {});
+  }
 }

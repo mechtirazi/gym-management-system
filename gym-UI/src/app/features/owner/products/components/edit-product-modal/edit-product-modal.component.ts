@@ -19,13 +19,18 @@ export class EditProductModalComponent implements OnInit {
   close = output<void>();
   productUpdated = output<void>();
 
+  categories = ['Supplements', 'Equipment', 'Apparel', 'Accessories', 'Nutrition'];
+  
   product = {
     name: '',
     category: '',
     price: null as number | null,
-    stock: null as number | null
+    stock: null as number | null,
+    discount_percentage: 0
   };
 
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
   isSubmitting = signal<boolean>(false);
   error = signal<string | null>(null);
 
@@ -36,8 +41,21 @@ export class EditProductModalComponent implements OnInit {
         name: data.name,
         category: data.category,
         price: data.price,
-        stock: data.stock
+        stock: data.stock,
+        discount_percentage: data.discount_percentage || 0
       };
+      // For existing products, image is already in model
+      this.imagePreview = data.imageUrl || data.image || null;
+    }
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = () => this.imagePreview = reader.result as string;
+      reader.readAsDataURL(file);
     }
   }
 
@@ -51,7 +69,17 @@ export class EditProductModalComponent implements OnInit {
     this.isSubmitting.set(true);
     this.error.set(null);
 
-    this.productService.updateProduct(this.productData().id_product, this.product)
+    const formData = new FormData();
+    formData.append('name', this.product.name);
+    formData.append('category', this.product.category);
+    formData.append('price', this.product.price.toString());
+    formData.append('stock', this.product.stock.toString());
+    formData.append('discount_percentage', this.product.discount_percentage.toString());
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile);
+    }
+
+    this.productService.updateProduct(this.productData().id_product, formData)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {

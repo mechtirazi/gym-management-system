@@ -59,13 +59,19 @@
         </div>
 
         <div class="form-group">
-          <label>Start Date</label>
-          <input type="date" formControlName="start_date">
+          <label>Start Schedule</label>
+          <div class="datetime-input-wrapper">
+            <input type="date" formControlName="start_date">
+            <input type="time" formControlName="start_time">
+          </div>
         </div>
 
         <div class="form-group">
-          <label>End Date</label>
-          <input type="date" formControlName="end_date">
+          <label>End Schedule</label>
+          <div class="datetime-input-wrapper">
+            <input type="date" formControlName="end_date">
+            <input type="time" formControlName="end_time">
+          </div>
         </div>
 
         <div class="form-group">
@@ -74,13 +80,30 @@
         </div>
 
         <div class="form-group">
-          <label>Reward Points (optional)</label>
-          <div class="reward-input-group">
-            <input type="number" formControlName="reward_amount">
-            <div class="checkbox-container">
+          <label>Price</label>
+          <input type="number" formControlName="price" placeholder="0.00">
+        </div>
+
+        <div class="form-group full-width">
+          <label>Reward Configuration</label>
+          <div class="reward-config-panel">
+            <div class="checkbox-wrapper">
               <input type="checkbox" formControlName="is_rewarded" id="is_rewarded_add">
-              <label for="is_rewarded_add">Rewarded</label>
+              <label for="is_rewarded_add">Enable Event Rewards</label>
             </div>
+            
+            @if (addForm.get('is_rewarded')?.value) {
+              <div class="reward-settings">
+                <div class="setting-item">
+                  <label>Points Amount</label>
+                  <input type="number" formControlName="reward_amount" placeholder="e.g. 50">
+                </div>
+                <div class="setting-item">
+                  <label>Max Gainers</label>
+                  <input type="number" formControlName="max_winners" placeholder="e.g. 1">
+                </div>
+              </div>
+            }
           </div>
         </div>
       </div>

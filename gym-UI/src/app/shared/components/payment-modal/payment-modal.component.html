@@ -30,7 +30,10 @@
                             <h3>{{ itemTitle }}</h3>
                             <p>{{ selectedPlan ? selectedPlan.name : itemSubtitle }}</p>
                         </div>
-                        <div class="item-price-pill" *ngIf="!selectedPlan">VERIFIED</div>
+                        <div class="item-price-pill" *ngIf="!selectedPlan && !totalPrice">VERIFIED</div>
+                        <div class="item-price-pill price-dynamic" *ngIf="totalPrice && !selectedPlan">
+                            ${{ totalPrice | number:'1.2-2' }}
+                        </div>
                         <div class="item-price-pill price-dynamic" *ngIf="selectedPlan">
                             ${{ selectedPlan.price }}
                         </div>

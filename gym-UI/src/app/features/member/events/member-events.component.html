@@ -57,19 +57,31 @@
 
         <div class="event-meta-modern">
           <div class="meta-node">
-            <span class="meta-label">TIME</span>
-            <span class="meta-value">{{ event.start_date | date:'HH:mm' }} - {{ event.end_date | date:'HH:mm' }}</span>
+            <span class="material-symbols-rounded info-icon">schedule</span>
+            <div class="meta-stack">
+              <span class="meta-label">TIME</span>
+              <span class="meta-value text-glow">{{ event.start_time?.substring(0, 5) || '--:--' }} - {{ event.end_time?.substring(0, 5) || '--:--' }}</span>
+            </div>
           </div>
           <div class="meta-node">
-            <span class="meta-label">CAPACITY</span>
-            <span class="meta-value">{{ event.participantsCount }}/{{ event.max_participants || '∞' }}</span>
+            <span class="material-symbols-rounded info-icon">groups</span>
+            <div class="meta-stack">
+              <span class="meta-label">SLOTS LEFT</span>
+              <span class="meta-value" [class.danger-text]="(event.max_participants - event.participantsCount) <= 3">
+                {{ event.max_participants - event.participantsCount }} Available
+              </span>
+            </div>
           </div>
         </div>
 
         <div class="card-footer">
           <div class="price-tag">
-            <span class="currency">$</span>
-            <span class="amount">{{ event.price || '0.00' }}</span>
+            @if (event.price > 0) {
+              <span class="currency">$</span>
+              <span class="amount">{{ event.price }}</span>
+            } @else {
+              <span class="amount free-text">FREE</span>
+            }
           </div>
           <div class="actions-group">
             <button class="reserve-btn" 
@@ -78,7 +90,7 @@
               (click)="onReserve(event)" 
               [title]="isEventReserved(event) ? 'Already secured' : 'Secure your spot'">
               <span class="material-symbols-rounded">{{ isEventReserved(event) ? 'verified' : 'stadium' }}</span>
-              {{ isEventReserved(event) ? 'Secured' : 'Get Access' }}
+              {{ isEventReserved(event) ? 'Secured' : (event.price > 0 ? 'Get Access' : 'Enroll for Free') }}
             </button>
           </div>
         </div>

@@ -101,7 +101,11 @@ export class AddCourseModalComponent implements OnInit {
 
     const formData = new FormData();
     Object.keys(this.addForm.controls).forEach(key => {
-      formData.append(key, this.addForm.get(key)?.value);
+      let value = this.addForm.get(key)?.value;
+      if (typeof value === 'boolean') {
+        value = value ? '1' : '0';
+      }
+      formData.append(key, value);
     });
 
     if (this.selectedFile) {

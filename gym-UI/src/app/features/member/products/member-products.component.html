@@ -1,0 +1,147 @@
+<div class="marketplace-container animate-fade-in">
+  <header class="header-hub">
+    <div class="glass-card header-content">
+      <div class="text-group">
+        <h1>Gym Marketplace</h1>
+        <p>Premium supplements, elite equipment, and exclusive gym apparel.</p>
+      </div>
+
+      <div class="header-filters">
+        <div class="search-box">
+          <span class="material-symbols-rounded">search</span>
+          <input type="text" [(ngModel)]="searchText" (ngModelChange)="onFilterChange()"
+            placeholder="Search items..." />
+        </div>
+
+        <select [(ngModel)]="selectedCategory" (ngModelChange)="onFilterChange()" class="filter-selector">
+          <option value="all">All Categories</option>
+          @for (cat of categories; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+
+        <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="filter-selector">
+          <option value="all">Every Gym Shop</option>
+          @for (gym of gyms; track gym.id_gym) {
+          <option [value]="gym.id_gym">{{ gym.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="errorMessage" class="error-hub">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  @if (!loading) {
+  <div class="products-grid" *ngIf="paginatedProducts.length > 0; else noProducts">
+    @for (product of paginatedProducts; track product.id_product) {
+    <div class="product-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.05 + 's'">
+      <div class="product-poster">
+        <img [src]="product.imageUrl" [alt]="product.name"
+          (error)="product.imageUrl = 'https://images.unsplash.com/photo-1583454110551-21f2fa202114?auto=format&fit=crop&q=80&w=800'">
+        <div class="category-tag">{{ product.category }}</div>
+        @if ((product.discount_percentage || 0) > 0) {
+        <div class="promo-tag">SALE -{{ product.discount_percentage }}%</div>
+        }
+      </div>
+
+      <div class="product-details">
+        <div class="vendor-header">
+          <div class="gym-badge">
+            <span class="material-symbols-rounded">store</span>
+            <span>{{ product.gymName }}</span>
+          </div>
+          <div class="status-badge" [class.low-stock]="product.stock < 5">
+            {{ product.stock > 0 ? product.stock + ' IN STOCK' : 'OUT OF STOCK' }}
+          </div>
+        </div>
+
+        <h3 class="product-name">{{ product.name }}</h3>
+
+        <div class="product-meta">
+          <div class="price-box" [class.has-discount]="product.discount_percentage > 0">
+            <div class="price-container">
+              <span class="currency">$</span>
+              <span class="amount">{{ (product.discount_percentage > 0 ? product.discounted_price : product.price) | number:'1.2-2' }}</span>
+              @if (product.discount_percentage > 0) {
+                <span class="original-price">${{ product.price | number:'1.2-2' }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+          <div class="purchase-summary" *ngIf="product.quantity > 1">
+            <span class="label">Total Price:</span>
+            <span class="value">${{ ((product.discount_percentage > 0 ? product.discounted_price : product.price) * product.quantity) | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="purchase-actions">
+            <div class="quantity-picker">
+              <button class="q-btn" (click)="decreaseQuantity(product)" [disabled]="product.quantity <= 1">
+                <span class="material-symbols-rounded">remove</span>
+              </button>
+              <span class="q-value">{{ product.quantity }}</span>
+              <button class="q-btn" (click)="increaseQuantity(product)" [disabled]="product.quantity >= product.stock">
+                <span class="material-symbols-rounded">add</span>
+              </button>
+            </div>
+
+            <button class="buy-btn" [disabled]="product.stock <= 0" (click)="onBuy(product)">
+              <span class="material-symbols-rounded">shopping_cart</span>
+              {{ product.stock > 0 ? 'Buy Now' : 'Sold Out' }}
+            </button>
+          </div>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Pagination Hub -->
+  <div class="pagination-hub animate-fade-in" *ngIf="totalPages > 1">
+    <button class="nav-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+      <span class="material-icons">chevron_left</span>
+    </button>
+    <div class="page-indicators">
+      <button *ngFor="let p of [].constructor(totalPages); let i = index" class="page-pill"
+        [class.active]="currentPage === i + 1" (click)="changePage(i + 1)">
+        {{ i + 1 }}
+      </button>
+    </div>
+    <button class="nav-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+      <span class="material-icons">chevron_right</span>
+    </button>
+  </div>
+
+  <ng-template #noProducts>
+    <div class="empty-state">
+      <span class="material-symbols-rounded">shopping_bag</span>
+      <h3>No items found in this shop</h3>
+      <p>Check other gyms or try different filters.</p>
+    </div>
+  </ng-template>
+  } @else {
+  <div class="products-grid">
+    @for (s of [1,2,3,4]; track s) {
+    <div class="skeleton-card glass-card">
+      <div class="skeleton-media"></div>
+      <div class="skeleton-body">
+        <div class="line title"></div>
+        <div class="line price"></div>
+        <div class="line btn"></div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
+    [paymentError]="paymentError" [stripePublicKey]="stripePublicKey" [headerTitle]="'Secure Product Node'" [itemTitle]="selectedProduct?.name || 'Product Acquisition'"
+    [itemSubtitle]="selectedProduct ? selectedProduct.quantity + 'x Unit(s) at ' + selectedProduct.gymName : 'Elite Equipment'"
+    [itemImage]="selectedProduct?.imageUrl"
+    [totalPrice]="calculateTotalPrice(selectedProduct)"
+    [purchaseTerms]="'By confirming, you authorize a one-time charge for this item. Fulfilment will be handled by the gym staff at your home facility.'"
+    (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
+  </app-payment-modal>
+</div>

@@ -140,6 +140,13 @@ export class MemberService {
     return this.http.post<any>(`${this.apiUrl}/member/events/${eventId}/enroll`, { payment_method: paymentMethod });
   }
 
+  purchaseProduct(productId: string, paymentMethod: string = 'zen_wallet', quantity: number = 1): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/products/${productId}/purchase`, { 
+      payment_method: paymentMethod,
+      quantity: quantity
+    });
+  }
+
   purchaseMembership(gymId: string, paymentMethod: string = 'zen_wallet', type: string = 'standard', idPlan?: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/member/gyms/${gymId}/purchase`, {
       payment_method: paymentMethod,

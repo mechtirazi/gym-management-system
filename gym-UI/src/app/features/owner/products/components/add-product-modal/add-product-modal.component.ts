@@ -17,15 +17,30 @@ export class AddProductModalComponent {
   close = output<void>();
   productAdded = output<void>();
 
+  categories = ['Supplements', 'Equipment', 'Apparel', 'Accessories', 'Nutrition'];
+  
   product = {
     name: '',
-    category: '',
+    category: 'Supplements',
     price: null as number | null,
-    stock: null as number | null
+    stock: null as number | null,
+    discount_percentage: 0
   };
 
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
   isSubmitting = signal<boolean>(false);
   error = signal<string | null>(null);
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = () => this.imagePreview = reader.result as string;
+      reader.readAsDataURL(file);
+    }
+  }
 
   onSubmit(event: Event) {
     event.preventDefault();
@@ -37,7 +52,17 @@ export class AddProductModalComponent {
     this.isSubmitting.set(true);
     this.error.set(null);
 
-    this.productService.createProduct(this.product)
+    const formData = new FormData();
+    formData.append('name', this.product.name);
+    formData.append('category', this.product.category);
+    formData.append('price', this.product.price.toString());
+    formData.append('stock', this.product.stock.toString());
+    formData.append('discount_percentage', this.product.discount_percentage.toString());
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile);
+    }
+
+    this.productService.createProduct(formData)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {

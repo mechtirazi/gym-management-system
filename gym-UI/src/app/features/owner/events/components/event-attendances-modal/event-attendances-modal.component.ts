@@ -38,7 +38,8 @@ export class EventAttendancesModalComponent implements OnInit {
       end_date: ['', Validators.required],
       max_participants: [0, [Validators.required, Validators.min(1)]],
       is_rewarded: [false],
-      reward_amount: [0]
+      reward_amount: [0],
+      max_winners: [1]
     });
   }
 
@@ -56,7 +57,8 @@ export class EventAttendancesModalComponent implements OnInit {
       end_date: e.end_date ? e.end_date.split('T')[0] : '',
       max_participants: e.max_participants,
       is_rewarded: e.is_rewarded || false,
-      reward_amount: e.reward_amount || 0
+      reward_amount: e.reward_amount || 0,
+      max_winners: e.max_winners || 1
     });
   }
 
@@ -103,6 +105,22 @@ export class EventAttendancesModalComponent implements OnInit {
     this.eventService.updateEventAttendance(attendance.id_attendance_event, { status: nextStatus }).subscribe({
       next: () => this.loadAttendances(),
       error: () => alert('Update failed.')
+    });
+  }
+
+  rewardAttendee(attendance: any) {
+    if (!confirm(`Are you sure you want to award the reward point to ${attendance.member?.name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    this.eventService.rewardWinnerEvent(attendance.id_attendance_event).subscribe({
+      next: (res) => {
+        alert(res.message || 'Reward synchronized successfully!');
+        this.loadAttendances();
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Reward failed.');
+      }
     });
   }
 }

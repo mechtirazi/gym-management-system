@@ -267,13 +267,14 @@
       margin-bottom: 1.5rem;
       line-height: 1.1;
       letter-spacing: -1px;
-      background: linear-gradient(to bottom, #fff, #94a3b8);
+      color: #1e293b; /* Fallback */
+      background: linear-gradient(135deg, #1e293b 0%, #64748b 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .event-desc {
-      color: #64748b;
+      color: #475569;
       font-size: 1.05rem;
       line-height: 1.6;
       margin-bottom: 2.5rem;
@@ -282,28 +283,48 @@
 
     .event-meta-modern {
       display: flex;
-      gap: 3rem;
-      padding: 2rem 0;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      gap: 2.5rem;
+      padding: 2.5rem 0;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
       margin-bottom: 2rem;
 
       .meta-node {
         display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+        align-items: center;
+        gap: 1.25rem;
+
+        .info-icon {
+          font-size: 2.2rem !important;
+          color: #d946ef;
+          opacity: 0.9;
+        }
+
+        .meta-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
 
         .meta-label {
-          font-size: 0.7rem;
+          font-size: 0.75rem;
           font-weight: 950;
-          letter-spacing: 1.5px;
-          color: #d946ef;
+          letter-spacing: 2px;
+          color: #94a3b8;
           text-transform: uppercase;
         }
 
         .meta-value {
-          font-size: 0.95rem;
-          font-weight: 850;
-          color: var(--text-muted);
+          font-size: 1.15rem;
+          font-weight: 950;
+          color: #1e293b;
+          
+          &.text-glow {
+            text-shadow: none;
+          }
+          
+          &.danger-text {
+            color: #ef4444;
+          }
         }
       }
     }
@@ -314,18 +335,23 @@
       align-items: center;
       margin-top: auto;
 
-      .price-tag {
-        .currency {
-          font-size: 1rem;
-          color: #d946ef;
-          font-weight: 900;
+        .price-tag {
+          .currency {
+            font-size: 1rem;
+            color: #d946ef;
+            font-weight: 900;
+          }
+          .amount {
+            font-size: 2rem;
+            font-weight: 950;
+            color: var(--text-main); 
+            
+            &.free-text {
+              color: #10b981;
+              text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            }
+          }
         }
-        .amount {
-          font-size: 2rem;
-          font-weight: 950;
-          color: var(--text-main); 
-        }
-      }
 
       .reserve-btn {
         padding: 1.2rem 2.4rem;

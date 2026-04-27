@@ -4,6 +4,10 @@ export interface Product {
   price: number;
   stock: number;
   category: string;
+  image?: string;
+  imageUrl?: string;
+  discount_percentage?: number;
+  discounted_price?: number;
   created_at?: string;
 }
 

@@ -22,6 +22,11 @@
         @if (eventModel().is_rewarded) {
           <span class="badge reward-badge">🎁 {{ eventModel().reward_amount }} Pts</span>
         }
+        @if (eventModel().price > 0) {
+          <span class="badge price-badge">💰 {{ eventModel().price }} DZD</span>
+        } @else {
+          <span class="badge free-badge">Free</span>
+        }
       </div>
     </div>
   </div>
@@ -30,12 +35,15 @@
 
   <div class="details-grid">
     <div class="detail-item">
-      <span class="label">Start Date</span>
-      <span class="value">{{ eventModel().start_date ? (eventModel().start_date | date:'mediumDate') : 'TBD' }}</span>
+      <span class="label">Date & Time</span>
+      <span class="value">{{ eventModel().start_date ? (eventModel().start_date | date:'mediumDate') : 'TBD' }} @ {{ eventModel().start_time?.substring(0, 5) || '--:--' }}</span>
     </div>
     <div class="detail-item">
-      <span class="label">End Date & Capacity</span>
-      <span class="value">{{ eventModel().end_date ? (eventModel().end_date | date:'MMM d') : 'TBD' }} • {{ eventModel().max_participants || 0 }} max</span>
+      <span class="label">Available Slots</span>
+      <span class="value occupancy" [class.full]="(eventModel().max_participants || 0) - (eventModel().attendances_count || 0) <= 0">
+        <span class="remaining">{{ (eventModel().max_participants || 0) - (eventModel().attendances_count || 0) }}</span>
+        <span class="total">/ {{ eventModel().max_participants }}</span>
+      </span>
     </div>
   </div>
 

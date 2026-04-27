@@ -458,6 +458,11 @@
           font-size: 2rem;
           font-weight: 950;
           color: var(--text-main); 
+          
+          &.free-text {
+            color: #10b981;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+          }
         }
       }
 

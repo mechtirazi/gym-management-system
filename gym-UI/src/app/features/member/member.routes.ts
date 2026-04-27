@@ -42,6 +42,14 @@ export const memberRoutes: Routes = [
     loadComponent: () => import('./subscriptions/subscriptions').then(m => m.SubscriptionsComponent)
   },
   {
+    path: 'products',
+    loadComponent: () => import('./products/member-products.component').then(m => m.MemberProductsComponent)
+  },
+  {
+    path: 'purchases',
+    loadComponent: () => import('./purchases/member-purchases.component').then(m => m.MemberPurchasesComponent)
+  },
+  {
     path: 'settings',
     loadComponent: () => import('../shared/settings/settings.component').then(m => m.SettingsComponent)
   },

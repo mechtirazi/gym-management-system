@@ -19,6 +19,7 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
   @Input() headerTitle: string = 'Secure Checkout Vault';
   @Input() processingPayment: boolean = false;
   @Input() stripePublicKey: string = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
+  @Input() totalPrice: number | null = null;
 
   @Output() cancelPayment = new EventEmitter<void>();
   @Output() confirmPayment = new EventEmitter<any>();

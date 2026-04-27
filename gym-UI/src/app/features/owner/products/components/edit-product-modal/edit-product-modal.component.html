@@ -18,25 +18,64 @@
     </div>
 
     <form (submit)="onSubmit($event)">
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label>Product Name</label>
-          <input type="text" name="name" [(ngModel)]="product.name" placeholder="e.g. Whey Protein" required>
+      <div class="modal-body-layout">
+        <div class="form-left-col">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" name="name" [(ngModel)]="product.name" placeholder="e.g. Whey Protein" required>
+          </div>
+
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category" [(ngModel)]="product.category" required>
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-row-grid">
+            <div class="form-group">
+              <label>Price ($)</label>
+              <input type="number" name="price" [(ngModel)]="product.price" step="0.01" min="0" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group">
+              <label>Stock Quantity</label>
+              <input type="number" name="stock" [(ngModel)]="product.stock" min="0" placeholder="0" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Discount Percentage (%)</label>
+            <div class="discount-input-wrapper">
+               <input type="number" name="discount" [(ngModel)]="product.discount_percentage" min="0" max="100" placeholder="0">
+               <span class="discount-badge" *ngIf="(product.discount_percentage || 0) > 0">-{{ product.discount_percentage }}% OFF</span>
+            </div>
+          </div>
         </div>
 
-        <div class="form-group full-width">
-          <label>Category</label>
-          <input type="text" name="category" [(ngModel)]="product.category" placeholder="e.g. Supplements" required>
-        </div>
-
-        <div class="form-group">
-          <label>Price ($)</label>
-          <input type="number" name="price" [(ngModel)]="product.price" step="0.01" min="0" placeholder="0.00" required>
-        </div>
-
-        <div class="form-group">
-          <label>Stock Quantity</label>
-          <input type="number" name="stock" [(ngModel)]="product.stock" min="0" placeholder="0" required>
+        <div class="form-right-col">
+          <div class="form-group image-upload-group">
+            <label>Product Visual</label>
+            <div class="image-preview-container" [class.has-image]="imagePreview" (click)="fileInput.click()">
+              @if (imagePreview) {
+                <img [src]="imagePreview" alt="Product preview">
+                <div class="change-overlay">
+                  <span class="material-symbols-rounded">edit</span>
+                  <span>Update Visual</span>
+                </div>
+              } @else {
+                <div class="upload-placeholder">
+                  <span class="material-symbols-rounded">upload_file</span>
+                  <span>Upload Image</span>
+                  <p>JPG/PNG/WEBP</p>
+                  <p class="limit-text">Max 2MB</p>
+                </div>
+              }
+            </div>
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+          </div>
         </div>
       </div>
 

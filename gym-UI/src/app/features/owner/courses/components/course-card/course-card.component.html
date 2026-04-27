@@ -17,7 +17,14 @@
     </div>
     <div class="course-info">
       <h2 class="course-title">{{ course().name }}</h2>
-      <span class="badge gym-badge">{{ course().gym?.name || 'Main Gym' }}</span>
+      <div class="badges-row">
+        <span class="badge gym-badge">{{ course().gym?.name || 'Main Gym' }}</span>
+        @if (course().price > 0) {
+          <span class="badge price-badge">💰 {{ course().price }} DZD</span>
+        } @else {
+          <span class="badge free-badge">Free</span>
+        }
+      </div>
     </div>
     <div class="card-status active">Live</div>
   </div>

@@ -117,7 +117,7 @@ export class MemberEventsComponent implements OnInit {
             imageUrl: imageUrl || 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800',
             isReserved: this.reservedEventIds.includes(event.id_event || event.id),
             gymName: event.gym?.name || 'Local Hub',
-            participantsCount: event.participants_count || 0,
+            participantsCount: event.attendances_count || 0,
             price: event.price || 0
           };
         });
@@ -137,9 +137,29 @@ export class MemberEventsComponent implements OnInit {
   onReserve(event: any): void {
     if (this.isEventReserved(event)) return;
 
+    if (!event.price || parseFloat(event.price) <= 0) {
+      this.selectedEvent = event;
+      this.completeFreeEventEnrollment();
+      return;
+    }
+
     this.selectedEvent = event;
     this.showPaymentModal = true;
     this.cdr.detectChanges();
+  }
+
+  private completeFreeEventEnrollment() {
+    if (!this.selectedEvent) return;
+    this.processingPayment = true;
+    this.cdr.detectChanges();
+    const eventId = this.selectedEvent.id_event || this.selectedEvent.id;
+
+    this.memberService.enrollInEvent(eventId, 'free').subscribe({
+      next: () => {
+        this.handleSuccess('Enrollment Successful! Welcome to the event.');
+      },
+      error: (err: any) => this.handleError(err)
+    });
   }
 
   isEventReserved(event: any): boolean {

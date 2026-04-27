@@ -1,19 +1,28 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { NotificationService } from '../../../../../core/services/notification.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-owner-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './owner-sidebar.component.html',
   styleUrl: './owner-sidebar.component.scss'
 })
 export class OwnerSidebarComponent {
   private authService = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
+  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
+
+  showSupportModal = signal(false);
+  supportMessage = signal('');
+  isSubmittingSupport = signal(false);
 
   connectedGymStatus = this.authService.connectedGymStatus;
 
@@ -65,5 +74,31 @@ export class OwnerSidebarComponent {
       bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`
     };
     return this.sanitizer.bypassSecurityTrustHtml(icons[name] || '');
+  }
+
+  openSupportModal() {
+    this.supportMessage.set('');
+    this.showSupportModal.set(true);
+  }
+
+  closeSupportModal() {
+    this.showSupportModal.set(false);
+  }
+
+  submitSupportRequest() {
+    if (!this.supportMessage().trim()) return;
+
+    this.isSubmittingSupport.set(true);
+    this.notificationService.contactSupport(this.supportMessage()).subscribe({
+      next: (res: any) => {
+        this.isSubmittingSupport.set(false);
+        this.showSupportModal.set(false);
+        this.toastService.success(res.message || 'Support request sent successfully.');
+      },
+      error: (err: any) => {
+        this.isSubmittingSupport.set(false);
+        this.toastService.error(err.error?.message || 'Failed to send support request.');
+      }
+    });
   }
 }

@@ -1,0 +1,99 @@
+<div class="purchases-container animate-fade-in">
+    <header class="purchases-header">
+        <div class="header-card glass-card">
+            <div class="title-group">
+                <span class="badge">Billing Archive</span>
+                <h1>Vault Transactions</h1>
+                <p>Consult your synchronized assets, training sessions, and acquired gear.</p>
+            </div>
+            <div class="stats-group">
+                <div class="stat-item">
+                    <span class="stat-value">{{ purchases.length }}</span>
+                    <span class="stat-label">Total Logs</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div *ngIf="errorMessage" class="error-node">
+        <span class="material-symbols-rounded">warning</span>
+        <p>{{ errorMessage }}</p>
+    </div>
+
+    <div class="purchases-hub" *ngIf="!loading; else skeleton">
+        <div class="purchases-table-wrapper glass-card" *ngIf="purchases.length > 0; else emptyState">
+            <table class="purchases-table">
+                <thead>
+                    <tr>
+                        <th>Date & ID</th>
+                        <th>Strategic Asset</th>
+                        <th>Classification</th>
+                        <th>Amount</th>
+                        <th>Protocol</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let purchase of purchases; let i = index" class="animate-slide-up" [style.animation-delay]="i * 0.05 + 's'">
+                        <td>
+                            <div class="date-cell">
+                                <span class="primary-date">{{ purchase.created_at | date:'MMM d, y' }}</span>
+                                <span class="id-tag">#{{ purchase.id_transaction || 'TXN-ALPHA' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="asset-cell">
+                                <div class="asset-icon">
+                                    <span class="material-symbols-rounded">
+                                        {{ purchase.type === 'product' ? 'shopping_bag' : 
+                                           (purchase.type === 'course' ? 'exercise' : 
+                                           (purchase.type === 'event' ? 'event' : 'verified')) }}
+                                    </span>
+                                </div>
+                                <div class="asset-info">
+                                    <span class="asset-name">{{ getItemName(purchase) }}</span>
+                                    <span class="asset-gym">{{ purchase.gym?.name || 'Central Hub' }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="type-pill" [attr.data-type]="purchase.type">
+                                {{ getTypeLabel(purchase.type) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="amount-value">${{ purchase.amount | number:'1.2-2' }}</span>
+                        </td>
+                        <td>
+                            <div class="method-cell">
+                                <span class="material-symbols-rounded">{{ getMethodIcon(purchase.method) }}</span>
+                                <span>{{ purchase.method === 'zen_wallet' ? 'Zen Credits' : 'Stripe Node' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-pill">Synchronized</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <ng-template #emptyState>
+             <div class="empty-hub glass-card animate-scale-in">
+                 <div class="empty-icon-ring">
+                     <span class="material-symbols-rounded">receipt_long</span>
+                 </div>
+                 <h3>No Billing Logs Found</h3>
+                 <p>Your transaction archive is currently empty. Explore the marketplace to sync your first asset.</p>
+                 <button routerLink="/member/products" class="btn-action">Go to Marketplace</button>
+             </div>
+        </ng-template>
+    </div>
+
+    <ng-template #skeleton>
+        <div class="skeleton-table glass-card">
+            <div class="skeleton-header"></div>
+            <div class="skeleton-row" *ngFor="let s of [1,2,3,4,5]"></div>
+        </div>
+    </ng-template>
+</div>
