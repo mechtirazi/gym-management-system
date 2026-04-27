@@ -26,7 +26,9 @@ class StoreProductRequest extends FormRequest
             'name'     => 'required|string|max:255',
             'price'    => 'required|numeric|min:0',
             'stock'    => 'required|integer|min:0',
-            'category' => 'required|string|max:255',
+            'category' => 'required|in:Supplements,Equipment,Apparel,Accessories,Nutrition',
+            'image'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
         ];
     }
 

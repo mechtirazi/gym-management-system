@@ -25,11 +25,15 @@ class StoreEventRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'start_date' => 'required|date',
+            'start_time' => 'nullable|string',
             'end_date' => 'required|date|after:start_date',
+            'end_time' => 'nullable|string',
             'max_participants' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
             'id_gym' => 'required|exists:gyms,id_gym',
             'reward_amount' => 'nullable|numeric|min:0',
             'is_rewarded' => 'nullable|boolean',
+            'max_winners' => 'nullable|integer|min:1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }

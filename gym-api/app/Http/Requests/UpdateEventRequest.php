@@ -25,11 +25,15 @@ class UpdateEventRequest extends FormRequest
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
             'start_date' => 'sometimes|date',
+            'start_time' => 'nullable|string',
             'end_date' => 'sometimes|date',
+            'end_time' => 'nullable|string',
             'max_participants' => 'sometimes|integer|min:1',
+            'price' => 'sometimes|numeric|min:0',
             'id_gym' => 'sometimes|exists:gyms,id_gym',
             'reward_amount' => 'sometimes|numeric|min:0',
             'is_rewarded' => 'sometimes|boolean',
+            'max_winners' => 'sometimes|integer|min:1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }

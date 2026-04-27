@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SubscribeController;
 // BIO-SYNC INTEGRITY TEST (Bypass all middleware)
-Route::get('bio-sync-test', function() {
+Route::get('bio-sync-test', function () {
     return response()->json(['status' => 'online', 'module' => 'Biometric intelligence Hub']);
 });
 use App\Http\Controllers\Api\NutritionPlanController;
@@ -45,10 +45,10 @@ Route::prefix('auth')->group(function () {
     Route::post('resend-verification', [AuthController::class, 'resendVerification'])->name('verification.resend');
 
     Route::get('health', function () {
-    return response()->json(['success' => true, 'status' => 'optimal', 'timestamp' => now()]);
-});
+        return response()->json(['success' => true, 'status' => 'optimal', 'timestamp' => now()]);
+    });
 
-// Social Media Login
+    // Social Media Login
     Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])->name('auth.social.redirect');
     Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])->name('auth.social.callback');
 });
@@ -84,6 +84,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::apiResource('events', EventController::class);
 
     // Attendance Event routes
+    Route::post('attendance-events/{attendance_event}/reward', [AttendanceEventController::class, 'rewardWinner'])->name('attendance-events.reward');
     Route::apiResource('attendance-events', AttendanceEventController::class);
 
     // Product routes
@@ -115,6 +116,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     // Notification routes
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('support/contact', [NotificationController::class, 'contactSupport'])->name('support.contact');
     Route::apiResource('notifications', NotificationController::class);
 
     // Enrollment routes
@@ -146,7 +148,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
             Route::get('recent-checkins', [OwnerDashboardController::class, 'getRecentCheckins'])->name('owner.recent-checkins');
             Route::get('activity-chart', [OwnerDashboardController::class, 'getActivityChart'])->name('owner.activity-chart');
             Route::get('revenue-stats', [OwnerRevenueController::class, 'getAdvancedStats'])->name('owner.revenue-stats');
-            
+
             // Membership Plan Management
             Route::get('gyms/{gym}/plans', [App\Http\Controllers\Api\OwnerMembershipPlanController::class, 'index'])->name('owner.plans.index');
             Route::post('gyms/{gym}/plans', [App\Http\Controllers\Api\OwnerMembershipPlanController::class, 'store'])->name('owner.plans.store');
@@ -167,7 +169,8 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::put('biometrics', [App\Http\Controllers\Api\MemberController::class, 'updateBiometrics'])->name('member.biometrics');
         Route::post('workouts', [App\Http\Controllers\Api\MemberController::class, 'storeWorkoutLog'])->name('member.workouts.save');
         Route::get('workouts/history', [App\Http\Controllers\Api\MemberController::class, 'getWorkoutHistory'])->name('member.workouts.history');
-        
+        Route::post('products/{product}/purchase', [App\Http\Controllers\Api\MemberController::class, 'purchaseProduct'])->name('member.products.purchase');
+
         // Social Interactions
         Route::post('social/like', [SocialController::class, 'toggleLike']);
         Route::post('social/comment', [SocialController::class, 'addComment']);

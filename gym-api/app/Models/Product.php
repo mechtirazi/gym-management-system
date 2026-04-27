@@ -13,7 +13,7 @@ class Product extends Model
     use \App\Traits\HasSocialInteractions;
 
     protected $primaryKey = 'id_product';
-    protected $appends = ['is_liked', 'likes_count', 'comments_count'];
+    protected $appends = ['is_liked', 'likes_count', 'comments_count', 'discounted_price'];
 
     public $incrementing = false;
 
@@ -26,7 +26,16 @@ class Product extends Model
         'price',
         'stock',
         'category',
+        'discount_percentage',
     ];
+
+    public function getDiscountedPriceAttribute()
+    {
+        if ($this->discount_percentage > 0) {
+            return $this->price * (1 - ($this->discount_percentage / 100));
+        }
+        return $this->price;
+    }
 
     // Relationships
     public function gym()

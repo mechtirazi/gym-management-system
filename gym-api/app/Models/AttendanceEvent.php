@@ -35,6 +35,7 @@ class AttendanceEvent extends Model
         'id_member',
         'id_event',
         'status',
+        'is_winner',
     ];
 
     // Relationships

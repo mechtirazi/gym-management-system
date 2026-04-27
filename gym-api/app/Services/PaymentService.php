@@ -10,7 +10,7 @@ class PaymentService extends BaseService
     public function __construct()
     {
         $this->setModel(new Payment());
-        $this->setRelations(['user']);
+        $this->setRelations(['user', 'gym', 'course', 'event', 'order.products', 'nutritionPlan']);
     }
 
     /**

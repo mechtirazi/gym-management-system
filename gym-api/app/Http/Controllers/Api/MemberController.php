@@ -88,7 +88,7 @@ class MemberController extends Controller
         }
 
         // 2. Logic based on payment method
-        if ($method === 'zen_wallet') {
+        if ($method === 'zen_wallet' && $course->price > 0) {
             if (!$wallet || $wallet->balance < $course->price) {
                 return response()->json([
                     'success' => false,
@@ -101,7 +101,7 @@ class MemberController extends Controller
         return DB::transaction(function () use ($user, $course, $wallet, $method, $idSession) {
             $transactionId = 'ZEN-' . strtoupper(Str::random(12));
 
-            if ($method === 'zen_wallet') {
+            if ($method === 'zen_wallet' && $course->price > 0) {
                 $wallet->decrement('balance', $course->price);
 
                 WalletTransaction::create([
@@ -165,7 +165,7 @@ class MemberController extends Controller
         }
 
         // 2. Logic based on payment method
-        if ($method === 'zen_wallet') {
+        if ($method === 'zen_wallet' && $event->price > 0) {
             if (!$wallet || $wallet->balance < $event->price) {
                 return response()->json([
                     'success' => false,
@@ -178,7 +178,7 @@ class MemberController extends Controller
         return DB::transaction(function () use ($user, $event, $wallet, $method) {
             $transactionId = 'ZEN-EVT-' . strtoupper(Str::random(12));
 
-            if ($method === 'zen_wallet') {
+            if ($method === 'zen_wallet' && $event->price > 0) {
                 $wallet->decrement('balance', $event->price);
 
                 WalletTransaction::create([
@@ -502,5 +502,94 @@ class MemberController extends Controller
             ->paginate(10);
 
         return response()->json($history);
+    }
+    /**
+     * Purchase a product. Supports Zen Credits (Points) or Credit Card.
+     */
+    public function purchaseProduct(Request $request, \App\Models\Product $product)
+    {
+        $user = $request->user();
+        $wallet = $user->wallet;
+        $method = $request->input('payment_method', 'zen_wallet');
+        $quantity = $request->input('quantity', 1);
+
+        // Ensure reasonable quantity
+        if ($quantity < 1) $quantity = 1;
+
+        // Use discounted price if available
+        $unitPrice = $product->price;
+        if ($product->discount_percentage > 0) {
+            $unitPrice = $product->price * (1 - ($product->discount_percentage / 100));
+        }
+        
+        $totalAmount = $unitPrice * $quantity;
+
+        // 1. Logic based on payment method
+        if ($method === 'zen_wallet' && $totalAmount > 0) {
+            if (!$wallet || $wallet->balance < $totalAmount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient Zen Credits. balance: ' . ($wallet ? $wallet->balance : '0') . ' pts',
+                    'required' => $totalAmount
+                ], 400);
+            }
+        }
+
+        return DB::transaction(function () use ($user, $product, $wallet, $method, $totalAmount, $quantity, $unitPrice) {
+            $transactionId = 'ZEN-PRD-' . strtoupper(Str::random(12));
+
+            if ($method === 'zen_wallet' && $totalAmount > 0) {
+                $wallet->decrement('balance', $totalAmount);
+
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'amount' => $totalAmount,
+                    'type' => 'debit',
+                    'description' => "Product Purchase ({$quantity}x) via Points: {$product->name}",
+                    'reference_type' => \App\Models\Product::class,
+                    'reference_id' => $product->id_product
+                ]);
+            }
+
+            // 2. Create Order Record
+            $order = \App\Models\Order::create([
+                'id_member' => $user->id_user,
+                'total_amount' => $totalAmount,
+                'status' => 'completed',
+                'order_date' => now()
+            ]);
+
+            // Sync product with order
+            $order->products()->attach($product->id_product, [
+                'quantity' => $quantity,
+                'price' => $unitPrice
+            ]);
+
+            // 3. Create Payment Record
+            Payment::create([
+                'id_user' => $user->id_user,
+                'id_gym' => $product->id_gym,
+                'id_order' => $order->id_order,
+                'amount' => $totalAmount,
+                'method' => $method,
+                'type' => 'product',
+                'id_transaction' => $transactionId
+            ]);
+
+            // 4. Update product stock
+            if ($product->stock >= $quantity) {
+                 $product->decrement('stock', $quantity);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase Successful! Item: ' . $product->name,
+                'data' => [
+                    'order' => $order,
+                    'payment_method' => $method,
+                    'new_balance' => $wallet ? $wallet->fresh()->balance : 0
+                ]
+            ]);
+        });
     }
 }

@@ -85,6 +85,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'target_weight',
         'evolution_points',
         'nutritionist_advisory',
+        'notification_email',
+        'notification_sms',
+        'notification_marketing',
+        'notification_app_updates',
     ];
 
     /**

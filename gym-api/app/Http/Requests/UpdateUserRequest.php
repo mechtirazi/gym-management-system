@@ -42,6 +42,10 @@ class UpdateUserRequest extends FormRequest
             'manual_water' => 'nullable|numeric|min:0',
             'manual_weight' => 'nullable|numeric|min:0',
             'target_weight' => 'nullable|numeric|min:0',
+            'notification_email' => 'sometimes|boolean',
+            'notification_sms' => 'sometimes|boolean',
+            'notification_marketing' => 'sometimes|boolean',
+            'notification_app_updates' => 'sometimes|boolean',
         ];
     }
 

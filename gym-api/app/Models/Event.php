@@ -26,9 +26,13 @@ class Event extends Model
         'image',
         'reward_amount',
         'is_rewarded',
+        'max_winners',
         'start_date',
+        'start_time',
         'end_date',
+        'end_time',
         'max_participants',
+        'price',
         'id_gym',
     ];
 

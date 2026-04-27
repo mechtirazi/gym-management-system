@@ -21,6 +21,65 @@ class ProductController extends BaseApiController
         );
     }
 
+    public function store(Request $request)
+    {
+        try {
+            $this->authorize('create', Product::class);
+            $validatedData = app(StoreProductRequest::class)->validated();
+
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('products', 'public');
+                $validatedData['image'] = '/storage/' . $path;
+            }
+
+            $data = $this->service->create($validatedData);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Product created successfully',
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating product: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $model = $this->findModel($id);
+            if (!$model)
+                $model = $this->service->getById($id);
+
+            if ($model) {
+                $this->authorize('update', $model);
+            }
+
+            $validatedData = app(UpdateProductRequest::class)->validated();
+
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('products', 'public');
+                $validatedData['image'] = '/storage/' . $path;
+            }
+
+            $data = $this->service->update($model, $validatedData);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Product updated successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating product: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     protected function getModelClass()
     {
         return Product::class;

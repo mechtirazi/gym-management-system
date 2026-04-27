@@ -25,7 +25,9 @@ class UpdateProductRequest extends FormRequest
             'name' => 'sometimes|string|max:255',
             'price' => 'sometimes|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
-            'category' => 'sometimes|string|max:255',
+            'category' => 'sometimes|in:Supplements,Equipment,Apparel,Accessories,Nutrition',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
         ];
     }
 

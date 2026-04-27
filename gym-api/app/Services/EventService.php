@@ -19,7 +19,7 @@ class EventService extends BaseService
      */
     public function getAllScoped($user, ?int $perPage = null)
     {
-        $query = $this->query();
+        $query = $this->query()->withCount('attendances');
 
         // Respect the active gym context sent by the frontend (X-Gym-Id header)
         $activeGymId = request()->header('X-Gym-Id');

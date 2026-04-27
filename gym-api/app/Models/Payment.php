@@ -29,6 +29,8 @@ class Payment extends Model
         'id_gym',
         'id_order',
         'id_course',
+        'id_event',
+        'id_session',
         'amount',
         'method',
         'type',
@@ -54,5 +56,15 @@ class Payment extends Model
     public function course()
     {
         return $this->belongsTo(Course::class, 'id_course', 'id_course');
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class, 'id_event', 'id_event');
+    }
+
+    public function nutritionPlan()
+    {
+        return $this->belongsTo(NutritionPlan::class, 'id_nutrition', 'id_nutrition_plan');
     }
 }
