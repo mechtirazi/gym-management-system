@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Gym;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
     public function __construct(
-        protected \App\Services\NotificationService $notificationService,
-        protected \App\Services\UserService $userService
+        protected NotificationService $notificationService,
+        protected UserService $userService
     ) {}
 
     /**
@@ -232,6 +233,7 @@ class AdminController extends Controller
     {
         $gyms = Gym::where('id_owner', $id_owner)->get();
         
+        /** @var \App\Models\Gym $gym */
         foreach ($gyms as $gym) {
             $gym->update([
                 'status' => 'suspended',
@@ -255,6 +257,7 @@ class AdminController extends Controller
     {
         $gyms = Gym::where('id_owner', $id_owner)->get();
         
+        /** @var \App\Models\Gym $gym */
         foreach ($gyms as $gym) {
             $gym->update([
                 'status' => 'active',

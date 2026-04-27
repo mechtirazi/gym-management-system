@@ -28,26 +28,14 @@ class AttendanceResource extends JsonResource
             'updated_at' => $this->updated_at,
 
             // Member details for the attendance list
-            'member' => $member ? [
+            // Member details with fallbacks
+            'member' => [
                 'id' => $member->id_user ?? null,
                 'first_name' => $member->name ?? 'Unknown',
                 'last_name' => $member->last_name ?? '',
                 'name' => ($member->name ?? 'Unknown') . ' ' . ($member->last_name ?? ''),
                 'email' => $member->email ?? 'No email',
-            ] : [
-                'id' => null,
-                'first_name' => 'Unknown',
-                'last_name' => '',
-                'name' => 'Unknown Member',
-                'email' => 'No email',
-            ],
-            
-            // Nested data with fallbacks
-            'member' => [
-                'id_user' => $this->member->id_user ?? null,
-                'name' => $this->member->name ?? 'Anonymous',
-                'last_name' => $this->member->last_name ?? 'Member',
-                'email' => $this->member->email ?? null,
+                'id_user' => $member->id_user ?? null, // Keep id_user for compatibility
             ],
             'session' => [
                 'id_session' => $session?->id_session ?? null,
