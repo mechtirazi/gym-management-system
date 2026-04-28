@@ -65,6 +65,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::post('refresh', [AuthController::class, 'refresh'])->name('auth.refresh');
 
     // User routes
+    Route::get('users/search-by-email', [UserController::class, 'findByEmail'])->name('users.search-by-email');
     Route::apiResource('users', UserController::class);
 
     // Gym routes

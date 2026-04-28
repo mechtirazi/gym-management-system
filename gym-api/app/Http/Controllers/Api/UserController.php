@@ -27,6 +27,39 @@ class UserController extends BaseApiController
     }
 
     /**
+     * Find a user by email for invitation purposes.
+     */
+    public function findByEmail(Request $request)
+    {
+        $email = $request->query('email');
+        if (!$email) {
+            return response()->json(['success' => false, 'message' => 'Email is required'], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found in database. You may need to create a new profile for this staff member.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id_user'   => $user->id_user,
+                'name'      => $user->name,
+                'last_name' => $user->last_name,
+                'email'     => $user->email,
+                'phone'     => $user->phone,
+                'role'      => $user->role,
+                'profile_picture' => $user->profile_picture
+            ]
+        ]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)

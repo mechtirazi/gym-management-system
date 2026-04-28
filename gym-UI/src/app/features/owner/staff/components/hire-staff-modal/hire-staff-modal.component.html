@@ -33,7 +33,7 @@
         </div>
       }
 
-      <div class="form-row">
+      <div class="form-row single-col">
         <div class="form-group" [class.has-error]="addForm.get('email')?.invalid && addForm.get('email')?.touched">
           <label for="email">Email <span class="required">*</span></label>
           <input id="email" type="email" formControlName="email" placeholder="Enter email address">
@@ -43,16 +43,40 @@
             <span class="field-error">Please enter a valid email address</span>
           }
         </div>
-
-        <div class="form-group">
-          <label for="role">Role <span class="required">*</span></label>
-          <select id="role" formControlName="role">
-            @for (r of staffRoles; track r.value) {
-              <option [value]="r.value">{{ r.label }}</option>
-            }
-          </select>
-        </div>
       </div>
+
+      @if (isExistingUserMode()) {
+        <div class="lookup-results">
+          @if (isSearching()) {
+            <div class="searching-state">
+              <div class="mini-spinner"></div>
+              <span>Searching for user...</span>
+            </div>
+          } @else if (existingUser()) {
+            <div class="user-preview-card animate-fade-in">
+              <div class="user-avatar">
+                <img [src]="existingUser().profile_picture || 'https://ui-avatars.com/api/?name=' + existingUser().name + '+' + existingUser().last_name + '&background=8b5cf6&color=fff'" alt="User Avatar">
+              </div>
+              <div class="user-details">
+                <div class="user-name">{{ existingUser().name }} {{ existingUser().last_name }}</div>
+                <div class="user-meta">
+                  <span class="user-email">✉️ {{ existingUser().email }}</span>
+                  <span class="user-phone" *ngIf="existingUser().phone">📱 {{ existingUser().phone }}</span>
+                  <span class="user-role-badge" [attr.data-role]="existingUser().role">{{ existingUser().role | uppercase }}</span>
+                </div>
+              </div>
+            </div>
+          } @else if (searchError() && addForm.get('email')?.valid) {
+            <div class="lookup-error animate-fade-in">
+              <span class="error-icon">🚫</span>
+              <div class="error-content">
+                <p class="error-title">User Not Found</p>
+                <p class="error-desc">{{ searchError() }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
 
       @if (!isExistingUserMode()) {
         <div class="form-row">
@@ -97,7 +121,8 @@
 
         <div class="main-actions">
           <button type="button" class="cancel-btn" (click)="cancelAdd()">Cancel</button>
-          <button type="submit" class="submit-btn" [disabled]="isAdding()">
+          <button type="submit" class="submit-btn" 
+                  [disabled]="isAdding() || (isExistingUserMode() && !existingUser())">
             @if (isAdding()) {
               <span>{{ isExistingUserMode() ? 'Inviting...' : 'Hiring...' }}</span>
             } @else {

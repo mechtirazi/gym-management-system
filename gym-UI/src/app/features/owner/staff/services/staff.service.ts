@@ -14,6 +14,10 @@ export class StaffService {
   private readonly apiUrl = environment.apiUrl;
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
+  
+  findUserByEmail(email: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/users/search-by-email?email=${email}`, { headers: this.authHeaders });
+  }
 
   private get authHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');

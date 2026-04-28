@@ -24,6 +24,11 @@ export class HireStaffModalComponent {
   addError     = signal<string | null>(null);
   isExistingUserMode = signal<boolean>(false);
 
+  // Search state for existing users
+  isSearching = signal<boolean>(false);
+  existingUser = signal<any>(null);
+  searchError = signal<string | null>(null);
+
   addForm: FormGroup;
 
   readonly staffRoles = [
@@ -40,6 +45,16 @@ export class HireStaffModalComponent {
       phone:     [''],
       role:      ['trainer', Validators.required],
       password:  ['TempPass123!', [Validators.required, Validators.minLength(8)]]
+    });
+
+    // Listen for email changes to search for existing users
+    this.addForm.get('email')?.valueChanges.subscribe(email => {
+      if (this.isExistingUserMode() && this.addForm.get('email')?.valid) {
+        this.lookupUser(email);
+      } else {
+        this.existingUser.set(null);
+        this.searchError.set(null);
+      }
     });
   }
 
@@ -70,6 +85,37 @@ export class HireStaffModalComponent {
     nameCtrl?.updateValueAndValidity();
     lastNameCtrl?.updateValueAndValidity();
     passwordCtrl?.updateValueAndValidity();
+
+    // If switching back to new hire, clear search results
+    if (!this.isExistingUserMode()) {
+      this.existingUser.set(null);
+      this.searchError.set(null);
+    } else if (this.addForm.get('email')?.valid) {
+      this.lookupUser(this.addForm.get('email')?.value);
+    }
+  }
+
+  lookupUser(email: string) {
+    if (!email || !this.isExistingUserMode()) return;
+
+    this.isSearching.set(true);
+    this.searchError.set(null);
+    this.existingUser.set(null);
+
+    this.staffService.findUserByEmail(email).subscribe({
+      next: (res: any) => {
+        this.isSearching.set(false);
+        this.existingUser.set(res.data);
+      },
+      error: (err: any) => {
+        this.isSearching.set(false);
+        if (err.status === 404) {
+          this.searchError.set('User not found in database. Please check the email or create a new profile.');
+        } else {
+          this.searchError.set('Failed to lookup user. Please try again.');
+        }
+      }
+    });
   }
 
   submitAddStaff() {
@@ -86,7 +132,7 @@ export class HireStaffModalComponent {
       last_name: form.last_name?.trim(),
       email:     form.email.trim(),
       phone:     form.phone?.trim() || '',
-      role:      form.role,
+      role:      this.isExistingUserMode() ? this.existingUser()?.role : 'trainer',
       password:  form.password || 'TempPass123!'
     };
 
