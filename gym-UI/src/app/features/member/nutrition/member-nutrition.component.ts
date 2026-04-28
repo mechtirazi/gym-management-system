@@ -55,7 +55,7 @@ export class MemberNutritionComponent implements OnInit {
   nutritionistInsight = {
     expert: 'Initializing...',
     role: 'Clinical Specialist',
-    message: 'Synchronizing biological directive node...',
+    message: 'Synchronizing biological protocols...',
     timestamp: 'Just now'
   };
 

@@ -8,7 +8,7 @@
         </div>
         <div class="text-content">
           <h1>Membership Protocol</h1>
-          <p class="subtitle">Establish and tune your facility's enrollment tiers and synchronization nodes.</p>
+          <p class="subtitle">Establish and tune your facility's enrollment tiers and subscription structures.</p>
         </div>
       </div>
       <button class="add-tier-btn" (click)="openAddModal()">
@@ -22,7 +22,7 @@
     @if (isLoading()) {
       <div class="loading-state glass-card">
         <div class="sync-spinner"></div>
-        <p>Accessing pricing nodes...</p>
+        <p>Accessing pricing plans...</p>
       </div>
     } @else if (plans().length === 0) {
       <div class="empty-state glass-card">

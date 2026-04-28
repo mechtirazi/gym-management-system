@@ -215,7 +215,7 @@
                 <div class="protocol-switcher-section" *ngIf="ownedPlans.length > 1">
                     <div class="switcher-header">
                         <span class="material-symbols-rounded">hub</span>
-                        <span class="label">Synchronized Nodes</span>
+                        <span class="label">Synchronized Plans</span>
                     </div>
                     <div class="nodes-list">
                         <div class="node-item" 
@@ -240,7 +240,7 @@
 
                 <div class="filter-shell">
                     <select [(ngModel)]="selectedGymId" class="hub-selector">
-                        <option value="all">Global Resource Nodes</option>
+                        <option value="all">Global Resource Hubs</option>
                         <option *ngFor="let gym of gyms" [value]="gym.id_gym">{{ gym.name }}</option>
                     </select>
                 </div>
@@ -285,7 +285,7 @@
                             <span class="material-symbols-rounded">
                                 {{ plan.isOwned ? 'sync' : (plan.isActive ? 'lock_open' : 'cloud_off') }}
                             </span>
-                            {{ plan.isOwned ? 'Sync Established' : (plan.isActive ? 'Acquire Protocol' : 'Node Offline') }}
+                            {{ plan.isOwned ? 'Sync Established' : (plan.isActive ? 'Acquire Protocol' : 'Plan Offline') }}
                         </button>
                     </div>
                 </article>

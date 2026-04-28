@@ -102,9 +102,9 @@ export class EventManagementComponent implements OnInit {
 
   onDeleteEvent(id: string) {
     this.confirmService.open({
-      title: 'Decoherence Confirmation',
-      message: 'Are you absolutely certain you want to permanently delete this event?',
-      confirmText: 'Obliterate Node',
+      title: 'Remove Event',
+      message: 'Are you sure you want to permanently cancel this event? This action cannot be reversed.',
+      confirmText: 'Cancel Event',
       icon: 'warning',
       isDestructive: true
     }).subscribe(confirmed => {

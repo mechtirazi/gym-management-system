@@ -138,7 +138,7 @@
                         </div>
                     </div>
 
-                    <div id="card-errors" role="alert" class="error-node">{{ cardError }}</div>
+                    <div id="card-errors" role="alert" class="error-message">{{ cardError }}</div>
                 </div>
 
                 <button class="btn-primary-glow" (click)="nextStep()"
@@ -160,7 +160,7 @@
                     </div>
                 </div>
                 <h3 class="sync-label">
-                    <ng-container *ngIf="processingPayment">Connecting Nodes...</ng-container>
+                    <ng-container *ngIf="processingPayment">Connecting Services...</ng-container>
                     <ng-container *ngIf="!processingPayment && !paymentError">Transaction Confirmed</ng-container>
                     <ng-container *ngIf="!processingPayment && paymentError">Synchronization Failure</ng-container>
                 </h3>
