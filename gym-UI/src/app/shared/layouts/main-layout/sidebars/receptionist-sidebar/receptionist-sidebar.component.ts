@@ -16,7 +16,6 @@ export class ReceptionistSidebarComponent {
   navItems = [
     { label: 'Front Desk', isHeader: true },
     { label: 'Dashboard', icon: 'dashboard', route: '/receptionist/dashboard' },
-    { label: 'Members', icon: 'users', route: '/receptionist/members' },
     { label: 'Payments', icon: 'card', route: '/receptionist/payments' },
     { label: 'Attendance', icon: 'calendar', route: '/receptionist/attendance' },
 

@@ -23,6 +23,7 @@ export class EditProductModalComponent implements OnInit {
   
   product = {
     name: '',
+    description: '',
     category: '',
     price: null as number | null,
     stock: null as number | null,
@@ -39,6 +40,7 @@ export class EditProductModalComponent implements OnInit {
     if (data) {
       this.product = {
         name: data.name,
+        description: data.description || '',
         category: data.category,
         price: data.price,
         stock: data.stock,
@@ -71,6 +73,7 @@ export class EditProductModalComponent implements OnInit {
 
     const formData = new FormData();
     formData.append('name', this.product.name);
+    formData.append('description', this.product.description);
     formData.append('category', this.product.category);
     formData.append('price', this.product.price.toString());
     formData.append('stock', this.product.stock.toString());

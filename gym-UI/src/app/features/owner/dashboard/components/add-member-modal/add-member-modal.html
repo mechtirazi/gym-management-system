@@ -26,6 +26,18 @@
         </div>
 
         <form [formGroup]="memberForm" (ngSubmit)="submitAddMember()" class="modal-form">
+          @if (!isLoadingPlans() && plans().length === 0) {
+            <div class="no-tiers-banner animate-fade-in" (click)="goToMembershipProtocol()">
+              <div class="banner-icon">
+                <span class="material-symbols-rounded">warning</span>
+              </div>
+              <div class="banner-text">
+                <p>No membership tiers detected. <u>Establish Protocol</u> to enable member enrollment.</p>
+              </div>
+              <span class="material-symbols-rounded banner-arrow">chevron_right</span>
+            </div>
+          }
+
           <div class="form-grid">
             <div class="form-group hover-glow">
               <label>First Name</label>

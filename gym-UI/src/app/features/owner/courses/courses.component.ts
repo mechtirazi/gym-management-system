@@ -91,10 +91,22 @@ export class CourseManagementComponent implements OnInit {
     }
 
     if (query) {
-      list = list.filter(c =>
-        c.name?.toLowerCase().includes(query) ||
-        c.description?.toLowerCase().includes(query)
-      );
+      list = list.filter(c => {
+        const nameMatch = (c.name || '').toLowerCase().includes(query);
+        const descMatch = (c.description || '').toLowerCase().includes(query);
+        
+        // Search through sessions to find matching trainer names
+        const trainerMatch = (c.sessions || []).some((s: any) => {
+          const t = s.trainer;
+          if (!t) return false;
+          const fullName = `${t.name || ''} ${t.last_name || ''}`.toLowerCase();
+          return fullName.includes(query) || 
+                 (t.name || '').toLowerCase().includes(query) || 
+                 (t.last_name || '').toLowerCase().includes(query);
+        });
+
+        return nameMatch || descMatch || trainerMatch;
+      });
     }
     return list;
   });

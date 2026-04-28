@@ -30,7 +30,6 @@ export class TrainerSidebarComponent implements OnInit {
     { label: 'Coaching', isHeader: true, sensitive: true },
     { label: 'Sessions', icon: 'clock', routePath: '/trainer/sessions', sensitive: true },
     { label: 'Attendance', icon: 'calendar', routePath: '/trainer/attendance', sensitive: true },
-    { label: 'Clients', icon: 'users', routePath: '/trainer/members', sensitive: true },
     { label: 'Courses', icon: 'fitness_center', routePath: '/trainer/courses', sensitive: true },
 
     { label: 'Planning', isHeader: true, sensitive: true },

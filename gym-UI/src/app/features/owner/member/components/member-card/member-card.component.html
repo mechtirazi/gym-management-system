@@ -6,7 +6,7 @@
     </div>
     <div class="member-info">
       <h2 class="member-name">{{ member().name || 'Unnamed Member' }}</h2>
-      <span class="member-status badge">{{ member().status || 'Active' }}</span>
+      <span class="member-status badge" [class]="(member().status || 'Active').toLowerCase()">{{ member().status || 'Active' }}</span>
     </div>
     <div class="action-dropdown">
       <button class="icon-btn" aria-label="More options">

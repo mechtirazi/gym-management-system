@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { OwnerDashboardService } from '../../../services/owner-dashboard.service';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { MembershipPlanService, MembershipPlan } from '../../../services/membership-plan.service';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -18,6 +19,7 @@ export class AddMemberModalComponent implements OnInit {
   private authService = inject(AuthService);
   private planService = inject(MembershipPlanService);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
 
   close = output<void>();
   memberAdded = output<void>();
@@ -58,6 +60,11 @@ export class AddMemberModalComponent implements OnInit {
 
   closeModal() {
     this.close.emit();
+  }
+
+  goToMembershipProtocol() {
+    this.closeModal();
+    this.router.navigate(['/owner/membership-plans']);
   }
 
   submitAddMember() {

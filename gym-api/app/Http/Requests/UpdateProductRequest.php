@@ -14,15 +14,11 @@ class UpdateProductRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
             'name' => 'sometimes|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'price' => 'sometimes|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
             'category' => 'sometimes|in:Supplements,Equipment,Apparel,Accessories,Nutrition',

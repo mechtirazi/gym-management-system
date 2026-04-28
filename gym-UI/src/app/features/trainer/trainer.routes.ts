@@ -18,10 +18,6 @@ export const trainerRoutes: Routes = [
     loadComponent: () => import('./analytics/trainer-analytics.component').then(m => m.TrainerAnalyticsComponent)
   },
   {
-    path: 'members',
-    loadComponent: () => import('./members/trainer-members.component').then(m => m.TrainerMembersComponent)
-  },
-  {
     path: 'courses',
     loadComponent: () => import('./courses/trainer-courses.component').then(m => m.TrainerCoursesComponent)
   },

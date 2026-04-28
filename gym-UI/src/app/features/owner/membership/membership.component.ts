@@ -9,6 +9,7 @@ import { ViewMembershipModalComponent } from './components/view-membership-modal
 import { EditMembershipModalComponent } from './components/edit-membership-modal/edit-membership-modal.component';
 import { finalize } from 'rxjs';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
+import { MemberStatsComponent } from '../member/components/member-stats/member-stats.component';
 
 @Component({
   selector: 'app-membership-management',
@@ -20,7 +21,8 @@ import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.se
     MembershipCardComponent,
     AddMembershipModalComponent,
     ViewMembershipModalComponent,
-    EditMembershipModalComponent
+    EditMembershipModalComponent,
+    MemberStatsComponent
   ],
   templateUrl: './membership.component.html',
   styleUrl: './membership.component.scss'
@@ -48,6 +50,16 @@ export class MembershipManagementComponent implements OnInit {
 
   memberships = computed(() => {
     return this.allSubscriptions();
+  });
+
+  stats = computed(() => {
+    const list = this.allSubscriptions();
+    return {
+      total: this.totalItems(),
+      active: list.filter(m => (m.status || '').toLowerCase() === 'active').length,
+      pending: list.filter(m => (m.status || '').toLowerCase() === 'pending').length,
+      expired: list.filter(m => ['expired', 'cancelled'].includes((m.status || '').toLowerCase())).length
+    };
   });
 
   ngOnInit() {

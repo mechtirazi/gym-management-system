@@ -36,6 +36,12 @@
             </div>
             <p>{{ suspensionReason() || 'Your gym access has been temporarily limited by the platform administration. Please contact support for more details.' }}</p>
           </div>
+          <div class="banner-actions">
+            <button class="refresh-btn" (click)="refreshGymStatus()">
+              <mat-icon>refresh</mat-icon>
+              Check Status
+            </button>
+          </div>
         </div>
       }
       <router-outlet></router-outlet>

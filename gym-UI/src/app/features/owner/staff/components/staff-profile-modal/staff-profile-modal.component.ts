@@ -47,9 +47,9 @@ export class StaffProfileModalComponent implements OnInit {
     this.editForm = this.fb.group({
       firstName: [firstName, Validators.required],
       lastName: [lastName, Validators.required],
-      email: [this.member().email || '', [Validators.required, Validators.email]],
+      email: [{ value: this.member().email || '', disabled: true }, [Validators.required, Validators.email]],
       phone: [this.member().phone || ''],
-      role: [(this.member().role || 'staff').toLowerCase(), Validators.required]
+      role: [{ value: (this.member().role || 'staff').toLowerCase(), disabled: true }, Validators.required]
     });
   }
 
@@ -81,7 +81,7 @@ export class StaffProfileModalComponent implements OnInit {
       return;
     }
 
-    const formVal = this.editForm.value;
+    const formVal = this.editForm.getRawValue();
     const payload = {
       name: formVal.firstName,
       last_name: formVal.lastName,

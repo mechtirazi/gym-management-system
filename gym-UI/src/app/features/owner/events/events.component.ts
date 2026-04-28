@@ -6,7 +6,6 @@ import { PageHeaderComponent } from '../components/page-header/page-header.compo
 import { FilterControlsComponent } from '../components/filter-controls/filter-controls.component';
 import { EventCardComponent } from './components/event-card/event-card.component';
 import { EventAttendancesModalComponent } from './components/event-attendances-modal/event-attendances-modal.component';
-import { AddEventModalComponent } from './components/add-event-modal/add-event-modal.component';
 import { EventModel } from '../../../shared/models/event.model';
 import { finalize } from 'rxjs';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
@@ -20,8 +19,7 @@ import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.se
     PageHeaderComponent,
     FilterControlsComponent,
     EventCardComponent,
-    EventAttendancesModalComponent,
-    AddEventModalComponent
+    EventAttendancesModalComponent
   ],
   templateUrl: './events.component.html',
   styleUrl: './events.component.scss'
@@ -42,11 +40,9 @@ export class EventManagementComponent implements OnInit {
   totalItems = signal<number>(0);
   lastPage = signal<number>(1);
 
-  // Modal state
-  showAddModal = signal<boolean>(false);
-  showAttendanceModal = signal<boolean>(false);
+  // Modal state (Unified)
+  showActionModal = signal<boolean>(false);
   selectedEvent = signal<EventModel | null>(null);
-  selectedEventForEdit = signal<EventModel | null>(null);
 
   filteredEvents = computed(() => {
     let list = this.allEvents();
@@ -136,28 +132,18 @@ export class EventManagementComponent implements OnInit {
     }
   }
 
-  openAttendanceModal(event: EventModel) {
-    this.selectedEvent.set(event);
-    this.showAttendanceModal.set(true);
-  }
-
-  closeAttendanceModal() {
-    this.showAttendanceModal.set(false);
-    this.selectedEvent.set(null);
-  }
-
   openAddModal() {
-    this.selectedEventForEdit.set(null);
-    this.showAddModal.set(true);
+    this.selectedEvent.set(null);
+    this.showActionModal.set(true);
   }
 
-  closeAddModal() {
-    this.showAddModal.set(false);
-    this.selectedEventForEdit.set(null);
+  openManagementModal(event: EventModel) {
+    this.selectedEvent.set(event);
+    this.showActionModal.set(true);
   }
 
-  onEditEvent(event: EventModel) {
-    this.selectedEventForEdit.set(event);
-    this.showAddModal.set(true);
+  closeActionModal() {
+    this.showActionModal.set(false);
+    this.selectedEvent.set(null);
   }
 }

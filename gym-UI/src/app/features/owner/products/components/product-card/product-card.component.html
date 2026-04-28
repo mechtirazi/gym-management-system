@@ -16,6 +16,9 @@
     </div>
     <div class="product-info">
       <h2 class="product-title">{{ product().name }}</h2>
+      @if (product().description) {
+        <p class="product-description">{{ product().description }}</p>
+      }
       <div class="badges-row">
         <span class="badge category-badge">{{ product().category || 'General' }}</span>
         @if ((product().discount_percentage || 0) > 0) {

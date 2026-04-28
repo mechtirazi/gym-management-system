@@ -167,6 +167,40 @@
       .dark & { color: #9ca3af; }
     }
   }
+
+  .banner-actions {
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: #e11d48;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(225, 29, 72, 0.2);
+
+      &:hover {
+        background: #be123c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(225, 29, 72, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
 }
 
 @keyframes banner-slide-in {

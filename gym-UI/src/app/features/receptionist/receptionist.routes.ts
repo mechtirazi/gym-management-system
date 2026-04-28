@@ -10,11 +10,6 @@ export const receptionistRoutes: Routes = [
           import('./views/dashboard/receptionist-dashboard.component').then(m => m.ReceptionistDashboardComponent)
       },
       {
-        path: 'members',
-        loadComponent: () =>
-          import('../owner/member/member.component').then(m => m.MemberManagementComponent)
-      },
-      {
         path: 'payments',
         loadComponent: () =>
           import('./views/payments/receptionist-payments.component').then(m => m.ReceptionistPaymentsComponent)

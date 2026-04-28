@@ -53,6 +53,14 @@
       &.pending {
         background: #f59e0b;
       }
+
+      &.expired {
+        background: #94a3b8;
+      }
+
+      &.cancelled {
+        background: #ef4444;
+      }
     }
   }
 
@@ -72,6 +80,11 @@
     text-transform: uppercase;
     background: #e0f2fe;
     color: #0369a1;
+
+    &.active { background: #dcfce7; color: #15803d; }
+    &.pending { background: #fef3c7; color: #b45309; }
+    &.expired { background: #f1f5f9; color: #475569; }
+    &.cancelled { background: #fee2e2; color: #b91c1c; }
   }
 }
 

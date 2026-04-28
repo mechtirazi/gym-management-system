@@ -21,6 +21,7 @@ export class AddProductModalComponent {
   
   product = {
     name: '',
+    description: '',
     category: 'Supplements',
     price: null as number | null,
     stock: null as number | null,
@@ -54,6 +55,7 @@ export class AddProductModalComponent {
 
     const formData = new FormData();
     formData.append('name', this.product.name);
+    formData.append('description', this.product.description);
     formData.append('category', this.product.category);
     formData.append('price', this.product.price.toString());
     formData.append('stock', this.product.stock.toString());

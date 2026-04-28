@@ -35,6 +35,10 @@
       </div>
     </div>
   </app-page-header>
+  
+  <div class="membership-stats-container">
+    <app-member-stats [data]="stats()"></app-member-stats>
+  </div>
 
   <main class="membership-content">
     @if (isLoading()) {

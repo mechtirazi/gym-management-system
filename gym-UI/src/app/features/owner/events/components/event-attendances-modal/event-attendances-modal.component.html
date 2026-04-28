@@ -10,22 +10,24 @@
           </svg>
         </div>
         <div class="title-text">
-          <h2>Manage Event</h2>
-          <p class="subtitle">Modify details and track participation</p>
+          <h2>{{ isEditMode() ? 'Manage Event' : 'Create New Event' }}</h2>
+          <p class="subtitle">{{ isEditMode() ? 'Modify details and track participation' : 'Schedule a special activity for your gym' }}</p>
         </div>
       </div>
       <button class="close-btn" (click)="close.emit()">&times;</button>
     </div>
 
-    <!-- Tabs Navigation -->
-    <div class="modal-tabs">
-      <button class="tab-btn" [class.active]="activeTab() === 'details'" (click)="activeTab.set('details')">
-        Details & Config
-      </button>
-      <button class="tab-btn" [class.active]="activeTab() === 'attendance'" (click)="activeTab.set('attendance')">
-        Member Attendance
-      </button>
-    </div>
+    <!-- Tabs Navigation (Only shown in Edit mode) -->
+    @if (isEditMode()) {
+      <div class="modal-tabs">
+        <button class="tab-btn" [class.active]="activeTab() === 'details'" (click)="activeTab.set('details')">
+          Details & Config
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'attendance'" (click)="activeTab.set('attendance')">
+          Member Attendance
+        </button>
+      </div>
+    }
 
     <div class="modal-body">
 
@@ -33,6 +35,28 @@
       @if (activeTab() === 'details') {
       <div class="tab-content details-tab">
         <form [formGroup]="eventForm" (ngSubmit)="submitForm()" class="event-form">
+          <!-- Event Image Upload -->
+          <div class="form-group image-upload-group full-width">
+            <label>Event Image</label>
+            <div class="image-preview-container" [class.has-image]="imagePreview()">
+              @if (imagePreview()) {
+              <img [src]="imagePreview()" alt="Event Preview" class="image-preview">
+              <button type="button" class="remove-image-btn" (click)="removeImage()">&times;</button>
+              } @else {
+              <div class="upload-placeholder" (click)="fileInput.click()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <span>Click to upload event banner</span>
+              </div>
+              }
+              <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" hidden>
+            </div>
+          </div>
+
           <div class="form-grid">
             <div class="form-group full-width">
               <label>Event Title</label>
@@ -45,18 +69,35 @@
             </div>
 
             <div class="form-group">
-              <label>Start Date</label>
-              <input type="date" formControlName="start_date">
+              <label>Start Schedule</label>
+              <div class="datetime-input-wrapper">
+                <input type="date" formControlName="start_date">
+                <input type="time" formControlName="start_time">
+              </div>
             </div>
 
             <div class="form-group">
-              <label>End Date</label>
-              <input type="date" formControlName="end_date">
+              <label>End Schedule</label>
+              <div class="datetime-input-wrapper">
+                <input type="date" formControlName="end_date">
+                <input type="time" formControlName="end_time">
+              </div>
             </div>
 
             <div class="form-group">
               <label>Max Participants</label>
-              <input type="number" formControlName="max_participants">
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <input type="number" formControlName="max_participants" [class.disabled-input]="eventForm.get('ignore_max_capacity')?.value" min="1">
+                <div class="checkbox-wrapper mini" style="display: flex; align-items: center; gap: 0.5rem;">
+                  <input type="checkbox" formControlName="ignore_max_capacity" id="ignore_max_capacity_edit" style="width: auto; margin: 0;">
+                  <label for="ignore_max_capacity_edit" style="margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); cursor: pointer;">No Participant Limit</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Price (DZD)</label>
+              <input type="number" formControlName="price" placeholder="0.00" min="0">
             </div>
 
             <div class="form-group full-width">
@@ -84,16 +125,23 @@
           </div>
 
           @if (submitError()) {
-          <div class="error-msg">{{ submitError() }}</div>
+          <div class="error-msg card-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {{ submitError() }}
+          </div>
           }
 
           <div class="form-footer">
             <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
               @if (isSubmitting()) {
-              <span class="spinner-small"></span>
-              Saving...
+                <span class="spinner-small"></span>
+                {{ isEditMode() ? 'Saving...' : 'Creating...' }}
               } @else {
-              Save Changes
+                {{ isEditMode() ? 'Save Changes' : 'Create Event' }}
               }
             </button>
           </div>
@@ -101,8 +149,8 @@
       </div>
       }
 
-      <!-- Tab 2: Attendance Management -->
-      @if (activeTab() === 'attendance') {
+      <!-- Tab 2: Attendance Management (Only in Edit mode) -->
+      @if (activeTab() === 'attendance' && isEditMode()) {
       <div class="tab-content attendance-tab">
         <div class="attendance-summary card">
           <div class="summary-item">
@@ -111,7 +159,7 @@
           </div>
           <div class="summary-item">
             <span class="label">Event Date</span>
-            <span class="value">{{ eventModel().start_date | date:'mediumDate' }}</span>
+            <span class="value">{{ eventModel()?.start_date | date:'mediumDate' }}</span>
           </div>
         </div>
 
@@ -171,3 +219,4 @@
     </div>
   </div>
 </div>
+/div>

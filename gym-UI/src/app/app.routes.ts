@@ -77,7 +77,6 @@ export const routes: Routes = [
           { path: 'dashboard', loadComponent: () => import('./features/owner/dashboard/owner-dashboard.component').then(m => m.OwnerDashboardComponent) },
           { path: 'gym-profile', loadComponent: () => import('./features/owner/gym-profile/gym-profile').then(m => m.GymProfileComponent) },
           { path: 'trainers', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
-          { path: 'members', loadComponent: () => import('./features/owner/member/member.component').then(m => m.MemberManagementComponent) },
           { path: 'memberships', loadComponent: () => import('./features/owner/membership/membership.component').then(m => m.MembershipManagementComponent) },
           { path: 'membership-plans', loadComponent: () => import('./features/owner/membership/plans/membership-plans.component').then(m => m.MembershipPlansComponent) },
           { path: 'revenue', loadComponent: () => import('./features/owner/revenue/revenue.component').then(m => m.OwnerRevenueComponent) },

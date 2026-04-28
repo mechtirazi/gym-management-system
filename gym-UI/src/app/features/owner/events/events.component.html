@@ -70,8 +70,7 @@
     <div class="events-grid">
       @for (event of filteredEvents(); track event.id_event || $index) {
       <app-event-card [eventModel]="event" (deleteClick)="onDeleteEvent($event)"
-        (editClick)="onEditEvent($event)"
-        (manageClick)="openAttendanceModal(event)">
+        (manageClick)="openManagementModal(event)">
       </app-event-card>
       }
     </div>
@@ -98,14 +97,9 @@
     }
   </main>
 
-  @if (showAddModal()) {
-  <app-add-event-modal [editEvent]="selectedEventForEdit()" (close)="closeAddModal()" (eventAdded)="loadEvents()">
-  </app-add-event-modal>
-  }
-
-  @if (showAttendanceModal() && selectedEvent()) {
+  @if (showActionModal()) {
   <app-event-attendances-modal [eventModel]="selectedEvent()" (eventUpdated)="loadEvents()"
-    (close)="closeAttendanceModal()">
+    (close)="closeActionModal()">
   </app-event-attendances-modal>
   }
 </div>

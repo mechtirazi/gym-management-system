@@ -22,6 +22,7 @@ class Product extends Model
     protected $fillable = [
         'id_gym',
         'name',
+        'description',
         'image',
         'price',
         'stock',

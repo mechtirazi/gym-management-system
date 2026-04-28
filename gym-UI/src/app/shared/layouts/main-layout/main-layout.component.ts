@@ -43,6 +43,10 @@ export class MainLayoutComponent {
     return ['owner', 'trainer', 'nutritionist', 'receptionist'].includes(role || '') && this.gymStatus() === 'suspended';
   };
 
+  refreshGymStatus() {
+    this.authService.checkCurrentGymStatus();
+  }
+
   suspensionBannerTitle = () => {
     const role = this.userRole();
     return role === 'owner' ? 'Administrative Action Required' : 'Limited Access Enabled';

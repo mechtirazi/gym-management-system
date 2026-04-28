@@ -110,6 +110,39 @@ export class AuthService {
     }
   }
 
+  /**
+   * Manually check the status of the currently connected gym.
+   * Useful for clearing a suspension banner without logging out.
+   */
+  checkCurrentGymStatus(): void {
+    const user = this.currentUser();
+    if (!user || !user.gym_id) return;
+
+    this.http.get<any>(`${this.API_URL}/gyms/${user.gym_id}`).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          const gym = res.data;
+          // Only update if there's a change in status
+          if (gym.status !== user.gym_status) {
+            this.updateCurrentUser({
+              ...user,
+              gym_status: gym.status,
+              gym_suspension_reason: gym.suspension_reason || ''
+            });
+            
+            if (gym.status === 'active') {
+              // Reload to re-enable all UI features and clear interceptor blocks
+              window.location.reload();
+            }
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Failed to refresh gym status:', err);
+      }
+    });
+  }
+
   getToken(): string | null {
     return localStorage.getItem('token');
   }

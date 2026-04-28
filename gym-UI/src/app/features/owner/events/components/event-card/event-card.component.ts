@@ -17,7 +17,6 @@ interface IExtendedEvent extends EventModel {
 export class EventCardComponent {
   eventModel = input.required<IExtendedEvent>();
   deleteClick = output<string>();
-  editClick = output<EventModel>();
   manageClick = output<void>();
 
   get eventImage(): string | null {

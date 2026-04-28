@@ -58,16 +58,38 @@ export class MemberManagementComponent implements OnInit {
   });
 
   stats = computed(() => {
-    // Note: Stats now might only represent the current page unless we have a backend stats endpoint
-    // Assuming backend returns some total stats or we use the list size
     const list = this.allMembers();
     return {
       total: this.totalItems(),
       active: list.filter(m => (m.status || '').toLowerCase() === 'active').length,
       pending: list.filter(m => (m.status || '').toLowerCase() === 'pending').length,
-      expired: list.filter(m => ['inactive', 'expired', 'cancelled'].includes((m.status || '').toLowerCase())).length
+      expired: list.filter(m => ['expired', 'cancelled'].includes((m.status || '').toLowerCase())).length
     };
   });
+
+  private calculateMemberStatus(item: any): string {
+    const rawStatus = (item.status || 'active').toLowerCase();
+    
+    // If explicitly cancelled, respect that
+    if (rawStatus === 'cancelled') return 'Cancelled';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Use enrollment_date as start, and end_date if provided by backend
+    const start = new Date(item.enrollment_date || item.start_date);
+    start.setHours(0, 0, 0, 0);
+
+    if (today < start) return 'Pending';
+
+    if (item.end_date) {
+      const end = new Date(item.end_date);
+      end.setHours(0, 0, 0, 0);
+      if (today > end) return 'Expired';
+    }
+
+    return 'Active';
+  }
 
   constructor() { }
 
@@ -115,7 +137,7 @@ export class MemberManagementComponent implements OnInit {
               name: u?.name && u?.last_name ? `${u.name} ${u.last_name}` : (u?.name || 'Member'),
               email: u?.email || 'N/A',
               phone: u?.phone || 'No phone',
-              status: item.status || 'Active',
+              status: this.calculateMemberStatus(item),
               id_plan: item.id_plan,
               joinedAt: item.created_at || u?.created_at || new Date().toISOString()
             };

@@ -14,16 +14,12 @@ class StoreProductRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
             'id_gym'   => 'nullable|string|exists:gyms,id_gym',
             'name'     => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'price'    => 'required|numeric|min:0',
             'stock'    => 'required|integer|min:0',
             'category' => 'required|in:Supplements,Equipment,Apparel,Accessories,Nutrition',

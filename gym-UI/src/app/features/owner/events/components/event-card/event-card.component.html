@@ -38,13 +38,18 @@
       <span class="label">Date & Time</span>
       <span class="value">{{ eventModel().start_date ? (eventModel().start_date | date:'mediumDate') : 'TBD' }} @ {{ eventModel().start_time?.substring(0, 5) || '--:--' }}</span>
     </div>
-    <div class="detail-item">
-      <span class="label">Available Slots</span>
-      <span class="value occupancy" [class.full]="(eventModel().max_participants || 0) - (eventModel().attendances_count || 0) <= 0">
-        <span class="remaining">{{ (eventModel().max_participants || 0) - (eventModel().attendances_count || 0) }}</span>
-        <span class="total">/ {{ eventModel().max_participants }}</span>
-      </span>
-    </div>
+      <div class="detail-item">
+        <span class="label">Occupancy</span>
+        <span class="value occupancy" [class.full]="eventModel().max_participants < 999999 && (eventModel().max_participants || 0) - (eventModel().attendances_count || 0) <= 0">
+          @if (eventModel().max_participants >= 999999) {
+            <span class="remaining">{{ eventModel().attendances_count || 0 }} Joined</span>
+            <span class="total">/ Unlimited</span>
+          } @else {
+            <span class="remaining">{{ eventModel().attendances_count || 0 }} Joined</span>
+            <span class="total">/ {{ eventModel().max_participants }} Max</span>
+          }
+        </span>
+      </div>
   </div>
 
   <div class="card-footer">
@@ -55,13 +60,6 @@
           stroke-linejoin="round">
           <polyline points="3 6 5 6 21 6" />
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-        </svg>
-      </button>
-      <button class="icon-btn edit-btn" (click)="editClick.emit(eventModel())" title="Update Event" aria-label="Edit event">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-          stroke-linejoin="round">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
         </svg>
       </button>
       <button class="primary-btn small-btn" (click)="manageClick.emit()">Manage Event</button>
