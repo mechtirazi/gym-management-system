@@ -20,7 +20,8 @@ export class MembershipPlanService {
   private readonly apiUrl = `${environment.apiUrl}/owner`;
 
   getPlans(gymId: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/gyms/${gymId}/plans`);
+    // Use shared route instead of /owner to allow staff access
+    return this.http.get<any>(`${environment.apiUrl}/gyms/${gymId}/plans`);
   }
 
   createPlan(gymId: string, plan: MembershipPlan): Observable<any> {

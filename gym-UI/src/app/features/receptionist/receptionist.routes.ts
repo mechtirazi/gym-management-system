@@ -34,6 +34,16 @@ export const receptionistRoutes: Routes = [
         loadComponent: () =>
           import('../owner/products/products.component').then(m => m.ProductManagementComponent)
       },
+      {
+        path: 'membership-plans',
+        loadComponent: () =>
+          import('../owner/membership/plans/membership-plans.component').then(m => m.MembershipPlansComponent)
+      },
+      {
+        path: 'community',
+        loadComponent: () =>
+          import('../owner/community/community.component').then(m => m.CommunityComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

@@ -44,35 +44,33 @@ class ReviewService extends BaseService
         // Staff (Receptionist, Trainer, Nutritionist) see reviews for their assigned gyms
         if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
             
-            // Apply active gym scope if header is present
-            $this->applyActiveGymScope($query, $user, 'id_gym');
-
-            // If the user is a trainer, respect the active gym context
-            if ($user->role === User::ROLE_TRAINER) {
-                // If id_gym was NOT applied by applyActiveGymScope (no header), 
-                // then fallback to all allowed gyms but still include trainer's own reviews
-                if (!$this->getActiveGymId()) {
-                    $gymIds = $user->allowedGymIds();
-                    $query->where(function ($q) use ($gymIds, $user) {
-                        $q->whereIn('id_gym', $gymIds)
-                          ->orWhereHas('event', fn($sq) => $sq->whereIn('id_gym', $gymIds))
-                          ->orWhereHas('course', fn($sq) => $sq->whereIn('id_gym', $gymIds))
-                          ->orWhere('id_trainer', $user->id_user);
-                    });
-                }
-                return $perPage ? $query->paginate($perPage) : $query->get();
-            }
-
-            // For other staff (Receptionist, Nutritionist), keep the event scoping if that's what's designed.
+            // 1. First apply gym scoping based on the active gym header if present
             $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) {
-                $q->whereHas('event', function ($sq) use ($gymId) {
-                    $sq->where('id_gym', $gymId);
+                $q->where(function ($sub) use ($gymId) {
+                    $sub->where('id_gym', $gymId)
+                        ->orWhereHas('event', fn($sq) => $sq->where('id_gym', $gymId))
+                        ->orWhereHas('course', fn($sq) => $sq->where('id_gym', $gymId))
+                        ->orWhereHas('session.course', fn($sq) => $sq->where('id_gym', $gymId));
                 });
             });
 
-            return $query->whereHas('event.gym', function ($q) use ($user) {
-                $q->whereIn('gyms.id_gym', $user->allowedGymIds());
-            })->get();
+            // 2. If no header is present, fallback to all allowed gyms
+            if (!$this->getActiveGymId()) {
+                $gymIds = $user->allowedGymIds();
+                $query->where(function ($q) use ($gymIds, $user) {
+                    $q->whereIn('id_gym', $gymIds)
+                      ->orWhereHas('event', fn($sq) => $sq->whereIn('id_gym', $gymIds))
+                      ->orWhereHas('course', fn($sq) => $sq->whereIn('id_gym', $gymIds))
+                      ->orWhereHas('session.course', fn($sq) => $sq->whereIn('id_gym', $gymIds));
+                    
+                    // Specific to trainers: always show their own reviews regardless of gym
+                    if ($user->role === User::ROLE_TRAINER) {
+                        $q->orWhere('id_trainer', $user->id_user);
+                    }
+                });
+            }
+
+            return $perPage ? $query->paginate($perPage) : $query->get();
         }
         // Members see their own reviews
         elseif ($user->role === User::ROLE_MEMBER) {

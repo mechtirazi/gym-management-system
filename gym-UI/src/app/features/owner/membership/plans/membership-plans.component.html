@@ -11,10 +11,12 @@
           <p class="subtitle">Establish and tune your facility's enrollment tiers and subscription structures.</p>
         </div>
       </div>
-      <button class="add-tier-btn" (click)="openAddModal()">
-        <span class="material-symbols-rounded">add</span>
-        Initialize Protocol
-      </button>
+      @if (canManage()) {
+        <button class="add-tier-btn" (click)="openAddModal()">
+          <span class="material-symbols-rounded">add</span>
+          Initialize Protocol
+        </button>
+      }
     </div>
   </header>
 
@@ -31,10 +33,12 @@
         </div>
         <h3>No protocols defined</h3>
         <p>Set up your first membership tier to authorize member enrollment.</p>
-        <button class="btn-primary-glow" (click)="openAddModal()">
-          <span class="material-symbols-rounded">add</span>
-          Initialize Tier
-        </button>
+        @if (canManage()) {
+          <button class="btn-primary-glow" (click)="openAddModal()">
+            <span class="material-symbols-rounded">add</span>
+            Initialize Tier
+          </button>
+        }
       </div>
     } @else {
       <div class="plans-grid">
@@ -61,15 +65,17 @@
               <p class="plan-desc">{{ plan.description || 'Verified facility synchronization protocol.' }}</p>
             </div>
 
-            <div class="plan-actions">
-              <button class="btn-action edit" (click)="openEditModal(plan)" title="Retune">
-                <span class="material-symbols-rounded">edit_note</span>
-                <span>Retune</span>
-              </button>
-              <button class="btn-action delete" (click)="deletePlan(plan.id!)" title="Decommission">
-                <span class="material-symbols-rounded">delete_forever</span>
-              </button>
-            </div>
+            @if (canManage()) {
+              <div class="plan-actions">
+                <button class="btn-action edit" (click)="openEditModal(plan)" title="Retune">
+                  <span class="material-symbols-rounded">edit_note</span>
+                  <span>Retune</span>
+                </button>
+                <button class="btn-action delete" (click)="deletePlan(plan.id!)" title="Decommission">
+                  <span class="material-symbols-rounded">delete_forever</span>
+                </button>
+              </div>
+            }
           </div>
         }
       </div>

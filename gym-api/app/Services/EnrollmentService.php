@@ -14,6 +14,24 @@ class EnrollmentService extends BaseService
     }
 
     /**
+     * Create a new enrollment with duplicate prevention
+     */
+    public function create(array $data): \Illuminate\Database\Eloquent\Model
+    {
+        // Prevent duplicate ACTIVE or PENDING memberships for the same user in the same gym
+        $exists = Enrollment::where('id_member', $data['id_member'])
+            ->where('id_gym', $data['id_gym'])
+            ->whereIn('status', ['active', 'pending'])
+            ->exists();
+
+        if ($exists) {
+            throw new \Exception('Member already has an active or pending subscription in this facility.');
+        }
+
+        return parent::create($data);
+    }
+
+    /**
      * Get enrollments filtered by the requesting user's access
      */
     public function getAllScoped($user, ?int $perPage = null)

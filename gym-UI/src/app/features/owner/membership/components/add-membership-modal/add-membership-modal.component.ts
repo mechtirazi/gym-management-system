@@ -44,7 +44,8 @@ export class AddMembershipModalComponent implements OnInit {
     first_name: [''],
     last_name: [''],
     email: [''],
-    phone: ['']
+    phone: [''],
+    password: ['']
   });
 
   ngOnInit() {
@@ -104,6 +105,8 @@ export class AddMembershipModalComponent implements OnInit {
     }
     idUserCtrl?.updateValueAndValidity();
     newUserFields.forEach(f => this.membershipForm.get(f)?.updateValueAndValidity());
+    this.membershipForm.get('password')?.setValidators(this.isNewMember() ? [Validators.required, Validators.minLength(6)] : []);
+    this.membershipForm.get('password')?.updateValueAndValidity();
     this.error.set(null);
   }
 
@@ -133,6 +136,24 @@ export class AddMembershipModalComponent implements OnInit {
 
     const formValue = this.membershipForm.getRawValue();
     
+    // Dynamic Status Calculation logic
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const enrollmentDate = new Date(formValue.subscribe_date);
+    enrollmentDate.setHours(0, 0, 0, 0);
+    
+    const selectedPlan = this.plans().find(p => p.id === formValue.id_plan);
+    const durationDays = selectedPlan?.duration_days || 30;
+    const expiryDate = new Date(enrollmentDate);
+    expiryDate.setDate(expiryDate.getDate() + durationDays);
+
+    let calculatedStatus = 'active';
+    if (enrollmentDate > today) {
+      calculatedStatus = 'pending';
+    } else if (expiryDate < today) {
+      calculatedStatus = 'expired';
+    }
+
     if (this.isNewMember()) {
       this.isSubmitting.set(true);
       this.isCreatingUser.set(true);
@@ -143,7 +164,7 @@ export class AddMembershipModalComponent implements OnInit {
         email: formValue.email,
         phone: formValue.phone,
         role: 'member',
-        password: 'password123', // Default password
+        password: formValue.password || 'password123', 
         creation_date: new Date().toISOString().split('T')[0]
       };
 
@@ -154,7 +175,7 @@ export class AddMembershipModalComponent implements OnInit {
           const payload = {
             id_member: userId,
             id_gym: gymId,
-            status: formValue.status,
+            status: calculatedStatus,
             id_plan: formValue.id_plan,
             enrollment_date: formValue.subscribe_date
           };
@@ -178,7 +199,7 @@ export class AddMembershipModalComponent implements OnInit {
       const payload = {
         id_member: formValue.id_user,
         id_gym: gymId,
-        status: formValue.status,
+        status: calculatedStatus,
         id_plan: formValue.id_plan,
         enrollment_date: formValue.subscribe_date
       };

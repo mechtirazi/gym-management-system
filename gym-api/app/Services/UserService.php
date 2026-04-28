@@ -63,15 +63,7 @@ class UserService extends BaseService
             if (!empty($gymIds)) {
                 $gymId = $gymIds[0];
 
-                if ($newUser->role === User::ROLE_MEMBER) {
-                    \App\Models\Enrollment::create([
-                        'id_member' => $newUser->id_user,
-                        'id_gym' => $gymId,
-                        'id_plan' => $data['id_plan'] ?? null,
-                        'enrollment_date' => $data['enrollment_date'] ?? ($newUser->creation_date ?? now()),
-                        'status' => 'active',
-                    ]);
-                } else if (in_array($newUser->role, [User::ROLE_TRAINER, User::ROLE_NUTRITIONIST, User::ROLE_RECEPTIONIST])) {
+                if (in_array($newUser->role, [User::ROLE_TRAINER, User::ROLE_NUTRITIONIST, User::ROLE_RECEPTIONIST])) {
                     \App\Models\GymStaff::create([
                         'id_user' => $newUser->id_user,
                         'id_gym' => $gymId,

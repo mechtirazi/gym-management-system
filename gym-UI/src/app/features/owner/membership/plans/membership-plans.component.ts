@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MembershipPlanService, MembershipPlan } from '../../services/membership-plan.service';
@@ -29,7 +29,13 @@ export class MembershipPlansComponent implements OnInit {
 
   currentPlan: MembershipPlan = this.resetPlan();
 
+  canManage = computed(() => {
+    const role = this.authService.userRole()?.toLowerCase();
+    return role === 'owner';
+  });
+
   ngOnInit() {
+    console.log('MembershipPlansComponent - Current Role:', this.authService.userRole());
     // Reactively load plans when the gym context changes
     const gymId = this.authService.connectedGymId();
     if (gymId) {

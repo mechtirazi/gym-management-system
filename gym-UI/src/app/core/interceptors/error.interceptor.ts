@@ -1,13 +1,14 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, Injector } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
+  const injector = inject(Injector);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      const authService = injector.get(AuthService);
       // 403 Forbidden is returned by CheckGymStatus middleware when a gym is suspended
       if (error.status === 403) {
         const errorData = error.error;
