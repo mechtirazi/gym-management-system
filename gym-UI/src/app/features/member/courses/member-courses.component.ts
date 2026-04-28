@@ -155,13 +155,14 @@ export class MemberCoursesComponent implements OnInit {
             gymName: course.gym?.name || 'Local Hub',
             gymLogo: course.gym?.logo_url || `https://ui-avatars.com/api/?name=${course.gym?.name || 'Gym'}&background=8b5cf6&color=fff`,
             duration: course.duration || '0',
-            members_count: course.count || 0,
-            category: course.goal || 'Fitness',
+            members_count: course.enrolled_members_count || course.count || 0,
+            max_capacity: course.max_capacity || 20,
             activeSessions: activeSessions,
             hasActiveSession: activeSessions.length > 0,
             selectedSessionId: activeSessions.length > 0 ? activeSessions[0].id_session || activeSessions[0].id : null,
             displayTrainerName: tName,
-            displayTrainerAvatar: tAvatar
+            displayTrainerAvatar: tAvatar,
+            isOwned: activeSessions.some((s: any) => this.myPaidSessionIds.includes(s.id_session || s.id))
           };
         });
 
@@ -318,5 +319,26 @@ export class MemberCoursesComponent implements OnInit {
 
   isSessionReserved(course: any): boolean {
     return !!course.selectedSessionId && this.reservedSessionIds.includes(course.selectedSessionId);
+  }
+
+  getSelectedSessionCapacity(course: any): string {
+    if (!course.selectedSessionId && course.activeSessions?.length === 0) return 'N/A';
+    
+    // If no session selected yet but sessions exist, default to the first one's data
+    const targetId = course.selectedSessionId || (course.activeSessions?.length > 0 ? (course.activeSessions[0].id_session || course.activeSessions[0].id) : null);
+    
+    const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === targetId);
+    const enrolled = session?.attendances_count || 0;
+    const max = session?.max_capacity || course.max_capacity || 20;
+    return `${enrolled} / ${max}`;
+  }
+
+  isSessionFull(course: any): boolean {
+    const targetId = course.selectedSessionId || (course.activeSessions?.length > 0 ? (course.activeSessions[0].id_session || course.activeSessions[0].id) : null);
+    const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === targetId);
+    if (!session) return false;
+    const enrolled = session.attendances_count || 0;
+    const max = session.max_capacity || course.max_capacity || 20;
+    return enrolled >= max;
   }
 }

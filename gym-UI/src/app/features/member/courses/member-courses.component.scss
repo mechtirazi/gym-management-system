@@ -505,43 +505,105 @@
 
           span { font-size: 1.2rem; }
         }
-      }
 
-      .reserve-btn {
-        padding: 1rem 2rem;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%);
-        border: 1px solid rgba(16, 185, 129, 0.5);
-        color: #10b981;
-        border-radius: 14px;
-        font-weight: 950;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 2px;
-        white-space: nowrap;
+        .session-info-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          width: 100%;
 
-        &:hover {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.4) 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
-          color: #fff;
-          border-color: #10b981;
+          .capacity-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.6rem 1rem;
+            background: rgba(0, 210, 255, 0.05);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            border-radius: 100px;
+            color: #00d2ff;
+            font-size: 0.85rem;
+            font-weight: 850;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+
+            span.material-symbols-rounded { font-size: 1.2rem; }
+
+            &.is-full {
+              background: rgba(239, 68, 68, 0.05);
+              border-color: rgba(239, 68, 68, 0.3);
+              color: #ef4444;
+            }
+          }
+
+          .owned-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.6rem 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 100px;
+            color: #8b5cf6;
+            font-size: 0.85rem;
+            font-weight: 850;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            
+            span.material-symbols-rounded { font-size: 1.2rem; }
+          }
         }
 
-        &.reserved {
-          background: #10b981;
-          color: #fff;
-          border-color: #10b981;
-          box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
-          cursor: default;
-          transform: none;
-        }
+        .reserve-btn {
+          padding: 1rem 2rem;
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%);
+          border: 1px solid rgba(16, 185, 129, 0.5);
+          color: #10b981;
+          border-radius: 14px;
+          font-weight: 950;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          text-transform: uppercase;
+          font-size: 0.85rem;
+          letter-spacing: 2px;
+          white-space: nowrap;
 
-        span { font-size: 1.2rem; }
+          &:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.4) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+            color: #fff;
+            border-color: #10b981;
+          }
+
+          &.reserved {
+            background: #10b981;
+            color: #fff;
+            border-color: #10b981;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+            cursor: default;
+            transform: none;
+          }
+
+          &.is-full {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+          }
+
+          &:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+          }
+
+          span { font-size: 1.2rem; }
+        }
       }
     }
   }

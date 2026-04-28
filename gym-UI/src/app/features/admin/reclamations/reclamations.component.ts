@@ -302,7 +302,7 @@ export class ReclamationsComponent {
           this.deletingId.set(null);
           this.toastService.success('Reclamation deleted successfully');
         },
-        error: (err) => {
+        error: (err: any) => {
           this.deletingId.set(null);
           console.error('Delete failed', err);
           this.toastService.error(err.error?.message || 'Failed to delete reclamation');

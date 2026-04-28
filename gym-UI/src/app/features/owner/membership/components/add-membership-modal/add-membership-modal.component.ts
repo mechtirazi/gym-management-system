@@ -139,7 +139,7 @@ export class AddMembershipModalComponent implements OnInit {
     // Dynamic Status Calculation logic
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const enrollmentDate = new Date(formValue.subscribe_date);
+    const enrollmentDate = new Date(formValue.subscribe_date || new Date().toISOString());
     enrollmentDate.setHours(0, 0, 0, 0);
     
     const selectedPlan = this.plans().find(p => p.id === formValue.id_plan);
