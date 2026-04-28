@@ -110,6 +110,19 @@
           </div>
           <div class="actions-group">
             @if (course.activeSessions?.length > 0) {
+              <div class="session-info-row">
+                <div class="capacity-indicator" [class.is-full]="isSessionFull(course)">
+                  <span class="material-symbols-rounded">{{ isSessionFull(course) ? 'group_off' : 'groups' }}</span>
+                  <span class="capacity-text">{{ getSelectedSessionCapacity(course) }} Spots</span>
+                </div>
+                @if (course.isOwned) {
+                  <div class="owned-badge">
+                    <span class="material-symbols-rounded">verified</span>
+                    <span>Owned</span>
+                  </div>
+                }
+              </div>
+
               @if (course.activeSessions?.length === 1) {
                 <div class="single-session-badge">
                   <span class="material-symbols-rounded">event</span>
@@ -118,11 +131,14 @@
               }
               <button class="reserve-btn" 
                 [class.reserved]="isSessionReserved(course)"
-                [disabled]="isSessionReserved(course)"
+                [class.is-full]="isSessionFull(course)"
+                [disabled]="isSessionReserved(course) || isSessionFull(course)"
                 (click)="onReserve(course)" 
-                [title]="isSessionReserved(course) ? 'You have officially reserved this timeslot' : 'Reserve your spot'">
-                <span class="material-symbols-rounded">{{ isSessionReserved(course) ? 'check_circle' : 'calendar_add_on' }}</span>
-                {{ isSessionReserved(course) ? 'Reserved' : (course.price > 0 ? 'Reserve' : 'Enroll Free') }}
+                [title]="isSessionReserved(course) ? 'You have officially reserved this timeslot' : (isSessionFull(course) ? 'This session is at maximum capacity' : 'Reserve your spot')">
+                <span class="material-symbols-rounded">
+                  {{ isSessionReserved(course) ? 'check_circle' : (isSessionFull(course) ? 'block' : 'calendar_add_on') }}
+                </span>
+                {{ isSessionReserved(course) ? 'Reserved' : (isSessionFull(course) ? 'Full' : (course.price > 0 ? 'Reserve' : 'Enroll Free')) }}
               </button>
             } @else {
               <div class="not-available-badge">

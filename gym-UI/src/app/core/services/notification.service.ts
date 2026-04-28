@@ -108,6 +108,15 @@ export class NotificationService {
     return this.http.post(`${environment.apiUrl}/support/contact`, { message });
   }
 
+  deleteNotification(id: string): Observable<any> {
+    return this.http.delete(`${this.API_URL}/${id}`).pipe(
+      map(res => {
+        this._notifications.update(notifs => notifs.filter(n => n.id !== id));
+        return res;
+      })
+    );
+  }
+
   private mapNotification(n: any): GymNotification {
     return {
       id: n.id_notification,
@@ -121,6 +130,8 @@ export class NotificationService {
             id_user: n.user.id_user,
             name: n.user.name,
             last_name: n.user.last_name,
+            email: n.user.email,
+            role: n.user.role,
             profile_picture: n.user.profile_picture,
           }
         : undefined,
