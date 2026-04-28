@@ -36,12 +36,14 @@ class UserController extends BaseApiController
             return response()->json(['success' => false, 'message' => 'Email is required'], 400);
         }
 
-        $user = User::where('email', $email)->first();
+        $user = User::where('email', $email)
+            ->whereIn('role', [User::ROLE_TRAINER, User::ROLE_RECEPTIONIST, User::ROLE_MEMBER])
+            ->first();
 
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found in database. You may need to create a new profile for this staff member.'
+                'message' => 'User not found or ineligible for staff invitation. Note: Owners and Admins cannot be invited as staff.'
             ], 404);
         }
 

@@ -1,2 +1,22 @@
 @use "../owner-sidebar/owner-sidebar.component.scss";
 
+:host {
+  display: block;
+}
+
+.nav-scroll-wrapper {
+  overflow-y: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar:hover & {
+    scrollbar-width: thin;
+    &::-webkit-scrollbar {
+      display: block;
+      width: 4px;
+    }
+  }
+}
+

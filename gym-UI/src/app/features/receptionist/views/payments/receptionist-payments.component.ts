@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
@@ -53,6 +53,15 @@ export class ReceptionistPaymentsComponent implements OnInit {
   });
 
   canEdit = computed(() => !!this.selectedPayment());
+
+  constructor() {
+    effect(() => {
+      if (this.currentGymId()) {
+        this.refresh();
+        this.loadMembers();
+      }
+    });
+  }
 
   ngOnInit() {
     this.refresh();

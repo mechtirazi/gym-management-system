@@ -132,7 +132,9 @@ export class HireStaffModalComponent {
       last_name: form.last_name?.trim(),
       email:     form.email.trim(),
       phone:     form.phone?.trim() || '',
-      role:      this.isExistingUserMode() ? this.existingUser()?.role : 'trainer',
+      role:      this.isExistingUserMode() 
+                 ? (this.existingUser()?.role === 'member' ? 'trainer' : this.existingUser()?.role) 
+                 : 'trainer',
       password:  form.password || 'TempPass123!'
     };
 

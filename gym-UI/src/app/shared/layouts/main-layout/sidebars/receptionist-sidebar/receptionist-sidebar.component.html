@@ -14,16 +14,18 @@
   </div>
 
   <nav class="sidebar-nav">
-    @for (item of navItems; track item.label) {
-      @if (item.isHeader) {
-        <div class="nav-header">{{ item.label }}</div>
-      } @else {
-        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" [attr.title]="item.label">
-          <span class="nav-icon" [innerHTML]="getIcon(item.icon!)"></span>
-          <span class="nav-label">{{ item.label }}</span>
-        </a>
+    <div class="nav-scroll-wrapper">
+      @for (item of navItems; track item.label) {
+        @if (item.isHeader) {
+          <div class="nav-header">{{ item.label }}</div>
+        } @else {
+          <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" [attr.title]="item.label">
+            <span class="nav-icon" [innerHTML]="getIcon(item.icon!)"></span>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        }
       }
-    }
+    </div>
   </nav>
 
   <div class="sidebar-footer">

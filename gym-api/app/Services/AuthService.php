@@ -259,7 +259,9 @@ class AuthService
      */
     public function formatUserResponse(User $user): array
     {
-        return $user->only([
+        $context = $user->primaryGymContext();
+        
+        return array_merge($user->only([
             'id_user',
             'name',
             'last_name',
@@ -269,6 +271,10 @@ class AuthService
             'profile_picture',
             'status',
             'nutritionist_advisory',
+        ]), [
+            'gym_id' => $context['id_gym'] ?? null,
+            'gym_status' => $context['status'] ?? 'active',
+            'gym_suspension_reason' => $context['suspension_reason'] ?? null,
         ]);
     }
 
@@ -277,7 +283,9 @@ class AuthService
      */
     public function formatUserWithDateResponse(User $user): array
     {
-        return $user->only([
+        $context = $user->primaryGymContext();
+
+        return array_merge($user->only([
             'id_user',
             'name',
             'last_name',
@@ -288,6 +296,10 @@ class AuthService
             'profile_picture',
             'status',
             'nutritionist_advisory',
+        ]), [
+            'gym_id' => $context['id_gym'] ?? null,
+            'gym_status' => $context['status'] ?? 'active',
+            'gym_suspension_reason' => $context['suspension_reason'] ?? null,
         ]);
     }
 }

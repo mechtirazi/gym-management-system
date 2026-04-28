@@ -291,4 +291,31 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return $ids->unique()->values();
     }
+
+    /**
+     * Get the primary gym ID for the user context.
+     */
+    public function primaryGymId()
+    {
+        $ids = $this->allowedGymIds();
+        return ($ids && $ids->count() > 0) ? $ids->first() : null;
+    }
+
+    /**
+     * Get the status and suspension reason of the primary gym.
+     */
+    public function primaryGymContext()
+    {
+        $id = $this->primaryGymId();
+        if (!$id) return null;
+
+        $gym = Gym::find($id);
+        if (!$gym) return null;
+
+        return [
+            'id_gym' => $gym->id_gym,
+            'status' => $gym->status,
+            'suspension_reason' => $gym->suspension_reason
+        ];
+    }
 }

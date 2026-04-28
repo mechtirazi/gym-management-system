@@ -357,10 +357,10 @@
         background: var(--border-color);
         color: var(--text-muted);
 
-        &[data-role="owner"] { background: #fee2e2; color: #dc2626; }
         &[data-role="trainer"] { background: #dcfce7; color: #16a34a; }
         &[data-role="receptionist"] { background: #e0f2fe; color: #0284c7; }
         &[data-role="nutritionist"] { background: #f3e8ff; color: #9333ea; }
+        &[data-role="member"] { background: #fef9c3; color: #a16207; }
       }
     }
   }
