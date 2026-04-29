@@ -1,12 +1,15 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MemberService } from '../services/member.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { forkJoin, interval, Subscription, startWith, switchMap } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface ActivityNode {
   id?: string;
+  id_gym?: string;
   type: 'EVENT' | 'COURSE' | 'PRODUCT' | 'NUTRITION_PLAN' | 'MEMBERSHIP';
   gymName: string;
   title: string;
@@ -41,6 +44,7 @@ export class FeedComponent implements OnInit, OnDestroy {
   private memberService = inject(MemberService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   activities: ActivityNode[] = [];
   loading = true;
@@ -93,105 +97,122 @@ export class FeedComponent implements OnInit, OnDestroy {
   private processFeedData(data: any): void {
     const feedItems: ActivityNode[] = [];
     
-    // 1. Process Events
+    // Extract IDs of gyms the user is subscribed to
+    const subscribedGymIds = new Set(data.subscriptions?.data?.map((sub: any) => sub.id_gym).filter(Boolean) || []);
+    
+    // 1. Process Events (Filtered by subscription)
     if (data.events?.data) {
         data.events.data.forEach((evt: any) => {
-            feedItems.push({
-                id: evt.id_event,
-                type: 'EVENT',
-                gymName: evt.gym?.name || 'Partner Facility',
-                title: evt.title || 'Elite Fitness Event',
-                content: evt.description || 'Join us for an exclusive training workshop.',
-                time: this.formatRelativeTime(evt.created_at || evt.start_date),
-                timestamp: new Date(evt.created_at || evt.start_date).getTime(),
-                icon: 'event',
-                color: '#f43f5e',
-                image: evt.image || this.getAssetUrl('EVENT'),
-                liked: evt.is_liked,
-                likesCount: evt.likes_count || 0,
-                commentsCount: evt.comments_count || 0
-            });
+            if (subscribedGymIds.has(evt.id_gym)) {
+                feedItems.push({
+                    id: evt.id_event,
+                    id_gym: evt.id_gym,
+                    type: 'EVENT',
+                    gymName: evt.gym?.name || 'Partner Facility',
+                    title: evt.title || 'Elite Fitness Event',
+                    content: evt.description || 'Join us for an exclusive training workshop.',
+                    time: this.formatRelativeTime(evt.created_at || evt.start_date),
+                    timestamp: new Date(evt.created_at || evt.start_date).getTime(),
+                    icon: 'event',
+                    color: '#f43f5e',
+                    image: this.getImageUrl(evt.image, 'EVENT'),
+                    liked: evt.is_liked,
+                    likesCount: evt.likes_count || 0,
+                    commentsCount: evt.comments_count || 0
+                });
+            }
         });
     }
 
-    // 2. Process Courses
+    // 2. Process Courses (Filtered by subscription)
     if (data.courses?.data) {
         data.courses.data.forEach((crs: any) => {
-            feedItems.push({
-                id: crs.id_course,
-                type: 'COURSE',
-                gymName: crs.gym?.name || 'Training Center',
-                title: `New Course: ${crs.name}`,
-                content: crs.description || 'Level up your skills with our professional trainers.',
-                price: crs.price,
-                time: this.formatRelativeTime(crs.created_at),
-                timestamp: new Date(crs.created_at).getTime(),
-                icon: 'school',
-                color: '#0ea5e9',
-                image: crs.image || this.getAssetUrl('COURSE'),
-                liked: crs.is_liked,
-                likesCount: crs.likes_count || 0,
-                commentsCount: crs.comments_count || 0
-            });
+            if (subscribedGymIds.has(crs.id_gym)) {
+                feedItems.push({
+                    id: crs.id_course,
+                    id_gym: crs.id_gym,
+                    type: 'COURSE',
+                    gymName: crs.gym?.name || 'Training Center',
+                    title: `New Course: ${crs.name}`,
+                    content: crs.description || 'Level up your skills with our professional trainers.',
+                    price: crs.price,
+                    time: this.formatRelativeTime(crs.created_at),
+                    timestamp: new Date(crs.created_at).getTime(),
+                    icon: 'school',
+                    color: '#0ea5e9',
+                    image: this.getImageUrl(crs.image, 'COURSE'),
+                    liked: crs.is_liked,
+                    likesCount: crs.likes_count || 0,
+                    commentsCount: crs.comments_count || 0
+                });
+            }
         });
     }
 
-    // 3. Process Products
+    // 3. Process Products (Filtered by subscription)
     if (data.products?.data) {
         data.products.data.forEach((prod: any) => {
-            feedItems.push({
-                id: prod.id_product,
-                type: 'PRODUCT',
-                gymName: prod.gym?.name || 'Elite Shop',
-                title: `New Arrival: ${prod.name}`,
-                content: `Premium quality fitness gear now available. Only ${prod.price} credits.`,
-                price: prod.price,
-                time: this.formatRelativeTime(prod.created_at),
-                timestamp: new Date(prod.created_at).getTime(),
-                icon: 'shopping_bag',
-                color: '#10b981',
-                image: prod.image || this.getAssetUrl('PRODUCT'),
-                liked: prod.is_liked,
-                likesCount: prod.likes_count || 0,
-                commentsCount: prod.comments_count || 0
-            });
+            if (subscribedGymIds.has(prod.id_gym)) {
+                feedItems.push({
+                    id: prod.id_product,
+                    id_gym: prod.id_gym,
+                    type: 'PRODUCT',
+                    gymName: prod.gym?.name || 'Elite Shop',
+                    title: `New Arrival: ${prod.name}`,
+                    content: `Premium quality fitness gear now available. Only ${prod.price} credits.`,
+                    price: prod.price,
+                    time: this.formatRelativeTime(prod.created_at),
+                    timestamp: new Date(prod.created_at).getTime(),
+                    icon: 'shopping_bag',
+                    color: '#10b981',
+                    image: this.getImageUrl(prod.image, 'PRODUCT'),
+                    liked: prod.is_liked,
+                    likesCount: prod.likes_count || 0,
+                    commentsCount: prod.comments_count || 0
+                });
+            }
         });
     }
 
-    // 4. Process Nutrition Plans
+    // 4. Process Nutrition Plans (Filtered by subscription)
     if (data.nutritionPlans?.data) {
         data.nutritionPlans.data.forEach((plan: any) => {
-            feedItems.push({
-                id: plan.id_plan,
-                type: 'NUTRITION_PLAN',
-                gymName: plan.gym?.name || 'Bio-Sync Lab',
-                title: `Protocol Released: ${plan.title || plan.name}`,
-                content: plan.description || 'Optimized clinical nutrition protocol for elite metabolism.',
-                price: plan.price,
-                time: this.formatRelativeTime(plan.created_at),
-                timestamp: new Date(plan.created_at).getTime(),
-                icon: 'restaurant',
-                color: '#8b5cf6',
-                image: plan.image || this.getAssetUrl('NUTRITION_PLAN'),
-                liked: plan.is_liked,
-                likesCount: plan.likes_count || 0,
-                commentsCount: plan.comments_count || 0
-            });
+            if (subscribedGymIds.has(plan.id_gym)) {
+                feedItems.push({
+                    id: plan.id_plan,
+                    id_gym: plan.id_gym,
+                    type: 'NUTRITION_PLAN',
+                    gymName: plan.gym?.name || 'Bio-Sync Lab',
+                    title: `Protocol Released: ${plan.title || plan.name}`,
+                    content: plan.description || 'Optimized clinical nutrition protocol for elite metabolism.',
+                    price: plan.price,
+                    time: this.formatRelativeTime(plan.created_at),
+                    timestamp: new Date(plan.created_at).getTime(),
+                    icon: 'restaurant',
+                    color: '#8b5cf6',
+                    image: this.getImageUrl(plan.image, 'NUTRITION_PLAN'),
+                    liked: plan.is_liked,
+                    likesCount: plan.likes_count || 0,
+                    commentsCount: plan.comments_count || 0
+                });
+            }
         });
     }
 
     // 5. Process Memberships (New Subscriptions)
     if (data.subscriptions?.data) {
         data.subscriptions.data.forEach((sub: any) => {
+            const planName = sub.plan?.name || 'Standard Access';
             feedItems.push({
                 id: sub.id_subscribe,
+                id_gym: sub.id_gym,
                 type: 'MEMBERSHIP',
                 gymName: sub.gym?.name || 'Local Facility',
-                title: `Network Node Activated`,
-                content: `Your subscription to ${sub.gym?.name} is now live. System synchronization complete.`,
-                time: this.formatRelativeTime(sub.created_at),
-                timestamp: new Date(sub.created_at).getTime(),
-                icon: 'bolt',
+                title: `Membership Activated: ${planName}`,
+                content: `Protocol established with ${sub.gym?.name}. Your ${planName} membership is now active and synchronized with the Zenith Network.`,
+                time: this.formatRelativeTime(sub.created_at || sub.subscribe_date),
+                timestamp: new Date(sub.created_at || sub.subscribe_date || Date.now()).getTime(),
+                icon: 'verified_user',
                 color: '#f59e0b',
                 image: this.getAssetUrl('MEMBERSHIP'),
                 liked: sub.is_liked,
@@ -215,6 +236,15 @@ export class FeedComponent implements OnInit, OnDestroy {
   private getAssetUrl(type: string): string {
       const fileName = this.typeAssets[type];
       return `assets/images/hub/${fileName}`; 
+  }
+
+  private getImageUrl(path: string | null | undefined, defaultType: string): string {
+    if (!path) return this.getAssetUrl(defaultType);
+    if (path.startsWith('http')) return path;
+    
+    const baseUrl = environment.apiUrl.replace(/\/api$/, '');
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${baseUrl}${cleanPath}`;
   }
 
   private formatRelativeTime(dateStr: string): string {
@@ -329,6 +359,11 @@ export class FeedComponent implements OnInit, OnDestroy {
     this.activeModalAct = act;
     this.modalMode = 'details';
     this.loadComments(act);
+  }
+
+  navigateToGym(gymId: string | undefined): void {
+    if (!gymId) return;
+    this.router.navigate(['/member/gyms', gymId]);
   }
 
   closeModal(): void {

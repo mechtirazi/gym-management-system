@@ -39,6 +39,13 @@
           <span class="day">{{ event.start_date | date:'dd' }}</span>
           <span class="month">{{ event.start_date | date:'MMM' }}</span>
         </div>
+        
+        @if (event.isRewarded) {
+          <div class="reward-badge">
+            <span class="material-symbols-rounded">stars</span>
+            <span>REWARDED</span>
+          </div>
+        }
       </div>
 
       <div class="event-details">
@@ -63,15 +70,34 @@
               <span class="meta-value text-glow">{{ event.start_time?.substring(0, 5) || '--:--' }} - {{ event.end_time?.substring(0, 5) || '--:--' }}</span>
             </div>
           </div>
-          <div class="meta-node">
-            <span class="material-symbols-rounded info-icon">groups</span>
-            <div class="meta-stack">
-              <span class="meta-label">SLOTS LEFT</span>
-              <span class="meta-value" [class.danger-text]="(event.max_participants - event.participantsCount) <= 3">
-                {{ event.max_participants - event.participantsCount }} Available
-              </span>
+          
+          @if (event.isRewarded) {
+            <div class="meta-node highlight">
+              <span class="material-symbols-rounded info-icon">military_tech</span>
+              <div class="meta-stack">
+                <span class="meta-label">REWARD</span>
+                <span class="meta-value reward-text">{{ event.rewardAmount }} Points</span>
+              </div>
             </div>
-          </div>
+            
+            <div class="meta-node">
+              <span class="material-symbols-rounded info-icon">emoji_events</span>
+              <div class="meta-stack">
+                <span class="meta-label">WINNERS</span>
+                <span class="meta-value">{{ event.maxWinners }} Top Spots</span>
+              </div>
+            </div>
+          } @else {
+            <div class="meta-node">
+              <span class="material-symbols-rounded info-icon">groups</span>
+              <div class="meta-stack">
+                <span class="meta-label">SLOTS LEFT</span>
+                <span class="meta-value" [class.danger-text]="(event.max_participants - event.participantsCount) <= 3">
+                  {{ event.max_participants - event.participantsCount }} Available
+                </span>
+              </div>
+            </div>
+          }
         </div>
 
         <div class="card-footer">

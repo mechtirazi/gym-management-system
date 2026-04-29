@@ -32,6 +32,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
   }
 
   .status-token {
@@ -138,9 +140,17 @@
     &.orange { --pill-accent: #f59e0b; }
     &.gold { --pill-accent: #fbbf24; }
 
-    .stat-icon { font-size: 1.8rem; opacity: 0.8; }
+    .stat-icon { 
+        width: 48px; height: 48px; min-width: 48px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.03); border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.05);
+        .material-icons { font-size: 1.8rem; color: var(--pill-accent); }
+    }
     .stat-data {
-        .label { font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1px; }
+        text-align: left;
+        display: flex; flex-direction: column; gap: 4px;
+        .label { font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
         .value { font-size: 1.8rem; font-weight: 950; color: var(--text-main); line-height: 1.1; margin: 0; }
     }
 
@@ -164,8 +174,9 @@
     .module-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
         margin-bottom: 3.5rem;
+        gap: 1.5rem;
 
         .title-group {
             display: flex;
@@ -181,8 +192,10 @@
             }
 
             .header-text {
-                h2 { margin: 0; font-size: 2.2rem; font-weight: 950; color: var(--text-main); letter-spacing: -1px; }
-                p { margin: 0.3rem 0; font-size: 1rem; color: #64748b; font-weight: 600; }
+                text-align: left;
+                display: flex; flex-direction: column; justify-content: center;
+                h2 { margin: 0; font-size: 1.8rem; font-weight: 950; color: var(--text-main); letter-spacing: -1px; }
+                p { margin: 0.3rem 0 0; font-size: 0.95rem; color: #64748b; font-weight: 600; }
             }
         }
 
@@ -195,6 +208,7 @@
             font-weight: 900;
             font-size: 0.85rem;
             letter-spacing: 1px;
+            white-space: nowrap;
             transition: 0.3s;
             &:hover { background: rgba(139, 92, 246, 0.1); border-color: #8b5cf6; }
         }
@@ -264,8 +278,31 @@
 
     .module-header-mini {
         display: flex; align-items: center; gap: 0.8rem; margin-bottom: 2rem;
+        &.flex-header { justify-content: space-between; width: 100%; }
         .material-icons { color: #f59e0b; font-size: 1.4rem; }
         h2 { font-size: 1rem; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 2px; margin: 0; }
+        
+        .wallet-gym-selector {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: var(--text-main);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+            max-width: 150px;
+            text-overflow: ellipsis;
+            
+            &:hover, &:focus {
+                background: rgba(15, 23, 42, 0.7);
+                border-color: #8b5cf6;
+                box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+            }
+            option { background: #0f172a; color: var(--text-main); }
+        }
     }
 
     .vault-display-compact {
@@ -317,6 +354,35 @@
             .p-bar-base { height: 8px; background: var(--admin-item-bg); border-radius: 4px; overflow: hidden; }
             .p-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(to right, #8b5cf6, #06b6d4); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
         }
+    }
+
+    .empty-membership {
+      text-align: center;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+
+      p {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin: 0;
+      }
+
+      .btn-action-primary {
+        background: var(--accent-gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: 0.3s;
+        &:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3); }
+      }
     }
 }
 

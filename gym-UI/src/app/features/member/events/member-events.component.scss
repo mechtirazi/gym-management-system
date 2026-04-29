@@ -209,6 +209,29 @@
         letter-spacing: 1px;
       }
     }
+
+    .reward-badge {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      border-radius: 100px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #000;
+      font-weight: 900;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      z-index: 10;
+      
+      span {
+        &.material-symbols-rounded { font-size: 1.2rem; }
+      }
+    }
   }
 
   .event-details {
@@ -325,6 +348,22 @@
           &.danger-text {
             color: #ef4444;
           }
+          
+          &.reward-text {
+            color: #f59e0b;
+            text-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+          }
+        }
+      }
+
+      .meta-node.highlight {
+        padding: 0.8rem 1.2rem;
+        background: rgba(245, 158, 11, 0.05);
+        border-radius: 16px;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        
+        .info-icon {
+          color: #f59e0b;
         }
       }
     }

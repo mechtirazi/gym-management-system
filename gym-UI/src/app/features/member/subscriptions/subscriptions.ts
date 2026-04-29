@@ -4,6 +4,7 @@ import { MemberService } from '../services/member.service';
 import { RouterLink } from '@angular/router';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-member-subscriptions',
@@ -61,6 +62,18 @@ export class SubscriptionsComponent implements OnInit {
     if (s === 'active' || s === 'completed') return 'status-active';
     if (s === 'expired' || s === 'cancelled') return 'status-expired';
     return 'status-pending';
+  }
+
+  getGymImage(picture: string | undefined | null, name: string | undefined | null): string {
+    if (!picture) {
+      const fallbackName = name ? encodeURIComponent(name) : 'Gym';
+      return `https://ui-avatars.com/api/?name=${fallbackName}&background=8b5cf6&color=fff`;
+    }
+    if (picture.startsWith('http')) return picture;
+    
+    const baseUrl = environment.apiUrl.replace(/\/api$/, '');
+    const cleanPath = picture.startsWith('/') ? picture : `/${picture}`;
+    return `${baseUrl}${cleanPath}`;
   }
 
   getDaysLeft(endDate: string): number {

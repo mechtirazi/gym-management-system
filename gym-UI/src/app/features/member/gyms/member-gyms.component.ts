@@ -33,11 +33,7 @@ export class MemberGymsComponent implements OnInit {
   paymentError: string | null = null;
   stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI'
 
-  membershipPlans = [
-    { id: 'trial', name: 'Discovery Tier', price: 9.99, description: '3-Day access spike to test facility synchronization.' },
-    { id: 'standard', name: 'Vanguard Tier', price: 49.99, description: '30-Day standard facility access and base protocols.' },
-    { id: 'premium', name: 'Elite Tier', price: 99.99, description: '90-Day full-node access including VIP recovery tech.' }
-  ];
+  membershipPlans: any[] = [];
 
   get filteredGyms() {
     return this.gyms.filter(gym => {
@@ -85,7 +81,9 @@ export class MemberGymsComponent implements OnInit {
         const mySubs = extract(res.mySubscriptions);
         const myEnrolls = extract(res.myEnrollments);
 
-        const enrolledGymIds = myEnrolls.map((e: any) => e.id_gym || e.gym_id);
+        const enrolledGymIds = myEnrolls
+          .filter((e: any) => e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending')
+          .map((e: any) => e.id_gym || e.gym_id);
 
         this.gyms = rawGyms.map((gym: any) => {
           const sub = mySubs.find((s: any) => (s.id_gym || s.gym_id) === gym.id_gym);
@@ -149,11 +147,66 @@ export class MemberGymsComponent implements OnInit {
     alert(`Node ${gymId} marked as favorite. Synchronizing with your Bio-Profile.`);
   }
 
+  isGymOpen(gym: any): boolean {
+    if (!gym) return false;
+    
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday, 1 = Monday... 6 = Saturday
+    
+    let hoursStr = '';
+    if (day === 0) {
+      hoursStr = gym.open_sun;
+    } else if (day === 6) {
+      hoursStr = gym.open_sat;
+    } else {
+      hoursStr = gym.open_mon_fri;
+    }
+
+    if (!hoursStr || hoursStr.toLowerCase() === 'closed') return false;
+    
+    // Parse "06:00 - 22:00"
+    const parts = hoursStr.split('-');
+    if (parts.length !== 2) return true; // If format unknown, assume open
+
+    try {
+      const [startStr, endStr] = parts.map(p => p.trim());
+      const [startH, startM] = startStr.split(':').map(Number);
+      const [endH, endM] = endStr.split(':').map(Number);
+
+      const currentH = now.getHours();
+      const currentM = now.getMinutes();
+      
+      const currentTotalM = currentH * 60 + currentM;
+      const startTotalM = (startH || 0) * 60 + (startM || 0);
+      const endTotalM = (endH || 0) * 60 + (endM || 0);
+
+      return currentTotalM >= startTotalM && currentTotalM <= endTotalM;
+    } catch (e) {
+      return true; // Fallback to open on parse error
+    }
+  }
+
   onEnroll(gym: any): void {
     this.selectedGym = gym;
-    this.showPaymentModal = true;
-    this.paymentError = null; // Reset error on open
-    this.cdr.detectChanges();
+    this.paymentError = null;
+
+    this.memberService.getGymPlans(gym.id_gym).subscribe({
+      next: (plansRes: any) => {
+        if (plansRes.data && plansRes.data.length > 0) {
+          this.membershipPlans = plansRes.data;
+        } else {
+           this.membershipPlans = [];
+        }
+        this.showPaymentModal = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.warn('Could not load plans', err);
+        this.membershipPlans = [];
+        this.showPaymentModal = true;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   closePaymentModal() {
@@ -172,7 +225,7 @@ export class MemberGymsComponent implements OnInit {
     const plan = event.plan || { id: 'standard', price: 49.99 };
 
     if (method === 'zen_wallet') {
-      this.memberService.purchaseMembership(this.selectedGym.id_gym, 'zen_wallet', plan.id).subscribe({
+      this.memberService.purchaseMembership(this.selectedGym.id_gym, 'zen_wallet', plan.type || 'standard', plan.id).subscribe({
         next: (res: any) => this.handlePurchaseSuccess(res),
         error: (err: any) => this.handlePurchaseError(err)
       });
@@ -189,7 +242,7 @@ export class MemberGymsComponent implements OnInit {
               this.handlePurchaseError({ error: { message: result.error.message } });
             } else if (result.paymentIntent.status === 'succeeded') {
               // 3. Finalize on backend
-              this.memberService.purchaseMembership(this.selectedGym.id_gym, 'credit_card', plan.id).subscribe({
+              this.memberService.purchaseMembership(this.selectedGym.id_gym, 'credit_card', plan.type || 'standard', plan.id).subscribe({
                 next: (res: any) => this.handlePurchaseSuccess(res),
                 error: (err: any) => this.handlePurchaseError(err)
               });

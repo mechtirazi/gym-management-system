@@ -4,11 +4,15 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MemberService } from '../../../../../features/member/services/member.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
+import { ToastService } from '../../../../../core/services/toast.service';
+import { FormsModule } from '@angular/forms';
+import { signal } from '@angular/core';
 
 @Component({
   selector: 'app-member-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './member-sidebar.component.html',
   styleUrl: './member-sidebar.component.scss'
 })
@@ -17,6 +21,12 @@ export class MemberSidebarComponent {
   private memberService = inject(MemberService);
   private sanitizer = inject(DomSanitizer);
   private router = inject(Router);
+  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
+
+  showSupportModal = signal(false);
+  supportMessage = signal('');
+  isSubmittingSupport = signal(false);
 
   navItems = [
     { label: 'Overview', isHeader: true },
@@ -41,14 +51,30 @@ export class MemberSidebarComponent {
     { label: 'Account Settings', icon: 'settings', routePath: '/member/settings' }
   ];
 
-  showUpgradeNotification() {
-    if (this.router.url !== '/member/dashboard') {
-      this.router.navigate(['/member/dashboard']).then(() => {
-        setTimeout(() => this.memberService.triggerUpgradeModal(), 300);
-      });
-    } else {
-      this.memberService.triggerUpgradeModal();
-    }
+  openSupportModal() {
+    this.supportMessage.set('');
+    this.showSupportModal.set(true);
+  }
+
+  closeSupportModal() {
+    this.showSupportModal.set(false);
+  }
+
+  submitSupportRequest() {
+    if (!this.supportMessage().trim()) return;
+
+    this.isSubmittingSupport.set(true);
+    this.notificationService.contactSupport(this.supportMessage()).subscribe({
+      next: (res: any) => {
+        this.isSubmittingSupport.set(false);
+        this.showSupportModal.set(false);
+        this.toastService.success(res.message || 'Support request sent successfully.');
+      },
+      error: (err: any) => {
+        this.isSubmittingSupport.set(false);
+        this.toastService.error(err.error?.message || 'Failed to send support request.');
+      }
+    });
   }
 
   getIcon(name: string): SafeHtml {

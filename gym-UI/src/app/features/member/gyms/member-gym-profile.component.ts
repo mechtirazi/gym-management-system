@@ -27,6 +27,9 @@ export class MemberGymProfileComponent implements OnInit {
   gym: any = null;
   courses: any[] = [];
   isSubscribed = false;
+  isFollowing = false;
+  membershipPlans: any[] = [];
+  subscriptionId?: string;
   loading = true;
   errorMessage = '';
   mapUrl: SafeResourceUrl | null = null;
@@ -44,7 +47,6 @@ export class MemberGymProfileComponent implements OnInit {
     comment: ''
   };
 
-  membershipPlans: any[] = [];
 
   stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
   paymentError: string | null = null;
@@ -60,12 +62,39 @@ export class MemberGymProfileComponent implements OnInit {
   loadColor = '#4ade80';
   todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; // 0=Mon, 6=Sun
 
-  get averageRating(): string {
+  get averageRating(): number {
     if (!this.gymReviews || this.gymReviews.length === 0) {
-      return this.gym?.avg_rating || '5.0';
+      return parseFloat(this.gym?.avg_rating || '5.0');
     }
     const sum = this.gymReviews.reduce((acc, review) => acc + (review.rating || 0), 0);
-    return (sum / this.gymReviews.length).toFixed(1);
+    return parseFloat((sum / this.gymReviews.length).toFixed(1));
+  }
+
+  getStarCount(star: number): number {
+    return this.gymReviews.filter(r => Math.round(r.rating) === star).length;
+  }
+
+  getStarPercentage(star: number): number {
+    if (this.gymReviews.length === 0) return 0;
+    return (this.getStarCount(star) / this.gymReviews.length) * 100;
+  }
+
+  getUserGradient(userId?: string): string {
+    const gradients = [
+      'linear-gradient(135deg, #6366f1, #a855f7)',
+      'linear-gradient(135deg, #ec4899, #8b5cf6)',
+      'linear-gradient(135deg, #3b82f6, #2dd4bf)',
+      'linear-gradient(135deg, #f59e0b, #ef4444)'
+    ];
+    if (!userId) return gradients[0];
+
+    // Simple hash to pick a gradient based on the ID
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) {
+      hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
   }
 
   ngOnInit() {
@@ -92,25 +121,25 @@ export class MemberGymProfileComponent implements OnInit {
         const gyms = Array.isArray(res.allGyms.data) ? res.allGyms.data : (res.allGyms.data?.data || []);
         this.gym = gyms.find((g: any) => g.id_gym === id) || gyms[0];
 
-        // Find courses for this gym (Filtering by gym_id if present)
+        // Find courses for this gym (Filtering by id_gym)
         const allCourses = res.allCourses.data?.data || res.allCourses.data || [];
-        this.courses = allCourses.filter((c: any) => c.gym_id === id).slice(0, 4);
+        this.courses = allCourses.filter((c: any) => (c.id_gym || c.gym_id) === id);
 
-        // Final fallback if no courses linked directly (Mocking data for complete look in this demo)
+        // Remove mock data fallback to ensure only real courses are shown
         if (this.courses.length === 0) {
-          this.courses = [
-            { name: 'Metabolic Shred', icon: 'bolt', level: 'Advanced' },
-            { name: 'Mind-Muscle Connection', icon: 'psychology', level: 'Intermediate' },
-            { name: '45-Min Recovery Flow', icon: 'spa', level: 'All Levels' }
-          ];
+          console.warn('No courses found for this facility.');
         }
 
         // Check membership/subscription status
         const mySubs = res.mySubs.data || res.mySubs || [];
         const enrollments = res.enrollments?.data || res.enrollments || [];
-        
-        this.isSubscribed = mySubs.some((s: any) => s.id_gym === id) || 
-                            enrollments.some((e: any) => e.id_gym === id);
+
+        const gymSub = mySubs.find((s: any) => s.id_gym === id);
+        this.isFollowing = !!gymSub;
+        this.subscriptionId = gymSub?.id_subscribe;
+
+        this.isSubscribed = (gymSub && gymSub.status === 'active' && gymSub.id_plan) ||
+          enrollments.some((e: any) => e.id_gym === id);
 
         // Simulation of live metrics
         this.calculateLiveMetrics();
@@ -157,10 +186,10 @@ export class MemberGymProfileComponent implements OnInit {
 
   calculateLiveMetrics() {
     if (!this.gym) return;
-    
+
     // Use real member count from database if available, otherwise fallback to simulation
-    this.currentOccupancy = this.gym.active_members_count !== undefined 
-      ? this.gym.active_members_count 
+    this.currentOccupancy = this.gym.active_members_count !== undefined
+      ? this.gym.active_members_count
       : (this.gym.members_count || 0);
 
     const capacity = this.gym.capacity || 200;
@@ -174,6 +203,35 @@ export class MemberGymProfileComponent implements OnInit {
   getLoadPercent(): string {
     if (!this.gym) return '0%';
     return Math.round((this.currentOccupancy / (this.gym.capacity || 100)) * 100) + '%';
+  }
+
+  get loadStatus(): 'Optimal' | 'Medium' | 'High' {
+    if (!this.gym) return 'Optimal';
+    const percent = (this.currentOccupancy / (this.gym.capacity || 100)) * 100;
+    if (percent < 40) return 'Optimal';
+    if (percent < 80) return 'Medium';
+    return 'High';
+  }
+
+  get isOpen(): boolean {
+    if (!this.gym) return true;
+    const now = new Date();
+    const hours = now.getHours();
+    const day = now.getDay(); // 0=Sun, 1=Mon, 6=Sat
+    
+    let schedule = this.gym.open_mon_fri || '06:00 - 22:00';
+    if (day === 6) schedule = this.gym.open_sat || '08:00 - 20:00';
+    if (day === 0) schedule = this.gym.open_sun || '08:00 - 16:00';
+    
+    try {
+      const parts = schedule.split('-');
+      if (parts.length < 2) return true;
+      const start = parseInt(parts[0].trim().split(':')[0]);
+      const end = parseInt(parts[1].trim().split(':')[0]);
+      return hours >= start && hours < (end === 0 ? 24 : end);
+    } catch (e) {
+      return true;
+    }
   }
 
   subscribe() {
@@ -210,7 +268,7 @@ export class MemberGymProfileComponent implements OnInit {
       this.showToast('Validation Error: No synchronization tier selected.', 'error');
       return;
     }
-    
+
     this.isProcessingPayment = true;
     this.paymentError = null;
 
@@ -297,7 +355,7 @@ export class MemberGymProfileComponent implements OnInit {
         this.showReviewModal = false;
         this.showToast('Review Protocol Synchronized Successfully!', 'success');
         this.reviewData = { rating: 5, comment: '' };
-        
+
         // Immediate full-node synchronization
         this.fetchReviews(this.gym.id_gym);
       },
@@ -312,19 +370,49 @@ export class MemberGymProfileComponent implements OnInit {
     this.toastMessage = message;
     this.toastType = type;
     this.cdr.detectChanges();
-    
+
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
     this.toastTimeout = setTimeout(() => {
-        this.toastMessage = '';
-        this.cdr.detectChanges();
+      this.toastMessage = '';
+      this.cdr.detectChanges();
     }, 4000);
+  }
+
+  toggleFollow() {
+    if (!this.gym) return;
+
+    if (this.isFollowing && this.subscriptionId) {
+      this.memberService.unfollowGym(this.subscriptionId).subscribe({
+        next: () => {
+          this.isFollowing = false;
+          this.subscriptionId = undefined;
+          this.showToast('Removed from following', 'info');
+        },
+        error: () => this.showToast('Sync Error: Failed to unfollow', 'error')
+      });
+    } else {
+      this.memberService.followGym(this.gym.id_gym).subscribe({
+        next: (res: any) => {
+          this.isFollowing = true;
+          this.subscriptionId = res.data?.id_subscribe;
+          this.showToast('Facility Added to your Network', 'success');
+        },
+        error: () => this.showToast('Sync Error: Failed to follow', 'error')
+      });
+    }
   }
 
   getImageUrl(path?: string): string {
     if (!path) return '';
     if (path.startsWith('http')) return path;
     const baseUrl = environment.apiUrl.replace('/api', '');
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    let cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // Handle missing 'storage/' prefix for profile pictures and other uploaded assets
+    if (!cleanPath.startsWith('storage/') && !cleanPath.startsWith('assets/')) {
+      cleanPath = 'storage/' + cleanPath;
+    }
+
     return `${baseUrl}/${cleanPath}`;
   }
 

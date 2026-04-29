@@ -35,7 +35,7 @@ import { NotificationDispatcherComponent } from './components/notification-dispa
         </div>
       </header>
 
-      <div class="main-grid">
+      <div class="main-grid" [class.member-view]="featureService.isMember()">
         <!-- Activity Log (LEFT) -->
         <div class="activity-column">
           <app-staff-invitations
@@ -73,7 +73,7 @@ import { NotificationDispatcherComponent } from './components/notification-dispa
         </div>
 
         <!-- Dispatcher (RIGHT) -->
-        <div class="dispatch-column">
+        <div class="dispatch-column" *ngIf="!featureService.isMember()">
           <div class="dispatch-sticky">
             <app-notification-dispatcher
               [form]="dispatchForm"
@@ -130,6 +130,12 @@ import { NotificationDispatcherComponent } from './components/notification-dispa
       grid-template-columns: 1fr 440px;
       gap: 3rem;
       align-items: start;
+
+      &.member-view {
+        grid-template-columns: 1fr;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
     }
 
     .activity-column { display: flex; flex-direction: column; gap: 2rem; }
@@ -137,6 +143,7 @@ import { NotificationDispatcherComponent } from './components/notification-dispa
     .section-badge {
       display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0;
       h2 { font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: var(--admin-text-primary); margin: 0; }
+      svg { width: 24px; height: 24px; color: var(--admin-accent-indigo); }
     }
 
     .count-badge {

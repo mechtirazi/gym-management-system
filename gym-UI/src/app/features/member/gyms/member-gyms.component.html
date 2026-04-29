@@ -8,10 +8,10 @@
     <div class="header-content">
       <div class="discovery-tag">
         <span class="dot"></span>
-        <span>Discovery Hub 2026</span>
+        <span>Gym Explorer</span>
       </div>
-      <h1 class="x-title">Explore your <br> <span class="text-gradient">Power-Hub.</span></h1>
-      <p class="x-subtitle">Premium curated high-performance facilities.</p>
+      <h1 class="x-title">Explore your <br> <span class="text-gradient">Gym Centers.</span></h1>
+      <p class="x-subtitle">Find and join the best high-performance gyms.</p>
     </div>
     <div class="header-controls">
       <div class="x-search-orb">
@@ -53,10 +53,9 @@
 
         <div class="visual-overlay">
           <div class="top-meta">
-            <span class="status-pill" [class.open]="true">Open Now</span>
-            <button class="btn-like" (click)="$event.stopPropagation(); onLike(gym.id_gym)">
-              <span class="material-symbols-rounded">bookmark</span>
-            </button>
+            <span class="status-pill" [class.open]="isGymOpen(gym)" [class.closed]="!isGymOpen(gym)">
+              {{ isGymOpen(gym) ? 'Open Now' : 'Closed' }}
+            </span>
           </div>
 
           <div class="bottom-meta">
@@ -64,7 +63,7 @@
               <div class="mini-logo text-logo">{{ getGymInitials(gym.name) }}</div>
               <div class="identity-text">
                 <h3>{{ gym.name }}</h3>
-                <p>{{ gym.adress || 'Metropolitan Core' }}</p>
+                <p>{{ gym.adress || 'City Center' }}</p>
               </div>
             </div>
             <div class="gym-stats">
@@ -74,7 +73,7 @@
               </span>
               <span class="stat">
                 <span class="material-symbols-rounded">star</span>
-                4.9
+                {{ gym.average_rating || 'New' }}
               </span>
             </div>
           </div>
@@ -87,7 +86,7 @@
       <div class="item-actions">
         <button class="btn-action-follow" [class.active]="gym.isSubscribed"
           (click)="$event.stopPropagation(); onFollowToggle(gym)">
-          {{ gym.isSubscribed ? 'Following' : 'Follow Node' }}
+          {{ gym.isSubscribed ? 'Following' : 'Follow Gym' }}
           <span class="material-symbols-rounded">
             {{ gym.isSubscribed ? 'check' : 'add' }}
           </span>
@@ -95,7 +94,7 @@
 
         <button class="btn-action-primary" [class.is-enrolled]="gym.isEnrolled"
           (click)="$event.stopPropagation(); !gym.isEnrolled ? onEnroll(gym) : null">
-          {{ gym.isEnrolled ? 'Synchronized Access' : 'Activate Abonnement' }}
+          {{ gym.isEnrolled ? 'Active Member' : 'Join Gym' }}
           <span class="material-symbols-rounded">{{ gym.isEnrolled ? 'verified' : 'arrow_forward' }}</span>
         </button>
       </div>
@@ -105,16 +104,10 @@
   </main>
 
   <!-- High-Fidelity Checkout Vault -->
-  <app-payment-modal 
-  [showModal]="showPaymentModal" 
-  [itemTitle]="selectedGym?.name || 'Facility Node'"
-  [itemSubtitle]="'Premium Abonnement Access'"
-  [purchaseTerms]="'Activating this enrollment node will grant you 30 days of standard facility access and localized training protocols.'"
-  [processingPayment]="processingPayment"
-  [paymentError]="paymentError"
-  [stripePublicKey]="stripePublicKey"
-  [plans]="membershipPlans"
-  (cancelPayment)="closePaymentModal()"
-  (confirmPayment)="completePurchase($event)">
-</app-payment-modal>
+  <app-payment-modal [showModal]="showPaymentModal" [itemTitle]="selectedGym?.name || 'Gym Facility'"
+    [itemSubtitle]="'Membership Plan'"
+    [purchaseTerms]="'Joining this gym will grant you full access to the facility and its programs for the selected duration.'"
+    [processingPayment]="processingPayment" [paymentError]="paymentError" [stripePublicKey]="stripePublicKey"
+    [plans]="membershipPlans" (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
+  </app-payment-modal>
 </div>

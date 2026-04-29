@@ -6,7 +6,7 @@
   <!-- Immersive Page Loader -->
   <div class="full-page-loader">
     <div class="modern-spinner"></div>
-    <h3>Initializing Hub Data...</h3>
+    <h3>Loading Gym Profile...</h3>
   </div>
   } @else if (errorMessage) {
   <!-- Architectural Error Shield -->
@@ -20,38 +20,53 @@
   <!-- 2026 Immersive Hero Header -->
   <header class="x-hero-hub">
     <div class="hero-visual">
-      <img [src]="getImageUrl(gym.picture || gym.image) || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1600'"
+      <img
+        [src]="getImageUrl(gym.picture || gym.image) || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1600'"
         alt="Cover">
     </div>
     <div class="hero-overlay"></div>
 
+    <div class="hero-top-status">
+      <div class="status-pill" [class.open]="isOpen">
+        <span class="dot"></span>
+        {{ isOpen ? 'Operational' : 'Closed' }}
+      </div>
+      <div class="status-pill load" [style.color]="loadColor">
+        <span class="dot" [style.background-color]="loadColor"></span>
+        {{ loadStatus }} Load
+      </div>
+    </div>
+
     <div class="hero-content">
-      <div class="main-identity">
-        <div class="brand-orb text-logo">
-          {{ getGymInitials(gym.name) }}
-        </div>
-        <div class="text-meta">
-          <h1>{{ gym.name }}</h1>
-          <div class="sub-meta-row">
+      <div class="main-identity-block">
+        <div class="main-identity">
+          <div class="brand-orb text-logo">
+            {{ getGymInitials(gym.name) }}
+          </div>
+          <div class="text-meta">
+            <h1>{{ gym.name }}</h1>
             <p class="location-p">
               <span class="material-symbols-rounded">place</span>
               {{ gym.adress || 'Elite Hub' }}
             </p>
-            <div class="mini-status-chip" [style.border-color]="loadColor">
-              <span class="dot" [style.background-color]="loadColor"></span>
-              {{ currentOccupancy }} Active members
-            </div>
           </div>
         </div>
-      </div>
 
-      <div class="action-dock">
-        <button class="btn-glass-primary" (click)="subscribe()">
-          <span class="material-symbols-rounded">{{ isSubscribed ? 'dashboard' : 'rocket_launch' }}</span>
-          {{ isSubscribed ? 'Enter Hub' : 'Join the Hub' }}
-        </button>
-        <button class="btn-glass-blur" (click)="shareProfile()"><span
-            class="material-symbols-rounded">share</span></button>
+        <div class="action-dock">
+          <button class="btn-primary-nova" (click)="subscribe()">
+            <span class="material-symbols-rounded">{{ isSubscribed ? 'dashboard' : 'add_circle' }}</span>
+            {{ isSubscribed ? 'Dashboard' : 'Join Gym' }}
+          </button>
+          
+          <button class="btn-nova-outline" (click)="toggleFollow()">
+            <span class="material-symbols-rounded">{{ isFollowing ? 'notifications_active' : 'person_add' }}</span>
+            {{ isFollowing ? 'Following' : 'Follow' }}
+          </button>
+
+          <button class="btn-nova-outline icon-only" (click)="shareProfile()">
+            <span class="material-symbols-rounded">share</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -62,7 +77,7 @@
     <div class="hub-module time-node">
       <div class="h-head">
         <span class="material-symbols-rounded">schedule</span>
-        <h4>Operating Matrix</h4>
+        <h4>Opening Hours</h4>
       </div>
       <div class="hours-track-row">
         <div class="hour-card" [class.is-today]="todayIndex < 5">
@@ -80,11 +95,12 @@
       </div>
     </div>
 
+
     <!-- Metric Node -->
     <div class="hub-module metrics-node">
       <div class="h-head">
         <span class="material-symbols-rounded">analytics</span>
-        <h4>Facility Pulse</h4>
+        <h4>Gym Stats</h4>
       </div>
       <div class="metrics-row">
         <div class="m-point" (click)="switchTab('community')" style="cursor: pointer;">
@@ -105,10 +121,10 @@
       <span class="material-symbols-rounded">dashboard</span> Overview
     </button>
     <button class="nav-item" [class.active]="activeTab === 'training'" (click)="switchTab('training')">
-      <span class="material-symbols-rounded">fitness_center</span> Protocols
+      <span class="material-symbols-rounded">fitness_center</span> Courses
     </button>
     <button class="nav-item" [class.active]="activeTab === 'community'" (click)="switchTab('community')">
-      <span class="material-symbols-rounded">groups</span> Insights
+      <span class="material-symbols-rounded">groups</span> Reviews
     </button>
   </nav>
 
@@ -118,32 +134,64 @@
 
       <!-- TAP 1: OVERVIEW NODE -->
       @if (activeTab === 'overview') {
-      <div class="view-node">
-        <section class="section-intro">
-          <span class="label">Integrated Facility</span>
-          <h2>Performance Culture.</h2>
-          <p>{{ gym.description || 'Experience the next generation of high-intensity training. This facility is
-            engineered for those who demand more from their fitness journey.' }}</p>
-        </section>
+      <div class="view-node neural-overview-layout">
+        <div class="about-section">
+          <section class="section-intro">
+            <div class="intro-header">
+              <span class="bar-decor"></span>
+              <h2>About our Gym.</h2>
+            </div>
+            <p class="description">{{ gym.description || 'Welcome to the future of high-performance fitness. Our facility integrates state-of-the-art biometrics with elite training protocols to optimize your physical evolution.' }}</p>
+          </section>
 
-        <div class="bento-features">
-          <div class="bento-card">
-            <div class="card-icon"><span class="material-symbols-rounded">spa</span></div>
-            <h3>Recovery Tech</h3>
-            <div class="list">
-              <div class="item"><span class="material-symbols-rounded">ac_unit</span> Bio-Cold Plunge</div>
-              <div class="item"><span class="material-symbols-rounded">thermostat</span> Infrared Synergy</div>
+          <div class="feature-pills">
+            <div class="f-pill">
+              <span class="material-symbols-rounded">ac_unit</span>
+              <span>Advanced Cooling</span>
+            </div>
+            <div class="f-pill">
+              <span class="material-symbols-rounded">wifi</span>
+              <span>Bio-Sync Network</span>
+            </div>
+            <div class="f-pill">
+              <span class="material-symbols-rounded">analytics</span>
+              <span>Live Telemetry</span>
             </div>
           </div>
-          <div class="bento-card">
-            <div class="card-icon"><span class="material-symbols-rounded">location_on</span></div>
-            <h3>Access Point</h3>
-            <div class="map-mini-inline">
-              @if (mapUrl) { <iframe [src]="mapUrl" width="100%" height="100%" frameborder="0" style="border:0;"
-                allowfullscreen="" loading="lazy"></iframe> }
+        </div>
+
+        <div class="neural-insights-card">
+          <div class="card-header">
+            <div class="header-main">
+              <span class="material-symbols-rounded neural-icon">psychology</span>
+              <div class="title-group">
+                <h3>Neural Insights</h3>
+                <span class="ai-badge">AI POWERED</span>
+              </div>
             </div>
-            <button class="btn-text-link" (click)="getNavigation()">Get Routing <span
-                class="material-symbols-rounded">east</span></button>
+          </div>
+
+          <div class="insight-block">
+            <span class="block-label">PREDICTIVE LOAD ANALYSIS</span>
+            <h2 class="insight-title">{{ loadStatus === 'High' ? 'Peak Flow Sequence' : 'Optimal Entry Sync' }}</h2>
+            <p class="insight-desc">
+              {{ loadStatus === 'High' 
+                 ? 'Neural sensors detect high occupancy. Zenith AI recommends training in 90 mins for maximum equipment availability.' 
+                 : 'AI recommends training now for maximum equipment availability.' }}
+            </p>
+          </div>
+
+          <div class="insight-block">
+            <span class="block-label">COMMUNITY SATISFACTION INDEX</span>
+            <div class="satisfaction-bar">
+              <div class="bar-fill" [style.width.%]="(averageRating || 4.5) * 20"></div>
+            </div>
+            <span class="resonance-text">{{ (averageRating || 4.5) * 20 }}% Positive Resonance</span>
+          </div>
+
+          <div class="performance-tip">
+            <span class="material-symbols-rounded tip-icon">lightbulb</span>
+            <p>Members who train here report 20% higher performance on sessions.</p>
           </div>
         </div>
       </div>
@@ -153,7 +201,7 @@
       @if (activeTab === 'training') {
       <div class="view-node">
         <section class="section-intro">
-          <span class="label">Training Protocols</span>
+          <span class="label">Training Courses</span>
           <h2>Active Sessions.</h2>
         </section>
 
@@ -161,12 +209,17 @@
           @for (item of courses; track item.id_course) {
           <div class="protocol-tile bento-card">
             <div class="tile-header">
-              <span class="material-symbols-rounded">bolt</span>
-              <span class="level-tag">{{ item.level || 'Elite' }}</span>
+              <span class="material-symbols-rounded">fitness_center</span>
+              <span class="level-tag">{{ item.duration || '60 min' }} • {{ item.max_capacity || 20 }} Capacity</span>
             </div>
             <h3>{{ item.name }}</h3>
-            <p>High-intensity biometric training focused on explosive performance and neural output.</p>
-            <button class="btn-text-link">Review Protocol <span class="material-symbols-rounded">east</span></button>
+            <p>{{ item.description || 'Join our specialized ' + item.name + ' session for an optimized fitness
+              experience.' }}</p>
+          </div>
+          } @empty {
+          <div class="reviews-placeholder glass-module" style="grid-column: 1 / -1;">
+            <div class="p-orb"><span class="material-symbols-rounded">fitness_center</span></div>
+            <p>No active courses available at this facility. <br> Check back later for new sessions.</p>
           </div>
           }
         </div>
@@ -180,33 +233,64 @@
           <div class="reviews-header">
             <div class="h-text">
               <span class="label">Reputation Network</span>
-              <h2>Member Feedback.</h2>
+              <h2>Member Reviews.</h2>
             </div>
             <button class="btn-glass-primary-sm" (click)="openReviewModal()">
-              <span class="material-symbols-rounded">rate_review</span> Commit Review
+              <span class="material-symbols-rounded">rate_review</span> Write a Review
             </button>
           </div>
 
           <div class="reviews-list animate-fade-in" *ngIf="gymReviews.length > 0">
-            <div class="review-node-card glass-module" *ngFor="let review of gymReviews">
-              <div class="node-header">
-                <div class="user-id">
-                  <div class="avatar-node">{{ review.user?.name?.charAt(0) || 'M' }}</div>
-                  <div class="meta">
-                    <span class="u-name">{{ review.user?.name || 'Authorized Member' }}</span>
-                    <span class="u-date">{{ review.created_at | date:'mediumDate' }}</span>
-                  </div>
+            <!-- Review Summary Matrix -->
+            <div class="reviews-summary glass-module">
+              <div class="avg-score">
+                <span class="score-val">{{ averageRating }}</span>
+                <div class="score-stars">
+                  <span class="material-symbols-rounded" *ngFor="let s of [1,2,3,4,5]"
+                    [style.color]="averageRating >= s ? '#f59e0b' : 'rgba(255,255,255,0.1)'">star</span>
                 </div>
-                <div class="rating-display">
-                  <span class="material-symbols-rounded" *ngFor="let s of [1,2,3,4,5]" [style.color]="review.rating >= s ? '#f59e0b' : 'rgba(255,255,255,0.1)'">star</span>
+                <span class="total-count">{{ gymReviews.length }} Member Reviews</span>
+              </div>
+              <div class="rating-bars">
+                <div class="bar-row" *ngFor="let star of [5,4,3,2,1]">
+                  <span class="star-num">{{ star }} ★</span>
+                  <div class="bar-track">
+                    <div class="bar-fill" [style.width.%]="getStarPercentage(star)"></div>
+                  </div>
+                  <span class="bar-count">{{ getStarCount(star) }}</span>
                 </div>
               </div>
-              <p class="node-content">{{ review.comment }}</p>
-              <div class="node-footer" *ngIf="review.ai_sentiment_score">
-                <span class="ai-tag" [class.pos]="review.ai_sentiment_score > 0.5">
-                  <span class="material-symbols-rounded">psychology</span>
-                  {{ review.ai_category || 'General Feedback' }}
-                </span>
+            </div>
+
+            <div class="reviews-grid">
+              <div class="review-node-card glass-module" *ngFor="let review of gymReviews">
+                <div class="node-header">
+                  <div class="user-id">
+                    <div class="avatar-node"
+                      [style.background]="!review.user?.profile_picture ? getUserGradient(review.user?.id || review.user_id) : 'transparent'">
+                      @if (review.user?.profile_picture) {
+                      <img [src]="getImageUrl(review.user.profile_picture)" alt="Avatar" class="avatar-img">
+                      } @else {
+                      {{ review.user?.name?.charAt(0) || 'M' }}
+                      }
+                    </div>
+                    <div class="meta">
+                      <span class="u-name">{{ review.user?.name || 'Authorized Member' }}</span>
+                      <span class="u-date">{{ review.created_at | date:'MMM dd, yyyy' }}</span>
+                    </div>
+                  </div>
+                  <div class="rating-badge">
+                    <span class="material-symbols-rounded">star</span>
+                    {{ review.rating }}
+                  </div>
+                </div>
+                <p class="node-content">"{{ review.comment }}"</p>
+                <div class="node-footer">
+                  <div class="verified-tag">
+                    <span class="material-symbols-rounded">verified</span>
+                    Verified Experience
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -222,25 +306,18 @@
   </div>
 
   <!-- High-Fidelity Checkout Vault -->
-  <app-payment-modal 
-    [showModal]="showPaymentPicker" 
-    [itemTitle]="gym?.name || 'Facility Node'"
-    [itemSubtitle]="'Standard Synchronization Protocol'"
-    [itemImage]="''"
-    [purchaseTerms]="'Activating this enrollment node will grant you access to high-performance facilities and training protocols.'"
-    [processingPayment]="isProcessingPayment"
-    [paymentError]="paymentError"
-    [stripePublicKey]="stripePublicKey"
-    [plans]="membershipPlans"
-    (cancelPayment)="showPaymentPicker = false"
-    (confirmPayment)="processPurchase($event)">
+  <app-payment-modal [showModal]="showPaymentPicker" [itemTitle]="gym?.name || 'Facility Node'"
+    [itemSubtitle]="'Gym Membership'" [itemImage]="''"
+    [purchaseTerms]="'Joining this gym will grant you full access to its high-performance facilities and training courses.'"
+    [processingPayment]="isProcessingPayment" [paymentError]="paymentError" [stripePublicKey]="stripePublicKey"
+    [plans]="membershipPlans" (cancelPayment)="showPaymentPicker = false" (confirmPayment)="processPurchase($event)">
   </app-payment-modal>
 
   <div class="payment-modal-backdrop review-backdrop" *ngIf="showReviewModal" (click)="showReviewModal = false">
     <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="title-group"><span class="material-symbols-rounded">grade</span>
-          <h3>Rating Protocol</h3>
+          <h3>Rate this Gym</h3>
         </div>
         <button class="close-btn" (click)="showReviewModal = false"><span
             class="material-symbols-rounded">close</span></button>
@@ -262,7 +339,7 @@
       <div class="modal-footer">
         <button class="btn-glass-primary full-width" [disabled]="isSubmittingReview || !reviewData.comment"
           (click)="submitReview()">
-          {{ isSubmittingReview ? 'Syncing...' : 'Commit Feedback' }}
+          {{ isSubmittingReview ? 'Syncing...' : 'Post Review' }}
         </button>
       </div>
     </div>
@@ -272,7 +349,8 @@
   <!-- Toast System -->
   <div class="toast-hub-container" *ngIf="toastMessage">
     <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
-      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' :
+      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ?
+        'error' :
         'info') }}</span>
       <div class="toast-content">
         <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System

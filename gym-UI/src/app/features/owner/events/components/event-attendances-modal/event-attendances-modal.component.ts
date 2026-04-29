@@ -6,6 +6,8 @@ import { finalize } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
 import { EventModel } from '../../../../../shared/models/event.model';
 
+import { ConfirmDialogService } from '../../../../../shared/services/confirm-dialog.service';
+
 @Component({
   selector: 'app-event-attendances-modal',
   standalone: true,
@@ -16,6 +18,7 @@ import { EventModel } from '../../../../../shared/models/event.model';
 export class EventAttendancesModalComponent implements OnInit {
   private eventService = inject(EventService);
   private fb = inject(FormBuilder);
+  private confirmService = inject(ConfirmDialogService);
 
   /** Pass an existing event to switch to Manage/Edit mode. If null, modal acts as 'Add New Event' */
   eventModel = input<EventModel | null>(null);
@@ -196,17 +199,36 @@ export class EventAttendancesModalComponent implements OnInit {
   }
 
   rewardAttendee(attendance: any) {
-    if (!confirm(`Are you sure you want to award the reward point to ${attendance.member?.name}? This action cannot be undone.`)) {
+    console.log('Reward attempt for attendance:', attendance);
+    
+    if (!attendance?.id_attendance_event) {
+      console.error('Missing attendance ID');
+      alert('Error: Attendance ID missing.');
       return;
     }
 
-    this.eventService.rewardWinnerEvent(attendance.id_attendance_event).subscribe({
-      next: (res) => {
-        alert(res.message || 'Reward synchronized successfully!');
-        this.loadAttendances();
-      },
-      error: (err) => {
-        alert(err.error?.message || 'Reward failed.');
+    const memberName = attendance.member ? `${attendance.member.name} ${attendance.member.last_name || ''}` : 'this member';
+
+    this.confirmService.open({
+      title: 'Award Victory Reward',
+      message: `Are you sure you want to award the reward points to ${memberName}? This will synchronize their Zen Wallet and Evolution Points.`,
+      confirmText: 'Award Points',
+      icon: 'military_tech',
+      isDestructive: false
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        console.log('Reward confirmed. Sending API request...');
+        this.eventService.rewardWinnerEvent(attendance.id_attendance_event).subscribe({
+          next: (res) => {
+            console.log('Reward success:', res);
+            alert(res.message || 'Reward synchronized successfully!');
+            this.loadAttendances();
+          },
+          error: (err) => {
+            console.error('Reward API error:', err);
+            alert(err.error?.message || 'Reward synchronization failed.');
+          }
+        });
       }
     });
   }

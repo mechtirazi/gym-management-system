@@ -57,7 +57,12 @@ import { trigger, transition, style, animate } from '@angular/animations';
               <label class="type-btn" [ngClass]="type.value">
                 <input type="radio" formControlName="type" [value]="type.value">
                 <div class="type-content" [title]="type.label">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [innerHTML]="type.icon"></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [ngSwitch]="type.value">
+                    <ng-container *ngSwitchCase="'info'"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></ng-container>
+                    <ng-container *ngSwitchCase="'success'"><polyline points="20 6 9 17 4 12"></polyline></ng-container>
+                    <ng-container *ngSwitchCase="'warning'"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></ng-container>
+                    <ng-container *ngSwitchCase="'error'"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></ng-container>
+                  </svg>
                   <span>{{ type.label }}</span>
                 </div>
               </label>

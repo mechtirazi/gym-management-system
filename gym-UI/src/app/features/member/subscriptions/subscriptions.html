@@ -3,8 +3,8 @@
   <header class="header-hub">
       <div class="glass-card header-content">
           <div class="text-group">
-              <h1>Training Nodes</h1>
-              <p>Active program synchronizations for your profile.</p>
+              <h1>My Memberships</h1>
+              <p>Manage your active gym memberships.</p>
           </div>
           <button class="join-btn" routerLink="/member/gyms">
               <span class="material-icons">add_circle</span>
@@ -25,26 +25,26 @@
           @for (sub of subscriptions; track sub.id_subscribe) {
               <div class="sub-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'">
                   <div class="gym-badge">
-                      <img [src]="sub.gym?.logo_url || 'https://ui-avatars.com/api/?name=Gym&background=8b5cf6&color=fff'" [alt]="sub.gym?.name">
+                      <img [src]="getGymImage(sub.gym?.picture, sub.gym?.name)" [alt]="sub.gym?.name || 'Gym'">
                       <div class="gym-details">
-                          <span class="gym-name">{{ sub.gym?.name || 'Local Node' }}</span>
-                          <span class="gym-location">{{ sub.gym?.address || 'Premium Facility' }}</span>
+                          <span class="gym-name">{{ sub.gym?.name || 'Gym Facility' }}</span>
+                          <span class="gym-location">{{ sub.gym?.address }}</span>
                       </div>
                   </div>
 
                    <div class="plan-info">
                       <div class="plan-header">
-                        <span class="plan-label">Sync Protocol</span>
+                        <span class="plan-label">Membership Plan</span>
                          <span class="type-badge" [class.premium]="(sub.plan?.type || sub.type) === 'premium'">
-                             {{ (sub.plan?.type || sub.type) === 'premium' ? 'Premium Sync' : 'Standard Sync' }}
+                             {{ sub.plan?.type || sub.type || 'Standard' | uppercase }}
                          </span>
                        </div>
-                       <h2 class="plan-name">{{ sub.plan?.name || sub.gym?.name || 'Vanguard Member' }}</h2>
-                       <p class="plan-desc">{{ sub.plan?.description || 'Advanced biometric tracking and facility access protocols.' }}</p>
+                       <h2 class="plan-name">{{ sub.plan?.name || sub.gym?.name || 'Gym Membership' }}</h2>
+                       <p class="plan-desc">{{ sub.plan?.description || 'Standard facility access.' }}</p>
                        
                        <div class="progress-node" *ngIf="sub.status?.toLowerCase() === 'active' || sub.status?.toLowerCase() === 'pending'">
                            <div class="progress-meta">
-                               <span>{{ getSubscriptionProgress(sub.end_date, sub.plan?.type || sub.type) }}% Capacity</span>
+                               <span>{{ getSubscriptionProgress(sub.end_date, sub.plan?.type || sub.type) }}% Usage</span>
                                <span class="days-pulse">{{ getDaysLeft(sub.end_date) }} Days Left</span>
                            </div>
                            <div class="progress-track">
@@ -56,11 +56,11 @@
                    <div class="usage-stats">
                        <div class="stat-node">
                            <span class="stat-val">{{ (sub.enrollment_date || sub.start_date) | date:'MMM dd, yyyy' }}</span>
-                           <span class="stat-label">Initialization</span>
+                           <span class="stat-label">Join Date</span>
                        </div>
                        <div class="stat-node">
                            <span class="stat-val">{{ sub.end_date | date:'MMM dd, yyyy' }}</span>
-                           <span class="stat-label">Recalibration</span>
+                           <span class="stat-label">Expiry Date</span>
                        </div>
                    </div>
 
@@ -82,12 +82,12 @@
                            {{ sub.status || 'Active' }}
                        </div>
                        <div class="price-and-action" style="display: flex; align-items: center; gap: 1.5rem;">
-                           <button (click)="reactivate(sub)" class="btn-glass-primary-sm">
-                               <span class="material-symbols-rounded">autorenew</span> {{ (sub.status?.toLowerCase() === 'expired' || sub.status?.toLowerCase() === 'cancelled') ? 'Reactivate Node' : 'Extend Node' }}
+                           <button *ngIf="sub.status?.toLowerCase() === 'expired' || sub.status?.toLowerCase() === 'cancelled'" (click)="reactivate(sub)" class="btn-glass-primary-sm">
+                               <span class="material-symbols-rounded">autorenew</span> Renew Plan
                            </button>
-                           <div class="price-node">
+                            <div class="price-node" *ngIf="sub.plan?.price || sub.amount">
                                <span class="currency">$</span>
-                               <span class="amount">{{ sub.plan?.price || sub.amount || '49.99' }}</span>
+                               <span class="amount">{{ sub.plan?.price || sub.amount }}</span>
                            </div>
                        </div>
                   </div>
@@ -97,8 +97,8 @@
   } @else {
       <div class="empty-state glass-card animate-fade-in">
           <div class="icon-node">🏟️</div>
-          <h2>No Active Nodes</h2>
-          <p>You haven't synchronized with any gym facilities yet. Explore the Hub to find your home base.</p>
+          <h2>No Active Memberships</h2>
+          <p>You haven't joined any gym facilities yet. Explore the facilities to find your home base.</p>
           <button class="primary-btn" routerLink="/member/gyms">Explore Facilities</button>
       </div>
   }
@@ -108,11 +108,11 @@
     [paymentError]="paymentError"
     [stripePublicKey]="stripePublicKey"
     [plans]="membershipPlans"
-    [headerTitle]="(selectedSubscription?.status?.toLowerCase() === 'expired' || selectedSubscription?.status?.toLowerCase() === 'cancelled') ? 'Reactivate Node' : 'Extend Node'"
-    [itemTitle]="selectedSubscription?.gym?.name || 'Local Node'"
-    [itemSubtitle]="selectedSubscription?.plan?.name || 'Vanguard Sync'"
-    [itemImage]="selectedSubscription?.gym?.logo_url || 'https://ui-avatars.com/api/?name=Gym&background=8b5cf6&color=fff'"
-    [purchaseTerms]="'Synchronizing with ' + (selectedSubscription?.gym?.name || 'Local Node') + ' environment will grant you full facility access protocols for the selected duration.'"
+    [headerTitle]="(selectedSubscription?.status?.toLowerCase() === 'expired' || selectedSubscription?.status?.toLowerCase() === 'cancelled') ? 'Renew Plan' : 'Extend Plan'"
+    [itemTitle]="selectedSubscription?.gym?.name || 'Gym Facility'"
+    [itemSubtitle]="selectedSubscription?.plan?.name || 'Membership Plan'"
+    [itemImage]="getGymImage(selectedSubscription?.gym?.picture, selectedSubscription?.gym?.name)"
+    [purchaseTerms]="'Renewing your plan with ' + (selectedSubscription?.gym?.name || 'Gym Facility') + ' will grant you full facility access for the selected duration.'"
     (cancelPayment)="showPaymentPicker = false" (confirmPayment)="processPurchase($event)">
   </app-payment-modal>
 
@@ -122,7 +122,7 @@
       <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' :
         'info') }}</span>
       <div class="toast-content">
-        <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System Notice') }}</strong>
+        <strong>{{ toastType === 'success' ? 'Membership Updated' : (toastType === 'error' ? 'Payment Failed' : 'System Notice') }}</strong>
         <p>{{ toastMessage }}</p>
       </div>
     </div>

@@ -102,22 +102,26 @@ export class MemberProductsComponent implements OnInit {
           }
         });
 
-        this.products = productsRaw.map((product: any) => {
-          // Resolve correct image URL
-          let imageUrl = product.image;
-          if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
-            const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-            const cleanPath = imageUrl.replace(/^\//, '');
-            imageUrl = `${baseUrl}/${cleanPath}`;
-          }
+        const subscribedGymIds = new Set(this.gyms.map(g => g.id_gym));
 
-          return {
-            ...product,
-            imageUrl: imageUrl || 'https://images.unsplash.com/photo-1583454110551-21f2fa202114?auto=format&fit=crop&q=80&w=800',
-            gymName: product.gym?.name || 'Local Hub',
-            quantity: 1 // Default purchase quantity
-          };
-        });
+        this.products = productsRaw
+          .filter((p: any) => subscribedGymIds.has(p.id_gym))
+          .map((product: any) => {
+            // Resolve correct image URL
+            let imageUrl = product.image;
+            if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+              const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+              const cleanPath = imageUrl.replace(/^\//, '');
+              imageUrl = `${baseUrl}/${cleanPath}`;
+            }
+
+            return {
+              ...product,
+              imageUrl: imageUrl || 'https://images.unsplash.com/photo-1583454110551-21f2fa202114?auto=format&fit=crop&q=80&w=800',
+              gymName: product.gym?.name || 'Local Hub',
+              quantity: 1 // Default purchase quantity
+            };
+          });
 
         this.loading = false;
         this.cdr.detectChanges();
@@ -232,12 +236,16 @@ export class MemberProductsComponent implements OnInit {
     this.memberService.getProducts().subscribe({
       next: (res: any) => {
         const productsRaw = res.data || res || [];
-        this.products = productsRaw.map((product: any) => ({
-          ...product,
-          imageUrl: this.resolveImageUrl(product.image),
-          gymName: product.gym?.name || 'Local Hub',
-          quantity: 1
-        }));
+        const subscribedGymIds = new Set(this.gyms.map(g => g.id_gym));
+
+        this.products = productsRaw
+          .filter((p: any) => subscribedGymIds.has(p.id_gym))
+          .map((product: any) => ({
+            ...product,
+            imageUrl: this.resolveImageUrl(product.image),
+            gymName: product.gym?.name || 'Local Hub',
+            quantity: 1
+          }));
         this.cdr.detectChanges();
       }
     });

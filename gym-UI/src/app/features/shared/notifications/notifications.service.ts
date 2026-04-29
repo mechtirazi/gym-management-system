@@ -36,6 +36,7 @@ export class NotificationFeatureService {
   isOwner = computed(() => this.currentUser()?.role === 'owner');
   isTrainer = computed(() => this.currentUser()?.role === 'trainer');
   isReceptionist = computed(() => this.currentUser()?.role === 'receptionist');
+  isMember = computed(() => this.currentUser()?.role === 'member');
 
   loadInitialData() {
     this.loadTargets();

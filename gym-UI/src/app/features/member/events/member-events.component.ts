@@ -118,7 +118,10 @@ export class MemberEventsComponent implements OnInit {
             isReserved: this.reservedEventIds.includes(event.id_event || event.id),
             gymName: event.gym?.name || 'Local Hub',
             participantsCount: event.attendances_count || 0,
-            price: event.price || 0
+            price: event.price || 0,
+            isRewarded: !!event.is_rewarded,
+            rewardAmount: event.reward_amount || 0,
+            maxWinners: event.max_winners || 0
           };
         });
 

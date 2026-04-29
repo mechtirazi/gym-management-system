@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MemberService } from '../services/member.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { User } from '../../../shared/models/user.model';
-import { Observable, forkJoin, map, of, Subject, debounceTime, switchMap } from 'rxjs';
+import { Observable, forkJoin, map, of, Subject, debounceTime, switchMap, catchError } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
 import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
@@ -27,7 +27,7 @@ export class MemberDashboardComponent implements OnInit {
     caloriesBurned: 0,
     attendanceStreak: 0,
     walletBalance: 0,
-    evolutionPoints: 0,
+    wallets: [],
     protein: 0,
     carbs: 0,
     fats: 0,
@@ -53,6 +53,10 @@ export class MemberDashboardComponent implements OnInit {
   isSyncing = false;
   isUpdatingBio = false;
   qrCodeUrl: string = '';
+  
+  // Wallet State
+  selectedWalletGymId: string | null = null;
+  selectedWalletBalance: number = 0;
 
   // Goal State
   fitnessGoal: 'cut' | 'maintain' | 'bulk' = 'maintain';
@@ -87,7 +91,6 @@ export class MemberDashboardComponent implements OnInit {
           this.stats = {
             ...this.stats,
             caloriesBurned: backendStats?.calories || 0,
-            evolutionPoints: backendStats?.evolutionPoints || 0,
             protein: backendStats?.protein || 0,
             carbs: backendStats?.carbs || 0,
             fats: backendStats?.fats || 0,
@@ -108,11 +111,11 @@ export class MemberDashboardComponent implements OnInit {
     }
 
     forkJoin({
-      stats: this.memberService.getDashboardStats(),
-      enrollments: this.memberService.getMyEnrollments(),
-      attendances: this.memberService.getMyAttendances(),
-      nutrition: this.memberService.getMyNutritionPlans(),
-      subscriptions: this.memberService.getMySubscriptions()
+      stats: this.memberService.getDashboardStats().pipe(catchError(() => of({ stats: {} }))),
+      enrollments: this.memberService.getMyEnrollments().pipe(catchError(() => of({ data: [] }))),
+      attendances: this.memberService.getMyAttendances().pipe(catchError(() => of({ data: [] }))),
+      nutrition: this.memberService.getMyNutritionPlans().pipe(catchError(() => of({ data: [] }))),
+      subscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] })))
     }).pipe(
       map((data: any) => {
         const backendStats = data.stats?.stats;
@@ -122,9 +125,9 @@ export class MemberDashboardComponent implements OnInit {
             activeWorkouts: backendStats?.enrollments || 0,
             completedSessions: backendStats?.totalAttendance || 0,
             caloriesBurned: backendStats?.calories || 0,
-            evolutionPoints: backendStats?.evolutionPoints || 0,
             attendanceStreak: backendStats?.activeSubscriptions || 0,
             walletBalance: backendStats?.walletBalance || 0,
+            wallets: backendStats?.wallets || [],
             protein: backendStats?.protein || 0,
             carbs: backendStats?.carbs || 0,
             fats: backendStats?.fats || 0,
@@ -139,13 +142,19 @@ export class MemberDashboardComponent implements OnInit {
         this.recentActivity = data.attendances?.data || [];
         this.nutritionPlan = data.nutrition?.data?.[0] || null;
 
-        const subs = data.subscriptions?.data || [];
-        this.activeSubscription = subs.find((s: any) => s.status?.toLowerCase() === 'active');
-
         const enrs = data.enrollments?.data || [];
-        this.activeEnrollment = enrs.find((e: any) => e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending');
+        this.activeEnrollment = enrs.find((e: any) => (e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending') && !e.id_course);
 
         this.stats = data.mappedStats;
+        
+        // Initialize default selected wallet if wallets exist
+        if (this.stats.wallets && this.stats.wallets.length > 0) {
+          this.selectedWalletGymId = this.stats.wallets[0].id_gym;
+          this.selectedWalletBalance = this.stats.wallets[0].balance;
+        } else {
+          this.selectedWalletBalance = this.stats.walletBalance;
+        }
+
         this.cdr.detectChanges();
       },
       error: (err: any) => {
@@ -153,6 +162,15 @@ export class MemberDashboardComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onWalletGymChange(): void {
+    if (this.stats.wallets && this.selectedWalletGymId) {
+      const selectedWallet = this.stats.wallets.find((w: any) => w.id_gym === this.selectedWalletGymId);
+      if (selectedWallet) {
+        this.selectedWalletBalance = selectedWallet.balance;
+      }
+    }
   }
 
   onCheckIn(): void {
@@ -303,11 +321,11 @@ export class MemberDashboardComponent implements OnInit {
   }
 
   showLedger(): void {
-    this.showToast('Wallet Ledger Protocol: Pulling transaction history from nodes... (This feature will be available in the next deployment cycle)', 'info');
+    this.showToast('Wallet Ledger Protocol: Pulling transaction history from facility logs... (This feature will be available in the next deployment cycle)', 'info');
   }
 
   joinSession(session: any): void {
-    this.showToast(`Syncing biometric signature with ${session.course?.name || 'Training Node'}... You are now physically expected at the facility.`, 'success');
+    this.showToast(`Syncing biometric signature with ${session.course?.name || 'Training Session'}... You are now physically expected at the facility.`, 'success');
   }
 
   initiateUpgrade(): void {
@@ -324,7 +342,7 @@ export class MemberDashboardComponent implements OnInit {
   processPurchase(event: any) {
     const gymId = this.activeSubscription?.id_gym || this.activeSubscription?.gym?.id_gym;
     if (!gymId) {
-      this.showToast('Protocol Error: Accessing gym node failed.', 'error');
+      this.showToast('Protocol Error: Accessing gym facility failed.', 'error');
       return;
     }
 

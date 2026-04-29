@@ -11,7 +11,7 @@
       <div class="quick-access-orb">
         <button class="btn-check-in-titanium" (click)="onCheckIn()" [disabled]="isSyncing">
           <span class="material-icons" [class.syncing]="isSyncing">{{ isSyncing ? 'sync' : 'qr_code_scanner' }}</span>
-          {{ isSyncing ? 'Syncing...' : 'Node Check-in' }}
+          {{ isSyncing ? 'Syncing...' : 'Gym Check-in' }}
         </button>
       </div>
     </div>
@@ -23,31 +23,24 @@
       <!-- High-Performance Stats Strip -->
       <div class="stats-strip">
         <div class="stat-pill titanium purple" [class.pulse]="stats.activeWorkouts > 0">
-          <div class="stat-icon">🏋️</div>
+          <div class="stat-icon"><span class="material-icons">fitness_center</span></div>
           <div class="stat-data">
             <span class="label">Integrated Programs</span>
             <h3 class="value">{{ stats.activeWorkouts }}</h3>
           </div>
         </div>
         <div class="stat-pill titanium cyan">
-          <div class="stat-icon">🔥</div>
+          <div class="stat-icon"><span class="material-icons">local_fire_department</span></div>
           <div class="stat-data">
             <span class="label">Daily Performance (Kcal)</span>
             <h3 class="value">{{ stats.caloriesBurned | number:'1.0-0' }}</h3>
           </div>
         </div>
         <div class="stat-pill titanium orange">
-          <div class="stat-icon">⚡</div>
+          <div class="stat-icon"><span class="material-icons">bolt</span></div>
           <div class="stat-data">
-            <span class="label">Node Syncs</span>
+            <span class="label">Gym Visits</span>
             <h3 class="value">{{ stats.completedSessions }}</h3>
-          </div>
-        </div>
-        <div class="stat-pill titanium gold">
-          <div class="stat-icon">💎</div>
-          <div class="stat-data">
-            <span class="label">Evolution Points</span>
-            <h3 class="value">{{ stats.evolutionPoints | number }}</h3>
           </div>
         </div>
       </div>
@@ -62,7 +55,7 @@
               <p>Real-time training pulse distribution</p>
             </div>
           </div>
-          <a routerLink="/member/workouts" class="btn-action-outline">Access Nodes</a>
+          <a routerLink="/member/workouts" class="btn-action-outline">Access Gyms</a>
         </div>
 
         <div class="timeline-v-list" *ngIf="upcomingSessions.length > 0; else noSessions">
@@ -74,8 +67,8 @@
             <div class="node-content glass-item">
               <div class="node-icon"><span class="material-icons">fitness_center</span></div>
               <div class="node-details">
-                <h4>{{ session.course?.name || 'Training Node' }}</h4>
-                <p>{{ session.gym?.name || 'Metropolitan Core' }}</p>
+                <h4>{{ session.course?.name || 'Training Session' }}</h4>
+                <p>{{ session.gym?.name || 'Central Facility' }}</p>
               </div>
               <button class="btn-sync" (click)="joinSession(session)">
                 <span class="material-icons">input</span>
@@ -99,14 +92,19 @@
     <div class="intel-column">
       <!-- Finance Vault (Top Right) -->
       <section class="glass-module wallet-vault-v2">
-        <div class="module-header-mini">
-          <span class="material-icons">wallet</span>
-          <h2>Zenith Vault</h2>
+        <div class="module-header-mini flex-header">
+          <div style="display: flex; align-items: center; gap: 0.8rem;">
+            <span class="material-icons">wallet</span>
+            <h2>Zenith Vault</h2>
+          </div>
+          <select class="wallet-gym-selector" *ngIf="stats.wallets?.length > 0" [(ngModel)]="selectedWalletGymId" (change)="onWalletGymChange()">
+            <option *ngFor="let wallet of stats.wallets" [value]="wallet.id_gym">{{ wallet.gym_name }}</option>
+          </select>
         </div>
 
         <div class="vault-display-compact">
           <div class="balance-readout">
-            <span class="num">{{ stats.walletBalance | number:'1.0-0' }}</span>
+            <span class="num">{{ selectedWalletBalance | number:'1.0-0' }}</span>
             <span class="tag">PTS AVAILABLE</span>
           </div>
           <div class="vault-actions-compact">
@@ -117,15 +115,16 @@
       </section>
 
       <!-- Active Status Widget -->
-      <section class="glass-module membership-widget-v3" *ngIf="activeEnrollment || activeSubscription">
+      <!-- Active Status Widget (Exclusively for Gym Enrollments) -->
+      <section class="glass-module membership-widget-v3" *ngIf="activeEnrollment; else noEnrollment">
         <div class="module-header-mini">
           <span class="material-icons">verified_user</span>
-          <h2>Node Authorization</h2>
+          <h2>Membership Status</h2>
         </div>
 
         <div class="membership-content-v3">
           <div class="m-plan-info">
-            <h3>{{ activeEnrollment?.gym?.name || activeSubscription?.gym?.name || 'Metropolitan Core' }}</h3>
+            <h3>{{ activeEnrollment?.gym?.name || 'Central Facility' }}</h3>
             <div class="m-status-pill"
               [class.premium]="activeEnrollment?.type === 'premium' || (activeSubscription && !activeSubscription.plan?.name?.toLowerCase().includes('standard'))">
               {{ activeEnrollment ? (activeEnrollment.type || 'Standard') : 'Premium Access' }}
@@ -134,19 +133,31 @@
 
           <div class="m-status-progress">
             <div class="p-labels">
-              <span>{{ getSubscriptionProgress(activeEnrollment ? activeEnrollment.end_date :
-                activeSubscription.end_date, 'standard') }}% SYNCED</span>
-              <span>{{ getDaysLeft(activeEnrollment ? activeEnrollment.end_date : activeSubscription.end_date) }}d
+              <span>{{ getSubscriptionProgress(activeEnrollment.end_date, 'standard') }}% COMPLETED</span>
+              <span>{{ getDaysLeft(activeEnrollment.end_date) }}d
                 LEFT</span>
             </div>
             <div class="p-bar-base">
               <div class="p-bar-fill"
-                [style.width.%]="getSubscriptionProgress(activeEnrollment ? activeEnrollment.end_date : activeSubscription.end_date, 'standard')">
+                [style.width.%]="getSubscriptionProgress(activeEnrollment.end_date, 'standard')">
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      <ng-template #noEnrollment>
+        <section class="glass-module membership-widget-v3 empty">
+          <div class="module-header-mini">
+            <span class="material-icons">info</span>
+            <h2>Membership Status</h2>
+          </div>
+          <div class="empty-membership">
+            <p>You have no active enrollment with any gym.</p>
+            <button class="btn-action-primary" routerLink="/member/gyms">Explore Gyms</button>
+          </div>
+        </section>
+      </ng-template>
 
       <div class="premium-upgrade-card">
         <div class="shimmer"></div>
@@ -233,7 +244,7 @@
         <div class="m-avatar">{{ user()?.name?.charAt(0) }}</div>
         <div class="m-info">
           <span class="m-name">{{ user()?.name }}</span>
-          <span class="m-id">NODE_ID: {{ user()?.id_user?.substring(0, 8) }}</span>
+          <span class="m-id">MEMBER_ID: {{ user()?.id_user?.substring(0, 8) }}</span>
         </div>
       </div>
 

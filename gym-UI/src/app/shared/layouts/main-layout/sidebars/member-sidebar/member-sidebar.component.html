@@ -34,18 +34,52 @@
 
   <div class="sidebar-footer">
     <div class="support-card">
-      <div class="support-icon">✨</div>
+      <div class="support-icon">🎧</div>
       <div class="support-content">
-
-        <div class="support-desc">Unlock all features.</div>
+        <p class="support-title">Member Support</p>
+        <p class="support-desc">Direct line to help desk</p>
       </div>
-      <button class="upgrade-plan-btn" (click)="showUpgradeNotification()">
-        <span class="material-icons">workspace_premium</span>
-        <div class="btn-info">
-          <span class="main">ACTIVATE_ELITE</span>
-          <span class="sub">Sync Advanced Features</span>
-        </div>
+      <button class="support-btn" (click)="openSupportModal()">
+        <span>Contact Support</span>
       </button>
     </div>
   </div>
 </aside>
+
+<!-- Support Modal Overlay -->
+<div class="support-modal-overlay" *ngIf="showSupportModal()" [class.active]="showSupportModal()">
+  <div class="support-modal">
+    <div class="modal-header">
+      <div class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <h3>Member Assistance</h3>
+      <button class="btn-close" (click)="closeSupportModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <p>Having trouble with your membership, payments, or access? Describe your issue and we'll resolve it.</p>
+      
+      <div class="form-group">
+        <textarea 
+          placeholder="Describe your issue here... (e.g. course access error, membership status, etc.)" 
+          [ngModel]="supportMessage()"
+          (ngModelChange)="supportMessage.set($event)"
+          rows="4">
+        </textarea>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeSupportModal()">Cancel</button>
+      <button class="btn btn-primary" [disabled]="!supportMessage().trim() || isSubmittingSupport()" (click)="submitSupportRequest()">
+        <span *ngIf="isSubmittingSupport()">Sending...</span>
+        <span *ngIf="!isSubmittingSupport()">Send Message</span>
+      </button>
+    </div>
+  </div>
+</div>
