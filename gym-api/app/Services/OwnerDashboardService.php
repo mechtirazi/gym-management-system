@@ -293,8 +293,14 @@ class OwnerDashboardService
         // 1. Total Attendance
         $totalAttendance = Attendance::where('id_member', $user->id_user)->count();
 
-        // 2. Wallet Balance
-        $walletBalance = $user->wallet ? $user->wallet->balance : 0.0;
+        // 2. Wallets
+        $wallets = \App\Models\Wallet::where('user_id', $user->id_user)
+            ->join('gyms', 'wallets.id_gym', '=', 'gyms.id_gym')
+            ->select('wallets.id_gym', 'wallets.balance', 'gyms.name as gym_name')
+            ->get();
+            
+        // Calculate total balance across all wallets for backward compatibility or global view
+        $walletBalance = $wallets->sum('balance');
 
         // 3. Active Subscriptions
         $activeSubCount = Subscribe::where('id_user', $user->id_user)
@@ -304,21 +310,11 @@ class OwnerDashboardService
         // 4. Enrollments
         $enrollmentCount = $user->enrollments()->count();
 
-        // 5. Automated Evolution Formula (The Zen Algorithm)
-        // High weight on attendance and manual data logging consistency
-        $evolutionPoints = ($user->evolution_points)
-            + ($totalAttendance * 50)
-            + ($user->manual_calories / 10)
-            + ($user->manual_protein * 5)
-            + ($user->manual_carbs * 2)
-            + ($user->manual_fats * 2)
-            + ($user->manual_water * 25)
-            + ($walletBalance * 10);
-
         return [
             "stats" => [
                 "totalAttendance" => $totalAttendance,
                 "walletBalance" => (float) $walletBalance,
+                "wallets" => $wallets,
                 "activeSubscriptions" => $activeSubCount,
                 "enrollments" => $enrollmentCount,
                 "calories" => $user->manual_calories,
@@ -326,8 +322,7 @@ class OwnerDashboardService
                 "carbs" => $user->manual_carbs,
                 "fats" => $user->manual_fats,
                 "water" => $user->manual_water,
-                "weight" => $user->manual_weight,
-                "evolutionPoints" => (int) $evolutionPoints
+                "weight" => $user->manual_weight
             ],
             "user" => [
                 "name" => $user->name,

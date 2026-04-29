@@ -36,9 +36,9 @@ class PaymentService extends BaseService
         // Apply Gym Scope using X-Gym-Id or manual gym_id
         $this->applyActiveGymScope($query, $user);
 
-        // If user is receptionist or owner, they can see all in that gym
+        // For Owners/Staff, restrict by gym. For Members, we primarily filter by id_user later.
         if (!$this->getActiveGymId()) {
-            if ($user->role !== User::ROLE_SUPER_ADMIN) {
+            if ($user->role !== User::ROLE_SUPER_ADMIN && $user->role !== User::ROLE_MEMBER) {
                 $query->whereIn('id_gym', $user->allowedGymIds());
             }
         }

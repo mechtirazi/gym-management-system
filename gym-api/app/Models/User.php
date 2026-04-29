@@ -241,11 +241,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Member wallet (only for users with role = member)
+     * Member wallets (one per gym)
      */
-    public function wallet()
+    public function wallets()
     {
-        return $this->hasOne(Wallet::class, 'user_id', 'id_user');
+        return $this->hasMany(Wallet::class, 'user_id', 'id_user');
+    }
+
+    /**
+     * Get wallet for a specific gym
+     */
+    public function walletForGym($gymId)
+    {
+        return $this->wallets()->where('id_gym', $gymId)->first();
     }
 
     public function assignedGyms()

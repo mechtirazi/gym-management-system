@@ -69,7 +69,7 @@ class MemberController extends Controller
     public function enrollCourse(Request $request, Course $course)
     {
         $user = $request->user();
-        $wallet = $user->wallet;
+        $wallet = $user->walletForGym($course->id_gym);
         $method = $request->input('payment_method', 'zen_wallet');
         $idSession = $request->input('id_session');
 
@@ -151,7 +151,7 @@ class MemberController extends Controller
     public function enrollEvent(Request $request, \App\Models\Event $event)
     {
         $user = $request->user();
-        $wallet = $user->wallet;
+        $wallet = $user->walletForGym($event->id_gym);
         $method = $request->input('payment_method', 'zen_wallet');
 
         // 1. Check if already synced with this event
@@ -241,7 +241,7 @@ class MemberController extends Controller
     public function purchaseMembership(Request $request, Gym $gym)
     {
         $user = $request->user();
-        $wallet = $user->wallet;
+        $wallet = $user->walletForGym($gym->id_gym);
         $method = $request->input('payment_method', 'zen_wallet');
 
         // Handle Dynamic Plans
@@ -509,7 +509,7 @@ class MemberController extends Controller
     public function purchaseProduct(Request $request, \App\Models\Product $product)
     {
         $user = $request->user();
-        $wallet = $user->wallet;
+        $wallet = $user->walletForGym($product->id_gym);
         $method = $request->input('payment_method', 'zen_wallet');
         $quantity = $request->input('quantity', 1);
 

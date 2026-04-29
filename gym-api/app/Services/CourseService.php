@@ -32,9 +32,9 @@ class CourseService extends BaseService
             if ($activeGymId) {
                 // Scoped to the selected gym, but still verify ownership
                 $query = $query->where('id_gym', $activeGymId)
-                               ->whereHas('gym', function ($q) use ($user) {
-                                   $q->where('id_owner', $user->id_user);
-                               });
+                    ->whereHas('gym', function ($q) use ($user) {
+                        $q->where('id_owner', $user->id_user);
+                    });
             } else {
                 // No gym selected: return all courses from all owned gyms
                 $query = $query->whereHas('gym', function ($q) use ($user) {
@@ -53,7 +53,7 @@ class CourseService extends BaseService
             $query = $query->whereHas('sessions', function ($sq) use ($user) {
                 $sq->where('id_trainer', $user->id_user);
             });
-            
+
             // Respect active gym context for trainers too using standardized helper
             $this->applyActiveGymScope($query, $user, 'id_gym');
 

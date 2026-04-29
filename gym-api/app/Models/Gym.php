@@ -111,6 +111,16 @@ class Gym extends Model
         return $this->members()->where('status', 'active')->count();
     }
 
+    public function getAverageRatingAttribute()
+    {
+        return round($this->reviews()->avg('rating') ?? 0, 1);
+    }
+
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviews()->count();
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class, 'id_gym', 'id_gym');

@@ -21,6 +21,7 @@ class Payment extends Model
     public const TYPE_MEMBERSHIP = 'membership';
     public const TYPE_PRODUCT = 'product';
     public const TYPE_COURSE = 'course';
+    public const TYPE_EVENT = 'event';
     public const TYPE_NUTRITION = 'nutrition';
     public const TYPE_OTHER = 'other';
 

@@ -29,6 +29,7 @@ class CheckGymStatus
             'api/auth/refresh',     // Token management
             'api/auth/logout',      // Exit
             'api/owner/dashboard-stats', // Allow dashboard shell
+            'api/member/dashboard-stats', // Allow member dashboard shell
             'api/owner/revenue-stats',   // Allow revenue overview
             'api/owner/recent-checkins', // Meta dashboards
             'api/notifications',    // Platform communication

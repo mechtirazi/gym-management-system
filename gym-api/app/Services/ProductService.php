@@ -50,6 +50,12 @@ class ProductService extends BaseService
         }
 
         if ($user->role === User::ROLE_MEMBER) {
+            if ($activeGymId) {
+                $query = $query->where('id_gym', $activeGymId);
+            } else {
+                $subscribedGymIds = $user->subscriptions()->pluck('id_gym');
+                $query = $query->whereIn('id_gym', $subscribedGymIds);
+            }
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 

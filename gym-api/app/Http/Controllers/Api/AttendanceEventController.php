@@ -189,7 +189,7 @@ class AttendanceEventController extends BaseApiController
     public function rewardWinner(Request $request, $id)
     {
         try {
-            $attendance = AttendanceEvent::with('event')->findOrFail($id);
+            $attendance = AttendanceEvent::with(['event', 'member'])->findOrFail($id);
             $event = $attendance->event;
 
             // 1. Authorize - only gym owner/staff should do this
@@ -232,10 +232,17 @@ class AttendanceEventController extends BaseApiController
                     $member->evolution_points += $amount;
                     $member->save();
 
-                    // Award spendable ZEN credits (Wallet)
-                    $wallet = $member->wallet;
+                    // Award spendable ZEN credits (Wallet) - Scoped to the event's gym
+                    $wallet = \App\Models\Wallet::where('user_id', $member->id_user)
+                        ->where('id_gym', $event->id_gym)
+                        ->first();
+                        
                     if (!$wallet) {
-                        $wallet = \App\Models\Wallet::create(['user_id' => $member->id_user, 'balance' => 0]);
+                        $wallet = \App\Models\Wallet::create([
+                            'user_id' => $member->id_user, 
+                            'id_gym' => $event->id_gym,
+                            'balance' => 0
+                        ]);
                     }
                     
                     $wallet->increment('balance', $amount);

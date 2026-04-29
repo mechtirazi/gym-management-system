@@ -13,7 +13,7 @@ class Wallet extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = ['user_id', 'balance'];
+    protected $fillable = ['user_id', 'id_gym', 'balance'];
 
     public function user(): BelongsTo
     {
