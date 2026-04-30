@@ -184,9 +184,9 @@
           <div class="insight-block">
             <span class="block-label">COMMUNITY SATISFACTION INDEX</span>
             <div class="satisfaction-bar">
-              <div class="bar-fill" [style.width.%]="(averageRating || 4.5) * 20"></div>
+              <div class="bar-fill" [style.width.%]="averageRating * 20"></div>
             </div>
-            <span class="resonance-text">{{ (averageRating || 4.5) * 20 }}% Positive Resonance</span>
+            <span class="resonance-text">{{ averageRating * 20 }}% Positive Resonance</span>
           </div>
 
           <div class="performance-tip">
@@ -213,8 +213,24 @@
               <span class="level-tag">{{ item.duration || '60 min' }} • {{ item.max_capacity || 20 }} Capacity</span>
             </div>
             <h3>{{ item.name }}</h3>
-            <p>{{ item.description || 'Join our specialized ' + item.name + ' session for an optimized fitness
-              experience.' }}</p>
+            <p>{{ item.description || 'Join our specialized ' + item.name + ' session for an optimized fitness experience.' }}</p>
+            
+            <!-- Trainer Protocol Node -->
+            <div class="trainer-node" *ngIf="item.sessions?.[0]?.trainer" 
+                 [routerLink]="['/member/trainers', item.sessions[0].trainer.id_user]">
+              <div class="t-avatar">
+                <img *ngIf="item.sessions[0].trainer.profile_picture" 
+                     [src]="getImageUrl(item.sessions[0].trainer.profile_picture)" alt="Trainer">
+                <span *ngIf="!item.sessions[0].trainer.profile_picture">
+                  {{ item.sessions[0].trainer.name[0] }}
+                </span>
+              </div>
+              <div class="t-info">
+                <span class="t-name">{{ item.sessions[0].trainer.name }} {{ item.sessions[0].trainer.last_name }}</span>
+                <span class="t-role">Elite Coach</span>
+              </div>
+              <span class="material-symbols-rounded t-arrow">chevron_right</span>
+            </div>
           </div>
           } @empty {
           <div class="reviews-placeholder glass-module" style="grid-column: 1 / -1;">
@@ -313,37 +329,6 @@
     [plans]="membershipPlans" (cancelPayment)="showPaymentPicker = false" (confirmPayment)="processPurchase($event)">
   </app-payment-modal>
 
-  <div class="payment-modal-backdrop review-backdrop" *ngIf="showReviewModal" (click)="showReviewModal = false">
-    <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="title-group"><span class="material-symbols-rounded">grade</span>
-          <h3>Rate this Gym</h3>
-        </div>
-        <button class="close-btn" (click)="showReviewModal = false"><span
-            class="material-symbols-rounded">close</span></button>
-      </div>
-      <div class="modal-body">
-        <div class="rating-selector">
-          <div class="star-nodes">
-            <button *ngFor="let star of [1,2,3,4,5]" (click)="submitRating(star)"
-              [class.active]="reviewData.rating >= star" class="star-node">
-              <span class="material-symbols-rounded">{{ reviewData.rating >= star ? 'star' : 'star_outline' }}</span>
-            </button>
-          </div>
-        </div>
-        <div class="comment-protocol">
-          <textarea [(ngModel)]="reviewData.comment" placeholder="Describe your experience..."
-            class="protocol-input"></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-glass-primary full-width" [disabled]="isSubmittingReview || !reviewData.comment"
-          (click)="submitReview()">
-          {{ isSubmittingReview ? 'Syncing...' : 'Post Review' }}
-        </button>
-      </div>
-    </div>
-  </div>
   }
 
   <!-- Toast System -->
@@ -357,6 +342,64 @@
           Notice') }}</strong>
         <p>{{ toastMessage }}</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced Rating Modal (Moved outside transform container) -->
+<div class="modal-overlay-backdrop" *ngIf="showReviewModal" (click)="showReviewModal = false">
+  <div class="rating-portal-card glass-module animate-portal-in" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="portal-header">
+      <div class="icon-orb">
+        <span class="material-symbols-rounded">grade</span>
+      </div>
+      <div class="header-text">
+        <h3>Rate this Facility</h3>
+        <p>Synchronize your experience with the hub.</p>
+      </div>
+      <button class="portal-close" (click)="showReviewModal = false">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="portal-body">
+      <div class="rating-experience">
+        <div class="experience-label">How was your experience?</div>
+        <div class="star-hologram">
+          <button *ngFor="let s of [1,2,3,4,5]" 
+                  (click)="submitRating(s)" 
+                  [class.active]="reviewData.rating >= s"
+                  class="star-btn">
+            <span class="material-symbols-rounded">{{ reviewData.rating >= s ? 'star' : 'star_outline' }}</span>
+          </button>
+        </div>
+        <div class="rating-tagline" [style.color]="getRatingColor(reviewData.rating)">
+          {{ getRatingLabel(reviewData.rating) }}
+        </div>
+      </div>
+
+      <div class="comment-field">
+        <textarea [(ngModel)]="reviewData.comment" 
+                  placeholder="Describe the facility, equipment, and environment..."
+                  class="zen-textarea"></textarea>
+        <div class="char-count" [class.max]="reviewData.comment.length > 450">
+          {{ reviewData.comment.length }}/500
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="portal-footer">
+      <button class="btn-cancel-nova" (click)="showReviewModal = false">Dismiss</button>
+      <button class="btn-submit-nova" 
+              [disabled]="!reviewData.comment || isSubmittingReview" 
+              (click)="submitReview()">
+        <span class="material-symbols-rounded" *ngIf="!isSubmittingReview">send</span>
+        <span class="spinner-sm" *ngIf="isSubmittingReview"></span>
+        {{ isSubmittingReview ? 'Syncing...' : 'Submit Feedback' }}
+      </button>
     </div>
   </div>
 </div>

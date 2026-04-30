@@ -64,7 +64,7 @@ export class MemberGymProfileComponent implements OnInit {
 
   get averageRating(): number {
     if (!this.gymReviews || this.gymReviews.length === 0) {
-      return parseFloat(this.gym?.avg_rating || '5.0');
+      return parseFloat(this.gym?.average_rating || '0');
     }
     const sum = this.gymReviews.reduce((acc, review) => acc + (review.rating || 0), 0);
     return parseFloat((sum / this.gymReviews.length).toFixed(1));
@@ -112,7 +112,7 @@ export class MemberGymProfileComponent implements OnInit {
     // ForkJoin to fetch gym profile, courses, and check subscription simultaneously
     forkJoin({
       allGyms: this.memberService.getAllGyms().pipe(catchError(() => of({ data: [] }))),
-      allCourses: this.memberService.getAvailableCourses().pipe(catchError(() => of({ data: [] }))),
+      allCourses: this.memberService.getAvailableCourses(id).pipe(catchError(() => of({ data: [] }))),
       mySubs: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] }))),
       enrollments: this.memberService.getMyEnrollments().pipe(catchError(() => of({ data: [] })))
     }).subscribe({
@@ -340,6 +340,28 @@ export class MemberGymProfileComponent implements OnInit {
 
   submitRating(rating: number) {
     this.reviewData.rating = rating;
+  }
+
+  getRatingLabel(rating: number): string {
+    const labels: Record<number, string> = {
+      1: 'Unsatisfactory',
+      2: 'Suboptimal',
+      3: 'Standard',
+      4: 'High-Fidelity',
+      5: 'Elite Mastery'
+    };
+    return labels[rating] || '';
+  }
+
+  getRatingColor(rating: number): string {
+    const colors: Record<number, string> = {
+      1: '#ef4444',
+      2: '#f97316',
+      3: '#f59e0b',
+      4: '#818cf8',
+      5: '#2dd4bf'
+    };
+    return colors[rating] || '#ffffff';
   }
 
   submitReview() {

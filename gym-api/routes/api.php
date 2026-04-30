@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\ReceptionistDashboardController;
 use App\Http\Controllers\Api\TrainerController;
 use App\Http\Controllers\Api\BiometricController;
 use App\Http\Controllers\Api\SocialController;
+use App\Http\Controllers\Api\SearchController;
 
 // Public Auth Routes (no authentication required)
 Route::prefix('auth')->group(function () {
@@ -63,6 +64,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     // Auth info
     Route::get('me', [AuthController::class, 'me'])->name('auth.me');
     Route::post('refresh', [AuthController::class, 'refresh'])->name('auth.refresh');
+    Route::get('search', [SearchController::class, 'globalSearch'])->name('search.global');
 
     // User routes
     Route::get('users/search-by-email', [UserController::class, 'findByEmail'])->name('users.search-by-email');
@@ -168,9 +170,15 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::post('gyms/{gym}/payment-intent', [App\Http\Controllers\Api\MemberController::class, 'createPaymentIntent'])->name('member.gyms.payment-intent');
         Route::post('check-in', [App\Http\Controllers\Api\MemberController::class, 'checkIn'])->name('member.check-in');
         Route::put('biometrics', [App\Http\Controllers\Api\MemberController::class, 'updateBiometrics'])->name('member.biometrics');
+        Route::post('convert-points', [App\Http\Controllers\Api\MemberController::class, 'convertPoints'])->name('member.points.convert');
+        Route::get('wallets', [App\Http\Controllers\Api\MemberController::class, 'getMyWallets'])->name('member.wallets');
         Route::post('workouts', [App\Http\Controllers\Api\MemberController::class, 'storeWorkoutLog'])->name('member.workouts.save');
         Route::get('workouts/history', [App\Http\Controllers\Api\MemberController::class, 'getWorkoutHistory'])->name('member.workouts.history');
         Route::post('products/{product}/purchase', [App\Http\Controllers\Api\MemberController::class, 'purchaseProduct'])->name('member.products.purchase');
+
+        // Trainer Profiles & Ratings
+        Route::get('trainers/{trainer}/profile', [App\Http\Controllers\Api\MemberController::class, 'getTrainerProfile']);
+        Route::post('trainers/{trainer}/rate', [App\Http\Controllers\Api\MemberController::class, 'rateTrainer']);
 
         // Social Interactions
         Route::post('social/like', [SocialController::class, 'toggleLike']);

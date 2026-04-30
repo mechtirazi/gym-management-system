@@ -31,9 +31,19 @@ class NutritionPlanController extends BaseApiController
     {
         try {
             Log::info('NutritionPlanController: Accessing Available Plans');
+            $activeGymId = request()->header('X-Gym-Id');
+            $gymIds = auth()->user()->allowedGymIds();
+            
+            $query = NutritionPlan::query();
+            if ($activeGymId) {
+                $query->where('id_gym', $activeGymId);
+            } else {
+                $query->whereIn('id_gym', $gymIds);
+            }
+
             return response()->json([
                 'success' => true,
-                'data' => NutritionPlan::all(),
+                'data' => $query->get(),
                 'diagnostic' => 'Bio-Sync Active'
             ]);
         } catch (\Exception $e) {

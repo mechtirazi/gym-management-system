@@ -49,6 +49,8 @@ export class OwnerSidebarComponent {
     { label: 'App', isHeader: true, sensitive: false },
     { label: 'Nutrition', icon: 'food', route: '/owner/nutrition', sensitive: true },
     { label: 'Community', icon: 'users', route: '/owner/community', sensitive: true },
+    { label: 'My Gyms', icon: 'gym', route: '/owner/my-gyms', sensitive: true },
+
     { label: 'Settings', icon: 'settings', route: '/settings', sensitive: false }
   ];
 

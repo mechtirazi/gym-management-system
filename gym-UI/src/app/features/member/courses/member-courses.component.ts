@@ -39,6 +39,7 @@ export class MemberCoursesComponent implements OnInit {
   processingPayment = false;
   paymentError: string | null = null;
   stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
+  wallets: any[] = [];
 
   categories = [
     { id: 'all', label: 'All Programs' },
@@ -47,6 +48,23 @@ export class MemberCoursesComponent implements OnInit {
     { id: 'Yoga', label: 'Mind & Body' },
     { id: 'HIIT', label: 'HIIT' }
   ];
+
+  // Toast Notification State
+  toastMessage: string = '';
+  toastType: 'success' | 'error' | 'info' = 'info';
+  toastTimeout: any;
+
+  showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.cdr.detectChanges();
+
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage = '';
+      this.cdr.detectChanges();
+    }, 4000);
+  }
 
   get filteredCourses() {
     return this.courses.filter(course => {
@@ -105,13 +123,15 @@ export class MemberCoursesComponent implements OnInit {
       allCourses: this.memberService.getAvailableCourses().pipe(catchError(() => of({ data: [] }))),
       myPayments: this.memberService.getMyPayments().pipe(catchError(() => of({ data: [] }))),
       mySubscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] }))),
-      myAttendances: this.memberService.getMyAttendances().pipe(catchError(() => of({ data: [] })))
+      myAttendances: this.memberService.getMyAttendances().pipe(catchError(() => of({ data: [] }))),
+      myWallets: this.memberService.getMyWallets().pipe(catchError(() => of({ data: [] })))
     }).subscribe({
       next: (res: any) => {
         const coursesRaw = res.allCourses?.data || [];
         const paymentsRaw = res.myPayments?.data || [];
         const subscriptionsRaw = res.mySubscriptions?.data || [];
         const attendancesRaw = res.myAttendances?.data || [];
+        this.wallets = res.myWallets?.data || [];
 
         // Check session-level ownership through payment history
         this.myPaidSessionIds = paymentsRaw
@@ -286,9 +306,13 @@ export class MemberCoursesComponent implements OnInit {
   private handleSuccess(msg = 'Transaction successful!') {
     this.processingPayment = false;
     this.paymentError = null;
-    this.closePaymentModal();
-    alert(msg);
-    this.loadData();
+    
+    // Give the user 1.5s to see the 'Success' state in the modal before auto-closing
+    setTimeout(() => {
+      this.closePaymentModal();
+      this.showToast(msg, 'success');
+      this.loadData();
+    }, 1500);
   }
 
   private handleError(err: any) {
@@ -298,7 +322,7 @@ export class MemberCoursesComponent implements OnInit {
     this.processingPayment = false;
     this.cdr.detectChanges();
     if (!this.showPaymentModal) {
-      alert('Error: ' + msg);
+      this.showToast(msg, 'error');
     }
   }
 
@@ -314,7 +338,31 @@ export class MemberCoursesComponent implements OnInit {
     const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === course.selectedSessionId);
     const trainer = session?.trainer || course.trainer;
     const tName = trainer?.name || trainer?.user?.name || 'Master Coach';
-    return trainer?.avatar || trainer?.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(tName)}&background=00d2ff&color=fff&bold=true`;
+    
+    const path = trainer?.profile_picture || trainer?.user?.profile_picture || trainer?.avatar || trainer?.user?.avatar;
+    if (path) {
+      if (path.startsWith('http')) return path;
+      const baseUrl = environment.apiUrl.replace('/api', '');
+      return `${baseUrl}/storage/${path.startsWith('/') ? path.substring(1) : path}`;
+    }
+    
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(tName)}&background=00d2ff&color=fff&bold=true`;
+  }
+
+  getTrainerId(course: any): string | null {
+    if (!course) return null;
+    const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === course.selectedSessionId);
+    const trainer = session?.trainer || course.trainer;
+    return trainer?.id_user || trainer?.user?.id_user || trainer?.id || null;
+  }
+
+  navigateToTrainer(course: any): void {
+    const id = this.getTrainerId(course);
+    if (id) {
+      // Need to use router.navigate since we didn't inject Router directly in constructor
+      // Actually we have RouterLink imported, but let's just do it directly.
+      window.location.href = `/member/trainers/${id}`;
+    }
   }
 
   isSessionReserved(course: any): boolean {

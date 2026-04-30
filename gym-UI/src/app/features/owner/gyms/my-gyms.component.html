@@ -1,0 +1,88 @@
+<div class="my-gyms-page">
+  <div class="page-header animate-reveal">
+    <div class="header-content">
+      <h1>My Gym Network</h1>
+      <p class="subtitle">Monitor and manage the status of all your facility nodes</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="loadGyms()" [disabled]="isLoading()">
+        <svg [class.spinning]="isLoading()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+        </svg>
+        Refresh Status
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="message success animate-reveal" *ngIf="successMessage()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <path d="M20 6L9 17 4 12" />
+    </svg>
+    <span>{{ successMessage() }}</span>
+    <button class="close-btn" (click)="successMessage.set(null)">×</button>
+  </div>
+
+  <div class="message error animate-reveal" *ngIf="errorMessage()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+    </svg>
+    <span>{{ errorMessage() }}</span>
+    <button class="close-btn" (click)="errorMessage.set(null)">×</button>
+  </div>
+
+  <!-- Gym Grid -->
+  <div class="gyms-grid" *ngIf="!isLoading() || gyms().length > 0; else loadingState">
+    <div class="gym-card glass animate-reveal" *ngFor="let gym of gyms(); let i = index" [style.animation-delay]="(i * 0.1) + 's'" [class.suspended]="gym.status === 'suspended'">
+      <div class="card-header">
+        <div class="gym-logo">
+          <img *ngIf="gym.logo_url" [src]="gym.logo_url" alt="Logo">
+          <span *ngIf="!gym.logo_url">{{ gym.name.charAt(0) }}</span>
+        </div>
+        <div class="status-badge" [class.active]="gym.status === 'active'" [class.suspended]="gym.status === 'suspended'">
+          {{ gym.status === 'suspended' ? 'OFFLINE' : 'ONLINE' }}
+        </div>
+      </div>
+
+      <div class="card-body">
+        <h3>{{ gym.name }}</h3>
+        <p class="address">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ gym.address }}
+        </p>
+        
+        <div class="suspension-info" *ngIf="gym.status === 'suspended'">
+          <div class="reason-label">REASON FOR SUSPENSION:</div>
+          <p class="reason-text">{{ gym.suspension_reason || 'Administrative Review Required' }}</p>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button *ngIf="gym.status === 'suspended'" class="btn-reactivate" (click)="reactivateGym(gym)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          Reactivate Gym
+        </button>
+        <button *ngIf="gym.status !== 'suspended'" class="btn-manage" [routerLink]="['/owner/gym-profile']">
+          Manage Profile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state animate-reveal" *ngIf="!isLoading() && gyms().length === 0">
+    <div class="empty-icon">🏢</div>
+    <h2>No Gyms Found</h2>
+    <p>You don't have any gyms registered in our system yet.</p>
+    <button class="btn-primary" routerLink="/owner/dashboard">Return to Dashboard</button>
+  </div>
+
+  <!-- Loading Overlay -->
+  <ng-template #loadingState>
+    <div class="loading-grid">
+      <div class="skeleton-card" *ngFor="let x of [1,2,3]"></div>
+    </div>
+  </ng-template>
+</div>

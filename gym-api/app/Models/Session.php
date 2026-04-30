@@ -11,6 +11,8 @@ class Session extends Model
     /** @use HasFactory<\Database\Factories\SessionFactory> */
     use HasFactory;
     use HasUuids;
+ 
+    protected $appends = ['attendances_count'];
 
     protected $primaryKey = 'id_session';
 
@@ -53,5 +55,10 @@ class Session extends Model
     public function attendances()
     {
         return $this->hasMany(Attendance::class, 'id_session', 'id_session');
+    }
+
+    public function getAttendancesCountAttribute()
+    {
+        return $this->attendances()->count();
     }
 }

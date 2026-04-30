@@ -62,7 +62,8 @@ class GymStaffController extends BaseApiController
                 'id_user' => $user->id_user,
                 'title' => 'New Staff Invitation',
                 'text' => "You have been invited to join \"{$gymName}\" as a " . ucfirst($role) . ".",
-                'type' => "staff_invitation:{$idGym}:{$role}"
+                'type' => "staff_invitation:{$idGym}:{$role}",
+                'id_sender' => auth('api')->id()
             ]);
 
             return response()->json([

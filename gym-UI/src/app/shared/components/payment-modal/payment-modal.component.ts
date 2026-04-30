@@ -20,6 +20,8 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
   @Input() processingPayment: boolean = false;
   @Input() stripePublicKey: string = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
   @Input() totalPrice: number | null = null;
+  @Input() wallets: any[] = [];
+  @Input() currentGymId: string | null = null;
 
   @Output() cancelPayment = new EventEmitter<void>();
   @Output() confirmPayment = new EventEmitter<any>();
@@ -221,5 +223,30 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
     this.paymentStepper = 2;
     this.paymentError = null;
     this.cdr.detectChanges();
+  }
+ 
+  getActiveWalletBalance(): number {
+    if (!this.currentGymId || !this.wallets) return 0;
+    
+    // Support both id_gym and gym_id for robustness across different model mappings
+    const wallet = this.wallets.find(w => 
+      (w.id_gym == this.currentGymId || w.gym_id == this.currentGymId)
+    );
+    
+    // The wallet balance is stored in currency ($). 
+    // The user wants 50 points = $5, which means 10 points = $1.
+    // We multiply by 10 for "Zenith Points" display.
+    return wallet ? parseFloat(wallet.balance) * 10 : 0;
+  }
+ 
+  hasSufficientBalance(): boolean {
+    const price = this.selectedPlan ? parseFloat(this.selectedPlan.price) : (this.totalPrice || 0);
+    const requiredPoints = price * 10;
+    return this.getActiveWalletBalance() >= requiredPoints;
+  }
+ 
+  getRequiredPoints(): number {
+    const price = this.selectedPlan ? parseFloat(this.selectedPlan.price) : (this.totalPrice || 0);
+    return price * 10;
   }
 }

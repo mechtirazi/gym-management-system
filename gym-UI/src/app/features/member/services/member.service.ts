@@ -73,8 +73,12 @@ export class MemberService {
     return this.http.get<any>(`${this.apiUrl}/subscribes`);
   }
 
-  getMyNutritionPlansMarketplace(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/nutrition-plans/available`);
+  getMyNutritionPlansMarketplace(gymId?: string): Observable<any> {
+    let headers: Record<string, string> = {};
+    if (gymId) {
+      headers['X-Gym-Id'] = gymId;
+    }
+    return this.http.get<any>(`${this.apiUrl}/nutrition-plans/available`, { headers });
   }
 
   purchaseNutritionPlan(planId: string): Observable<any> {
@@ -93,8 +97,12 @@ export class MemberService {
     return this.http.post<any>(`${this.apiUrl}/nutrition-plans/water-log`, { amount_ml: amountMl });
   }
 
-  getAvailableCourses(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/courses`);
+  getAvailableCourses(gymId?: string): Observable<any> {
+    let headers: Record<string, string> = {};
+    if (gymId) {
+      headers['X-Gym-Id'] = gymId;
+    }
+    return this.http.get<any>(`${this.apiUrl}/courses`, { headers });
   }
 
   getAllGyms(): Observable<any> {
@@ -113,12 +121,20 @@ export class MemberService {
     return this.http.get<any>(`${this.apiUrl}/notifications`);
   }
 
-  getEvents(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/events`);
+  getEvents(gymId?: string): Observable<any> {
+    let headers: Record<string, string> = {};
+    if (gymId) {
+      headers['X-Gym-Id'] = gymId;
+    }
+    return this.http.get<any>(`${this.apiUrl}/events`, { headers });
   }
 
-  getProducts(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/products`);
+  getProducts(gymId?: string): Observable<any> {
+    let headers: Record<string, string> = {};
+    if (gymId) {
+      headers['X-Gym-Id'] = gymId;
+    }
+    return this.http.get<any>(`${this.apiUrl}/products`, { headers });
   }
 
   getGymReviews(gymId: string): Observable<any> {
@@ -126,9 +142,9 @@ export class MemberService {
   }
 
   enrollInCourse(courseId: string, sessionId: string, paymentMethod: string = 'zen_wallet'): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/member/courses/${courseId}/enroll`, { 
-      payment_method: paymentMethod, 
-      id_session: sessionId 
+    return this.http.post<any>(`${this.apiUrl}/member/courses/${courseId}/enroll`, {
+      payment_method: paymentMethod,
+      id_session: sessionId
     });
   }
 
@@ -141,7 +157,7 @@ export class MemberService {
   }
 
   purchaseProduct(productId: string, paymentMethod: string = 'zen_wallet', quantity: number = 1): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/member/products/${productId}/purchase`, { 
+    return this.http.post<any>(`${this.apiUrl}/member/products/${productId}/purchase`, {
       payment_method: paymentMethod,
       quantity: quantity
     });
@@ -216,7 +232,30 @@ export class MemberService {
     return this.http.post<any>(`${this.apiUrl}/member/social/comment`, { id, type, content });
   }
 
+  convertPoints(gymId: string, points: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/convert-points`, { 
+      id_gym: gymId, 
+      points: points 
+    });
+  }
+ 
+  getMyWallets(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/member/wallets`);
+  }
+
   getComments(id: string, type: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/member/social/comments?id=${id}&type=${type}`);
+  }
+
+  getTrainerProfile(trainerId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/member/trainers/${trainerId}/profile`);
+  }
+
+  rateTrainer(trainerId: string, data: { rating: number; comment: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/member/trainers/${trainerId}/rate`, data);
+  }
+
+  searchResources(query: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/search?query=${query}`);
   }
 }

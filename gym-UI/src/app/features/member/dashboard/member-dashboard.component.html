@@ -97,7 +97,8 @@
             <span class="material-icons">wallet</span>
             <h2>Zenith Vault</h2>
           </div>
-          <select class="wallet-gym-selector" *ngIf="stats.wallets?.length > 0" [(ngModel)]="selectedWalletGymId" (change)="onWalletGymChange()">
+          <select class="wallet-gym-selector" *ngIf="stats.wallets?.length > 0" [(ngModel)]="selectedWalletGymId"
+            (change)="onWalletGymChange()">
             <option *ngFor="let wallet of stats.wallets" [value]="wallet.id_gym">{{ wallet.gym_name }}</option>
           </select>
         </div>
@@ -108,11 +109,14 @@
             <span class="tag">PTS AVAILABLE</span>
           </div>
           <div class="vault-actions-compact">
-            <button class="btn-v-mini" (click)="handleRedeem()"><span class="material-icons">autorenew</span></button>
-            <button class="btn-v-mini" (click)="showLedger()"><span class="material-icons">history</span></button>
+            <button class="btn-v-mini" title="Synthesize Points" (click)="openExchangeModal()"><span
+                class="material-icons">autorenew</span></button>
+            <button class="btn-v-mini" title="History" (click)="showLedger()"><span
+                class="material-icons">history</span></button>
           </div>
         </div>
       </section>
+
 
       <!-- Active Status Widget -->
       <!-- Active Status Widget (Exclusively for Gym Enrollments) -->
@@ -138,8 +142,7 @@
                 LEFT</span>
             </div>
             <div class="p-bar-base">
-              <div class="p-bar-fill"
-                [style.width.%]="getSubscriptionProgress(activeEnrollment.end_date, 'standard')">
+              <div class="p-bar-fill" [style.width.%]="getSubscriptionProgress(activeEnrollment.end_date, 'standard')">
               </div>
             </div>
           </div>
@@ -177,7 +180,8 @@
           <span class="material-icons">workspace_premium</span>
           <h3>Elite Tier Benefits</h3>
         </div>
-        <button class="close-btn" (click)="showEliteBenefitsModal = false"><span class="material-icons">close</span></button>
+        <button class="close-btn" (click)="showEliteBenefitsModal = false"><span
+            class="material-icons">close</span></button>
       </div>
       <div class="modal-body benefits-body">
         <div class="benefit-item">
@@ -201,7 +205,7 @@
             <p>Unrestricted access to any facility within the Metropolitan Hub network worldwide.</p>
           </div>
         </div>
-        
+
         <button class="btn-check-in-titanium full-width" (click)="proceedToPayment()">
           PROCEED TO ACTIVATION
           <span class="material-icons">arrow_forward</span>
@@ -211,18 +215,15 @@
   </div>
 
   <!-- High-Fidelity Checkout Vault (Matched to Program Style) -->
-  <app-payment-modal 
-    [showModal]="showPaymentPicker" 
-    [headerTitle]="'Elite Protocol Activation'"
-    [itemTitle]="'Elite Tier: Neural Access'"
-    [itemSubtitle]="'One-Time Program Integration'"
+  <app-payment-modal [showModal]="showPaymentPicker" [headerTitle]="'Elite Protocol Activation'"
+    [itemTitle]="'Elite Tier: Neural Access'" [itemSubtitle]="'One-Time Program Integration'"
     [itemImage]="'https://images.unsplash.com/photo-1540206395-6880f9490e44?auto=format&fit=crop&q=80&w=600'"
     [purchaseTerms]="'Enrolling in the Elite Tier grants you permanent access to Neural Coaching nodes and advanced biometric tracking protocols across the Vanguard network.'"
-    [processingPayment]="isProcessingPayment"
-    [paymentError]="paymentError"
-    [stripePublicKey]="stripePublicKey"
-    (cancelPayment)="showPaymentPicker = false"
-    (confirmPayment)="processPurchase($event)">
+    [processingPayment]="isProcessingPayment" [paymentError]="paymentError" [stripePublicKey]="stripePublicKey"
+    [wallets]="stats.wallets"
+    [currentGymId]="selectedWalletGymId"
+    [totalPrice]="99.99"
+    (cancelPayment)="showPaymentPicker = false" (confirmPayment)="processPurchase($event)">
   </app-payment-modal>
 
   <!-- Digital ID Sync -->
@@ -252,6 +253,61 @@
         <span class="material-icons">close</span>
         Dismiss Sync
       </button>
+    </div>
+  </div>
+
+  <!-- Point Synthesis Modal -->
+  <div class="payment-modal-backdrop" *ngIf="showPointsModal" (click)="closeExchangeModal()">
+    <div class="payment-modal glass-module animate-slide-up" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="title-group">
+          <span class="material-icons">autorenew</span>
+          <h3>Bio-Point Synthesis</h3>
+        </div>
+        <button class="close-btn" (click)="closeExchangeModal()"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body synthesis-body">
+        <div class="synthesis-status">
+          <div class="current-points">
+            <span class="lab">Available Evolution Points</span>
+            <span class="val">{{ user()?.evolution_points || 0 }} pts</span>
+          </div>
+          <div class="conversion-preview">
+            <div class="c-node">
+              <strong>50 pts</strong>
+              <span>Biometric Cost</span>
+            </div>
+            <div class="c-arrow"><span class="material-icons">arrow_forward</span></div>
+            <div class="c-node highlight">
+              <strong>5.00 D</strong>
+              <span>Currency Yield</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exchange-input-area">
+          <label>Specify Points for Synthesis</label>
+          <div class="input-stepper">
+            <button (click)="pointsToConvert = pointsToConvert > 50 ? pointsToConvert - 50 : 50">-50</button>
+            <input type="number" [(ngModel)]="pointsToConvert" step="50" min="50">
+            <button (click)="pointsToConvert = pointsToConvert + 50">+50</button>
+          </div>
+          <p class="helper">Rate: 10 points = 1.00 D currency</p>
+        </div>
+
+        <div class="target-vault-info">
+          <span class="material-icons">stadium</span>
+          <p>Synthesizing to: <strong>{{ selectedWalletGymId ? 'Active Facility Hub' : 'No Facility Selected'
+              }}</strong></p>
+        </div>
+
+        <button class="btn-check-in-titanium full-width" (click)="synthesizePoints()"
+          [disabled]="isConvertingPoints || (user()?.evolution_points || 0) < pointsToConvert">
+          <span class="material-icons" [class.syncing]="isConvertingPoints">{{ isConvertingPoints ? 'sync' : 'bolt'
+            }}</span>
+          {{ isConvertingPoints ? 'SYNTHESIZING...' : 'INITIATE SYNTHESIS' }}
+        </button>
+      </div>
     </div>
   </div>
 

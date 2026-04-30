@@ -46,6 +46,8 @@ class UpdateUserRequest extends FormRequest
             'notification_sms' => 'sometimes|boolean',
             'notification_marketing' => 'sometimes|boolean',
             'notification_app_updates' => 'sometimes|boolean',
+            'bio' => 'nullable|string',
+            'career_specialties' => 'nullable|string',
         ];
     }
 

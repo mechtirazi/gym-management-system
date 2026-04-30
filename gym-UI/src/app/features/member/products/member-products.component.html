@@ -141,6 +141,8 @@
     [itemSubtitle]="selectedProduct ? selectedProduct.quantity + 'x Unit(s) at ' + selectedProduct.gymName : 'Elite Equipment'"
     [itemImage]="selectedProduct?.imageUrl"
     [totalPrice]="calculateTotalPrice(selectedProduct)"
+    [wallets]="wallets"
+    [currentGymId]="selectedProduct?.id_gym"
     [purchaseTerms]="'By confirming, you authorize a one-time charge for this item. Fulfilment will be handled by the gym staff at your home facility.'"
     (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
   </app-payment-modal>

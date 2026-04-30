@@ -49,9 +49,9 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
                 0 0 80px -20px var(--modal-glow);
     width: 100%;
-    max-width: 580px;
+    max-width: 850px;
     border-radius: 2.5rem;
-    padding: 3rem 4rem;
+    padding: 2.2rem 3rem;
     transform: scale(0.95) translateY(20px);
     opacity: 0;
     transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -92,7 +92,7 @@
 // --- HEADER ---
 .modal-header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.5rem;
 
     .security-badge {
         display: inline-flex;
@@ -113,10 +113,10 @@
     }
 
     h2 {
-        font-size: 2.2rem;
+        font-size: 1.8rem;
         font-weight: 900;
         color: var(--text-primary);
-        margin: 0 0 2rem;
+        margin: 0 0 1.5rem;
         letter-spacing: -0.5px;
         background: linear-gradient(to right, #fff, #bfdbfe);
         -webkit-background-clip: text;
@@ -169,11 +169,14 @@
 
 // --- STEP 1: RECAP ---
 .order-recap {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
     background: var(--card-surface);
     border: 1px solid rgba(255,255,255,0.05);
     border-radius: 1.5rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
     position: relative;
     overflow: hidden;
 
@@ -186,12 +189,13 @@
     }
 
     .item-preview-mini {
+        flex: 1;
         display: flex;
         align-items: center;
         gap: 1.2rem;
-        margin-bottom: 1.2rem;
-        padding-bottom: 1.2rem;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
 
         img {
             width: 64px;
@@ -231,7 +235,19 @@
         }
     }
 
+    .plan-selection-hub {
+        flex: 2;
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+        border-left: 1px solid rgba(255, 255, 255, 0.06);
+        padding-left: 1.5rem;
+    }
+
     .vault-terms {
+        flex: 1.5;
+        border-left: 1px solid rgba(255, 255, 255, 0.06);
+        padding-left: 1.5rem;
         p {
             font-size: 0.85rem;
             color: #64748b;
@@ -742,5 +758,146 @@
     0% { transform: scale(1); }
     50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
     100% { transform: scale(1); }
+}
+
+.insufficient-balance-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 12px;
+    color: #fbbf24;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+ 
+    .material-symbols-rounded {
+        font-size: 1.2rem;
+    }
+}
+ 
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.conversion-rate-banner {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+ 
+    .rate-info {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 0.4rem;
+ 
+        .pts {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+ 
+        .equals {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 300;
+        }
+ 
+        .currency {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #10b981;
+        }
+    }
+ 
+    .rate-note {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+}
+
+.payment-method-selector.horizontal {
+    flex-direction: row;
+    gap: 1.5rem;
+    
+    .method-card.mini {
+        flex: 1;
+        padding: 1.2rem;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.8rem;
+        
+        .method-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.5rem;
+        }
+        
+        .method-info {
+            h4 { font-size: 1rem; margin-bottom: 0.2rem; }
+            p { font-size: 0.8rem; }
+        }
+    }
+}
+
+.vault-form.horizontal-compact {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    margin-top: 1.5rem;
+    
+    .holographic-card.compact {
+        flex: 1.5;
+        max-width: 380px;
+        padding: 1.5rem;
+        height: 180px;
+        margin-bottom: 0;
+        
+        .card-header-row { margin-bottom: 2rem; }
+        .card-chip { width: 40px; height: 30px; }
+        .card-brand-logo img { height: 24px; }
+        
+        .form-row label { font-size: 0.65rem; }
+        .holo-input { padding: 0.8rem; font-size: 1rem; }
+    }
+    
+    .card-expiry-cvc-side {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        
+        .form-row {
+            label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: var(--text-muted);
+                letter-spacing: 1px;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+            .holo-input {
+                background: rgba(255,255,255,0.03);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 10px;
+                padding: 1rem;
+            }
+        }
+    }
 }
 

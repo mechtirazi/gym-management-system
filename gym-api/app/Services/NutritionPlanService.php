@@ -69,6 +69,10 @@ class NutritionPlanService extends BaseService
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
+        if ($user->role === User::ROLE_SUPER_ADMIN) {
+            return $perPage ? $query->paginate($perPage) : $query->get();
+        }
+
         return $perPage ? $query->paginate($perPage) : collect();
     }
 

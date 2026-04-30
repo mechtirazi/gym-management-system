@@ -145,7 +145,12 @@
             </div>
             <div class="feed-content">
               <p class="text">{{ n.text }}</p>
-              <p class="date">{{ n.created_at | date:'MMM d, h:mm a' }}</p>
+              <div class="feed-meta">
+                <span class="sender" *ngIf="n.sender">
+                  By: {{ n.sender.name }} {{ n.sender.last_name }} ({{ n.sender.role }})
+                </span>
+                <p class="date">{{ n.created_at | date:'MMM d, h:mm a' }}</p>
+              </div>
             </div>
           </div>
         </div>

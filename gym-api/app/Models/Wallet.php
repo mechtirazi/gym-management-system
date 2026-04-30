@@ -24,4 +24,9 @@ class Wallet extends Model
     {
         return $this->hasMany(WalletTransaction::class);
     }
+
+    public function gym(): BelongsTo
+    {
+        return $this->belongsTo(Gym::class, 'id_gym', 'id_gym');
+    }
 }

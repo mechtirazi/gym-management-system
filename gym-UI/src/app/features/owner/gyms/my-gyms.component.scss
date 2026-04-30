@@ -1,0 +1,271 @@
+// --- ZENITH BRAND: MY GYMS MANAGEMENT ---
+:host {
+  --z-brand-violet: #8b5cf6;
+  --z-brand-blue: #3b82f6;
+  --z-brand-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  --z-card: var(--bg-card, #ffffff);
+  --z-text: var(--text-main, #0f172a);
+  --z-text-muted: var(--text-muted, #64748b);
+  --z-border: var(--border-color, rgba(0, 0, 0, 0.06));
+}
+
+.my-gyms-page {
+  padding: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// --- HEADER ---
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 4rem;
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin: 0;
+    background: var(--z-brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    color: var(--z-text-muted);
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+}
+
+.btn-refresh {
+  background: var(--z-card);
+  border: 1px solid var(--z-border);
+  padding: 0.8rem 1.5rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  color: var(--z-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+
+  svg { width: 18px; height: 18px; color: var(--z-brand-violet); }
+  
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--z-brand-violet);
+  }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+// --- GRID ---
+.gyms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2.5rem;
+}
+
+.gym-card {
+  background: var(--z-card);
+  border-radius: 2.5rem;
+  border: 1px solid var(--z-border);
+  padding: 2.5rem;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+  }
+
+  &.suspended {
+    border-color: rgba(239, 68, 68, 0.2);
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at top right, rgba(239, 68, 68, 0.03), transparent);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+
+  .gym-logo {
+    width: 70px;
+    height: 70px;
+    background: var(--z-brand-gradient);
+    border-radius: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 900;
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+    overflow: hidden;
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    
+    &.active { background: #f0fdf4; color: #15803d; border: 1px solid #bcf0da; }
+    &.suspended { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  }
+}
+
+.card-body {
+  margin-bottom: 2.5rem;
+
+  h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem;
+    color: var(--z-text);
+  }
+
+  .address {
+    color: var(--z-text-muted);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    svg { width: 16px; height: 16px; }
+  }
+}
+
+.suspension-info {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: rgba(239, 68, 68, 0.03);
+  border: 1px dashed rgba(239, 68, 68, 0.3);
+  border-radius: 1.2rem;
+
+  .reason-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #b91c1c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+  }
+
+  .reason-text {
+    font-size: 0.9rem;
+    color: #475569;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.card-footer {
+  .btn-reactivate {
+    width: 100%;
+    padding: 1.2rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    border: none;
+    border-radius: 1.5rem;
+    font-size: 1rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+
+    svg { width: 20px; height: 20px; }
+    &:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3); }
+  }
+
+  .btn-manage {
+    width: 100%;
+    padding: 1.2rem;
+    background: var(--z-card);
+    border: 2px solid var(--z-border);
+    border-radius: 1.5rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--z-text);
+    cursor: pointer;
+    transition: 0.3s;
+    &:hover { border-color: var(--z-brand-violet); color: var(--z-brand-violet); }
+  }
+}
+
+// --- MESSAGES ---
+.message {
+  padding: 1.25rem 2rem;
+  border-radius: 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 700;
+  position: relative;
+
+  &.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+  &.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+  .close-btn {
+    position: absolute;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.5;
+    &:hover { opacity: 1; }
+  }
+
+  svg { width: 22px; height: 22px; }
+}
+
+.animate-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: reveal 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2.5rem;
+}
+
+.skeleton-card {
+  height: 350px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 2.5rem;
+}
+
+@keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }

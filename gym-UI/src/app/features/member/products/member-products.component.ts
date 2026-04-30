@@ -39,6 +39,7 @@ export class MemberProductsComponent implements OnInit {
   processingPayment = false;
   paymentError: string | null = null;
   stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
+  wallets: any[] = [];
 
   get filteredProducts() {
     return this.products.filter(product => {
@@ -86,11 +87,13 @@ export class MemberProductsComponent implements OnInit {
 
     forkJoin({
       allProducts: this.memberService.getProducts().pipe(catchError(() => of({ data: [] }))),
-      mySubscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] })))
+      mySubscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] }))),
+      myWallets: this.memberService.getMyWallets().pipe(catchError(() => of({ data: [] })))
     }).subscribe({
       next: (res: any) => {
         const productsRaw = res.allProducts?.data || res.allProducts || [];
         const subscriptionsRaw = res.mySubscriptions?.data || [];
+        this.wallets = res.myWallets?.data || [];
 
         // Extract unique gyms from subscriptions
         this.gyms = [];

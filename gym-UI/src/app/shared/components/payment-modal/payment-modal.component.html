@@ -68,84 +68,81 @@
             </div>
 
             <div class="step-view" [style.display]="paymentStepper === 2 ? 'block' : 'none'">
-                <div class="payment-method-selector">
-                    <div class="method-card" [class.active]="selectedMethod === 'zen_wallet'"
+                <div class="payment-method-selector horizontal">
+                    <div class="method-card mini" [class.active]="selectedMethod === 'zen_wallet'"
                         (click)="selectMethod('zen_wallet')">
                         <div class="method-icon">
                             <span class="material-symbols-rounded">currency_exchange</span>
                         </div>
                         <div class="method-info">
-                            <h4>Zen Wallet</h4>
-                            <p>Redeem your Evolution Points</p>
-                        </div>
-                        <div class="method-check" *ngIf="selectedMethod === 'zen_wallet'">
-                            <span class="material-symbols-rounded">check_circle</span>
+                            <h4>Zenith Vault</h4>
+                            <p><strong>{{ getActiveWalletBalance() | number:'1.2-2' }} pts</strong></p>
                         </div>
                     </div>
 
-                    <div class="method-card" [class.active]="selectedMethod === 'credit_card'"
+                    <div class="method-card mini" [class.active]="selectedMethod === 'credit_card'"
                         (click)="selectMethod('credit_card')">
                         <div class="method-icon">
                             <span class="material-symbols-rounded">credit_card</span>
                         </div>
                         <div class="method-info">
                             <h4>Credit Card</h4>
-                            <p>Secure PCI-Compliant Payment</p>
-                        </div>
-                        <div class="method-check" *ngIf="selectedMethod === 'credit_card'">
-                            <span class="material-symbols-rounded">check_circle</span>
+                            <p>Secure PCI Payment</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="vault-form mt-4" [style.display]="selectedMethod === 'credit_card' ? 'block' : 'none'">
-
-                    <div class="holographic-card">
-                        <div class="holo-glare"></div>
+                <div class="vault-form horizontal-compact" [style.display]="selectedMethod === 'credit_card' ? 'flex' : 'none'">
+                    <div class="holographic-card compact">
                         <div class="card-header-row">
                             <div class="card-chip"></div>
                             <div class="card-brand-logo">
-                                <img *ngIf="cardBrand === 'visa'" src="https://cdn.simpleicons.org/visa/white"
-                                    alt="Visa">
-                                <img *ngIf="cardBrand === 'mastercard'" src="https://cdn.simpleicons.org/mastercard"
-                                    alt="Mastercard">
-                                <img *ngIf="cardBrand === 'amex'"
-                                    src="https://cdn.simpleicons.org/americanexpress/white" alt="Amex">
-                                <img *ngIf="cardBrand === 'discover'" src="https://cdn.simpleicons.org/discover/white"
-                                    alt="Discover">
-
-                                <span *ngIf="!['visa', 'mastercard', 'amex', 'discover'].includes(cardBrand)"
-                                    class="material-symbols-rounded default-icon">credit_score</span>
+                                <img *ngIf="cardBrand === 'visa'" src="https://cdn.simpleicons.org/visa/white" alt="Visa">
+                                <img *ngIf="cardBrand === 'mastercard'" src="https://cdn.simpleicons.org/mastercard" alt="Mastercard">
+                                <span *ngIf="!['visa', 'mastercard'].includes(cardBrand)" class="material-symbols-rounded default-icon">credit_score</span>
                             </div>
                         </div>
-
                         <div class="card-body-row">
                             <div class="form-row">
                                 <label>CARD NUMBER</label>
                                 <div id="card-number" class="holo-input stripe-element"></div>
                             </div>
-
-                            <div class="form-row grid-2">
-                                <div>
-                                    <label>VALID THRU</label>
-                                    <div id="card-expiry" class="holo-input stripe-element"></div>
-                                </div>
-                                <div>
-                                    <label>CVC / CVV</label>
-                                    <div id="card-cvc" class="holo-input stripe-element"></div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
+                    <div class="card-expiry-cvc-side">
+                        <div class="form-row">
+                            <label>VALID THRU</label>
+                            <div id="card-expiry" class="holo-input stripe-element"></div>
+                        </div>
+                        <div class="form-row">
+                            <label>CVC / CVV</label>
+                            <div id="card-cvc" class="holo-input stripe-element"></div>
+                        </div>
+                    </div>
+                </div>
+
                     <div id="card-errors" role="alert" class="error-message">{{ cardError }}</div>
+
+                <div class="conversion-rate-banner" *ngIf="selectedMethod === 'zen_wallet'">
+                    <div class="rate-info">
+                        <span class="pts">{{ getRequiredPoints() | number:'1.0-0' }} pts</span>
+                        <span class="equals">=</span>
+                        <span class="currency">${{ (selectedPlan ? selectedPlan.price : (totalPrice || 0)) | number:'1.2-2' }}</span>
+                    </div>
+                    <p class="rate-note">Conversion Protocol: 50 Points = $5.00</p>
+                </div>
+
+                <div class="insufficient-balance-warning" *ngIf="selectedMethod === 'zen_wallet' && !hasSufficientBalance()">
+                    <span class="material-symbols-rounded">warning</span>
+                    Insufficient Zenith Points for this synchronization.
                 </div>
 
                 <button class="btn-primary-glow" (click)="nextStep()"
-                    [disabled]="selectedMethod === 'credit_card' && !isCardValid"
-                    [style.opacity]="(selectedMethod === 'credit_card' && !isCardValid) ? '0.5' : '1'"
-                    [style.cursor]="(selectedMethod === 'credit_card' && !isCardValid) ? 'not-allowed' : 'pointer'">
-                    {{ selectedMethod === 'zen_wallet' ? 'Sync via Wallet' : 'Authorize Transaction' }}
+                    [disabled]="(selectedMethod === 'credit_card' && !isCardValid) || (selectedMethod === 'zen_wallet' && !hasSufficientBalance())"
+                    [style.opacity]="((selectedMethod === 'credit_card' && !isCardValid) || (selectedMethod === 'zen_wallet' && !hasSufficientBalance())) ? '0.5' : '1'"
+                    [style.cursor]="((selectedMethod === 'credit_card' && !isCardValid) || (selectedMethod === 'zen_wallet' && !hasSufficientBalance())) ? 'not-allowed' : 'pointer'">
+                    {{ selectedMethod === 'zen_wallet' ? 'Sync via Vault' : 'Authorize Transaction' }}
                 </button>
             </div>
 

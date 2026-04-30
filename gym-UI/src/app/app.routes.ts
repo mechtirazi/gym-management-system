@@ -75,6 +75,7 @@ export const routes: Routes = [
         data: { roles: ['owner'] },
         children: [
           { path: 'dashboard', loadComponent: () => import('./features/owner/dashboard/owner-dashboard.component').then(m => m.OwnerDashboardComponent) },
+          { path: 'my-gyms', loadComponent: () => import('./features/owner/gyms/my-gyms.component').then(m => m.MyGymsComponent) },
           { path: 'gym-profile', loadComponent: () => import('./features/owner/gym-profile/gym-profile').then(m => m.GymProfileComponent) },
           { path: 'trainers', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
           { path: 'memberships', loadComponent: () => import('./features/owner/membership/membership.component').then(m => m.MembershipManagementComponent) },

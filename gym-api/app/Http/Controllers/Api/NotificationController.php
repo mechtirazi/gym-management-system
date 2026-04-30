@@ -61,6 +61,7 @@ class NotificationController extends BaseApiController
                 'text' => $request->message,
                 'type' => 'support_ticket',
                 'id_user' => $admin->id_user,
+                'id_sender' => $owner->id_user,
                 'is_read' => false
             ]);
         }

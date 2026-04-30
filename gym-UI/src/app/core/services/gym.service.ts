@@ -12,6 +12,9 @@ export interface GymInfo {
   logo_url?: string;
   status?: string;
   suspension_reason?: string;
+  // Subscription fields
+  subscription_end?: string;
+  days_remaining?: number;
 }
 
 export interface GymsResponse {
@@ -38,5 +41,9 @@ export class GymService {
       map(res => res.data),
       catchError(() => of(null))
     );
+  }
+
+  reactivateGym(id: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/gyms/${id}/reactivate`, {});
   }
 }

@@ -10,7 +10,7 @@ class NotificationService extends BaseService
     public function __construct()
     {
         $this->setModel(new Notification());
-        $this->setRelations(['user']);
+        $this->setRelations(['user', 'sender']);
     }
 
     /**
@@ -53,20 +53,22 @@ class NotificationService extends BaseService
             ->get();
     }
 
-    public function sendBroadcast(string $text): Notification
+    public function sendBroadcast(string $text, ?string $senderId = null): Notification
     {
         return $this->create([
             'text' => $text,
             'id_user' => null,
+            'id_sender' => $senderId ?: auth()->id(),
             'is_read' => false,
         ]);
     }
 
-    public function sendToUser(User $user, string $text): Notification
+    public function sendToUser(User $user, string $text, ?string $senderId = null): Notification
     {
         return $this->create([
             'text' => $text,
             'id_user' => $user->id_user,
+            'id_sender' => $senderId ?: auth()->id(),
             'is_read' => false,
         ]);
     }

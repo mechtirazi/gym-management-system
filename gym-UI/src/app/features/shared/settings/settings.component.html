@@ -1,242 +1,193 @@
 <div class="settings-page" [class.loading]="isLoading()">
-  <div class="settings-header">
+  <div class="settings-header animate-reveal">
     <div class="header-left">
       <h1>Account Settings</h1>
-      <p class="subtitle">Manage your profile, security, and personal preferences.</p>
+      <p class="subtitle">Manage your profile, security, and notification preferences</p>
     </div>
   </div>
 
   <div class="settings-grid">
-    <aside class="settings-sidebar">
+    <aside class="settings-sidebar animate-reveal" style="animation-delay: 0.1s">
       <nav class="nav-links">
         <button [class.active]="activeTab() === 'profile'" (click)="setTab('profile')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          General Profile
+          My Profile
         </button>
         <button [class.active]="activeTab() === 'security'" (click)="setTab('security')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          Security & Password
+          Password & Security
         </button>
         <button [class.active]="activeTab() === 'notifications'" (click)="setTab('notifications')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           Notifications
         </button>
         <button *ngIf="userRole() === 'owner'" [class.active]="activeTab() === 'gym'" (click)="setTab('gym')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 20V10M12 20V4M6 20v-6" />
-            <line x1="3" y1="20" x2="21" y2="20" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
-          Gym Configuration
+          My Gyms
         </button>
       </nav>
     </aside>
 
-    <main class="settings-content">
+    <main class="settings-content animate-reveal" style="animation-delay: 0.2s">
       <div class="card glass">
-        <!-- Success/Error Messages -->
+        <!-- Message Hub -->
         <div class="message success" *ngIf="successMessage()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          {{ successMessage() }}
+          <span>{{ successMessage() }}</span>
         </div>
         <div class="message error" *ngIf="errorMessage()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
           </svg>
-          {{ errorMessage() }}
+          <span>{{ errorMessage() }}</span>
         </div>
 
-        <!-- Sections -->
-        <section *ngIf="activeTab() === 'profile'" class="settings-section animate-fade">
-          <h3>Profile Information</h3>
-          <p class="section-desc">Update your personal details and contact info.</p>
+        <!-- Identity Matrix -->
+        <section *ngIf="activeTab() === 'profile'" class="settings-section animate-reveal">
+          <h3>Personal Details</h3>
+          <p class="section-desc">Update your name, email, and profile picture to keep your account current.</p>
 
           <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
             <div class="avatar-row">
               <div class="avatar">
-                <img *ngIf="currentUser()?.profile_picture" [src]="getAvatarUrl(currentUser()?.profile_picture)"
-                  alt="Avatar">
+                <img *ngIf="currentUser()?.profile_picture" [src]="getAvatarUrl(currentUser()?.profile_picture)" alt="Profile">
                 <span *ngIf="!currentUser()?.profile_picture">{{ currentUser()?.name?.charAt(0) || 'U' }}</span>
               </div>
               <div class="avatar-actions">
-                <button type="button" class="btn btn-outline" (click)="fileInput.click()">Change Avatar</button>
+                <h4>Profile Picture</h4>
+                <p>Upload a clear photo in JPG or PNG format (max 1MB).</p>
+                <button type="button" class="btn-update" (click)="fileInput.click()">Change Photo</button>
                 <input #fileInput type="file" (change)="onFileSelected($event)" class="hidden">
-                <p>JPG or PNG. Max size 1MB.</p>
               </div>
             </div>
 
             <div class="form-grid">
               <div class="form-group">
                 <label>First Name</label>
-                <input formControlName="name" placeholder="First Name">
+                <input formControlName="name" placeholder="Enter first name">
               </div>
               <div class="form-group">
                 <label>Last Name</label>
-                <input formControlName="last_name" placeholder="Last Name">
+                <input formControlName="last_name" placeholder="Enter last name">
               </div>
               <div class="form-group">
                 <label>Email Address</label>
-                <input formControlName="email" type="email">
+                <input formControlName="email" type="email" placeholder="Enter email">
               </div>
               <div class="form-group">
                 <label>Phone Number</label>
-                <input formControlName="phone" placeholder="+1 (555) 000-0000">
+                <input formControlName="phone" placeholder="+1 (000) 000-0000">
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || isLoading()">
-              Save Changes
+            <!-- Trainer Profile Details -->
+            <div class="trainer-details-block" *ngIf="userRole() === 'trainer'" style="margin-top: 1.5rem;">
+              <h4 style="color: var(--text-main); font-weight: 800; margin-bottom: 1rem;">Professional Profile</h4>
+              
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label>Career Specialties (comma-separated)</label>
+                <input formControlName="career_specialties" placeholder="e.g. Strength Training, HIIT, Yoga">
+              </div>
+
+              <div class="form-group">
+                <label>Biography</label>
+                <textarea formControlName="bio" 
+                          placeholder="Write a compelling professional biography..."
+                          style="width: 100%; min-height: 120px; padding: 1rem; border-radius: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); font-family: 'Outfit', sans-serif; resize: vertical; outline: none;"></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-save" [disabled]="profileForm.invalid || isLoading()">
+              Save Profile Changes
             </button>
           </form>
         </section>
 
-        <section *ngIf="activeTab() === 'security'" class="settings-section animate-fade">
+        <!-- Security Cipher -->
+        <section *ngIf="activeTab() === 'security'" class="settings-section animate-reveal">
           <h3>Password & Security</h3>
-          <p class="section-desc">Manage your password and extra security layers.</p>
+          <p class="section-desc">Update your password to ensure your account remains secure.</p>
 
           <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
-            <div class="security-grid">
+            <div class="form-grid" style="grid-template-columns: 1fr;">
               <div class="form-group maxWidth">
                 <label>Current Password</label>
                 <div class="password-wrapper">
-                  <input [type]="showCurrent() ? 'text' : 'password'" formControlName="currentPassword"
-                    placeholder="••••••••">
-                  <button type="button" class="eye-toggle" (click)="toggleShow('current')">
-                    <svg *ngIf="!showCurrent()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                    <svg *ngIf="showCurrent()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path
-                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  </button>
+                  <input [type]="showCurrent() ? 'text' : 'password'" formControlName="currentPassword" placeholder="Enter current password">
                 </div>
               </div>
 
               <div class="form-group maxWidth">
                 <label>New Password</label>
                 <div class="password-wrapper">
-                  <input [type]="showNew() ? 'text' : 'password'" formControlName="newPassword" placeholder="••••••••">
-                  <button type="button" class="eye-toggle" (click)="toggleShow('new')">
-                    <svg *ngIf="!showNew()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                    <svg *ngIf="showNew()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path
-                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  </button>
-                </div>
-                <div class="password-meter" *ngIf="passwordForm.get('newPassword')?.value">
-                  <div class="meter-bar" [class.strong]="passwordForm.get('newPassword')?.valid"></div>
-                  <span class="meter-text" *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Too short (min
-                    8 chars)</span>
+                  <input [type]="showNew() ? 'text' : 'password'" formControlName="newPassword" placeholder="Enter new password">
                 </div>
               </div>
 
               <div class="form-group maxWidth">
-                <label>Confirm Password</label>
+                <label>Confirm New Password</label>
                 <div class="password-wrapper">
-                  <input [type]="showConfirm() ? 'text' : 'password'" formControlName="confirmPassword"
-                    placeholder="••••••••">
-                  <button type="button" class="eye-toggle" (click)="toggleShow('confirm')">
-                    <svg *ngIf="!showConfirm()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                    <svg *ngIf="showConfirm()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path
-                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
-                    </svg>
-                  </button>
+                  <input [type]="showConfirm() ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Repeat new password">
                 </div>
-                <span class="error-text"
-                  *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('confirmPassword')?.touched">
-                  Passwords don't match.
-                </span>
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" [disabled]="passwordForm.invalid || isLoading()">
+            <button type="submit" class="btn-save" [disabled]="passwordForm.invalid || isLoading()">
               Update Password
             </button>
           </form>
-
-          <div class="divider"></div>
-
-          <div class="two-fa-section">
-            <div class="two-fa-info">
-              <h4>Two-Factor Authentication</h4>
-              <p>Add an extra layer of security to your account by requiring more than just a password to log in.</p>
-            </div>
-            <button class="btn btn-outline small" disabled>Setup 2FA (Coming Soon)</button>
-          </div>
         </section>
 
-        <section *ngIf="activeTab() === 'notifications'" class="settings-section animate-fade">
-          <h3>Notification Preferences</h3>
-          <p class="section-desc">Tell us how you'd like to stay informed.</p>
+        <!-- Signal Protocols -->
+        <section *ngIf="activeTab() === 'notifications'" class="settings-section animate-reveal">
+          <h3>Notification Settings</h3>
+          <p class="section-desc">Choose how you want to be notified about account activity and updates.</p>
 
           <form [formGroup]="notificationsForm" (ngSubmit)="updateNotifications()">
             <div class="toggle-list">
               <div class="toggle-item">
                 <div class="toggle-content">
-                  <label>Email Notifications</label>
-                  <span>Receive account activity updates via email.</span>
+                  <h5>Email Notifications</h5>
+                  <p>Receive updates and alerts directly to your email address.</p>
                 </div>
                 <input type="checkbox" formControlName="emailNotifications">
               </div>
               <div class="toggle-item">
                 <div class="toggle-content">
-                  <label>WhatsApp Notifications</label>
-                  <span>Get direct alerts and updates sent to your WhatsApp.</span>
+                  <h5>WhatsApp Alerts</h5>
+                  <p>Get real-time gym news and session reminders on WhatsApp.</p>
                 </div>
                 <input type="checkbox" formControlName="smsNotifications">
               </div>
-              <div class="toggle-item">
-                <div class="toggle-content">
-                  <label>Marketing Emails</label>
-                  <span>Receive exclusive offers and gym promotions.</span>
-                </div>
-                <input type="checkbox" formControlName="marketingEmails">
-              </div>
-              <div class="toggle-item">
-                <div class="toggle-content">
-                  <label>App Feature Updates</label>
-                  <span>Stay ahead with new features and app news.</span>
-                </div>
-                <input type="checkbox" formControlName="appUpdates">
-              </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" [disabled]="isLoading()">
-              Update Preferences
+            <button type="submit" class="btn-save" [disabled]="isLoading()">
+              Save Notification Preferences
             </button>
           </form>
         </section>
 
-        <section *ngIf="activeTab() === 'gym'" class="settings-section animate-fade">
-          <h3>Workplace & Gyms</h3>
-          <p class="section-desc">Manage which gym you are currently managing/connected to.</p>
+        <!-- Node Network -->
+        <section *ngIf="activeTab() === 'gym'" class="settings-section animate-reveal">
+          <h3>My Gyms</h3>
+          <p class="section-desc">Manage the gyms associated with your account.</p>
 
-          <div class="gyms-grid" *ngIf="myGyms().length > 0; else noGyms">
-            <div class="gym-card" *ngFor="let gym of myGyms()" [class.active]="currentGymId() === gym.id_gym" [class.is-suspended]="gym.status === 'suspended'">
+          <div class="gyms-grid" *ngIf="myGyms().length > 0; else noNodes">
+            <div class="gym-card" *ngFor="let gym of myGyms()" [class.active]="currentGymId() === gym.id_gym">
               <div class="gym-info">
                 <div class="gym-logo" [style.background-image]="gym.logo_url ? 'url(' + gym.logo_url + ')' : ''">
                   <span *ngIf="!gym.logo_url">{{ gym.name.charAt(0) }}</span>
@@ -244,35 +195,36 @@
                 <div class="gym-details">
                   <h4>{{ gym.name }}</h4>
                   <p>{{ gym.address }}</p>
+                  
+                  <!-- Subscription Pulse (For Members) -->
+                  <div class="subscription-meta" *ngIf="userRole() === 'member' && gym.subscription_end">
+                    <span class="expiry-date">Ends: {{ gym.subscription_end | date:'MMM d, y' }}</span>
+                    <span class="days-pill" [class.urgent]="(gym.days_remaining || 0) <= 7">
+                      {{ gym.days_remaining }} Days Left
+                    </span>
+                  </div>
                 </div>
               </div>
               <div class="gym-status">
-                <span class="badge" *ngIf="currentGymId() === gym.id_gym">Connected</span>
-                <span class="badge suspended" *ngIf="gym.status === 'suspended'">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  Suspended
-                </span>
+                <span class="badge" *ngIf="currentGymId() === gym.id_gym">Current Gym</span>
                 <button *ngIf="currentGymId() !== gym.id_gym" (click)="switchGym(gym)" class="btn-switch">
-                  Switch to this Gym
+                  Switch
                 </button>
               </div>
             </div>
           </div>
 
-          <ng-template #noGyms>
-            <div class="empty-info">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-              <p>No gyms found associated with your account.</p>
+          <ng-template #noNodes>
+            <div class="message error">
+              <span>No gyms found in your account.</span>
             </div>
           </ng-template>
 
           <div class="divider"></div>
 
           <div class="gym-cta">
-            <p>Need to update gym details like opening hours or equipment?</p>
-            <a routerLink="/owner/gym-profile" class="btn btn-outline small">Go to Gym Profile</a>
+            <p>Need to manage your gym profile, hours, or staff?</p>
+            <a routerLink="/owner/gym-profile" class="btn-save" style="text-decoration: none; display: inline-block; width: auto; padding: 1rem 2.5rem;">Manage Gym Profile</a>
           </div>
         </section>
       </div>

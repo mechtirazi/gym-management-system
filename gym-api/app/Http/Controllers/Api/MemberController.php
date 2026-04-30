@@ -133,6 +133,17 @@ class MemberController extends Controller
                 'status' => 'pending'
             ]);
 
+            // 5. Ensure Enrollment node exists for the overall course
+            Enrollment::updateOrCreate(
+                ['id_member' => $user->id_user, 'id_course' => $course->id_course],
+                [
+                    'id_gym' => $course->id_gym,
+                    'enrollment_date' => now(),
+                    'status' => 'active',
+                    'type' => 'standard'
+                ]
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Session Secured! Program: ' . $course->name,
@@ -228,7 +239,7 @@ class MemberController extends Controller
         $events = \App\Models\AttendanceEvent::where('id_member', $request->user()->id_user)
             ->with('event.gym')
             ->get();
-        
+
         return response()->json([
             'success' => true,
             'data' => $events
@@ -514,14 +525,15 @@ class MemberController extends Controller
         $quantity = $request->input('quantity', 1);
 
         // Ensure reasonable quantity
-        if ($quantity < 1) $quantity = 1;
+        if ($quantity < 1)
+            $quantity = 1;
 
         // Use discounted price if available
         $unitPrice = $product->price;
         if ($product->discount_percentage > 0) {
             $unitPrice = $product->price * (1 - ($product->discount_percentage / 100));
         }
-        
+
         $totalAmount = $unitPrice * $quantity;
 
         // 1. Logic based on payment method
@@ -578,7 +590,7 @@ class MemberController extends Controller
 
             // 4. Update product stock
             if ($product->stock >= $quantity) {
-                 $product->decrement('stock', $quantity);
+                $product->decrement('stock', $quantity);
             }
 
             return response()->json([
@@ -591,5 +603,66 @@ class MemberController extends Controller
                 ]
             ]);
         });
+    }
+
+    /**
+     * Get member's wallets across all gyms.
+     */
+    public function getMyWallets(Request $request)
+    {
+        $wallets = $request->user()->wallets()->with('gym:id_gym,name')->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $wallets
+        ]);
+    }
+
+    /**
+     * Get professional profile for a trainer.
+     */
+    public function getTrainerProfile(Request $request, $trainerId)
+    {
+        $trainer = \App\Models\User::where('role', 'trainer')
+            ->where('id_user', $trainerId)
+            ->firstOrFail();
+
+        $reviews = \App\Models\Review::with('user:id_user,name,profile_picture')
+            ->where('id_trainer', $trainerId)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'trainer' => $trainer,
+            'reviews' => $reviews
+        ]);
+    }
+
+    /**
+     * Submit professional feedback and rating for a trainer.
+     */
+    public function rateTrainer(Request $request, $trainerId)
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        $user = $request->user();
+
+        $review = \App\Models\Review::create([
+            'id_user' => $user->id_user,
+            'id_trainer' => $trainerId,
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+            'review_date' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trainer professional feedback protocol synchronized.',
+            'data' => $review
+        ]);
     }
 }

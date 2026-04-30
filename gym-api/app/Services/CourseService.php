@@ -19,12 +19,24 @@ class CourseService extends BaseService
      */
     public function getAllScoped($user, ?int $perPage = null)
     {
-        $query = $this->query()->withCount('enrolledMembers');
+        $query = $this->query()
+            ->withCount('enrolledMembers')
+            ->with(['sessions' => function ($q) {
+                $q->withCount('attendances')->with('trainer');
+            }]);
 
         // Respect the active gym context sent by the frontend (X-Gym-Id header)
         $activeGymId = request()->header('X-Gym-Id');
 
         if ($user->role === User::ROLE_MEMBER) {
+            $gymIds = $user->allowedGymIds();
+            
+            if ($activeGymId) {
+                $query = $query->where('id_gym', $activeGymId);
+            } else {
+                $query = $query->whereIn('id_gym', $gymIds);
+            }
+
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
@@ -57,6 +69,14 @@ class CourseService extends BaseService
             // Respect active gym context for trainers too using standardized helper
             $this->applyActiveGymScope($query, $user, 'id_gym');
 
+            return $perPage ? $query->paginate($perPage) : $query->get();
+        }
+
+        if ($user->role === User::ROLE_SUPER_ADMIN) {
+            return $perPage ? $query->paginate($perPage) : $query->get();
+        }
+
+        if ($user->role === User::ROLE_SUPER_ADMIN) {
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 

@@ -20,7 +20,8 @@ export class SidebarComponent {
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['admin', 'staff', 'member', 'owner', 'trainer', 'receptionist', 'nutritionist', 'super_admin'] },
 
     // Owner specific items
-    { label: 'My Gym', icon: 'gym', route: '/owner/gym-profile', roles: ['owner'] },
+    { label: 'My Gyms', icon: 'gym', route: '/owner/my-gyms', roles: ['owner'] },
+    { label: 'Gym Profile', icon: 'settings', route: '/owner/gym-profile', roles: ['owner'] },
     { label: 'Trainers', icon: 'fitness', route: '/owner/trainers', roles: ['owner', 'admin'] },
     { label: 'Members', icon: 'users', route: '/owner/members', roles: ['owner', 'staff', 'admin'] },
     { label: 'Memberships', icon: 'card', route: '/owner/memberships', roles: ['owner', 'admin'] },
@@ -32,6 +33,7 @@ export class SidebarComponent {
     { label: 'Nutrition Plans', icon: 'food', route: '/nutritionist/nutrition-plans', roles: ['nutritionist'] },
 
     // Member specific items
+    { label: 'Find Gyms', icon: 'gym', route: '/member/gyms', roles: ['member'] },
     { label: 'My Workouts', icon: 'calendar', route: '/member/workouts', roles: ['member'] },
     { label: 'Exercises', icon: 'fitness', route: '/exercises', roles: ['member', 'staff'] },
     { label: 'Nutrition', icon: 'food', route: '/nutrition', roles: ['member'] },

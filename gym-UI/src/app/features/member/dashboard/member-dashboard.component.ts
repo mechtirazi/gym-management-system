@@ -57,6 +57,11 @@ export class MemberDashboardComponent implements OnInit {
   // Wallet State
   selectedWalletGymId: string | null = null;
   selectedWalletBalance: number = 0;
+  
+  // Point Conversion State
+  showPointsModal = false;
+  pointsToConvert = 50;
+  isConvertingPoints = false;
 
   // Goal State
   fitnessGoal: 'cut' | 'maintain' | 'bulk' = 'maintain';
@@ -385,5 +390,39 @@ export class MemberDashboardComponent implements OnInit {
     this.paymentError = err.error?.message || 'Payment synchronization failed.';
     this.showToast(this.paymentError || 'Error', 'error');
     this.cdr.detectChanges();
+  }
+ 
+  // --- Point Conversion Protocols ---
+ 
+  openExchangeModal(): void {
+    if (!this.selectedWalletGymId) {
+      this.showToast('Please select a gym facility node first.', 'error');
+      return;
+    }
+    this.showPointsModal = true;
+    this.cdr.detectChanges();
+  }
+ 
+  closeExchangeModal(): void {
+    this.showPointsModal = false;
+    this.cdr.detectChanges();
+  }
+ 
+  synthesizePoints(): void {
+    if (!this.selectedWalletGymId || this.pointsToConvert < 50) return;
+    
+    this.isConvertingPoints = true;
+    this.memberService.convertPoints(this.selectedWalletGymId, this.pointsToConvert).subscribe({
+      next: (res: any) => {
+        this.isConvertingPoints = false;
+        this.showPointsModal = false;
+        this.showToast(res.message, 'success');
+        this.loadDashboardData();
+      },
+      error: (err: any) => {
+        this.isConvertingPoints = false;
+        this.showToast(err.error?.message || 'Synthesis failed.', 'error');
+      }
+    });
   }
 }

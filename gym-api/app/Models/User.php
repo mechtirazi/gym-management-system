@@ -89,6 +89,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'notification_sms',
         'notification_marketing',
         'notification_app_updates',
+        'bio',
+        'career_specialties',
     ];
 
     /**
@@ -136,23 +138,6 @@ class User extends Authenticatable implements MustVerifyEmail
                 throw new \InvalidArgumentException(
                     "Invalid role: {$model->role}. Valid roles are: " . implode(', ', self::VALID_ROLES)
                 );
-            }
-        });
-
-        // Create wallet for new members
-        static::created(function ($model) {
-            if ($model->role === self::ROLE_MEMBER) {
-                $model->wallet()->create();
-            }
-        });
-
-        static::updated(function ($model) {
-            if (
-                $model->wasChanged('role')
-                && $model->role === self::ROLE_MEMBER
-                && !$model->wallet
-            ) {
-                $model->wallet()->create();
             }
         });
     }
@@ -241,6 +226,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Primary member wallet (latest one created)
+     */
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class, 'user_id', 'id_user')->latest();
+    }
+
+    /**
      * Member wallets (one per gym)
      */
     public function wallets()
@@ -294,8 +287,9 @@ class User extends Authenticatable implements MustVerifyEmail
         $owned = $this->ownedGyms()->pluck('id_gym');
         $assigned = $this->assignedGyms()->pluck('gyms.id_gym');
         $enrolled = $this->enrollments()->pluck('id_gym');
+        $subscribed = $this->subscriptions()->pluck('id_gym');
 
-        $ids = $owned->merge($assigned)->merge($enrolled);
+        $ids = $owned->merge($assigned)->merge($enrolled)->merge($subscribed);
 
         return $ids->unique()->values();
     }

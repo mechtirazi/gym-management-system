@@ -18,7 +18,7 @@ class Gym extends Model
 
     protected $keyType = 'string';
 
-    protected $appends = ['members_count', 'active_members_count'];
+    protected $appends = ['members_count', 'active_members_count', 'average_rating'];
 
     protected $fillable = [
         'name',

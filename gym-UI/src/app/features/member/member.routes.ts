@@ -50,6 +50,10 @@ export const memberRoutes: Routes = [
     loadComponent: () => import('./purchases/member-purchases.component').then(m => m.MemberPurchasesComponent)
   },
   {
+    path: 'trainers/:id',
+    loadComponent: () => import('./gyms/trainer-profile.component').then(m => m.TrainerProfileComponent)
+  },
+  {
     path: 'settings',
     loadComponent: () => import('../shared/settings/settings.component').then(m => m.SettingsComponent)
   },

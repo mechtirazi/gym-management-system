@@ -94,6 +94,7 @@ export interface NotificationDto {
   created_at: string;
   updated_at: string;
   user?: UserVm;
+  sender?: UserVm;
 }
 
 export interface StatusProbeDto {

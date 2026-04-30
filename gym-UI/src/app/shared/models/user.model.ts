@@ -23,8 +23,10 @@ export interface User {
   manual_carbs?: number;
   manual_fats?: number;
   manual_calories?: number;
+  evolution_points?: number;
+  bio?: string;
+  career_specialties?: string;
 }
-
 export interface AuthResponse {
   success: boolean;
   message: string;

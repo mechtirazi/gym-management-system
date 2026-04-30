@@ -5,6 +5,9 @@ import { AuthService } from '../../../core/services/auth.service';
 import { User } from '../../../shared/models/user.model';
 import { GymService, GymInfo } from '../../../core/services/gym.service';
 import { UserService } from '../../../core/services/user.service';
+import { MemberService } from '../../member/services/member.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-settings',
@@ -17,6 +20,7 @@ export class SettingsComponent implements OnInit {
   private authService = inject(AuthService);
   private gymService = inject(GymService);
   private userService = inject(UserService);
+  private memberService = inject(MemberService);
   private fb = inject(FormBuilder);
 
   currentUser = this.authService.currentUser;
@@ -44,15 +48,47 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     const user = this.currentUser();
     this.initForms(user);
-    if (this.userRole() === 'owner') {
+    if (this.userRole() === 'owner' || this.userRole() === 'member') {
       this.fetchGyms();
     }
   }
 
   fetchGyms(): void {
-    this.gymService.getMyGyms().subscribe(gyms => {
-      this.myGyms.set(gyms);
-    });
+    if (this.userRole() === 'member') {
+      // For members, we want to see their enrolled gyms with subscription dates
+      forkJoin({
+        gyms: this.gymService.getMyGyms(),
+        enrollments: this.memberService.getMyEnrollments().pipe(catchError(() => of({ data: [] })))
+      }).subscribe(({ gyms, enrollments }) => {
+        const enrollmentList = enrollments.data || enrollments;
+        
+        const enrichedGyms = gyms.map(gym => {
+          const enroll = enrollmentList.find((e: any) => e.id_gym === gym.id_gym);
+          if (enroll) {
+            const endDate = enroll.end_date;
+            if (endDate) {
+              const diff = new Date(endDate).getTime() - new Date().getTime();
+              const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+              return { 
+                ...gym, 
+                subscription_end: endDate,
+                days_remaining: Math.max(0, days)
+              };
+            }
+          }
+          return gym;
+        });
+
+        // For members, only show gyms they are enrolled in or follow?
+        // Let's show all their gyms but with the subscription info
+        this.myGyms.set(enrichedGyms);
+      });
+    } else {
+      // Owners see their own gyms
+      this.gymService.getMyGyms().subscribe(gyms => {
+        this.myGyms.set(gyms);
+      });
+    }
   }
 
   private initForms(user: User | null): void {
@@ -62,6 +98,8 @@ export class SettingsComponent implements OnInit {
       last_name: [user?.last_name || '', [Validators.required]],
       email: [{ value: user?.email || '', disabled: true }, [Validators.required, Validators.email]],
       phone: [user?.phone || ''],
+      bio: [user?.bio || ''],
+      career_specialties: [user?.career_specialties || ''],
     });
 
     // Password Form

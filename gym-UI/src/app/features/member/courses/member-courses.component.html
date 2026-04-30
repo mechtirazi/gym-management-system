@@ -53,7 +53,13 @@
             <span class="material-symbols-rounded">domain</span>
             <span>{{ course.gymName }}</span>
           </div>
-          <div class="vendor-info">
+          <div class="vendor-info" 
+               (click)="navigateToTrainer(course)"
+               [style.cursor]="getTrainerId(course) ? 'pointer' : 'default'"
+               [title]="getTrainerId(course) ? 'View Trainer Profile' : ''"
+               onmouseover="if(this.style.cursor === 'pointer') this.style.opacity='0.8'"
+               onmouseout="this.style.opacity='1'"
+               style="transition: opacity 0.2s;">
             <img [src]="getTrainerAvatar(course)" class="trainer-avatar" [alt]="getTrainerName(course)">
             <span class="trainer-name">{{ getTrainerName(course) }}</span>
           </div>
@@ -71,10 +77,7 @@
             <span class="meta-label">SESSIONS</span>
             <span class="meta-value">{{ course.activeSessions?.length || 0 }} ACTIVE</span>
           </div>
-          <div class="meta-node">
-            <span class="meta-label">MEMBERS</span>
-            <span class="meta-value">{{ course.members_count }} ENROLLED</span>
-          </div>
+
           @if (course.hasActiveSession) {
             <div class="meta-node highlight">
               <span class="meta-label">STATUS</span>
@@ -195,10 +198,24 @@
   <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
     [paymentError]="paymentError"
     [stripePublicKey]="stripePublicKey"
+    [wallets]="wallets"
+    [currentGymId]="selectedCourse?.id_gym"
+    [totalPrice]="selectedCourse?.price"
     [headerTitle]="'Unlock Program Access'" [itemTitle]="selectedCourse?.name || 'Program'"
     [itemSubtitle]="selectedCourse?.category || 'Elite Training'"
     [itemImage]="selectedCourse?.imageUrl"
     [purchaseTerms]="'Enrolling grants you full access to all future sessions and training materials for this program duration.'"
     (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
   </app-payment-modal>
+
+  <!-- Toast System -->
+  <div class="toast-hub-container" *ngIf="toastMessage">
+    <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
+      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' : 'info') }}</span>
+      <div class="toast-content">
+        <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System Notice') }}</strong>
+        <p>{{ toastMessage }}</p>
+      </div>
+    </div>
+  </div>
 </div>

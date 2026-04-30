@@ -50,12 +50,17 @@ class ProductService extends BaseService
         }
 
         if ($user->role === User::ROLE_MEMBER) {
+            $gymIds = $user->allowedGymIds();
+            
             if ($activeGymId) {
                 $query = $query->where('id_gym', $activeGymId);
             } else {
-                $subscribedGymIds = $user->subscriptions()->pluck('id_gym');
-                $query = $query->whereIn('id_gym', $subscribedGymIds);
+                $query = $query->whereIn('id_gym', $gymIds);
             }
+            return $perPage ? $query->paginate($perPage) : $query->get();
+        }
+
+        if ($user->role === User::ROLE_SUPER_ADMIN) {
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 

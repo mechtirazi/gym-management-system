@@ -48,9 +48,19 @@ class EventService extends BaseService
 
         // Members only see events in gyms they are subscribed to
         if ($user->role === User::ROLE_MEMBER) {
-            return $query->whereHas('gym.subscriptions', function ($q) use ($user) {
-                $q->where('id_user', $user->id_user);
-            })->get();
+            $gymIds = $user->allowedGymIds();
+            
+            if ($activeGymId) {
+                $query = $query->where('id_gym', $activeGymId);
+            } else {
+                $query = $query->whereIn('id_gym', $gymIds);
+            }
+
+            return $perPage ? $query->paginate($perPage) : $query->get();
+        }
+
+        if ($user->role === User::ROLE_SUPER_ADMIN) {
+            return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
         return collect();

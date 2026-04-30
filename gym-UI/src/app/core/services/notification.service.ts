@@ -125,14 +125,14 @@ export class NotificationService {
       time: this.formatTime(n.created_at),
       unread: !n.is_read,
       type: n.type || 'info',
-      sender: n.user
+      sender: n.sender
         ? {
-            id_user: n.user.id_user,
-            name: n.user.name,
-            last_name: n.user.last_name,
-            email: n.user.email,
-            role: n.user.role,
-            profile_picture: n.user.profile_picture,
+            id_user: n.sender.id_user,
+            name: n.sender.name,
+            last_name: n.sender.last_name,
+            email: n.sender.email,
+            role: n.sender.role,
+            profile_picture: n.sender.profile_picture,
           }
         : undefined,
     };

@@ -7,42 +7,35 @@
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
     </div>
-    <input type="text" placeholder="Search exercises, workouts...">
-  </div>
+    <input type="text" [placeholder]="'Search Zenith resources...'" 
+           [ngModel]="searchTerm()" (input)="onSearchInput($event)"
+           (keyup.enter)="onSearch()">
 
-  <!-- Global Workspace Switcher (Owner Only) -->
-  <div class="global-switcher" *ngIf="myGyms().length > 1">
-    <button class="switcher-pill" (click)="toggleGymSwitcher()" [class.active]="showGymSwitcher()">
-      <div class="active-gym-info">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M18 20V10M12 20V4M6 20v-6" />
-          <line x1="3" y1="20" x2="21" y2="20" />
-        </svg>
-        <span>Change Workspace</span>
-      </div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="chevron">
-        <path d="M6 9l6 6 6-6" />
-      </svg>
-    </button>
-
-    <div class="sw-dropdown glass" *ngIf="showGymSwitcher()">
-      <div class="sw-header">Connected Gyms</div>
-      <div class="sw-list">
-        <div class="sw-item" *ngFor="let gym of myGyms()" [class.active]="connectedGymId() === gym.id_gym"
-          (click)="switchGym(gym.id_gym)">
-          <div class="gym-dot" [class.active]="connectedGymId() === gym.id_gym"></div>
-          <div class="gym-meta">
-            <span class="gym-name">{{ gym.name }}</span>
-            <span class="gym-small-addr">{{ gym.address || gym.adress }}</span>
+    <!-- Dynamic Search Suggestions -->
+    <div class="search-suggestions glass animate-reveal" *ngIf="suggestions().length > 0">
+      <div class="suggestion-item" *ngFor="let item of suggestions()" (click)="selectSuggestion(item)">
+        <div class="item-icon">
+          <div class="avatar-sm" *ngIf="item.image">
+            <img [src]="getAvatarUrl(item.image)" alt="Icon">
           </div>
-          <svg *ngIf="connectedGymId() === gym.id_gym" class="check" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="3">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          <span class="material-symbols-rounded" *ngIf="!item.image" style="font-size: 18px;">
+            {{ item.icon }}
+          </span>
         </div>
+        <div class="item-info">
+          <span class="item-label">{{ item.name }}</span>
+          <span class="item-type">{{ item.type }}</span>
+        </div>
+        <span class="material-symbols-rounded arrow">arrow_forward</span>
+      </div>
+      
+      <div class="search-footer" (click)="onSearch()">
+        <span>Full Spectrum: Synchronize for "{{ searchTerm() }}"</span>
+        <span class="material-symbols-rounded">rocket_launch</span>
       </div>
     </div>
   </div>
+
 
   <div class="header-actions">
     <div class="lang-wrapper">

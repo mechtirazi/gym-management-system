@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ThemeService } from '../../../../core/services/theme.service';
@@ -7,10 +7,13 @@ import { Router } from '@angular/router';
 import { StaffService } from '../../../../features/owner/staff/services/staff.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+import { FormsModule } from '@angular/forms';
+import { MemberService } from '../../../../features/member/services/member.service';
+
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, MatSnackBarModule],
+  imports: [CommonModule, MatSnackBarModule, FormsModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -19,6 +22,7 @@ export class HeaderComponent {
   private themeService = inject(ThemeService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private memberService = inject(MemberService);
   private staffService = inject(StaffService);
   private snackBar = inject(MatSnackBar);
 
@@ -28,6 +32,25 @@ export class HeaderComponent {
   showLangDropdown = signal(false);
   showGymSwitcher = signal(false);
   currentLang = signal<'en' | 'fr'>('en');
+  searchTerm = signal('');
+  
+  // Real-time suggestions from API
+  suggestions = signal<any[]>([]);
+
+  onSearchInput(event: any) {
+    const term = event.target.value;
+    this.searchTerm.set(term);
+    
+    if (term.length >= 2) {
+      this.memberService.searchResources(term).subscribe(res => {
+        if (res.success) {
+          this.suggestions.set(res.data);
+        }
+      });
+    } else {
+      this.suggestions.set([]);
+    }
+  }
 
   myGyms = this.authService.myGyms;
   connectedGymId = this.authService.connectedGymId;
@@ -40,6 +63,25 @@ export class HeaderComponent {
 
   toggleNotifications(): void {
     this.showNotifications.update(v => !v);
+  }
+
+  onSearch(): void {
+    const term = this.searchTerm().trim();
+    if (!term) return;
+
+    const firstMatch = this.suggestions()[0];
+    if (firstMatch) {
+      this.selectSuggestion(firstMatch);
+    } else {
+      this.snackBar.open(`Searching for "${term}" across the Zenith network...`, 'Sync', { duration: 2000 });
+    }
+  }
+
+  selectSuggestion(item: any): void {
+    this.searchTerm.set('');
+    this.suggestions.set([]);
+    this.router.navigate([item.route]);
+    this.snackBar.open(`Navigating to ${item.name}`, 'Success', { duration: 2000 });
   }
 
   viewAllNotifications(): void {
