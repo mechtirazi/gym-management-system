@@ -36,6 +36,9 @@ export class MemberService {
     if (filters.search) {
       url += `&search=${filters.search}`;
     }
+    if (filters.id_course) {
+      url += `&id_course=${filters.id_course}`;
+    }
 
     return this.http.get<any>(url, { headers: this.authHeaders });
   }

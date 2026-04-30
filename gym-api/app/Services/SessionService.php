@@ -24,6 +24,14 @@ class SessionService extends BaseService
         $this->syncSessionStatuses();
         $query = $this->query();
 
+        if (request()->has('id_course') && request('id_course')) {
+            $query->where('id_course', request('id_course'));
+        }
+
+        if (request()->has('date_session') && request('date_session')) {
+            $query->whereDate('date_session', request('date_session'));
+        }
+
         // Members can see all sessions
         if ($user->role === User::ROLE_MEMBER) {
             return $query->get();

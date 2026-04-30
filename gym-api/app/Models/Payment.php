@@ -36,7 +36,35 @@ class Payment extends Model
         'method',
         'type',
         'id_transaction',
+        // New fields
+        'external_reference',
+        'status',
+        'is_locked',
+        'created_by',
+        'finalized_by',
     ];
+
+    protected $casts = [
+        'is_locked' => 'boolean',
+        'status' => \App\Enums\PaymentStatus::class,
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updating(function ($payment) {
+            if ($payment->getOriginal('is_locked')) {
+                throw new \Exception('Transaction is locked and cannot be modified.');
+            }
+        });
+
+        static::deleting(function ($payment) {
+            if ($payment->is_locked) {
+                throw new \Exception('Transaction is locked and cannot be deleted.');
+            }
+        });
+    }
 
     // Relationships
     public function user()
@@ -67,5 +95,15 @@ class Payment extends Model
     public function nutritionPlan()
     {
         return $this->belongsTo(NutritionPlan::class, 'id_nutrition', 'id_nutrition_plan');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id_user');
+    }
+
+    public function finalizedBy()
+    {
+        return $this->belongsTo(User::class, 'finalized_by', 'id_user');
     }
 }

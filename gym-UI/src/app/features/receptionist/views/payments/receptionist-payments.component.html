@@ -7,14 +7,49 @@
     </div>
     <div class="header-actions">
       <div class="gateway-status">
-        <span class="pulse-dot"></span> Gateway Active
+        <div class="pulse-dot"></div>
+        Gateway Active
       </div>
       <button class="refresh-btn" (click)="refresh(true)" [disabled]="isLoading()">
         <span class="material-symbols-rounded" [class.sync-spin]="isLoading()">sync</span>
         Synchronize
       </button>
+      <button class="primary-btn" (click)="openNewPayment()">
+        <span class="material-symbols-rounded">add_card</span>
+        New Payment
+      </button>
     </div>
   </header>
+
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="m-icon sapphire">
+        <span class="material-symbols-rounded">receipt</span>
+      </div>
+      <div class="m-content">
+        <span class="m-label">Total Volume</span>
+        <span class="m-value">{{ financialSummary()?.total_volume || 0 }} Transactions</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="m-icon emerald">
+        <span class="material-symbols-rounded">account_balance_wallet</span>
+      </div>
+      <div class="m-content">
+        <span class="m-label">Today's Intake</span>
+        <span class="m-value">{{ (financialSummary()?.todays_intake / 100) | number:'1.3-3' }} <small>TND</small></span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="m-icon indigo">
+        <span class="material-symbols-rounded">account_balance</span>
+      </div>
+      <div class="m-content">
+        <span class="m-label">Total Revenue</span>
+        <span class="m-value">{{ (financialSummary()?.total_revenue / 100) | number:'1.3-3' }} <small>TND</small></span>
+      </div>
+    </div>
+  </div>
 
   @if (error()) {
     <div class="error-banner">
@@ -23,148 +58,249 @@
     </div>
   }
 
-  <!-- Metrics Summary Bar -->
-  <div class="metrics-row">
-    <div class="metric-card">
-      <div class="m-icon indigo"><span class="material-symbols-rounded">receipt</span></div>
-      <div class="m-content">
-        <span class="m-label">Total Volume</span>
-        <span class="m-value">{{ payments().length }} Transactions</span>
-      </div>
-    </div>
-    <div class="metric-card">
-      <div class="m-icon emerald"><span class="material-symbols-rounded">account_balance_wallet</span></div>
-      <div class="m-content">
-        <span class="m-label">Today's Intake</span>
-        <span class="m-value">{{ todaysTotal() | currency }} <small>(Live)</small></span>
-      </div>
-    </div>
-    <div class="metric-card">
-      <div class="m-icon rose">
-        <span class="material-symbols-rounded">account_balance</span>
-      </div>
-      <div class="m-content">
-        <span class="m-label">Total Revenue</span>
-        <span class="m-value">{{ totalRevenue() | currency }} <small>(Net)</small></span>
-      </div>
-    </div>
-  </div>
+  <div class="main-grid" [class.split-view]="showNewPaymentForm() || selectedPayment()">
+    <!-- Left Panel: Receipt Viewer OR New Payment Form -->
+    @if (showNewPaymentForm() || selectedPayment()) {
+      <div class="card-panel entry-panel">
+        
+        <!-- New Payment Form -->
+        @if (showNewPaymentForm()) {
+        <div class="panel-header">
+          <h2>
+            <span class="material-symbols-rounded">add_card</span>
+            Process New Payment
+          </h2>
+          <p class="panel-desc">Record membership dues or product sales.</p>
+        </div>
 
-  <div class="main-grid">
-    <!-- Entry Panel -->
-    <div class="card-panel entry-panel">
-      <div class="panel-header">
-        <h2>
-          <span class="material-symbols-rounded">{{ canEdit() ? 'edit_document' : 'add_card' }}</span>
-          {{ canEdit() ? 'Edit Transaction' : 'Process New Payment' }}
-        </h2>
-        <p class="panel-desc">Record membership dues or product sales.</p>
-      </div>
-
-      <form [formGroup]="form" (ngSubmit)="save()" class="modern-form">
-        <div class="form-stack">
-          <div class="field">
-            <label>Select Member</label>
-            <div class="input-wrap">
-              <span class="material-symbols-rounded prefix">group</span>
-              <select formControlName="id_user">
-                <option value="">-- Choose Member --</option>
-                @for (m of members(); track m.userId) {
-                  <option [value]="m.userId">{{ m.name }} ({{ m.email }})</option>
-                }
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row-2">
+        <form [formGroup]="form" (ngSubmit)="save()" class="modern-form">
+          <div class="form-stack">
             <div class="field">
-              <label>Amount (USD)</label>
+              <label>Select Member</label>
               <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">attach_money</span>
-                <input type="number" formControlName="amount" placeholder="0.00" />
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Payment Method</label>
-              <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">payments</span>
-                <select formControlName="method">
-                  <option value="">Select Method</option>
-                  <option value="cash">Physical Cash</option>
-                  <option value="card">Credit/Debit Card</option>
-                  <option value="transfer">Bank Transfer</option>
-                  <option value="other">Other</option>
+                <span class="material-symbols-rounded prefix">group</span>
+                <select formControlName="id_user">
+                  <option value="">-- Choose Member --</option>
+                  @for (m of members(); track m.userId) {
+                    <option [value]="m.userId">{{ m.name }} ({{ m.email }})</option>
+                  }
                 </select>
               </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label>Transaction Category</label>
-            <div class="input-wrap">
-              <span class="material-symbols-rounded prefix">category</span>
-              <select formControlName="type">
-                <option value="membership">Membership Fee</option>
-                <option value="product">Retail Product</option>
-                <option value="course">Training Course</option>
-                <option value="nutrition">Nutrition/Supplements</option>
-                <option value="other">Miscellaneous</option>
-              </select>
+            <div class="form-row-2">
+              <div class="field">
+                <label>Amount (TND)</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">wallet</span>
+                  <input type="number" formControlName="amount" placeholder="0.00" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Payment Method</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">payments</span>
+                  <select formControlName="method">
+                    <option value="">Select Method</option>
+                    <option value="credit_card">Credit Card</option>
+                    <option value="cash">Cash</option>
+                    <option value="transfer">Bank Transfer</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Transaction Category</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded prefix">category</span>
+                <select formControlName="type">
+                  <option value="membership">Membership Fee</option>
+                  <option value="product">Retail Product</option>
+                  <option value="course">Training Course</option>
+                  <option value="nutrition">Nutrition/Supplements</option>
+                  <option value="other">Miscellaneous</option>
+                </select>
+              </div>
+            </div>
+
+            @if (form.get('type')?.value === 'product') {
+              <div class="field">
+                <label>Select Product</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">inventory_2</span>
+                  <select formControlName="id_product">
+                    <option value="">-- Choose Product --</option>
+                    @for (p of products(); track p.id_product) {
+                      <option [value]="p.id_product">{{ p.name }} ({{ p.price / 100 | currency:'TND' }})</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            }
+
+            <div class="field">
+              <label>External Reference ID (Optional)</label>
+              <div class="input-wrap">
+                <span class="material-symbols-rounded prefix">tag</span>
+                <input formControlName="id_transaction" placeholder="External receipt code" />
+              </div>
             </div>
           </div>
 
-          <div class="field">
-            <label>External Reference ID (Optional)</label>
-            <div class="input-wrap">
-              <span class="material-symbols-rounded prefix">tag</span>
-              <input formControlName="id_transaction" placeholder="External receipt code" />
+          <div class="form-actions">
+            <button class="submit-btn" type="submit" [disabled]="isLoading() || form.invalid">
+              <span class="material-symbols-rounded">bolt</span>
+              Authorize Payment
+            </button>
+            <button class="cancel-btn" type="button" (click)="showNewPaymentForm.set(false)">Cancel</button>
+          </div>
+        </form>
+      } @else if (selectedPayment()) {
+        <!-- Transaction Receipt Viewer -->
+        <div class="receipt-viewer">
+          <div class="receipt-header">
+            <h2>Transaction Receipt</h2>
+            <div class="receipt-actions">
+              <button class="view-btn" (click)="printReceipt(selectedPayment()!)" title="Print">
+                <span class="material-symbols-rounded">print</span>
+              </button>
+            </div>
+            <div class="status-badges">
+              <span class="badge" [ngClass]="selectedPayment()?.status?.value || ''">
+                {{ selectedPayment()?.status?.label }}
+              </span>
+              @if (selectedPayment()?.status?.is_locked) {
+                <span class="badge locked">
+                  <span class="material-symbols-rounded">lock</span> Locked
+                </span>
+              }
             </div>
           </div>
-        </div>
+          
+          <div class="receipt-amount-box">
+            <div class="amount">{{ selectedPayment()?.amount?.formatted }}</div>
+            <div class="date">{{ selectedPayment()?.date }}</div>
+          </div>
 
-        <div class="form-actions">
-          <button class="submit-btn" type="submit" [disabled]="isLoading()">
-            <span class="material-symbols-rounded">bolt</span>
-            {{ canEdit() ? 'Overwrite Transaction' : 'Authorize Payment' }}
-          </button>
-          @if (canEdit()) {
-            <button class="cancel-btn" type="button" (click)="reset()">Cancel</button>
+          <div class="receipt-details">
+            <div class="detail-row">
+              <span class="label">Gym Facility</span>
+              <span class="value">{{ selectedPayment()?.gym_name }}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="label">Transaction UUID</span>
+              <span class="value">{{ selectedPayment()?.public_id }}</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">Status</span>
+              <span class="value" style="text-transform: capitalize;">{{ selectedPayment()?.status?.label }}</span>
+            </div>
+
+            @if (selectedPayment()?.external_reference) {
+              <div class="detail-row">
+                <span class="label">External Ref</span>
+                <span class="value">{{ selectedPayment()?.external_reference }}</span>
+              </div>
+            }
+
+            <div class="detail-row">
+              <span class="label">Member</span>
+              <span class="value">{{ selectedPayment()?.member?.name }}</span>
+            </div>
+
+            @if (selectedPayment()?.member?.email) {
+              <div class="detail-row">
+                <span class="label">Email</span>
+                <span class="value">{{ selectedPayment()?.member?.email }}</span>
+              </div>
+            }
+
+            <div class="detail-row">
+              <span class="label">Category</span>
+              <span class="value">{{ selectedPayment()?.category?.label }}</span>
+            </div>
+
+            @if (selectedPayment()?.product) {
+              <div class="detail-row">
+                <span class="label">Product</span>
+                <span class="value">{{ selectedPayment()?.product?.name }}</span>
+              </div>
+            }
+
+            <div class="detail-row">
+              <span class="label">Payment Method</span>
+              <span class="value">{{ selectedPayment()?.gateway?.label }}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="label">Processed By</span>
+              <span class="value">{{ selectedPayment()?.processed_by }}</span>
+            </div>
+          </div>
+
+          @if (selectedPayment()?.status?.is_locked) {
+            <div class="immutable-notice">
+              <span class="material-symbols-rounded">info</span>
+              This transaction is locked and cannot be modified.
+            </div>
           }
         </div>
-      </form>
-    </div>
+          }
+        </div>
+      }
+
 
     <!-- Ledger Panel -->
     <div class="card-panel ledger-panel">
       <div class="panel-header">
-        <h2>
-          <span class="material-symbols-rounded">receipt_long</span>
-          Recent Ledger Entries
-        </h2>
-        <div class="panel-tools">
+        <div class="h-group">
+          <h2>
+            <span class="material-symbols-rounded">receipt_long</span>
+            Recent Ledger Entries
+          </h2>
+        </div>
+        
+        <div class="ledger-filters">
+          <div class="search-box">
+            <span class="material-symbols-rounded">search</span>
+            <input type="text" placeholder="Search UUID or Ref..." [value]="searchQuery()" (input)="onSearch($any($event.target).value)" class="filter-input" />
+          </div>
+
           <div class="filter-controls">
             <div class="filter-field">
-              <span>From:</span>
-              <input type="date" [value]="startDate()" (change)="startDate.set($any($event.target).value); onFilterChange()" />
+              <label>From:</label>
+              <input type="date" [value]="startDate()" (change)="startDate.set($any($event.target).value); onFilterChange()" class="filter-input" />
             </div>
             <div class="filter-field">
-              <span>To:</span>
-              <input type="date" [value]="endDate()" (change)="endDate.set($any($event.target).value); onFilterChange()" />
+              <label>To:</label>
+              <input type="date" [value]="endDate()" (change)="endDate.set($any($event.target).value); onFilterChange()" class="filter-input" />
             </div>
-            @if (startDate() || endDate()) {
+          </div>
+          
+          <div class="action-tools">
+            <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value); onFilterChange()" class="filter-input select-input">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="finalized">Finalized</option>
+              <option value="failed">Failed</option>
+              <option value="refunded">Refunded</option>
+            </select>
+
+            <button class="tool-btn" title="Export CSV">
+              <span class="material-symbols-rounded">file_download</span>
+            </button>
+            
+            @if (startDate() || endDate() || statusFilter() || gatewayFilter() || searchQuery()) {
               <button class="clear-filters" (click)="clearFilters()" title="Clear Filters">
                 <span class="material-symbols-rounded">close</span>
               </button>
             }
           </div>
-          <button 
-            class="tool-btn" 
-            (click)="exportToCsv()" 
-            [disabled]="!payments().length" 
-            title="Export to CSV">
-            <span class="material-symbols-rounded">file_download</span>
-          </button>
         </div>
       </div>
 
@@ -172,17 +308,19 @@
         <table class="modern-table">
           <thead>
             <tr>
-              <th>Member / Transaction</th>
+              <th>Member</th>
+              <th>Ref / ID</th>
               <th>Amount</th>
               <th>Category</th>
-              <th>Gateway</th>
-              <th class="text-right">Manage</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th class="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             @if (isLoading() && !payments().length) {
               <tr class="no-rows">
-                <td colspan="5">
+                <td colspan="6">
                   <div class="loading-state">
                     <div class="spinner-sm"></div>
                     Syncing entries...
@@ -191,43 +329,53 @@
               </tr>
             } @else if (!payments().length) {
               <tr class="no-rows">
-                <td colspan="5">
+                <td colspan="6">
                   <div class="empty-state">
                     <span class="material-symbols-rounded">database_off</span>
-                    <p>No transactions found for this ledger.</p>
+                    <p>No transactions found.</p>
                   </div>
                 </td>
               </tr>
             } @else {
-              @for (p of payments(); track p.id_payment) {
-                <tr>
+              @for (p of payments(); track p.id) {
+                <tr [class.selected]="selectedPayment()?.id === p.id" (click)="viewReceipt(p)" style="cursor: pointer;">
                   <td>
                     <div class="user-chip">
-                      <div class="avatar">{{ (p.member?.name || p.id_user)?.[0] || 'U' }}</div>
                       <div class="info">
-                        <span class="uuid">{{ p.member?.name || 'Member' }}</span>
-                        <span class="pid">Ref: {{ p.id_payment.substring(0, 8) }}</span>
+                        <span class="uuid">{{ p.member.name }}</span>
+                        <span class="pid">{{ p.public_id | slice:0:8 }}...</span>
                       </div>
                     </div>
                   </td>
+                  <td>
+                    <div class="ref-chip">
+                      <span class="ext-ref">{{ p.external_reference || 'No Ref' }}</span>
+                      <span class="gateway-sub">{{ p.gateway.label }}</span>
+                    </div>
+                  </td>
                   <td class="amount-cell">
-                    <span class="val">${{ p.amount | number:'1.2-2' }}</span>
+                    <span class="val">{{ p.amount.formatted }}</span>
                   </td>
                   <td>
-                    <span class="cat-badge" [class]="p.type">
-                      {{ p.type || 'Standard' }}
+                    <span class="cat-badge" [class]="p.category.value">
+                      {{ p.category.label }}
                     </span>
                   </td>
                   <td>
-                    <div class="method-chip">
-                      <span class="material-symbols-rounded">{{ p.method === 'card' ? 'credit_card' : 'payments' }}</span>
-                      {{ p.method }}
-                    </div>
+                    <span class="status-chip" [ngClass]="p.status.value">
+                      {{ p.status.label }}
+                    </span>
                   </td>
-                  <td class="text-right">
-                    <button class="edit-action-btn" (click)="select(p)" [disabled]="isLoading()">
-                      <span class="material-symbols-rounded">edit</span>
+                  <td>
+                    <span class="date-txt">{{ p.date }}</span>
+                  </td>
+                  <td class="text-right actions-cell">
+                    <button class="view-btn print-btn" (click)="printReceipt(p); $event.stopPropagation()" title="Print Receipt">
+                      <span class="material-symbols-rounded">print</span>
                     </button>
+                    @if (p.status.is_locked) {
+                      <span class="material-symbols-rounded locked-indicator" title="Locked">lock</span>
+                    }
                   </td>
                 </tr>
               }

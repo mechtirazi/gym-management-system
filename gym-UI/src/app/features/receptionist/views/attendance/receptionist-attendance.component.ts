@@ -21,6 +21,9 @@ export class ReceptionistAttendanceComponent {
   isLoading = signal(false);
   error = signal<string | null>(null);
 
+  courses = signal<any[]>([]);
+  selectedCourseId = signal<string>('');
+
   sessions = signal<SessionDto[]>([]);
   selectedSessionId = signal<string>('');
   members = signal<GymMember[]>([]);
@@ -38,12 +41,23 @@ export class ReceptionistAttendanceComponent {
   });
 
   constructor() {
-    this.loadSessions();
-    this.loadMembers();
+    this.loadCourses();
   }
 
-  loadMembers() {
-    this.memberService.getMembers(1, 1000).subscribe({
+  loadCourses() {
+    this.isLoading.set(true);
+    this.error.set(null);
+    this.service
+      .listCourses()
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (list) => this.courses.set(list),
+        error: () => this.error.set('Could not load courses.')
+      });
+  }
+
+  loadMembers(courseId: string) {
+    this.memberService.getMembers(1, 1000, { id_course: courseId, status: 'active' }).subscribe({
       next: (response: any) => {
         const memberItems = response.data || [];
         const team = memberItems.map((item: any) => {
@@ -63,11 +77,26 @@ export class ReceptionistAttendanceComponent {
     });
   }
 
-  loadSessions() {
+  selectCourse(id_course: string) {
+    this.selectedCourseId.set(id_course);
+    this.selectedSessionId.set('');
+    this.attendances.set([]);
+    this.sessions.set([]);
+    this.members.set([]);
+    
+    if (id_course) {
+      this.loadSessionsForCourse(id_course);
+      this.loadMembers(id_course);
+    }
+  }
+
+  loadSessionsForCourse(courseId: string) {
     this.isLoading.set(true);
     this.error.set(null);
+    const today = new Date().toISOString().split('T')[0];
+    
     this.service
-      .listSessions()
+      .listSessions({ id_course: courseId, date_session: today })
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (list) => this.sessions.set(list),

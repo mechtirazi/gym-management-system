@@ -41,6 +41,11 @@ class EnrollmentService extends BaseService
 
         $query = $this->query()->orderBy('created_at', 'desc');
 
+        // Apply course filter if requested
+        if (request()->has('id_course') && request('id_course')) {
+            $query->where('id_course', request('id_course'));
+        }
+
         // Super Admin sees all enrollments
         if ($user->role === User::ROLE_SUPER_ADMIN) {
             return $perPage ? $query->paginate($perPage) : $query->get();
