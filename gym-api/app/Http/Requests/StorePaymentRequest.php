@@ -17,29 +17,40 @@ class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_user' => 'required|exists:users,id_user',
-            'id_gym' => 'required|exists:gyms,id_gym',
+            // Strict Allowed Payload
             'amount' => 'required|numeric|min:0',
-            'method' => 'required|string',
-            'type' => 'nullable|string|in:membership,product,course,nutrition,other',
-            'id_transaction' => 'required|unique:payments,id_transaction',
+            'currency' => 'nullable|string|size:3',
+            'member_id' => 'nullable|exists:users,id_user',
+            'category' => 'required|string|in:membership,product,course,nutrition,other',
+            'gateway' => 'required|string',
+            'external_reference' => 'nullable|string|max:255',
+            'id_gym' => 'required|exists:gyms,id_gym', // Required to attach to a gym in the current architecture
+
+            // Explicitly Rejected System Fields
+            'status' => 'prohibited',
+            'is_locked' => 'prohibited',
+            'public_id' => 'prohibited',
+            'sequence' => 'prohibited',
+            'id_payment' => 'prohibited',
+            'created_by' => 'prohibited',
+            'finalized_by' => 'prohibited',
+            'amount_formatted' => 'prohibited',
+            'date_formatted' => 'prohibited',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'id_user.required' => 'User ID is required',
-            'id_user.exists' => 'User not found',
-            'id_gym.required' => 'Gym ID is required',
-            'id_gym.exists' => 'Gym not found',
             'amount.required' => 'Amount is required',
             'amount.numeric' => 'Amount must be a number',
             'amount.min' => 'Amount must be at least 0',
-            'method.required' => 'Payment method is required',
-            'type.in' => 'Invalid payment type',
-            'id_transaction.required' => 'Transaction ID is required',
-            'id_transaction.unique' => 'Transaction ID must be unique',
+            'category.required' => 'Transaction category is required',
+            'gateway.required' => 'Payment gateway is required',
+            'status.prohibited' => 'System field [status] cannot be set manually',
+            'is_locked.prohibited' => 'System field [is_locked] cannot be set manually',
+            'public_id.prohibited' => 'System field [public_id] cannot be set manually',
+            'sequence.prohibited' => 'System field [sequence] cannot be set manually',
         ];
     }
 }

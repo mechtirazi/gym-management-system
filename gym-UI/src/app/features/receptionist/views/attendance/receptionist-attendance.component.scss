@@ -168,6 +168,12 @@
   }
 
   .panel-desc { font-size: 0.85rem; color: var(--admin-text-secondary); margin-bottom: 1.5rem; }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(1);
+  }
 }
 
 .modern-select {

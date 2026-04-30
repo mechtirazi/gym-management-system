@@ -69,6 +69,30 @@ class UserService extends BaseService
                         'id_gym' => $gymId,
                     ]);
                 }
+
+                // Auto-enroll and log payment if a plan was selected for a new member
+                if ($newUser->role === User::ROLE_MEMBER && !empty($data['id_plan'])) {
+                    $plan = \App\Models\MembershipPlan::find($data['id_plan']);
+                    if ($plan) {
+                        \App\Models\Enrollment::create([
+                            'id_member' => $newUser->id_user,
+                            'id_gym' => $gymId,
+                            'id_plan' => $plan->id,
+                            'enrollment_date' => $data['enrollment_date'] ?? now(),
+                            'status' => 'active',
+                            'type' => 'standard',
+                        ]);
+
+                        app(\App\Services\PaymentService::class)->createPayment([
+                            'amount' => $plan->price,
+                            'member_id' => $newUser->id_user,
+                            'id_gym' => $gymId,
+                            'category' => \App\Models\Payment::TYPE_MEMBERSHIP,
+                            'gateway' => 'cash', // Default to cash for manually added members
+                            'external_reference' => 'Manual Onboarding',
+                        ]);
+                    }
+                }
             }
         }
 

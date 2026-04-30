@@ -8,9 +8,9 @@
       <div class="live-pulse-badge">
         <span class="pulse-dot"></span> LIVE BROADCAST
       </div>
-      <button class="refresh-btn" (click)="loadSessions()" [disabled]="isLoading()">
+      <button class="refresh-btn" (click)="loadCourses()" [disabled]="isLoading()">
         <span class="material-symbols-rounded">sync</span>
-        Sync Sessions
+        Sync Data
       </button>
     </div>
   </header>
@@ -36,33 +36,44 @@
 
   <div class="attendance-grid">
     <div class="sidebar-stack">
-      <!-- Step 1: Session Selection -->
+      <!-- Step 1: Course Selection -->
       <div class="card-panel selection-card">
         <div class="step-num">01</div>
-        <h2><span class="material-symbols-rounded">event_note</span> Select Gym Session</h2>
-        <p class="panel-desc">Choose the class or session to record attendance for.</p>
-        <select class="modern-select" [value]="selectedSessionId()" (change)="selectSession(($any($event.target)).value)">
+        <h2><span class="material-symbols-rounded">category</span> Select Course</h2>
+        <p class="panel-desc">Choose the course or program to manage.</p>
+        <select class="modern-select" [value]="selectedCourseId()" (change)="selectCourse(($any($event.target)).value)">
+          <option value="">-- Choose an active course --</option>
+          @for (c of courses(); track c.id_course) {
+            <option [value]="c.id_course">{{ c.name || c.title || 'Course ' + c.id_course }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Step 2: Session Selection -->
+      <div class="card-panel selection-card" [class.disabled]="!selectedCourseId()">
+        <div class="step-num">02</div>
+        <h2><span class="material-symbols-rounded">event_note</span> Select Today's Session</h2>
+        <p class="panel-desc">Choose the active session occurring today.</p>
+        <select class="modern-select" [value]="selectedSessionId()" (change)="selectSession(($any($event.target)).value)" [disabled]="!selectedCourseId()">
           <option value="">-- Choose an active session --</option>
           @for (s of sessions(); track s.id_session) {
             <option [value]="s.id_session">
-              {{ s.course?.name || s.course?.title || ('Session ' + s.id_session) }}
-              {{ s.date ? '(' + s.date + ')' : '' }}
-              @if (s.start_time) { · {{ s.start_time }}{{ s.end_time ? ' - ' + s.end_time : '' }} }
+              {{ s.start_time || 'No Time' }}{{ s.end_time ? ' - ' + s.end_time : '' }}
             </option>
           }
         </select>
       </div>
 
-      <!-- Step 2: Quick Mark -->
-      <div class="card-panel selection-card">
-        <div class="step-num">02</div>
+      <!-- Step 3: Quick Mark -->
+      <div class="card-panel selection-card" [class.disabled]="!selectedSessionId()">
+        <div class="step-num">03</div>
         <h2><span class="material-symbols-rounded">qr_code_scanner</span> Instant Entrance</h2>
-        <p class="panel-desc">Manually select a member to mark their attendance.</p>
+        <p class="panel-desc">Select an enrolled member to mark their attendance.</p>
         <form [formGroup]="form" (ngSubmit)="quickAdd()" class="quick-form">
           <div class="field">
-            <label>Member Profile</label>
+            <label>Enrolled Member</label>
             <select class="modern-select" formControlName="id_member">
-              <option value="">-- Search Member --</option>
+              <option value="">-- Search Enrolled Member --</option>
               @for (m of members(); track m.userId) {
                 <option [value]="m.userId">{{ m.name }} · {{ m.email }}</option>
               }
@@ -79,7 +90,7 @@
               </label>
             </div>
           </div>
-          <button class="save-btn" type="submit" [disabled]="isLoading() || !selectedSessionId()">
+          <button class="save-btn" type="submit" [disabled]="isLoading() || !selectedSessionId() || !form.value.id_member">
             Confirm Entrance
           </button>
         </form>

@@ -29,8 +29,19 @@ export class ReceptionistAttendanceService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  listSessions() {
-    return this.http.get<ApiResponse<SessionDto[]>>(`${this.apiUrl}/sessions`).pipe(map((r: any) => r?.data ?? []));
+  listCourses() {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/courses`).pipe(map((r: any) => r?.data ?? []));
+  }
+
+  listSessions(filters?: { id_course?: string; date_session?: string }) {
+    let params = new HttpParams();
+    if (filters?.id_course) {
+      params = params.set('id_course', filters.id_course);
+    }
+    if (filters?.date_session) {
+      params = params.set('date_session', filters.date_session);
+    }
+    return this.http.get<ApiResponse<SessionDto[]>>(`${this.apiUrl}/sessions`, { params }).pipe(map((r: any) => r?.data ?? []));
   }
 
   listAttendancesBySession(sessionId: string) {

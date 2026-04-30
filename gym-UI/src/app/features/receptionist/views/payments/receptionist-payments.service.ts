@@ -4,15 +4,38 @@ import { map } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 
 export type PaymentDto = {
-  id_payment: string;
-  id_user: string;
-  id_gym: string;
-  amount: number;
-  method: string;
-  type?: string | null;
-  id_transaction: string;
-  created_at?: string;
-  member?: { name: string; email: string };
+  id: string;
+  public_id: string;
+  external_reference?: string | null;
+  status: {
+    value: string;
+    label: string;
+    is_locked: boolean;
+  };
+  amount: {
+    value: number;
+    formatted: string;
+  };
+  category: {
+    value: string;
+    label: string;
+  };
+  gateway: {
+    value: string;
+    label: string;
+  };
+  member: {
+    name: string;
+    email: string | null;
+  };
+  date: string;
+  is_editable: boolean;
+  product?: {
+    id: string;
+    name: string;
+  } | null;
+  gym_name: string;
+  processed_by: string;
 };
 
 type ApiResponse<T> = { success: boolean; data?: T; message?: string } & Record<string, any>;
@@ -28,7 +51,16 @@ export class ReceptionistPaymentsService {
     );
   }
 
-  listByGym(idGym: string, page: number = 1, perPage: number = 10, startDate?: string, endDate?: string) {
+  listByGym(
+    idGym: string, 
+    page: number = 1, 
+    perPage: number = 10, 
+    startDate?: string, 
+    endDate?: string,
+    status?: string,
+    gateway?: string,
+    search?: string
+  ) {
     let params = new HttpParams()
       .set('id_gym', idGym)
       .set('page', page.toString())
@@ -36,17 +68,20 @@ export class ReceptionistPaymentsService {
 
     if (startDate) params = params.set('start_date', startDate);
     if (endDate) params = params.set('end_date', endDate);
+    if (status) params = params.set('status', status);
+    if (gateway) params = params.set('gateway', gateway);
+    if (search) params = params.set('search', search);
       
     return this.http.get<ApiResponse<PaymentDto[]>>(this.baseUrl, { params }).pipe(
       map((r: any) => ({
         data: r?.data ?? [],
         meta: {
-          current_page: r?.current_page || 1,
-          last_page: r?.last_page || 1,
-          total: r?.total || 0,
-          per_page: r?.per_page || 10,
-          todays_total: r?.todays_total || 0
-        }
+          current_page: r?.current_page || r?.meta?.current_page || 1,
+          last_page: r?.last_page || r?.meta?.last_page || 1,
+          total: r?.total || r?.meta?.total || 0,
+          per_page: r?.per_page || r?.meta?.per_page || 10,
+        },
+        financial_summary: r?.financial_summary || null
       }))
     );
   }
@@ -59,11 +94,11 @@ export class ReceptionistPaymentsService {
     return this.http.get<any>(`${environment.apiUrl}/receptionist/dashboard-stats`);
   }
 
-  create(payload: { id_user: string; id_gym: string; amount: number; method: string; type?: string | null; id_transaction: string }) {
+  create(payload: { member_id: string; id_gym: string; amount: number; gateway: string; category?: string | null; id_product?: string | null; external_reference?: string | null }) {
     return this.http.post<ApiResponse<PaymentDto>>(this.baseUrl, payload);
   }
 
-  update(id_payment: string, payload: Partial<{ id_user: string; id_gym: string; amount: number; method: string; type?: string | null; id_transaction: string }>) {
+  update(id_payment: string, payload: Partial<{ member_id: string; id_gym: string; amount: number; gateway: string; category?: string | null; id_product?: string | null; external_reference?: string | null }>) {
     return this.http.put<ApiResponse<PaymentDto>>(`${this.baseUrl}/${id_payment}`, payload);
   }
 }
