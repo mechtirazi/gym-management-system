@@ -56,18 +56,24 @@ export class TrainerCommunityComponent implements OnInit {
   }
 
   calculateStats(): void {
-    if (this.reviews.length === 0) return;
+    if (this.reviews.length === 0) {
+      this.stats.averageRating = 0;
+      this.stats.totalReviews = 0;
+      this.stats.positiveRate = 0;
+      return;
+    }
 
     this.stats.totalReviews = this.reviews.length;
     let sum = 0;
     let positiveCount = 0;
 
     this.reviews.forEach(r => {
-      sum += r.rating;
-      if (r.rating >= 4) {
+      const rating = Number(r.rating);
+      sum += rating;
+      if (rating >= 4) {
         positiveCount++;
       }
-      (r as any).starArray = Array(5).fill(0).map((_, i) => i < r.rating ? 1 : 0);
+      (r as any).starArray = Array(5).fill(0).map((_, i) => i < rating ? 1 : 0);
     });
 
     this.stats.averageRating = Number((sum / this.reviews.length).toFixed(1));
@@ -97,19 +103,25 @@ export class TrainerCommunityComponent implements OnInit {
     });
   }
 
-  getSentimentLabel(review: Review): string {
-    if (review.rating >= 4) return 'Positive';
-    if (review.rating <= 2) return 'Negative';
+  getSentimentLabel(review: any): string {
+    const score = review.ai_sentiment_score !== undefined ? review.ai_sentiment_score : (review.rating / 5);
+    if (score >= 0.7) return 'Positive';
+    if (score <= 0.3) return 'Negative';
     return 'Neutral';
   }
 
-  getSentimentClass(review: Review): string {
-    if (review.rating >= 4) return 'sentiment-positive';
-    if (review.rating <= 2) return 'sentiment-negative';
+  getSentimentClass(review: any): string {
+    const score = review.ai_sentiment_score !== undefined ? review.ai_sentiment_score : (review.rating / 5);
+    if (score >= 0.7) return 'sentiment-positive';
+    if (score <= 0.3) return 'sentiment-negative';
     return 'sentiment-neutral';
   }
 
   getStars(review: any): number[] {
     return review.starArray || [];
+  }
+
+  getAvatarUrl(path: string | null | undefined): string {
+    return this.authService.getAvatarUrl(path || undefined);
   }
 }

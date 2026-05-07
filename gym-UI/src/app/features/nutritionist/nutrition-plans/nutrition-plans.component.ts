@@ -9,15 +9,17 @@ import { AuthService } from '../../../core/services/auth.service';
 import { GymService, GymInfo } from '../../../core/services/gym.service';
 import { NutritionistNutritionService } from '../services/nutritionist-nutrition.service';
 import { extractApiList, isMemberUser, isOwnedByNutritionist } from '../utils/nutritionist-dashboard.utils';
+import { environment } from '../../../../environments/environment';
 
 import { PageHeaderComponent } from '../../owner/components/page-header/page-header.component';
 import { FilterControlsComponent } from '../../owner/components/filter-controls/filter-controls.component';
 import { NutritionCardComponent } from '../../owner/nutrition/components/nutrition-card/nutrition-card.component';
+import { NutritionMessagesComponent } from '../utils/nutrition-messages.component';
 
 @Component({
   selector: 'app-nutritionist-nutrition-plans',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageHeaderComponent, FilterControlsComponent, NutritionCardComponent],
+  imports: [CommonModule, FormsModule, PageHeaderComponent, FilterControlsComponent, NutritionCardComponent, NutritionMessagesComponent],
   templateUrl: './nutrition-plans.component.html',
   styleUrl: './nutrition-plans.component.scss'
 })
@@ -60,13 +62,67 @@ export class NutritionistNutritionPlansComponent implements OnInit {
 
   planForm = signal<NutritionPlan>({
     id_plan: '',
+    name: '',
+    description: '',
+    image: '',
     goal: '',
     start_date: '',
     end_date: '',
     id_nutritionist: '',
     id_members: [],
-    price: 0
+    price: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    calories: 0,
+    score: 95,
+    meals: [],
+    supplements: []
   });
+
+  // Dynamic Item Management
+  addMeal() {
+    const current = this.planForm();
+    const meals = [...(current.meals || []), { name: '', time: '08:00', protein: 0, carbs: 0, fats: 0, calories: 0 }];
+    this.planForm.set({ ...current, meals });
+  }
+
+  removeMeal(index: number) {
+    const current = this.planForm();
+    const meals = [...(current.meals || [])];
+    meals.splice(index, 1);
+    this.planForm.set({ ...current, meals });
+  }
+
+  addSupplement() {
+    const current = this.planForm();
+    const supplements = [...(current.supplements || []), { name: '', dosage: '', timing: '', type: 'capsule' as const }];
+    this.planForm.set({ ...current, supplements });
+  }
+
+  removeSupplement(index: number) {
+    const current = this.planForm();
+    const supplements = [...(current.supplements || [])];
+    supplements.splice(index, 1);
+    this.planForm.set({ ...current, supplements });
+  }
+
+  onImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      this.showToast('error', 'Image size exceeds 2MB limit.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      this.planForm.update(prev => ({ ...prev, image: base64String }));
+    };
+    reader.readAsDataURL(file);
+  }
 
   ngOnInit(): void {
     this.memberIdFilter.set(this.route.snapshot.queryParamMap.get('memberId'));
@@ -74,7 +130,6 @@ export class NutritionistNutritionPlansComponent implements OnInit {
     this.loadMembers();
     this.loadPlans();
 
-    // Support for direct "Assign Plan" action from Client Details
     if (this.route.snapshot.queryParamMap.get('autoOpen') === 'true') {
       setTimeout(() => this.onAddPlan(), 500);
     }
@@ -91,6 +146,13 @@ export class NutritionistNutritionPlansComponent implements OnInit {
   private showToast(type: 'success' | 'error' | 'info', text: string) {
     this.notification.set({ type, text });
     setTimeout(() => this.notification.set(null), 3500);
+  }
+
+  getAvatarUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    return `${baseUrl}/storage/${path}`;
   }
 
   loadGyms(): void {
@@ -124,16 +186,11 @@ export class NutritionistNutritionPlansComponent implements OnInit {
         switchMap(first => {
           const firstData = extractApiList<NutritionPlan>(first);
           const lastPage = Number(first?.last_page ?? 1);
-
-          if (lastPage <= 1) {
-            return of(firstData);
-          }
-
+          if (lastPage <= 1) return of(firstData);
           const requests = [];
           for (let page = 2; page <= lastPage; page++) {
             requests.push(this.api.getNutritionPlans(page, 50));
           }
-
           return forkJoin(requests).pipe(
             map(restResponses => {
               const restData = restResponses.flatMap(r => extractApiList<NutritionPlan>(r));
@@ -141,33 +198,10 @@ export class NutritionistNutritionPlansComponent implements OnInit {
             })
           );
         }),
-        map(list => {
-          // De-duplicate by id_plan in case backend pages overlap.
-          const seen = new Set<string>();
-          return list.filter(plan => {
-            const id = String(plan?.id_plan ?? '');
-            if (!id || seen.has(id)) return false;
-            seen.add(id);
-            return true;
-          });
-        }),
-        map(list => {
-          // If a stale member query param hides all results, auto-clear it.
-          const me = this.meId();
-          const myPlans = me ? list.filter(p => isOwnedByNutritionist(p, me)) : list;
-          const memberId = this.memberIdFilter();
-          if (memberId && myPlans.length > 0 && !myPlans.some(p => (p.members ?? []).some((m: any) => String(m.id_user) === String(memberId)))) {
-            this.memberIdFilter.set(null);
-            this.router.navigate([], { queryParams: { memberId: null }, queryParamsHandling: 'merge' });
-          }
-          return list;
-        }),
         finalize(() => this.isLoading.set(false))
       )
       .subscribe({
-        next: allPlans => {
-          this.allPlans.set(allPlans);
-        },
+        next: allPlans => this.allPlans.set(allPlans),
         error: () => {
           this.error.set('Could not load nutrition plans.');
           this.showToast('error', 'Failed to load nutrition plans.');
@@ -207,12 +241,22 @@ export class NutritionistNutritionPlansComponent implements OnInit {
     this.modalMode.set('add');
     this.planForm.set({
       id_plan: '',
+      name: '',
+      description: '',
+      image: '',
       goal: '',
       start_date: '',
       end_date: '',
       id_nutritionist: me,
       id_members: preselectedMember ? [preselectedMember] : [],
-      price: 0
+      price: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
+      calories: 0,
+      score: 95,
+      meals: [],
+      supplements: []
     });
     this.showModal.set(true);
   }
@@ -227,11 +271,59 @@ export class NutritionistNutritionPlansComponent implements OnInit {
     this.planForm.set({
       ...plan,
       id_members: Array.isArray(memberIds) ? memberIds : [memberIds].filter(Boolean),
-      id_nutritionist: (plan as any).id_nutritionist || (plan as any).nutritionist?.id_user || this.meId() || ''
+      id_nutritionist: (plan as any).id_nutritionist || (plan as any).nutritionist?.id_user || this.meId() || '',
+      meals: plan.meals || [],
+      supplements: plan.supplements || []
     });
     const gymId = (plan as any)?.id_gym;
     this.selectedGymId = gymId ? Number(gymId) : this.selectedGymId;
     this.showModal.set(true);
+  }
+
+  selectedMemberForPlanChat = signal<any | null>(null);
+  showMemberSelector = signal<any[] | null>(null);
+  currentPlanMembers = signal<any[]>([]);
+
+  onMessagePlan(plan: NutritionPlan): void {
+    let members = plan.members || [];
+    
+    if (members.length === 0 && (plan as any).id_members?.length > 0) {
+      const ids = (plan as any).id_members;
+      members = this.members().filter(m => ids.includes(m.id_user));
+    }
+
+    if (members.length === 0) {
+      this.showToast('info', 'No members are currently synchronized with this metabolic protocol.');
+      return;
+    }
+
+    this.currentPlanMembers.set(members);
+
+    if (members.length > 1) {
+      this.showMemberSelector.set(members);
+      this.selectedMemberForPlanChat.set(null);
+      return;
+    }
+    
+    this.initiateBioLink(members[0]);
+  }
+
+  initiateBioLink(member: any): void {
+    this.selectedMemberForPlanChat.set(null);
+    this.showMemberSelector.set(null);
+    
+    setTimeout(() => {
+      this.selectedMemberForPlanChat.set({
+        id_user: member.id_user,
+        name: member.name,
+        last_name: member.last_name || ''
+      });
+    }, 50);
+  }
+
+  closePlanChat(): void {
+    this.selectedMemberForPlanChat.set(null);
+    this.showMemberSelector.set(null);
   }
 
   closeModal(): void {
@@ -259,12 +351,36 @@ export class NutritionistNutritionPlansComponent implements OnInit {
 
     const payload: any = {
       id_gym: gymId,
+      name: plan.name,
+      image: plan.image,
       goal: plan.goal,
       start_date: plan.start_date,
       end_date: plan.end_date,
       price: plan.price,
       id_nutritionist: me,
-      id_members: memberIds
+      id_members: memberIds,
+      // Metabolic Metrics
+      protein: plan.protein || 0,
+      carbs: plan.carbs || 0,
+      fats: plan.fats || 0,
+      calories: plan.calories || 0,
+      score: plan.score || 95,
+      // Nested Protocol Data
+      meals: (plan.meals || []).map(m => ({
+        name: m.name,
+        time: m.time,
+        description: m.description || '',
+        protein: m.protein || 0,
+        carbs: m.carbs || 0,
+        fats: m.fats || 0,
+        calories: m.calories || 0
+      })),
+      supplements: (plan.supplements || []).map(s => ({
+        name: s.name,
+        dosage: s.dosage,
+        timing: s.timing,
+        type: s.type || 'capsule'
+      }))
     };
 
     if (this.modalMode() === 'add') {

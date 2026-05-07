@@ -33,6 +33,8 @@ class CheckGymStatus
             'api/owner/revenue-stats',   // Allow revenue overview
             'api/owner/recent-checkins', // Meta dashboards
             'api/notifications',    // Platform communication
+            'api/enrollments',      // Viewing user memberships
+            'api/subscribes',       // Viewing user gym follows
             'api/gym-staff/invitations', // Allow viewing invitations
             'api/gym-staff/join',        // Allow accepting invitations
             'api/gym-staff/decline',     // Allow declining invitations
@@ -44,12 +46,15 @@ class CheckGymStatus
             }
         }
 
-        // Get the specific gym context from the header
-        $gymId = $request->header('X-Gym-Id');
+        // Determine the gym ID to check. 
+        // Prioritize URL parameters (e.g. /api/gyms/{id}) over the context header.
+        $gymId = $request->route('gym') ?? $request->route('id_gym') ?? $request->header('X-Gym-Id');
 
         if ($gymId) {
-            // If a specific gym is requested, check only that gym's status
-            $gym = Gym::where('id_gym', $gymId)->first();
+            // If the ID was found in the route, it might be a model or an ID
+            $id = is_numeric($gymId) ? $gymId : ($gymId instanceof Gym ? $gymId->id_gym : $gymId);
+            
+            $gym = Gym::where('id_gym', $id)->first();
             if ($gym && $gym->status === 'suspended') {
                 // ALLOW GET requests for the gym profile itself 
                 // so the owner can see the suspension banner and rationale.

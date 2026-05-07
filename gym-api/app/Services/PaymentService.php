@@ -24,15 +24,15 @@ class PaymentService extends BaseService
         if ($search = request()->query('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('id_payment', 'like', "%{$search}%")
-                  ->orWhere('external_reference', 'like', "%{$search}%")
-                  ->orWhere('id_transaction', 'like', "%{$search}%")
-                  ->orWhere('method', 'like', "%{$search}%")
-                  ->orWhere('type', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                  });
+                    ->orWhere('external_reference', 'like', "%{$search}%")
+                    ->orWhere('id_transaction', 'like', "%{$search}%")
+                    ->orWhere('method', 'like', "%{$search}%")
+                    ->orWhere('type', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -91,87 +91,121 @@ class PaymentService extends BaseService
         return $this->getBy('id_user', $userId);
     }
 
-     /**
-      * Get financial summary (metrics) scoped to gym
-      */
-     public function getFinancialSummary($user)
-     {
-         $query = $this->query();
-         $this->applyActiveGymScope($query, $user);
-         
-         return [
-             'total_volume' => (clone $query)->count(),
-             'todays_intake' => (clone $query)->whereDate('created_at', now()->toDateString())->sum('amount'),
-             'total_revenue' => (clone $query)->sum('amount'),
-             'currency' => 'TND'
-         ];
-     }
+    /**
+     * Get financial summary (metrics) scoped to gym
+     */
+    public function getFinancialSummary($user)
+    {
+        $query = $this->query();
+        $this->applyActiveGymScope($query, $user);
 
-     /**
-      * Create a new payment with strict business rules
-      */
-     public function createPayment(array $data)
-     {
-         $orderId = null;
-         if (!empty($data['category']) && $data['category'] === 'product' && !empty($data['id_product'])) {
-             // Fetch product price or use the payment amount
-             $productPrice = $data['amount']; 
-             
-             // Create an Order
-             $order = \App\Models\Order::create([
-                 'order_date' => now(),
-                 'status' => \App\Models\Order::STATUS_COMPLETED,
-                 'total_amount' => $productPrice,
-                 'id_member' => $data['member_id'],
-             ]);
-             
-             // Attach Product to Order
-             $order->products()->attach($data['id_product'], [
-                 'quantity' => 1,
-                 'price' => $productPrice
-             ]);
-             
-             $orderId = $order->id_order;
-         }
+        return [
+            'total_volume' => (clone $query)->count(),
+            'todays_intake' => (clone $query)->whereDate('created_at', now()->toDateString())->sum('amount'),
+            'total_revenue' => (clone $query)->sum('amount'),
+            'currency' => 'TND'
+        ];
+    }
 
-         // Map strict contract to DB schema and inject system fields
-         $mappedData = [
-             'amount' => (int)($data['amount'] * 100), // Convert decimal TND to cents for storage
-             'id_user' => $data['member_id'] ?? null,
-             'id_gym' => $data['id_gym'],
-             'type' => $data['category'],
-             'method' => $data['gateway'],
-             'external_reference' => $data['external_reference'] ?? null,
-             'id_order' => $orderId,
-             
-             // System overrides (strict enforcement)
-             'status' => \App\Enums\PaymentStatus::Pending,
-             'is_locked' => false,
-             'created_by' => auth()->id(),
-         ];
+    /**
+     * Create a new payment with strict business rules
+     */
+    public function createPayment(array $data)
+    {
+        $orderId = null;
+        if (!empty($data['category']) && $data['category'] === 'product' && !empty($data['id_product'])) {
+            // Fetch product price or use the payment amount
+            $productPrice = $data['amount'];
 
-         // Create the record
-         $payment = $this->create($mappedData);
+            // Create an Order
+            $order = \App\Models\Order::create([
+                'order_date' => now(),
+                'status' => \App\Models\Order::STATUS_COMPLETED,
+                'total_amount' => $productPrice,
+                'id_member' => $data['member_id'],
+            ]);
 
-         // Lifecycle transition (Simulate successful authorization)
-         return $this->finalizePayment($payment, auth()->id());
-     }
+            // Attach Product to Order
+            $order->products()->attach($data['id_product'], [
+                'quantity' => 1,
+                'price' => $productPrice
+            ]);
 
-     /**
-      * Finalize a payment transaction
-      */
-     public function finalizePayment(Payment $payment, $userId = null)
-     {
-         if ($payment->is_locked) {
-             throw new \Exception('Transaction is locked and cannot be modified.');
-         }
+            $orderId = $order->id_order;
+        }
 
-         $payment->update([
-             'status' => \App\Enums\PaymentStatus::Finalized,
-             'is_locked' => true,
-             'finalized_by' => $userId ?? auth()->id()
-         ]);
+        // Map strict contract to DB schema and inject system fields
+        $mappedData = [
+            'amount' => $data['amount'], // Store as decimal units (TND) directly since column is decimal(8,2)
+            'id_user' => $data['member_id'] ?? null,
+            'id_gym' => $data['id_gym'],
+            'type' => $data['category'],
+            'method' => $data['gateway'],
+            'id_transaction' => $data['external_reference'] ?? 'TXN-' . strtoupper(bin2hex(random_bytes(4))),
+            'external_reference' => $data['external_reference'] ?? null,
+            'id_order' => $orderId,
+            'id_session' => $data['id_session'] ?? null,
+            'id_event' => $data['id_event'] ?? null,
 
-         return $payment;
-     }
+            // System overrides (strict enforcement)
+            'status' => \App\Enums\PaymentStatus::Pending,
+            'is_locked' => false,
+            'created_by' => auth()->id(),
+        ];
+
+        // Create the record
+        $payment = $this->create($mappedData);
+
+        // Logic: Only stay Pending if it's a product and created by a member (from the platform).
+        // If a receptionist/owner records a sale (even product), it's finalized immediately.
+        $user = auth()->user();
+        $isMemberBuyingProduct = ($data['category'] === 'product' && $user?->role === \App\Models\User::ROLE_MEMBER);
+
+        if (!$isMemberBuyingProduct) {
+            return $this->finalizePayment($payment, $user?->id_user);
+        }
+
+        return $payment;
+    }
+
+    /**
+     * Finalize a payment transaction
+     */
+    public function finalizePayment(Payment $payment, $userId = null)
+    {
+        if ($payment->is_locked) {
+            throw new \Exception('Transaction is locked and cannot be modified.');
+        }
+
+        $finalizedBy = $userId ?? auth()->id();
+
+        // Update the record
+        $payment->update([
+            'status' => \App\Enums\PaymentStatus::Finalized,
+            'is_locked' => true,
+            'finalized_by' => $finalizedBy,
+        ]);
+
+        // Auto-create attendance for course payments
+        if ($payment->type === \App\Models\Payment::TYPE_COURSE && !empty($payment->id_session)) {
+            \App\Models\Attendance::updateOrCreate([
+                'id_member' => $payment->id_user,
+                'id_session' => $payment->id_session,
+            ], [
+                'status' => \App\Models\Attendance::STATUS_PENDING,
+            ]);
+        }
+
+        // Auto-enroll for event payments
+        if ($payment->type === \App\Models\Payment::TYPE_EVENT && !empty($payment->id_event)) {
+            \App\Models\AttendanceEvent::updateOrCreate([
+                'id_member' => $payment->id_user,
+                'id_event' => $payment->id_event,
+            ], [
+                'status' => \App\Models\AttendanceEvent::STATUS_UPCOMING,
+            ]);
+        }
+
+        return $payment->fresh();
+    }
 }

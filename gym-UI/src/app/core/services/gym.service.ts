@@ -2,20 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-export interface GymInfo {
-  id_gym: string;
-  name: string;
-  address: string;
-  phone: string;
-  id_owner: string;
-  logo_url?: string;
-  status?: string;
-  suspension_reason?: string;
-  // Subscription fields
-  subscription_end?: string;
-  days_remaining?: number;
-}
+import { GymInfo } from '../models/api.models';
 
 export interface GymsResponse {
   success: boolean;
@@ -46,4 +33,9 @@ export class GymService {
   reactivateGym(id: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/gyms/${id}/reactivate`, {});
   }
+
+  renewPlatformSubscription(gymId: string, type: string, paymentMethod: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/owner/gyms/${gymId}/renew`, { type, payment_method: paymentMethod });
+  }
 }
+export type { GymInfo };

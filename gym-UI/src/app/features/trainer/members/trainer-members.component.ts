@@ -8,6 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { GymMember } from '../../../shared/models/gym-member.model';
 import { GymInfo } from '../../../core/services/gym.service';
 import { finalize } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
 
 interface Stats {
   total: number;
@@ -30,7 +31,7 @@ interface DirectMessageForm {
 @Component({
   selector: 'app-trainer-members',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule],
   templateUrl: './trainer-members.component.html',
   styleUrl: './trainer-members.component.scss'
 })

@@ -60,6 +60,29 @@ class SubscribeService extends BaseService
     }
 
     /**
+     * Create a new subscription with defaults
+     */
+    public function create(array $data): \Illuminate\Database\Eloquent\Model
+    {
+        // Default to current authenticated user if not provided
+        if (!isset($data['id_user']) || empty($data['id_user'])) {
+            $data['id_user'] = auth()->id();
+        }
+
+        // Default to active status
+        if (!isset($data['status']) || empty($data['status'])) {
+            $data['status'] = Subscribe::STATUS_ACTIVE;
+        }
+
+        // Default to current date
+        if (!isset($data['subscribe_date']) || empty($data['subscribe_date'])) {
+            $data['subscribe_date'] = now()->toDateString();
+        }
+
+        return parent::create($data);
+    }
+
+    /**
      * Get active subscriptions
      */
     public function getActiveSubscribes()

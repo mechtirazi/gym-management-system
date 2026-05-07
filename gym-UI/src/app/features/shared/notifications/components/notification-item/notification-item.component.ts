@@ -1,16 +1,17 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GymNotification } from '../../../../../shared/models/notification.model';
+import { NotificationFeatureService } from '../../notifications.service';
 
 @Component({
   selector: 'app-notification-item',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="notification-card" [class.unread]="notification.unread">
-      <div class="card-icon" [ngClass]="notification.type">
+    <div class="notification-card" [ngClass]="[baseType, notification.unread ? 'unread' : '']">
+      <div class="card-icon" [ngClass]="baseType">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <ng-container [ngSwitch]="notification.type">
+          <ng-container [ngSwitch]="baseType">
             <ng-container *ngSwitchCase="'info'">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -23,6 +24,11 @@ import { GymNotification } from '../../../../../shared/models/notification.model
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
               <line x1="12" y1="9" x2="12" y2="13"></line>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </ng-container>
+            <ng-container *ngSwitchCase="'error'">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
             </ng-container>
             <ng-container *ngSwitchDefault>
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -43,20 +49,48 @@ import { GymNotification } from '../../../../../shared/models/notification.model
         </div>
         <p class="card-desc">{{ notification.description }}</p>
         <div class="card-actions">
-          <ng-container *ngIf="isInvitation; else standardActions">
-            <button class="action-btn accept" (click)="onAccept.emit(notification)">Accept</button>
-            <button class="action-btn decline" (click)="onDecline.emit(notification)">Decline</button>
-          </ng-container>
-          <ng-template #standardActions>
-            <button class="action-btn secondary" (click)="onMarkRead.emit(notification.id)" *ngIf="notification.unread">
+          @if (isInvitation()) {
+            @if (!isGlobalProcessing()) {
+              <button class="action-btn accept" (click)="handleAccept()">Accept</button>
+              <button class="action-btn decline" (click)="handleDecline()">Decline</button>
+            } @else {
+              <div class="processing-spinner">
+                <div class="spinner-dot"></div>
+                <span>Processing...</span>
+              </div>
+            }
+          } @else if (notification.unread && !isGlobalProcessing()) {
+            <button class="action-btn secondary" (click)="onMarkRead.emit(notification.id)">
               Mark as read
             </button>
-          </ng-template>
+          }
         </div>
       </div>
     </div>
   `,
   styles: [`
+    .processing-spinner {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--admin-accent-indigo);
+      padding: 0.5rem;
+    }
+
+    .spinner-dot {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--admin-accent-indigo);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
     .notification-card {
       display: flex;
       gap: 1.5rem;
@@ -70,7 +104,6 @@ import { GymNotification } from '../../../../../shared/models/notification.model
 
       &.unread {
         border-color: var(--admin-accent-indigo);
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), transparent);
         &::after {
           content: '';
           position: absolute;
@@ -83,6 +116,12 @@ import { GymNotification } from '../../../../../shared/models/notification.model
           box-shadow: 0 0 12px var(--admin-accent-indigo);
         }
       }
+
+      &.info { background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), transparent); border-color: rgba(99, 102, 241, 0.2); }
+      &.success { background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), transparent); border-color: rgba(16, 185, 129, 0.2); }
+      &.warning { background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), transparent); border-color: rgba(245, 158, 11, 0.2); }
+      &.error { background: linear-gradient(135deg, rgba(244, 63, 94, 0.08), transparent); border-color: rgba(244, 63, 94, 0.2); }
+      &.invitation { background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), transparent); border-color: rgba(245, 158, 11, 0.2); }
 
       &:hover {
         transform: translateX(5px);
@@ -102,10 +141,11 @@ import { GymNotification } from '../../../../../shared/models/notification.model
       border: 1px solid var(--admin-item-border);
       color: var(--admin-text-primary);
 
-      &.info { color: var(--admin-accent-indigo); background: rgba(99, 102, 241, 0.1); }
-      &.success { color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.1); }
-      &.warning { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
-      &.error { color: var(--admin-accent-rose); background: rgba(244, 63, 94, 0.1); }
+      &.info { color: var(--admin-accent-indigo); background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3); }
+      &.success { color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); }
+      &.warning { color: #f59e0b; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
+      &.error { color: var(--admin-accent-rose); background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.3); }
+      &.invitation { color: #f59e0b; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
       svg { width: 22px; height: 22px; }
     }
 
@@ -159,13 +199,41 @@ import { GymNotification } from '../../../../../shared/models/notification.model
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NotificationItemComponent {
+  private featureService = inject(NotificationFeatureService, { optional: true });
+  
   @Input({ required: true }) notification!: GymNotification;
   
   @Output() onMarkRead = new EventEmitter<string>();
   @Output() onAccept = new EventEmitter<GymNotification>();
   @Output() onDecline = new EventEmitter<GymNotification>();
 
-  get isInvitation(): boolean {
-    return this.notification.type?.startsWith('staff_invitation');
+  processing = signal(false);
+
+  isInvitation = computed(() => {
+    return this.notification.type?.includes('invitation') && this.notification.unread;
+  });
+
+  get baseType(): string {
+    const type = this.notification.type || '';
+    if (type.includes('invitation')) return 'invitation';
+    if (type.includes('info')) return 'info';
+    if (type.includes('success')) return 'success';
+    if (type.includes('warning')) return 'warning';
+    if (type.includes('error')) return 'error';
+    return 'default';
+  }
+
+  isGlobalProcessing = computed(() => {
+    return this.featureService?.isProcessing(this.notification.id) || this.processing();
+  });
+
+  handleAccept() {
+    this.processing.set(true);
+    this.onAccept.emit(this.notification);
+  }
+
+  handleDecline() {
+    this.processing.set(true);
+    this.onDecline.emit(this.notification);
   }
 }

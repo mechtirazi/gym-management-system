@@ -24,89 +24,205 @@
       </div>
       }
 
-      <!-- Image Upload Field -->
-      <div class="form-group image-upload-group">
-        <label>Course Image</label>
-        <div class="image-preview-container" [class.has-image]="imagePreview()">
-          @if (imagePreview()) {
-          <img [src]="imagePreview()" alt="Preview" class="image-preview">
-          <button type="button" class="remove-image-btn" (click)="removeImage()">&times;</button>
-          } @else {
-          <div class="upload-placeholder" (click)="fileInput.click()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            <span>Click to upload image</span>
-          </div>
-          }
-          <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" hidden>
-        </div>
-      </div>
-
-      <div class="form-group" [class.has-error]="addForm.get('name')?.invalid && addForm.get('name')?.touched">
-        <label for="name">Course Name <span class="required">*</span></label>
-        <input id="name" type="text" formControlName="name" placeholder="Yoga Flow, Boxing HIIT, etc.">
-        @if (addForm.get('name')?.hasError('required') && addForm.get('name')?.touched) {
-        <span class="field-error">Course name is required</span>
-        } @else if (addForm.get('name')?.hasError('minlength') && addForm.get('name')?.touched) {
-        <span class="field-error">Name must be at least 3 characters</span>
+      <!-- Modern Tab Navigation -->
+      <div class="modal-tabs">
+        <button type="button" class="tab-link" [class.active]="activeTab() === 'basic'" (click)="setActiveTab('basic')">
+          <span class="material-symbols-rounded">info</span> Program Details
+        </button>
+        <button type="button" class="tab-link" [class.active]="activeTab() === 'pricing'"
+          (click)="setActiveTab('pricing')">
+          <span class="material-symbols-rounded">payments</span> Pricing & Access
+        </button>
+        @if (addForm.get('is_subscription_enabled')?.value) {
+          <button type="button" class="tab-link" [class.active]="activeTab() === 'schedule'"
+            (click)="setActiveTab('schedule')">
+            <span class="material-symbols-rounded">event_repeat</span> Schedule Automation
+          </button>
         }
       </div>
 
-      <div class="form-row">
-        <div class="form-group" [class.has-error]="addForm.get('duration')?.invalid && addForm.get('duration')?.touched">
-          <label for="duration">Default Duration <span class="required">*</span></label>
-          <input id="duration" type="text" formControlName="duration" placeholder="e.g. 60 min">
-          @if (addForm.get('duration')?.hasError('required') && addForm.get('duration')?.touched) {
-          <span class="field-error">Duration is required</span>
+      <div class="tab-viewport">
+        <!-- Tab 1: Basic Info -->
+        @if (activeTab() === 'basic') {
+        <div class="tab-content animate-fade-in">
+          <div class="form-split-layout">
+            <div class="inputs-column">
+              <div class="form-group" [class.has-error]="addForm.get('name')?.invalid && addForm.get('name')?.touched">
+                <label for="name">Course Name <span class="required">*</span></label>
+                <input id="name" type="text" formControlName="name" placeholder="Yoga Flow, Boxing HIIT, etc.">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Duration</label>
+                  <div class="duration-composite">
+                    <div class="duration-part">
+                      <input type="number" formControlName="duration_hours" placeholder="1" min="0">
+                      <span>hr</span>
+                    </div>
+                    <div class="duration-part">
+                      <input type="number" formControlName="duration_minutes" placeholder="30" min="0" max="59">
+                      <span>min</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="max_capacity">Max Capacity</label>
+                  <input id="max_capacity" type="number" formControlName="max_capacity">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="description">Course Description</label>
+                <textarea id="description" formControlName="description" rows="3"
+                  placeholder="Describe the course curriculum..."></textarea>
+              </div>
+            </div>
+
+            <div class="image-column">
+              <div class="form-group image-upload-group">
+                <label>Cover Media</label>
+                <div class="image-preview-container" [class.has-image]="imagePreview()">
+                  @if (imagePreview()) {
+                  <img [src]="imagePreview()" alt="Preview" class="image-preview">
+                  <button type="button" class="remove-image-btn" (click)="removeImage()">&times;</button>
+                  } @else {
+                  <div class="upload-placeholder" (click)="fileInput.click()">
+                    <span class="material-symbols-rounded">add_photo_alternate</span>
+                    <span>Click to upload</span>
+                  </div>
+                  }
+                  <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" hidden>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Tab 2: Pricing & Access -->
+        @if (activeTab() === 'pricing') {
+        <div class="tab-content animate-fade-in">
+          <div class="pricing-card-layout">
+            <div class="pricing-section">
+              <h4 class="sub-title">Session Access</h4>
+              <div class="toggle-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" formControlName="isFree">
+                  <span class="checkmark"></span>
+                  Make this program free for everyone
+                </label>
+              </div>
+
+              @if (!addForm.get('isFree')?.value) {
+              <div class="form-group animate-slide-down">
+                <label for="price">Single Session Price ($)</label>
+                <div class="input-with-icon">
+                  <span class="icon">$</span>
+                  <input id="price" type="number" formControlName="price">
+                </div>
+              </div>
+              }
+            </div>
+
+            <div class="pricing-section accent">
+              <h4 class="sub-title">Weekly Abonnement</h4>
+              <div class="toggle-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" formControlName="is_subscription_enabled">
+                  <span class="checkmark"></span>
+                  Enable Selective Subscriptions
+                </label>
+              </div>
+
+              @if (addForm.get('is_subscription_enabled')?.value) {
+              <div class="form-group animate-slide-down">
+                <label for="subscription_price">Monthly/Weekly Access Price ($)</label>
+                <div class="input-with-icon">
+                  <span class="icon">$</span>
+                  <input id="subscription_price" type="number" formControlName="subscription_price">
+                </div>
+                <p class="field-hint">Enabling this adds an "Abonnement" button to the course card.</p>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Tab 3: Schedule Automation -->
+        @if (activeTab() === 'schedule') {
+        <div class="tab-content animate-fade-in">
+          <div class="automation-header">
+            <div class="toggle-group large">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="is_recurring">
+                <span class="checkmark"></span>
+                Enable Recurring Weekly Engine
+              </label>
+              <p class="header-desc">Automatically generate sessions for future weeks based on a pattern.</p>
+            </div>
+          </div>
+
+          @if (addForm.get('is_recurring')?.value) {
+          <div class="automation-grid animate-slide-up">
+            <div class="day-picker-section">
+              <label class="group-label">Weekly Training Pattern</label>
+              <div class="days-flex">
+                @for (day of daysOfWeek; track day) {
+                <button type="button" class="day-chip" [class.active]="isDaySelected(day)"
+                  (click)="onDayToggle(day, !isDaySelected(day))">
+                  {{ day.substring(0, 3) }}
+                </button>
+                }
+              </div>
+            </div>
+
+            <div class="time-trainer-section">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Start Time</label>
+                  <input type="time" formControlName="recurring_start_time">
+                </div>
+                <div class="form-group">
+                  <label>End Time</label>
+                  <input type="time" formControlName="recurring_end_time">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Generation Span (Weeks)</label>
+                  <input type="number" formControlName="recurrence_weeks">
+                </div>
+                <div class="form-group">
+                  <label>Default Instructor</label>
+                  <select formControlName="id_trainer">
+                    <option value="">No trainer assigned</option>
+                    @for (trainer of trainers(); track (trainer.user?.id_user || trainer.id_user)) {
+                    <option [value]="trainer.user?.id_user || trainer.id_user">
+                      {{ trainer.user?.name || trainer.name }}
+                    </option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          } @else {
+          <div class="empty-automation-state">
+            <span class="material-symbols-rounded">smart_toy</span>
+            <p>The system will create the Course without sessions. You can add them manually later using the "Sessions"
+              modal.</p>
+          </div>
           }
         </div>
-
-        <div class="form-group" [class.has-error]="addForm.get('count')?.invalid && addForm.get('count')?.touched">
-          <label for="count">Total Sessions <span class="required">*</span></label>
-          <input id="count" type="number" formControlName="count" placeholder="e.g. 10">
-          @if (addForm.get('count')?.hasError('min') && addForm.get('count')?.touched) {
-          <span class="field-error">Min. 1 session</span>
-          }
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group" [class.has-error]="addForm.get('max_capacity')?.invalid && addForm.get('max_capacity')?.touched">
-          <label for="max_capacity">Max Capacity <span class="required">*</span></label>
-          <input id="max_capacity" type="number" formControlName="max_capacity" placeholder="e.g. 20">
-          @if (addForm.get('max_capacity')?.hasError('min') && addForm.get('max_capacity')?.touched) {
-          <span class="field-error">Min. 1 member</span>
-          }
-        </div>
-
-        <div class="form-group" [class.has-error]="addForm.get('price')?.invalid && addForm.get('price')?.touched">
-          <label for="price">Price ($) <span class="required">*</span></label>
-          <input id="price" type="number" formControlName="price" placeholder="e.g. 49.99">
-          @if (addForm.get('price')?.hasError('required') && addForm.get('price')?.touched) {
-          <span class="field-error">Price is required</span>
-          }
-        </div>
-      </div>
-
-      <div class="form-group"
-        [class.has-error]="addForm.get('description')?.invalid && addForm.get('description')?.touched">
-        <label for="description">Course Description <span class="required">*</span></label>
-        <textarea id="description" formControlName="description" rows="4"
-          placeholder="Describe what members will learn in this class..."></textarea>
-        @if (addForm.get('description')?.hasError('required') && addForm.get('description')?.touched) {
-        <span class="field-error">Description is required</span>
-        } @else if (addForm.get('description')?.hasError('maxlength') && addForm.get('description')?.touched) {
-        <span class="field-error">Maximum 500 characters</span>
         }
       </div>
 
       <div class="form-actions">
         <button type="button" class="cancel-btn" (click)="cancelAdd()">Discard Changes</button>
-        <button type="submit" class="submit-btn gradient-btn" [disabled]="isAdding()">
+        <button type="submit" class="submit-btn gradient-btn" [disabled]="isAdding() || addForm.invalid">
           @if (isAdding()) {
           <span>Scheduling...</span>
           } @else {

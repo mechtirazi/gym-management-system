@@ -257,3 +257,24 @@
     opacity: 1;
   }
 }
+
+/* ─── Dark Mode Overrides ─── */
+:host-context(.dark) {
+  .filter-chip {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+    &:hover { border-color: #818cf8; color: #818cf8; background: rgba(129, 140, 248, 0.05); }
+    &.active { background: #4f46e5; border-color: #4f46e5; }
+  }
+
+  .staff-controls .search-wrap input {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+    &:focus { background: rgba(255, 255, 255, 0.05); border-color: #818cf8; }
+  }
+
+  .loading-state, .error-state, .empty-state {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}

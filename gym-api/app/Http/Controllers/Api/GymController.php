@@ -28,7 +28,7 @@ class GymController extends BaseApiController
     public function getMembershipPlans(Gym $gym)
     {
         $plans = $gym->membershipPlans;
-        
+
         // If no plans exist, return the default ones we had before as a fallback
         // or just return the empty collection. Let's return the collection.
         return response()->json([
@@ -69,10 +69,19 @@ class GymController extends BaseApiController
 
             // Update only allowed fields (security)
             $allowedFields = [
-                'name', 'email', 'adress', 'phone', 'description', 'picture', 'capacity',
-                'open_hour', 'open_mon_fri', 'open_sat', 'open_sun'
+                'name',
+                'email',
+                'adress',
+                'phone',
+                'description',
+                'picture',
+                'capacity',
+                'open_hour',
+                'open_mon_fri',
+                'open_sat',
+                'open_sun'
             ];
-            
+
             $filteredData = array_intersect_key($data, array_flip($allowedFields));
 
             $updatedModel = $this->service->update($model, $filteredData);

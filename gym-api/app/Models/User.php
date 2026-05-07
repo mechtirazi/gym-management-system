@@ -82,6 +82,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'manual_fats',
         'manual_water',
         'manual_weight',
+        'manual_height',
         'target_weight',
         'evolution_points',
         'nutritionist_advisory',
@@ -91,6 +92,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'notification_app_updates',
         'bio',
         'career_specialties',
+        'nutritionist_notes',
+        'platform_tier',
+        'platform_upgrade_expires_at',
     ];
 
     /**
@@ -319,5 +323,20 @@ class User extends Authenticatable implements MustVerifyEmail
             'status' => $gym->status,
             'suspension_reason' => $gym->suspension_reason
         ];
+    }
+    /**
+     * Check if the user has an active global platform upgrade.
+     */
+    public function isPremium()
+    {
+        if ($this->platform_tier !== 'premium') {
+            return false;
+        }
+
+        if ($this->platform_upgrade_expires_at === null) {
+            return true; // Permanent upgrade or not yet expired
+        }
+
+        return \Carbon\Carbon::parse($this->platform_upgrade_expires_at)->isFuture();
     }
 }

@@ -1,19 +1,22 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { Router } from '@angular/router';
+import { User } from '../../../../shared/models/user.model';
 import { StaffService } from '../../../../features/owner/staff/services/staff.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { FormsModule } from '@angular/forms';
 import { MemberService } from '../../../../features/member/services/member.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, MatSnackBarModule, FormsModule],
+  imports: [CommonModule, MatSnackBarModule, FormsModule, TranslateModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -25,13 +28,14 @@ export class HeaderComponent {
   private memberService = inject(MemberService);
   private staffService = inject(StaffService);
   private snackBar = inject(MatSnackBar);
+  private translate = inject(TranslateService);
 
   currentUser = this.authService.currentUser;
   isDarkMode = this.themeService.darkMode;
   showNotifications = signal(false);
   showLangDropdown = signal(false);
   showGymSwitcher = signal(false);
-  currentLang = signal<'en' | 'fr'>('en');
+  currentLang = signal<'en' | 'fr'>(this.translate.currentLang as 'en' | 'fr' || 'en');
   searchTerm = signal('');
   
   // Real-time suggestions from API
@@ -95,6 +99,8 @@ export class HeaderComponent {
 
   setLanguage(lang: 'en' | 'fr'): void {
     this.currentLang.set(lang);
+    this.translate.use(lang);
+    localStorage.setItem('language', lang);
     this.showLangDropdown.set(false);
   }
 

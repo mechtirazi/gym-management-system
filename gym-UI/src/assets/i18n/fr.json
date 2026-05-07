@@ -1,0 +1,11 @@
+{
+  "HEADER": {
+    "SEARCH_PLACEHOLDER": "Rechercher des ressources Zenith...",
+    "SWITCH_LANG": "Changer de langue",
+    "SWITCH_THEME_LIGHT": "Passer au mode clair",
+    "SWITCH_THEME_DARK": "Passer au mode sombre",
+    "NOTIFICATIONS": "Notifications",
+    "MARK_ALL_READ": "Tout marquer comme lu",
+    "VIEW_ALL_NOTIFICATIONS": "Voir toutes les notifications"
+  }
+}

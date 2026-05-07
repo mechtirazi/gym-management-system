@@ -8,6 +8,7 @@ import { NutritionistNutritionService } from '../services/nutritionist-nutrition
 import { AuthService } from '../../../core/services/auth.service';
 import { PageHeaderComponent } from '../../owner/components/page-header/page-header.component';
 import { FilterControlsComponent } from '../../owner/components/filter-controls/filter-controls.component';
+import { NutritionMessagesComponent } from '../utils/nutrition-messages.component';
 import {
   extractApiList,
   isMemberUser,
@@ -17,11 +18,20 @@ import {
 @Component({
   selector: 'app-nutritionist-clients',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageHeaderComponent, FilterControlsComponent],
+  imports: [CommonModule, RouterModule, FormsModule, PageHeaderComponent, FilterControlsComponent, NutritionMessagesComponent],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss'
 })
 export class NutritionistClientsComponent implements OnInit, OnDestroy {
+  selectedClientForChat = signal<any | null>(null);
+
+  openChat(client: any): void {
+    this.selectedClientForChat.set(client);
+  }
+
+  closeChat(): void {
+    this.selectedClientForChat.set(null);
+  }
   private api = inject(NutritionistNutritionService);
   private auth = inject(AuthService);
   private searchInput$ = new Subject<string>();

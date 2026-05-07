@@ -28,6 +28,13 @@ export class GymDialogComponent {
   private ownersService = inject(AdminOwnersService);
   private dialogRef = inject(MatDialogRef<GymDialogComponent>);
 
+  // Predefined Prices - Moved to top and made readonly to prevent ExpressionChanged error
+  readonly subscriptionTiers = [
+    { id: 'monthly', name: 'Monthly Activation', price: 49.99, duration: '30 Days' },
+    { id: 'semester', name: 'Semestrial Pack', price: 239.94, duration: '6 Months' },
+    { id: 'yearly', name: 'Yearly License', price: 359.88, duration: '12 Months' }
+  ];
+
   loading = signal(false);
   errorMessage = signal<string | null>(null);
 
@@ -38,10 +45,22 @@ export class GymDialogComponent {
     adress: ['', [Validators.required, Validators.minLength(3)]],
     phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-]{8,20}$/)]],
     capacity: [100, [Validators.required, Validators.min(1)]],
-    open_mon_fri: ['08:00-22:00', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]$/)]],
-    open_sat: ['08:00-20:00', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]$/)]],
-    open_sun: ['08:00-16:00', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9]-([01][0-9]|2[0-3]):[0-5][0-9]$/)]]
+    open_mon_fri_start: ['08:00', [Validators.required]],
+    open_mon_fri_end: ['22:00', [Validators.required]],
+    open_sat_start: ['08:00', [Validators.required]],
+    open_sat_end: ['20:00', [Validators.required]],
+    open_sun_start: ['08:00', [Validators.required]],
+    open_sun_end: ['16:00', [Validators.required]],
+    platform_subscription_type: ['monthly', Validators.required],
+    platform_subscription_price: [49.99, [Validators.required, Validators.min(0)]]
   });
+
+  selectTier(tier: any) {
+    this.gymForm.patchValue({
+      platform_subscription_type: tier.id,
+      platform_subscription_price: tier.price
+    });
+  }
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: { ownerId: number | string; ownerName: string }) { }
 
@@ -55,9 +74,21 @@ export class GymDialogComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
 
+    const formValues = this.gymForm.value;
+
     const payload = {
-      ...this.gymForm.value,
-      id_owner: this.data.ownerId
+      name: formValues.name,
+      email: formValues.email,
+      description: formValues.description,
+      adress: formValues.adress,
+      phone: formValues.phone,
+      capacity: formValues.capacity,
+      open_mon_fri: `${formValues.open_mon_fri_start}-${formValues.open_mon_fri_end}`,
+      open_sat: `${formValues.open_sat_start}-${formValues.open_sat_end}`,
+      open_sun: `${formValues.open_sun_start}-${formValues.open_sun_end}`,
+      platform_subscription_price: formValues.platform_subscription_price,
+      id_owner: this.data.ownerId,
+      platform_subscription_type: formValues.platform_subscription_type
     };
 
     this.ownersService.createGymForOwner(payload).subscribe({

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { MemberService } from '../services/member.service';
@@ -16,13 +16,16 @@ export class MemberProgressComponent implements OnInit {
   private memberService = inject(MemberService);
   private cdr = inject(ChangeDetectorRef);
 
+  @ViewChild('chatBody') chatBody!: ElementRef;
+
   stats: any = null;
   attendances: any[] = [];
   workoutHistory: any[] = [];
-  loading = true;
-
-  // Analysis Filter State
+  currentStreak = 0;
+  // UI State
+  activeTab: 'overview' | 'tracking' | 'physical' | 'analytics' = 'overview';
   analysisCategory = 'all'; // 'all', 'chest', 'back', 'legs', 'shoulders'
+  loading = true;
 
   private readonly exerciseMuscles: { [key: string]: string } = {
     'bench press': 'chest',
@@ -39,12 +42,84 @@ export class MemberProgressComponent implements OnInit {
     'lateral raises': 'shoulders'
   };
 
-  achievements = [
-    { id: 'consistency', title: 'Consistency King', icon: '🏆', target: 30, current: 0, label: '30 Day Streak', locked: true },
-    { id: 'sessions', title: 'Elite Athlete', icon: '🏅', target: 100, current: 0, label: '100 Workouts', locked: true },
-    { id: 'starter', title: 'Quick Start', icon: '✨', target: 5, current: 0, label: '5th Workout', locked: true },
-    { id: 'hydrated', title: 'H2O Master', icon: '💧', target: 3, current: 0, label: '3L Daily Water', locked: true }
+  achievements: any[] = [
+    { id: 'consistency', title: 'Consistency King', icon: 'emoji_events', target: 30, current: 0, label: '30 Day Streak', locked: true, desc: 'Maintain a 30-day workout streak', earned: false },
+    { id: 'sessions', title: 'Elite Athlete', icon: 'workspace_premium', target: 100, current: 0, label: '100 Workouts', locked: true, desc: 'Complete 100 training sessions', earned: false },
+    { id: 'starter', title: 'Quick Start', icon: 'auto_awesome', target: 5, current: 0, label: '5th Workout', locked: true, desc: 'Sync your 5th workout node', earned: false },
+    { id: 'hydrated', title: 'H2O Master', icon: 'water_drop', target: 3, current: 0, label: '3L Daily Water', locked: true, desc: 'Maintain 3L hydration protocol', earned: false }
   ];
+
+  evolutionPrediction: any = { current: 0, month1: 0, month3: 0, month6: 0, desc: 'Syncing...', trendIcon: 'sync', color: '#3b82f6' };
+
+  // AI Assistant State
+  aiMessages: { role: 'ai' | 'user', content: string, timestamp: Date }[] = [];
+  aiInsights: string[] = [];
+  isAiThinking = false;
+  showAiChat = false;
+
+  // New Data Sections (Now Dynamic)
+  personalRecords: any[] = [];
+  bodyMeasurements: any = {
+    chest: 65,
+    waist: 60,
+    biceps: 55,
+    thighs: 58,
+    lastUpdate: new Date()
+  };
+
+  // Visual Timeline State
+  isAnalyzing: boolean = false;
+  physiqueScore: number | null = null;
+  analyzedPhotos: any[] = [
+    { id: 1, url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80', date: '2026-04-15', score: 72 },
+    { id: 2, url: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80', date: '2026-04-28', score: 75 }
+  ];
+
+  // Activity Heatmap
+  activityMap: { day: string, active: boolean, level: number }[] = [];
+
+  get macroTargets() {
+    const weight = Number(this.stats?.weight) || 70;
+    const height = Number(this.stats?.height) || 175;
+    // Base protein at 2.0g/kg for active gym members
+    const protein = Math.round(weight * 2.0);
+    // Base fat at 0.8g/kg
+    const fats = Math.round(weight * 0.8);
+    // Carbs are adjusted based on goal
+    let carbMult = 3.0;
+    if (this.fitnessGoal === 'bulk') carbMult = 4.5;
+    if (this.fitnessGoal === 'cut') carbMult = 1.5;
+    
+    const carbs = Math.round(weight * carbMult);
+    const calories = (protein * 4) + (carbs * 4) + (fats * 9);
+    const water = Number((weight * 0.035).toFixed(1)); // 35ml per kg
+
+    return { protein, carbs, fats, calories, water };
+  }
+
+
+
+  generateActivityMap(): void {
+    const map = [];
+    const now = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      
+      const hasAttendance = this.attendances.some(a => a.created_at && a.created_at.startsWith(dateStr));
+      const hasWorkout = this.workoutHistory.some(w => w.workout_date && w.workout_date.startsWith(dateStr));
+      
+      const active = hasAttendance || hasWorkout;
+      
+      map.push({
+        day: dateStr,
+        active: active,
+        level: active ? Math.floor(Math.random() * 3) + 1 : 0
+      });
+    }
+    this.activityMap = map;
+  }
 
   getRank(): { title: string, level: number, color: string } {
     const points = this.stats?.evolutionPoints || 0;
@@ -57,12 +132,36 @@ export class MemberProgressComponent implements OnInit {
 
   getBioScore(): number {
     if (!this.stats) return 0;
-    const waterMet = (this.stats.water >= 3) ? 25 : (this.stats.water / 3) * 25;
-    const weightLogged = (this.stats.weight > 0) ? 25 : 0;
-    const macrosAdherence = (this.getMacroPercentage('protein') + this.getMacroPercentage('carbs') + this.getMacroPercentage('fats')) / 3;
-    const caloriesMet = (Math.abs(this.stats.caloriesBurned - this.getTargetCalories()) < 200) ? 25 : 0;
+    
+    // 1. Hydration Sync (25%)
+    const waterMet = Math.min((this.stats.water / 3) * 25, 25);
+    
+    // 2. Weight Logging Consistency (15%)
+    const weightLogged = (this.stats.weight > 0) ? 15 : 0;
+    
+    // 3. Macro Adherence (35%)
+    const proteinTarget = this.getTargetCalories() * 0.30 / 4;
+    const proteinAdherence = Math.min((this.stats.protein / proteinTarget) * 15, 15);
+    
+    const carbsTarget = this.getTargetCalories() * 0.40 / 4;
+    const carbsAdherence = Math.min((this.stats.carbs / carbsTarget) * 10, 10);
+    
+    const fatsTarget = this.getTargetCalories() * 0.30 / 9;
+    const fatsAdherence = Math.min((this.stats.fats / fatsTarget) * 10, 10);
+    
+    // 4. Activity/Volume Sync (25%)
+    const activityMet = this.attendances.length > 0 ? 25 : 0;
 
-    return Math.min(Math.round(waterMet + weightLogged + (macrosAdherence * 0.25) + caloriesMet), 100);
+    const total = Math.round(waterMet + weightLogged + proteinAdherence + carbsAdherence + fatsAdherence + activityMet);
+    return Math.min(total, 100);
+  }
+
+  getSyncQualityLabel(): string {
+    const score = this.getBioScore();
+    if (score >= 90) return 'OPTIMAL NODE';
+    if (score >= 70) return 'STABLE SYNC';
+    if (score >= 40) return 'REPLENISHING';
+    return 'MINIMAL SIGNAL';
   }
 
   fitnessGoal: 'cut' | 'maintain' | 'bulk' = 'maintain';
@@ -94,7 +193,25 @@ export class MemberProgressComponent implements OnInit {
         this.attendances = res.attendances?.data || [];
         this.workoutHistory = res.workouts?.data || [];
         this.stats = res.stats?.stats;
-        this.calculateAchievements();
+        
+        // Sync Dynamic Data from Backend
+        this.personalRecords = res.stats?.personalRecords || [];
+        this.bodyMeasurements = res.stats?.bodyMeasurements || this.bodyMeasurements;
+        this.aiInsights = res.stats?.aiAdvice || [];
+        if (res.stats?.projection) {
+          this.evolutionPrediction = {
+            ...res.stats.projection,
+            current: this.stats?.weight || 0,
+            trendIcon: 'biotech',
+            color: '#8b5cf6',
+            backendSynced: true
+          };
+        } else {
+          this.updateEvolutionPrediction();
+        }
+        
+        this.syncAchievements();
+        this.generateActivityMap();
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -132,15 +249,17 @@ export class MemberProgressComponent implements OnInit {
     });
   }
 
-  private calculateAchievements(): void {
+  private syncAchievements(): void {
     const totalAttendance = this.stats?.totalAttendance || this.attendances.length;
 
+    const allDates = [
+      ...this.attendances.map(a => new Date(a.created_at).setHours(0, 0, 0, 0)),
+      ...this.workoutHistory.map(w => new Date(w.workout_date).setHours(0, 0, 0, 0))
+    ].filter(d => !isNaN(d));
+
     let streak = 0;
-    if (this.attendances && this.attendances.length > 0) {
-      const sortedDates = this.attendances
-        .map(a => new Date(a.created_at).setHours(0, 0, 0, 0))
-        .sort((a, b) => b - a);
-      const uniqueDates = [...new Set(sortedDates)];
+    if (allDates.length > 0) {
+      const uniqueDates = [...new Set(allDates)].sort((a, b) => b - a);
       let today = new Date().setHours(0, 0, 0, 0);
       let i = 0;
       if (uniqueDates[0] === today) i = 0;
@@ -151,27 +270,46 @@ export class MemberProgressComponent implements OnInit {
         else break;
       }
     }
+    this.currentStreak = streak;
 
     this.achievements.forEach(ach => {
       if (ach.id === 'sessions' || ach.id === 'starter') {
         ach.current = totalAttendance;
         ach.locked = totalAttendance < ach.target;
+        ach.earned = !ach.locked;
       } else if (ach.id === 'consistency') {
         ach.current = streak;
         ach.locked = streak < ach.target;
+        ach.earned = !ach.locked;
       } else if (ach.id === 'hydrated') {
         ach.current = this.stats?.water || 0;
         ach.locked = (this.stats?.water || 0) < ach.target;
+        ach.earned = !ach.locked;
+      }
+    });
+
+    // Add dynamic backend achievements if they don't exist
+    const points = this.stats?.evolutionPoints || 0;
+    const backendAchievements = [
+      { id: 'iron-pioneer', title: 'Iron Pioneer', icon: 'military_tech', target: 500, current: points, label: '500 Pts', locked: points < 500, desc: 'Sync 500 evolution points', earned: points >= 500 },
+      { id: 'hydration-elite', title: 'Hydration Elite', icon: 'water_drop', target: 3, current: (this.stats?.water || 0), label: '3L+', locked: (this.stats?.water || 0) < 3, desc: 'Daily water sync > 3L', earned: (this.stats?.water || 0) >= 3 },
+      { id: 'volume-master', title: 'Volume Master', icon: 'fitness_center', target: 20, current: this.workoutHistory.length, label: '20+ Sessions', locked: this.workoutHistory.length < 20, desc: 'Total workout count > 20', earned: this.workoutHistory.length > 20 }
+    ];
+
+    backendAchievements.forEach(ba => {
+      if (!this.achievements.find(a => a.id === ba.id)) {
+        this.achievements.push(ba);
       }
     });
   }
 
-  getBMI(): string {
-    const weight = Number(this.stats?.weight) || 70;
-    const height = 1.75; // Standard height multiplier
-    const bmi = weight / (height * height);
-    return bmi.toFixed(1);
-  }
+   getBMI(): string {
+     const weight = Number(this.stats?.weight) || 70;
+     const heightCm = Number(this.stats?.height) || 175;
+     const heightM = heightCm / 100;
+     const bmi = weight / (heightM * heightM);
+     return bmi.toFixed(1);
+   }
 
   getBMICategory(): string {
     const bmi = parseFloat(this.getBMI());
@@ -185,22 +323,33 @@ export class MemberProgressComponent implements OnInit {
     const val = Number(value);
     if (isNaN(val)) return;
     if (!this.stats) this.stats = {};
-    const metricMap: any = { 'calories': 'caloriesBurned', 'protein': 'protein', 'carbs': 'carbs', 'fats': 'fats', 'water': 'water', 'weight': 'weight' };
+    const metricMap: any = { 'calories': 'caloriesBurned', 'protein': 'protein', 'carbs': 'carbs', 'fats': 'fats', 'water': 'water', 'weight': 'weight', 'height': 'height' };
     const localKey = metricMap[metric];
-    if (localKey) this.stats[localKey] = val;
-    if (['protein', 'carbs', 'fats'].includes(metric)) {
-      this.stats.caloriesBurned = (this.stats.protein * 4) + (this.stats.carbs * 4) + (this.stats.fats * 9);
+    if (localKey) {
+      this.stats[localKey] = val;
+      // Recalculate calories burned locally for immediate feedback
+      if (['protein', 'carbs', 'fats'].includes(metric)) {
+        const p = Number(this.stats.protein) || 0;
+        const c = Number(this.stats.carbs) || 0;
+        const f = Number(this.stats.fats) || 0;
+        this.stats.caloriesBurned = (p * 4) + (c * 4) + (f * 9);
+      }
+      this.cdr.detectChanges();
     }
-    const payload = { calories: this.stats.caloriesBurned, protein: this.stats.protein, carbs: this.stats.carbs, fats: this.stats.fats, water: this.stats.water, weight: this.stats.weight };
+    const payload = { 
+      calories: this.stats.caloriesBurned, 
+      protein: this.stats.protein, 
+      carbs: this.stats.carbs, 
+      fats: this.stats.fats, 
+      water: this.stats.water, 
+      weight: this.stats.weight,
+      height: this.stats.height
+    };
     this.biometricsUpdate$.next(payload as any);
   }
 
   getTargetCalories(): number {
-    const weight = this.stats?.weight || 70;
-    let tdee = Math.round(weight * 24 * 1.375);
-    if (this.fitnessGoal === 'cut') tdee -= 500;
-    else if (this.fitnessGoal === 'bulk') tdee += 500;
-    return tdee;
+    return this.macroTargets.calories;
   }
 
   getMacroPercentage(macro: string): number {
@@ -223,11 +372,17 @@ export class MemberProgressComponent implements OnInit {
 
   onFitnessGoalChange(event: any): void {
     this.fitnessGoal = event.target.value;
+    this.updateEvolutionPrediction();
     this.cdr.detectChanges();
   }
 
   setAnalysisCategory(cat: string): void {
     this.analysisCategory = cat;
+    this.cdr.detectChanges();
+  }
+
+  setTab(tab: 'overview' | 'tracking' | 'physical' | 'analytics'): void {
+    this.activeTab = tab;
     this.cdr.detectChanges();
   }
 
@@ -305,7 +460,20 @@ export class MemberProgressComponent implements OnInit {
     return { totalLifetime: this.stats?.totalAttendance || records.length, monthly: monthlySessions, favorite: topCourse, weeklyAverage: weeklyAverage };
   }
 
-  get evolutionPrediction() {
+  get consistencyRate(): number {
+    if (!this.attendances || this.attendances.length === 0) return 0;
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+    const recentSessions = this.attendances.filter(a => new Date(a.created_at) >= thirtyDaysAgo).length;
+    // Assuming a "healthy" target is 3 sessions per week = 12 sessions per 30 days
+    return Math.min(Math.round((recentSessions / 12) * 100), 100);
+  }
+
+  get nextAchievement() {
+    return this.achievements.find(a => a.locked);
+  }
+
+  updateEvolutionPrediction(): void {
     const weight = Number(this.stats?.weight) || 70;
     let weeklyChange = 0;
     let desc = "Metabolic equilibrium maintained.";
@@ -326,6 +494,249 @@ export class MemberProgressComponent implements OnInit {
       trendIcon = compliance === 1 ? "trending_up" : "warning";
       color = compliance === 1 ? "#f59e0b" : "#ef4444";
     }
-    return { current: weight, month1: parseFloat((weight + (weeklyChange * 4)).toFixed(1)), month3: parseFloat((weight + (weeklyChange * 12)).toFixed(1)), desc, trendIcon, color };
+    
+    // Only update if not already set by backend (to preserve backend intelligence)
+    if (!this.evolutionPrediction.backendSynced) {
+       this.evolutionPrediction = { current: weight, month1: parseFloat((weight + (weeklyChange * 4)).toFixed(1)), month3: parseFloat((weight + (weeklyChange * 12)).toFixed(1)), month6: parseFloat((weight + (weeklyChange * 24)).toFixed(1)), desc, trendIcon, color };
+    }
+  }
+
+  // --- AI Logic ---
+
+  generateAiInsights(): void {
+    const insights = [];
+    const volume = this.filteredVolumeStats;
+    const macros = {
+      p: this.getMacroPercentage('protein'),
+      c: this.getMacroPercentage('carbs'),
+      f: this.getMacroPercentage('fats')
+    };
+
+    if (volume && volume.recentChange > 5) {
+      insights.push(`Your ${this.analysisCategory} volume is up by ${volume.recentChange}%. Your progressive overload is excellent.`);
+    } else if (volume && volume.recentChange < -5) {
+      insights.push(`Noticeable dip in ${this.analysisCategory} intensity. Ensure you're prioritizing recovery or check your sleep cycles.`);
+    }
+
+    if (macros.p < 70) {
+      insights.push("Protein synthesis potential is low. Aim for at least 1.6g/kg of bodyweight to optimize recovery.");
+    }
+
+    if (this.historyStats.weeklyAverage > 4) {
+      insights.push("High frequency detected. Your central nervous system might need a deload week soon.");
+    }
+
+    if (this.stats?.water < 2) {
+      insights.push("Hydration levels are sub-optimal. Aim for 3L to maintain metabolic efficiency.");
+    }
+
+    this.aiInsights = insights.length > 0 ? insights : ["Data synchronization complete. Continue your current protocol for 7 more days for deeper analysis."];
+    
+    if (this.aiMessages.length === 0) {
+      const greetings = [
+        `Greetings, ${this.stats?.name || 'Member'}. Your biometric nodes are synchronized. You are currently in the ${this.getBMICategory()} phase.`,
+        `Aura AI online. Analyzed ${this.attendances.length} recent sessions. Based on your ${this.fitnessGoal} goal, I recommend ${this.fitnessGoal === 'bulk' ? 'hypertrophy focus' : 'caloric precision'}.`,
+        `Neural sync active. Your evolution rank is ${this.getRank().title}. Ready for protocol inquiries?`,
+        `Intelligence Hub connected. Current protocol score: ${this.getBioScore()}%. Systems operational.`
+      ];
+      this.aiMessages.push({
+        role: 'ai',
+        content: greetings[Math.floor(Math.random() * greetings.length)],
+        timestamp: new Date()
+      });
+    }
+  }
+
+  toggleAiChat(): void {
+    this.showAiChat = !this.showAiChat;
+    this.cdr.detectChanges();
+  }
+
+  async sendAiMessage(input: HTMLInputElement): Promise<void> {
+    const text = input.value.trim();
+    if (!text) return;
+
+    this.aiMessages.push({ role: 'user', content: text, timestamp: new Date() });
+    input.value = '';
+    this.isAiThinking = true;
+    this.scrollToBottom();
+    this.cdr.detectChanges();
+
+    this.memberService.askAi(text).subscribe({
+      next: (res) => {
+        this.aiMessages.push({ role: 'ai', content: res.response, timestamp: new Date() });
+        this.isAiThinking = false;
+        this.scrollToBottom();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.aiMessages.push({ role: 'ai', content: "Neural sync interrupted. Please check your connection to the Biometric Hub.", timestamp: new Date() });
+        this.isAiThinking = false;
+        this.scrollToBottom();
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  triggerPhotoUpload(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e: any) => {
+      const file = e.target.files[0];
+      if (file) {
+        this.processPhysiqueAnalysis(file);
+      }
+    };
+    input.click();
+  }
+
+  processPhysiqueAnalysis(file: File): void {
+    this.isAnalyzing = true;
+    this.activeTab = 'physical';
+    this.cdr.detectChanges();
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const imgUrl = e.target.result;
+      const img = new Image();
+      img.onload = () => {
+        // True Image Analysis via Canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        
+        // Scale down for faster processing
+        const MAX_SIZE = 300;
+        let width = img.width;
+        let height = img.height;
+        if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        
+        let totalBrightness = 0;
+        let isBlack = true;
+        let diffSum = 0;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i+1], b = data[i+2];
+          const brightness = (r + g + b) / 3;
+          totalBrightness += brightness;
+          
+          if (brightness > 5) isBlack = false; // Threshold for not entirely black
+          
+          // Calculate edge variance (basic contrast)
+          if (i > 4) {
+             const prevR = data[i-4], prevG = data[i-3], prevB = data[i-2];
+             diffSum += Math.abs(r - prevR) + Math.abs(g - prevG) + Math.abs(b - prevB);
+          }
+        }
+        
+        const pixels = data.length / 4;
+        const avgBrightness = totalBrightness / pixels;
+        const variance = diffSum / pixels; // Edge density/detail level
+
+        // Prepare payload for backend AI Vision
+        const base64Image = imgUrl;
+        
+        // Artificial Neural Processing Delay to simulate backend if offline
+        this.memberService.analyzePhysiqueImage(base64Image).subscribe({
+          next: (response) => {
+            if (response.success && response.data) {
+              const data = response.data;
+              
+              // If the AI explicitly returned an Error connection string, trigger fallback
+              if (data.insights && data.insights[0] && data.insights[0].includes('Error:')) {
+                this.fallbackLocalAnalysis(isBlack, avgBrightness, variance, imgUrl);
+                return;
+              }
+
+              this.physiqueScore = data.score;
+              this.bodyMeasurements = {
+                chest: data.measurements?.chest || 0,
+                waist: data.measurements?.waist || 0,
+                biceps: data.measurements?.biceps || 0,
+                thighs: data.measurements?.thighs || 0,
+                lastUpdate: new Date()
+              };
+              this.aiInsights = data.insights || ["AI Vision processed successfully."];
+              
+              this.analyzedPhotos.unshift({
+                id: Date.now(),
+                url: imgUrl,
+                date: new Date().toISOString().split('T')[0],
+                score: data.score
+              });
+              
+              this.isAnalyzing = false;
+              this.cdr.detectChanges();
+            } else {
+              this.fallbackLocalAnalysis(isBlack, avgBrightness, variance, imgUrl);
+            }
+          },
+          error: () => {
+            this.fallbackLocalAnalysis(isBlack, avgBrightness, variance, imgUrl);
+          }
+        });
+      };
+      img.src = imgUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  private fallbackLocalAnalysis(isBlack: boolean, avgBrightness: number, variance: number, imgUrl: string): void {
+    let newScore = 0;
+    let newInsights = [];
+
+    if (isBlack || avgBrightness < 10) {
+       newScore = 0;
+       newInsights = [
+         "Error: Insufficient light data.",
+         "Image appears to be blank or completely unlit.",
+         "Please upload a clear physique protocol image."
+       ];
+       this.bodyMeasurements = { chest: 0, waist: 0, biceps: 0, thighs: 0, lastUpdate: new Date() };
+    } else {
+       const detailScore = Math.min(Math.max((variance / 50) * 100, 30), 98);
+       newScore = Math.floor(detailScore);
+       const delta = (newScore - 70) / 10;
+       this.bodyMeasurements = {
+         chest: Math.max(Math.min(Math.floor(75 + delta * 5), 100), 20),
+         waist: Math.max(Math.min(Math.floor(70 + delta * 4), 100), 20),
+         biceps: Math.max(Math.min(Math.floor(65 + delta * 6), 100), 20),
+         thighs: Math.max(Math.min(Math.floor(68 + delta * 5), 100), 20),
+         lastUpdate: new Date()
+       };
+       newInsights = [
+         `Neural scan complete. Protocol adherence: ${newScore}%.`,
+         `Local Hub: API Key missing or offline.`,
+         `Estimated using fallback geometric pixel analysis.`
+       ];
+    }
+
+    this.physiqueScore = newScore;
+    this.analyzedPhotos.unshift({
+      id: Date.now(),
+      url: imgUrl,
+      date: new Date().toISOString().split('T')[0],
+      score: newScore
+    });
+
+    this.aiInsights = newInsights;
+    this.isAnalyzing = false;
+    this.cdr.detectChanges();
+  }
+
+  private scrollToBottom(): void {
+    setTimeout(() => {
+      if (this.chatBody) {
+        this.chatBody.nativeElement.scrollTop = this.chatBody.nativeElement.scrollHeight;
+      }
+    }, 100);
   }
 }

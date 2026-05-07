@@ -29,7 +29,9 @@ export class AddOrderModalComponent implements OnInit {
   paymentMethod = signal<string>('cash');
 
   totalPrice = computed(() => {
-    return this.quantity() * Number(this.product().price);
+    const p = this.product();
+    const activePrice = (p.discount_percentage || 0) > 0 ? (p.discounted_price || p.price) : p.price;
+    return this.quantity() * Number(activePrice);
   });
 
   ngOnInit() {
@@ -78,7 +80,7 @@ export class AddOrderModalComponent implements OnInit {
         {
           id_product: this.product().id_product,
           quantity: this.quantity(),
-          price: this.product().price
+          price: (this.product().discount_percentage || 0) > 0 ? (this.product().discounted_price || this.product().price) : this.product().price
         }
       ]
     };

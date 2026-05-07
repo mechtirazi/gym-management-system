@@ -25,7 +25,7 @@
       </div>
 
       <div class="status-filter">
-        @for (status of ['All Memberships', 'Active', 'Cancelled', 'Expired']; track status) {
+        @for (status of ['All Memberships', 'Active', 'Pending', 'Expired']; track status) {
         <button class="filter-chip"
           [class.active]="selectedStatus() === (status === 'All Memberships' ? 'All' : status)"
           (click)="onStatusChange(status === 'All Memberships' ? 'All' : status)">

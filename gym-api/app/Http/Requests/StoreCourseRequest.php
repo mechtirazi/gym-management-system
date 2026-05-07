@@ -22,14 +22,22 @@ class StoreCourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'id_gym' => 'required|exists:gyms,id_gym',
-            'price' => 'required|numeric|min:0',
-            'max_capacity' => 'required|integer|min:1',
-            'count' => 'required|integer|min:0',
-            'duration' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'id_gym' => ['required', 'exists:gyms,id_gym'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'max_capacity' => ['required', 'integer', 'min:1'],
+            'count' => ['required', 'integer', 'min:0'],
+            'duration' => ['required', 'integer', 'min:1'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'is_subscription_enabled' => ['nullable', 'boolean'],
+            'subscription_price' => ['nullable', 'numeric', 'min:0'],
+            'is_recurring' => ['nullable', 'boolean'],
+            'recurring_days' => ['nullable', 'array'],
+            'recurring_start_time' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'recurring_end_time' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'recurrence_weeks' => ['nullable', 'integer', 'min:0'],
+            'id_trainer' => ['nullable', 'exists:users,id_user'],
         ];
     }
 

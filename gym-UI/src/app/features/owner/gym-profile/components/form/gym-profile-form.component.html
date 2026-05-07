@@ -67,13 +67,17 @@
 
         <div class="premium-input-group">
           <label>Support Hotline</label>
-          <div class="input-wrapper" [class.disabled]="!isEditing()"
+          <div class="input-wrapper phone-input-wrapper" [class.disabled]="!isEditing()"
             [class.invalid]="formGroup().get('phone')?.invalid && formGroup().get('phone')?.touched">
-            <input type="tel" formControlName="phone" placeholder="+212..." [readonly]="!isEditing()">
+            <div class="country-prefix">
+              <img src="https://flagcdn.com/w20/tn.png" alt="Tunisia Flag" class="flag-icon">
+              <span>+216</span>
+            </div>
+            <input type="tel" formControlName="phone" placeholder="12 345 678" [readonly]="!isEditing()" maxlength="8">
             <div class="focus-ring"></div>
           </div>
           @if (formGroup().get('phone')?.invalid && formGroup().get('phone')?.touched) {
-          <small class="error-msg">Valid phone number required (e.g., +212...).</small>
+          <small class="error-msg">Valid 8-digit Tunisian phone number required.</small>
           }
         </div>
 
@@ -113,7 +117,11 @@
           </div>
           <div class="m-body">
             @if (isEditing()) {
-            <input type="text" formControlName="open_mon_fri" placeholder="06:00 - 22:00">
+            <div class="dual-time-wrap">
+              <input type="time" formControlName="open_mon_fri_start">
+              <span class="separator">-</span>
+              <input type="time" formControlName="open_mon_fri_end">
+            </div>
             } @else {
             <span class="time-val">{{ formGroup().get('open_mon_fri')?.value || 'Closed' }}</span>
             }
@@ -127,7 +135,11 @@
           </div>
           <div class="m-body">
             @if (isEditing()) {
-            <input type="text" formControlName="open_sat" placeholder="08:00 - 20:00">
+            <div class="dual-time-wrap">
+              <input type="time" formControlName="open_sat_start">
+              <span class="separator">-</span>
+              <input type="time" formControlName="open_sat_end">
+            </div>
             } @else {
             <span class="time-val">{{ formGroup().get('open_sat')?.value || 'Closed' }}</span>
             }
@@ -141,7 +153,11 @@
           </div>
           <div class="m-body">
             @if (isEditing()) {
-            <input type="text" formControlName="open_sun" placeholder="08:00 - 16:00">
+            <div class="dual-time-wrap">
+              <input type="time" formControlName="open_sun_start">
+              <span class="separator">-</span>
+              <input type="time" formControlName="open_sun_end">
+            </div>
             } @else {
             <span class="time-val">{{ formGroup().get('open_sun')?.value || 'Closed' }}</span>
             }

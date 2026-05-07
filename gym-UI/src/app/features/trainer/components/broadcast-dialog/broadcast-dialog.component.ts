@@ -43,6 +43,11 @@ import { finalize } from 'rxjs';
             <textarea formControlName="message" rows="4" placeholder="Type your message here..."></textarea>
           </label>
 
+          <p class="auto-append-note">
+            <span class="note-icon">💡</span> 
+            Your name and session details will be automatically added to this message.
+          </p>
+
           <div class="dialog-actions">
             <button type="button" class="btn secondary" (click)="close.emit()">Cancel</button>
             <button type="submit" class="btn primary" [disabled]="form.invalid || isLoading()">
@@ -180,6 +185,21 @@ import { finalize } from 'rxjs';
       }
 
       &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    .auto-append-note {
+      font-size: 0.75rem;
+      color: var(--admin-text-secondary);
+      background: rgba(139, 92, 246, 0.05);
+      padding: 0.8rem;
+      border-radius: 12px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-style: italic;
+      
+      .note-icon { font-style: normal; }
     }
 
     .error-msg {

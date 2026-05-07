@@ -1,35 +1,35 @@
 <div class="feed-container">
-  <div class="bg-glow purple"></div>
-  <div class="bg-glow blue"></div>
+    <div class="bg-glow purple"></div>
+    <div class="bg-glow blue"></div>
 
-  <header class="hub-header animate-fade-in">
-    <div class="header-glass">
-      <div class="header-main">
-        <div class="brand-orb">
-          <span class="material-icons">hub</span>
+    <header class="hub-header animate-fade-in">
+        <div class="header-glass">
+            <div class="header-main">
+                <div class="brand-orb">
+                    <span class="material-icons">hub</span>
+                </div>
+                <div class="text-group">
+                    <div class="status-pill">
+                        <span class="pulse-node"></span>
+                        LIVE NETWORK SYNC
+                    </div>
+                    <h1>Zenith Pulse</h1>
+                    <p>The latest activity from your elite fitness ecosystem</p>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="h-stat">
+                    <span class="val">{{ activities.length }}</span>
+                    <span class="lab">Active Nodes</span>
+                </div>
+            </div>
         </div>
-        <div class="text-group">
-          <div class="status-pill">
-            <span class="pulse-node"></span>
-            LIVE NETWORK SYNC
-          </div>
-          <h1>Zenith Pulse</h1>
-          <p>The latest activity from your elite fitness ecosystem</p>
-        </div>
-      </div>
-      <div class="header-stats">
-        <div class="h-stat">
-          <span class="val">{{ activities.length }}</span>
-          <span class="lab">Active Nodes</span>
-        </div>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <div class="main-feed" *ngIf="!loading; else skeleton">
-    <div *ngIf="activities.length > 0; else emptyFeed" class="bento-grid">
-        
-        @for (act of activities; track (act.type + '_' + act.id)) {
+    <div class="main-feed" *ngIf="!loading; else skeleton">
+        <div *ngIf="activities.length > 0; else emptyFeed" class="bento-grid">
+
+            @for (act of activities; track (act.type + '_' + act.id)) {
             <div class="feed-node-container animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'">
                 <div class="feed-card" [class.featured]="act.type === 'EVENT' || act.type === 'MEMBERSHIP'">
                     <!-- Header -->
@@ -50,7 +50,7 @@
                     <div class="card-body">
                         <h2>{{ act.title }}</h2>
                         <p>{{ act.content }}</p>
-                        
+
                         <div class="price-box" *ngIf="act.price">
                             <div class="price-tag">
                                 <span class="material-icons">payments</span>
@@ -62,7 +62,8 @@
 
                     <!-- Hero Image -->
                     <div class="card-hero" *ngIf="act.image" (click)="viewDetails(act)">
-                        <img [src]="act.image" [alt]="act.title" onerror="this.onerror=null; this.src='assets/images/custom-logo.png'">
+                        <img [src]="act.image" [alt]="act.title"
+                            onerror="this.onerror=null; this.src='assets/images/custom-logo.png'">
                         <div class="hero-overlay"></div>
                         <div class="hero-action-hint">
                             <span class="material-symbols-rounded">zoom_in</span>
@@ -74,7 +75,8 @@
                     <div class="card-footer">
                         <div class="social-summary" *ngIf="act.likesCount || act.commentsCount">
                             <span class="count-item" *ngIf="act.likesCount">
-                                <span class="material-icons" style="font-size: 16px; color: var(--admin-accent-rose, #f43f5e);">favorite</span>
+                                <span class="material-icons"
+                                    style="font-size: 16px; color: var(--admin-accent-rose, #f43f5e);">favorite</span>
                                 {{ act.likesCount }}
                             </span>
                             <span class="count-item" *ngIf="act.commentsCount">
@@ -85,7 +87,8 @@
 
                         <div class="social-actions">
                             <button class="social-btn like" (click)="likePulse(act)" [class.active]="act?.liked">
-                                <span class="material-symbols-rounded">{{ act?.liked ? 'favorite' : 'favorite_border' }}</span>
+                                <span class="material-symbols-rounded">{{ act?.liked ? 'favorite' : 'favorite_border'
+                                    }}</span>
                                 <span class="btn-text">{{ act?.liked ? 'Liked' : 'Like' }}</span>
                             </button>
                             <button class="social-btn comment" (click)="commentPulse(act)">
@@ -97,143 +100,152 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <button class="explore-btn" (click)="viewDetails(act)">
                         <span>View Intelligence</span>
                         <span class="material-icons">arrow_forward</span>
                     </button>
                 </div>
             </div>
-        }
-    </div>
-  </div>
-
-  <ng-template #skeleton>
-    <div class="main-feed bento-grid">
-        @for (s of [1,2,3,4,5,6]; track s) {
-            <div class="skeleton-card"></div>
-        }
-    </div>
-  </ng-template>
-
-  <ng-template #emptyFeed>
-    <div class="empty-feed animate-fade-in">
-        <div class="empty-icon">🕳️</div>
-        <h2>Echo Chamber</h2>
-        <p>Your network is quiet. No new events, courses, or protocols have been synchronized recently.</p>
-        <button class="btn-refresh" (click)="loadRealFeed()">Sync Network</button>
-    </div>
-  </ng-template>
-
-  <!-- Toast Notification -->
-  <div class="toast-hub-container" *ngIf="toastMessage">
-    <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
-      <div class="toast-indicator">
-          <span class="material-symbols-rounded">{{ toastType === 'success' ? 'verified' : (toastType === 'error' ? 'error' : 'info') }}</span>
-      </div>
-      <div class="toast-content">
-        <strong>{{ toastType === 'success' ? 'Network Confirmed' : (toastType === 'error' ? 'Sync Failure' : 'System Information') }}</strong>
-        <p>{{ toastMessage }}</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Intelligence Report Modal -->
-  <div class="feed-modal-backdrop" *ngIf="activeModalAct" (click)="closeModal()">
-    <div class="feed-modal intelligence-report animate-slide-up" (click)="$event.stopPropagation()">
-        
-        <div class="report-header" [style.background]="activeModalAct.color + '10'">
-            <div class="report-id">NODE_TRANS_#{{ activeModalAct.id?.slice(-8) }}</div>
-            <button class="close-report" (click)="closeModal()"><span class="material-symbols-rounded">close</span></button>
+            }
         </div>
-        
-        <div class="report-scroll-area">
-            <div class="report-grid">
-                <!-- Left Sidebar: Meta & Context -->
-                <div class="report-sidebar">
-                    <div class="meta-card">
-                        <div class="meta-label">FACILITY ORIGIN</div>
-                        <div class="meta-value gym-link" (click)="navigateToGym(activeModalAct.id_gym)">
-                            <span class="material-icons">location_on</span>
-                            {{ activeModalAct.gymName }}
-                        </div>
-                    </div>
-                    
-                    <div class="meta-card">
-                        <div class="meta-label">TEMPORAL SYNC</div>
-                        <div class="meta-value">{{ activeModalAct.time }}</div>
-                    </div>
+    </div>
 
-                    <div class="meta-card">
-                        <div class="meta-label">PROTOCOL TYPE</div>
-                        <div class="meta-value">
-                            <span class="type-pill" [style.background]="activeModalAct.color" [style.box-shadow]="'0 0 15px ' + activeModalAct.color + '40'">
-                                {{ activeModalAct.type }}
-                            </span>
-                        </div>
-                    </div>
+    <ng-template #skeleton>
+        <div class="main-feed bento-grid">
+            @for (s of [1,2,3,4,5,6]; track s) {
+            <div class="skeleton-card"></div>
+            }
+        </div>
+    </ng-template>
 
-                    <div class="meta-card" *ngIf="activeModalAct.price">
-                        <div class="meta-label">CREDIT REQUIREMENT</div>
-                        <div class="meta-value price">{{ activeModalAct.price }} ZC</div>
-                    </div>
-                </div>
+    <ng-template #emptyFeed>
+        <div class="empty-feed animate-fade-in">
+            <div class="empty-icon">🕳️</div>
+            <h2>Echo Chamber</h2>
+            <p>Your network is quiet. No new events, courses, or protocols have been synchronized recently.</p>
+            <button class="btn-refresh" (click)="loadRealFeed()">Sync Network</button>
+        </div>
+    </ng-template>
 
-                <!-- Main Content: Data & Visuals -->
-                <div class="report-main">
-                    <div class="report-hero" *ngIf="activeModalAct.image">
-                        <img [src]="activeModalAct.image" [alt]="activeModalAct.title">
-                        <div class="hero-gradient"></div>
-                    </div>
+    <!-- Toast Notification -->
+    <div class="toast-hub-container" *ngIf="toastMessage">
+        <div class="glass-toast slide-in" [class.success]="toastType === 'success'"
+            [class.error]="toastType === 'error'">
+            <div class="toast-indicator">
+                <span class="material-symbols-rounded">{{ toastType === 'success' ? 'verified' : (toastType === 'error'
+                    ? 'error' : 'info') }}</span>
+            </div>
+            <div class="toast-content">
+                <strong>{{ toastType === 'success' ? 'Network Confirmed' : (toastType === 'error' ? 'Sync Failure' :
+                    'System Information') }}</strong>
+                <p>{{ toastMessage }}</p>
+            </div>
+        </div>
+    </div>
 
-                    <div class="report-content">
-                        <h1 class="report-title">{{ activeModalAct.title }}</h1>
-                        <div class="report-divider"></div>
-                        <p class="report-description">{{ activeModalAct.content }}</p>
-                        
-                        <!-- Actions in Modal -->
-                        <div class="report-actions">
-                            <button class="action-btn primary" [style.background]="activeModalAct.color">
-                                <span class="material-icons">bolt</span>
-                                INITIATE PROTOCOL
-                            </button>
-                            <button class="action-btn secondary" (click)="sharePulse(activeModalAct)">
-                                <span class="material-icons">share</span>
-                                BROADCAST
-                            </button>
-                        </div>
-                    </div>
+    <!-- Intelligence Report Modal -->
+    <div class="feed-modal-backdrop" *ngIf="activeModalAct" (click)="closeModal()">
+        <div class="feed-modal intelligence-report animate-slide-up" (click)="$event.stopPropagation()">
 
-                    <!-- Social / Feedback Section -->
-                    <div class="report-feedback">
-                        <div class="feedback-header">
-                            <h2>NETWORK FEEDBACK</h2>
-                            <div class="feedback-stats">
-                                <span>{{ activeModalAct.commentsCount || 0 }} Responses</span>
-                                <span>{{ activeModalAct.likesCount || 0 }} Endorsements</span>
+            <div class="report-header" [style.background]="activeModalAct.color + '10'">
+                <div class="report-id">NODE_TRANS_#{{ activeModalAct.id?.slice(-8) }}</div>
+                <button class="close-report" (click)="closeModal()"><span
+                        class="material-symbols-rounded">close</span></button>
+            </div>
+
+            <div class="report-scroll-area">
+                <div class="report-grid">
+                    <!-- Left Sidebar: Meta & Context -->
+                    <div class="report-sidebar">
+                        <div class="meta-card">
+                            <div class="meta-label">FACILITY ORIGIN</div>
+                            <div class="meta-value gym-link" (click)="navigateToGym(activeModalAct.id_gym)">
+                                <span class="material-icons">location_on</span>
+                                {{ activeModalAct.gymName }}
                             </div>
                         </div>
 
-                        <div class="feedback-input-container">
-                            <textarea #modalComment class="report-textarea" placeholder="Input your feedback transmission..."></textarea>
-                            <button class="send-feedback" [disabled]="!modalComment.value.trim()" (click)="submitComment(modalComment.value); modalComment.value=''">
-                                <span class="material-icons">send</span>
-                            </button>
+                        <div class="meta-card">
+                            <div class="meta-label">TEMPORAL SYNC</div>
+                            <div class="meta-value">{{ activeModalAct.time }}</div>
                         </div>
 
-                        <div class="comments-stream">
-                            <div *ngIf="commentsLoading" class="stream-loader">Syncing Stream...</div>
-                            <div *ngFor="let comment of currentComments" class="stream-item">
-                                <div class="stream-avatar" [style.background]="activeModalAct.color">
-                                    {{ comment.user?.name?.[0] }}
-                                </div>
-                                <div class="stream-content">
-                                    <div class="stream-user">{{ comment.user?.name }} {{ comment.user?.last_name }}</div>
-                                    <div class="stream-text">{{ comment.content }}</div>
+                        <div class="meta-card">
+                            <div class="meta-label">PROTOCOL TYPE</div>
+                            <div class="meta-value">
+                                <span class="type-pill" [style.background]="activeModalAct.color"
+                                    [style.box-shadow]="'0 0 15px ' + activeModalAct.color + '40'">
+                                    {{ activeModalAct.type }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="meta-card" *ngIf="activeModalAct.price">
+                            <div class="meta-label">CREDIT REQUIREMENT</div>
+                            <div class="meta-value price">{{ activeModalAct.price }} ZC</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content: Data & Visuals -->
+                    <div class="report-main">
+                        <div class="report-hero" *ngIf="activeModalAct.image">
+                            <img [src]="activeModalAct.image" [alt]="activeModalAct.title">
+                            <div class="hero-gradient"></div>
+                        </div>
+
+                        <div class="report-content">
+                            <h1 class="report-title">{{ activeModalAct.title }}</h1>
+                            <div class="report-divider"></div>
+                            <p class="report-description">{{ activeModalAct.content }}</p>
+
+                            <!-- Actions in Modal -->
+                            <div class="report-actions">
+                                <button class="action-btn primary" [style.background]="activeModalAct.color">
+                                    <span class="material-icons">bolt</span>
+                                    INITIATE PROTOCOL
+                                </button>
+                                <button class="action-btn secondary" (click)="sharePulse(activeModalAct)">
+                                    <span class="material-icons">share</span>
+                                    BROADCAST
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Social / Feedback Section -->
+                        <div class="report-feedback">
+                            <div class="feedback-header">
+                                <h2>NETWORK FEEDBACK</h2>
+                                <div class="feedback-stats">
+                                    <span>{{ activeModalAct.commentsCount || 0 }} Responses</span>
+                                    <span>{{ activeModalAct.likesCount || 0 }} Endorsements</span>
                                 </div>
                             </div>
-                            <div *ngIf="currentComments.length === 0 && !commentsLoading" class="stream-empty">
-                                No transmissions logged for this node.
+
+                            <div class="feedback-input-container">
+                                <textarea #modalComment class="report-textarea"
+                                    placeholder="Input your feedback transmission..."></textarea>
+                                <button class="send-feedback" [disabled]="!modalComment.value.trim()"
+                                    (click)="submitComment(modalComment.value); modalComment.value=''">
+                                    <span class="material-icons">send</span>
+                                </button>
+                            </div>
+
+                            <div class="comments-stream">
+                                <div *ngIf="commentsLoading" class="stream-loader">Syncing Stream...</div>
+                                <div *ngFor="let comment of currentComments" class="stream-item">
+                                    <div class="stream-avatar" [style.background]="activeModalAct.color">
+                                        {{ comment.user?.name?.[0] }}
+                                    </div>
+                                    <div class="stream-content">
+                                        <div class="stream-user">{{ comment.user?.name }} {{ comment.user?.last_name }}
+                                        </div>
+                                        <div class="stream-text">{{ comment.content }}</div>
+                                    </div>
+                                </div>
+                                <div *ngIf="currentComments.length === 0 && !commentsLoading" class="stream-empty">
+                                    No transmissions logged for this node.
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -241,5 +253,4 @@
             </div>
         </div>
     </div>
-  </div>
 </div>

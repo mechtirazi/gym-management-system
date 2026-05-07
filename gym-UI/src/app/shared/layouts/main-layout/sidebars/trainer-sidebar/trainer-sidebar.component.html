@@ -1,13 +1,12 @@
 <aside class="sidebar">
   <div class="sidebar-header">
     <div class="logo">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M6 18h4M14 18h4M15 22v-4M9 22v-4M15 14v-4M9 14v-4M11 6v-2h2v2M5 10v4h14v-4H5z"></path>
-        </svg>
+      <div class="logo-icon no-container">
+        <img src="assets/images/logo_GMS.png" alt="Platform Logo"
+          style="width: 100%; height: 100%; object-fit: contain;">
       </div>
       <div class="logo-text">
-        <span>GYM<span class="text-primary">UI</span></span>
+        <span>G<span class="text-primary">MS</span></span>
         <span class="role-badge">Trainer</span>
       </div>
     </div>
@@ -31,16 +30,16 @@
   <nav class="sidebar-nav">
     <ng-container *ngFor="let item of navItems">
       <div *ngIf="item.isHeader" class="nav-header" [class.locked]="isLocked(item)">{{ item.label }}</div>
-      <a *ngIf="!item.isHeader"
-         [routerLink]="isLocked(item) ? null : item.routePath"
-         routerLinkActive="active"
-         class="nav-item"
-         [class.locked]="isLocked(item)"
-         [attr.title]="isLocked(item) ? item.label + ' (Suspended)' : item.label">
+      <a *ngIf="!item.isHeader" [routerLink]="isLocked(item) ? null : item.routePath" routerLinkActive="active"
+        class="nav-item" [class.locked]="isLocked(item)"
+        [attr.title]="isLocked(item) ? item.label + ' (Suspended)' : item.label">
         <div class="nav-icon" [innerHTML]="getIcon(item.icon || '')"></div>
         <span class="nav-label">{{ item.label }}</span>
         <span *ngIf="isLocked(item)" class="lock-indicator">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
         </span>
       </a>
     </ng-container>

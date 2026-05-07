@@ -1,462 +1,505 @@
 <div class="progress-container animate-fade-in">
    <!-- Dynamic Evolution Header -->
-   <header class="page-header animate-slide-up">
+   <header class="page-header glass-container animate-slide-up">
+      <!-- Neural Scanline Effect -->
+      <div class="neural-scanline"></div>
+
       <div class="header-main-content">
-         <div class="evolution-level">
-            <span class="lvl-label">EVOLUTION_LEVEL</span>
-            <span class="lvl-value">{{ getRank().level }}</span>
-            <div class="lvl-progress-bar">
-               <div class="fill" [style.width]="(stats?.evolutionPoints % 100) + '%'"
-                  [style.background]="getRank().color"></div>
+         <div class="evolution-wrapper">
+            <span class="lvl-label">YOUR LEVEL</span>
+            <div class="evolution-orb">
+               <div class="orb-inner">
+                  <span class="lvl-value">{{ getRank().level }}</span>
+               </div>
+               <div class="orb-progress">
+                  <svg viewBox="0 0 100 100">
+                     <circle cx="50" cy="50" r="45" class="bg"></circle>
+                     <circle cx="50" cy="50" r="45" class="fill" 
+                             [style.stroke-dashoffset]="283 - (283 * (stats?.evolutionPoints % 100) / 100)" 
+                             [style.stroke]="getRank().color"></circle>
+                  </svg>
+               </div>
             </div>
          </div>
          <div class="header-text">
-            <span class="status-token" [style.color]="getRank().color">BIOMETRIC SYNC ACTIVE</span>
-            <h1>Physical <br><span class="text-gradient">Evolution Hub</span></h1>
-            <p class="rank-tag" [style.color]="getRank().color">Currently Ranked: <strong>{{ getRank().title }}</strong>
+            <div class="status-badge" [style.border-color]="getRank().color">
+               <span class="pulse-dot" [style.background]="getRank().color"></span>
+               <span class="status-token" [style.color]="getRank().color">LIVE TRACKING</span>
+            </div>
+            <h1 class="premium-title">My Progress <span class="text-gradient">Hub</span></h1>
+            <p class="rank-tag">
+               <span class="label">Your Rank:</span>
+               <strong [style.color]="getRank().color">{{ getRank().title }}</strong>
             </p>
          </div>
       </div>
 
+      <!-- Simplified AI Coaching -->
+      <div class="ai-intel-panel glass-container">
+         <div class="intel-header">
+            <span class="material-icons">psychology</span>
+            <h3>AI Coaching Tips</h3>
+         </div>
+         <div class="intel-body">
+            @for (insight of aiInsights.slice(0, 1); track insight) {
+               <div class="intel-log">
+                  <span class="prefix">> STATUS:</span>
+                  <p>{{ insight }}</p>
+               </div>
+            }
+         </div>
+      </div>
+
       <div class="header-stats-orb">
-         <div class="metric-item">
-            <span class="label">Body Mass Index</span>
-            <span class="value">{{ getBMI() }}</span>
-            <span class="sub-label">{{ getBMICategory() }}</span>
-         </div>
-         <div class="metric-divider"></div>
-         <div class="metric-item">
-            <span class="label">Protocol Score</span>
-            <span class="value">{{ getBioScore() }}%</span>
-            <span class="sub-label">Sync Quality</span>
-         </div>
+          <div class="metric-item">
+             <span class="label">My BMI Score</span>
+             <span class="value">{{ getBMI() }}</span>
+             <span class="sub-label" [style.color]="getRank().color">{{ getBMICategory() }}</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+             <span class="label">Progress Score</span>
+             <span class="value">{{ getBioScore() }}%</span>
+             <span class="sub-label">STABLE PROGRESS</span>
+          </div>
       </div>
    </header>
 
+   <!-- Neural Navigation Tabs -->
+   <nav class="neural-tabs glass-container">
+      <button [class.active]="activeTab === 'overview'" (click)="setTab('overview')">
+         <span class="material-icons">hub</span>
+         <span>Overview</span>
+      </button>
+      <button [class.active]="activeTab === 'tracking'" (click)="setTab('tracking')">
+         <span class="material-icons">monitor_weight</span>
+         <span>My Body</span>
+      </button>
+      <button [class.active]="activeTab === 'physical'" (click)="setTab('physical')">
+         <span class="material-icons">fitness_center</span>
+         <span>Workouts</span>
+      </button>
+      <button [class.active]="activeTab === 'analytics'" (click)="setTab('analytics')">
+         <span class="material-icons">analytics</span>
+         <span>Charts</span>
+      </button>
+   </nav>
+
    <div class="grid-layout">
-      <!-- PRO PROGRESSIVE FORMULAIRE -->
-      <section class="section glass-container" style="grid-column: 1 / -1; margin-bottom: 2rem;">
-         <div class="section-header">
-            <span class="material-icons">biotech</span>
-            <h2>Pro Evolution Tracker</h2>
-         </div>
+      
+      <!-- AI ASSISTANT TRIGGER (Floating) -->
+      <div class="ai-assistant-fab" [class.active]="showAiChat" (click)="toggleAiChat()">
+         <div class="fab-aura"></div>
+         <span class="material-icons">{{ showAiChat ? 'close' : 'smart_toy' }}</span>
+         <span class="fab-label" *ngIf="!showAiChat">Ask Aura AI</span>
+      </div>
 
-         <div class="tracking-dashboard" *ngIf="stats" [class.syncing]="isUpdatingBio"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding-top: 1rem;">
-
-            <!-- Target Settings -->
-            <div class="tracker-card"
-               style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-               <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: #a78bfa;">
-                  <span class="material-icons">track_changes</span>
-                  Set Your Protocol
-               </h3>
-               <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem;">Mass
-                  Objective</label>
-               <select class="glass-select"
-                  style="width: 100%; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(139,92,246,0.3); color: white; margin-bottom: 1rem;"
-                  [value]="fitnessGoal" (change)="onFitnessGoalChange($event)">
-                  <option value="cut">Fat Loss (Cut -500 kcal)</option>
-                  <option value="maintain">Maintenance</option>
-                  <option value="bulk">Muscle Gain (Bulk +500 kcal)</option>
-               </select>
-
-               <div class="target-cals"
-                  style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(139,92,246,0.1); border-radius: 8px;">
-                  <span>Daily Caloric Target:</span>
-                  <strong style="font-size: 1.2rem; color: #c4b5fd;">{{ getTargetCalories() | number:'1.0-0' }}
-                     Kcal</strong>
-               </div>
+      <!-- AI CHAT OVERLAY -->
+      <div class="ai-chat-overlay" *ngIf="showAiChat" (click)="$event.stopPropagation()">
+         <div class="chat-header">
+            <div class="ai-avatar">
+               <div class="avatar-pulse"></div>
+               <span class="material-icons">psychology</span>
             </div>
-
-            <!-- Biometrics Form -->
-            <div class="tracker-card"
-               style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-               <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: #34d399;">
-                  <span class="material-icons">monitor_weight</span>
-                  Formulaire Details
-               </h3>
-               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                  <div class="input-group">
-                     <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Current
-                        Weight (kg)</label>
-                     <input type="number" step="0.1" #weightInput [value]="stats.weight"
-                        (change)="updateBiometrics('weight', weightInput.value)"
-                        style="width: 100%; padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white;">
-                  </div>
-                  <div class="input-group">
-                     <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Hydration
-                        (L)</label>
-                     <input type="number" step="0.1" #waterInput [value]="stats.water"
-                        (change)="updateBiometrics('water', waterInput.value)"
-                        style="width: 100%; padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white;">
-                  </div>
-                  <div class="input-group" style="grid-column: 1 / -1;">
-                     <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Kcal
-                        Consumed Check</label>
-                     <input type="number" #calInput [value]="stats.caloriesBurned"
-                        (change)="updateBiometrics('calories', calInput.value)"
-                        style="width: 100%; padding: 0.6rem; border-radius: 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; font-weight: bold;">
-                  </div>
-               </div>
-            </div>
-
-            <!-- Macros Tracker -->
-            <div class="tracker-card"
-               style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-               <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: #60a5fa;">
-                  <span class="material-icons">restaurant</span>
-                  Macros Log
-               </h3>
-               <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-                  <div class="macro-row"
-                     style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 6px;">
-                     <span style="width: 50px; font-size: 0.85rem; color: #cbd5e1;">Prot</span>
-                     <input type="number" #protInput [value]="stats.protein"
-                        (change)="updateBiometrics('protein', protInput.value)"
-                        style="width: 60px; padding: 0.3rem; border-radius: 4px; background: rgba(255,255,255,0.05); border: none; color: white;">
-                     <div
-                        style="flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                        <div [style.width.%]="getMacroPercentage('protein')" style="height: 100%; background: #ef4444;">
-                        </div>
-                     </div>
-                  </div>
-                  <div class="macro-row"
-                     style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 6px;">
-                     <span style="width: 50px; font-size: 0.85rem; color: #cbd5e1;">Carbs</span>
-                     <input type="number" #carbInput [value]="stats.carbs"
-                        (change)="updateBiometrics('carbs', carbInput.value)"
-                        style="width: 60px; padding: 0.3rem; border-radius: 4px; background: rgba(255,255,255,0.05); border: none; color: white;">
-                     <div
-                        style="flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                        <div [style.width.%]="getMacroPercentage('carbs')" style="height: 100%; background: #eab308;">
-                        </div>
-                     </div>
-                  </div>
-                  <div class="macro-row"
-                     style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 6px;">
-                     <span style="width: 50px; font-size: 0.85rem; color: #cbd5e1;">Fats</span>
-                     <input type="number" #fatsInput [value]="stats.fats"
-                        (change)="updateBiometrics('fats', fatsInput.value)"
-                        style="width: 60px; padding: 0.3rem; border-radius: 4px; background: rgba(255,255,255,0.05); border: none; color: white;">
-                     <div
-                        style="flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                        <div [style.width.%]="getMacroPercentage('fats')" style="height: 100%; background: #3b82f6;">
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-         </div>
-      </section>
-
-      <!-- REAL HISTORY & PREDICTIVE ANALYTICS SECTION -->
-      <section class="pro-analytics-grid"
-         style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2.5rem; margin-bottom: 2rem;"
-         *ngIf="!loading">
-
-         <!-- Historical Real Stats -->
-         <div class="glass-container section"
-            style="background: linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9));">
-            <div class="section-header border-b-0 pb-0 mb-4">
-               <span class="material-icons" style="color: #8b5cf6;">query_stats</span>
-               <h2>Historical Activity</h2>
-            </div>
-            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem;">Authentic algorithmic analysis of your
-               physical sync records.</p>
-
-            <div class="stat-boxes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-               <div class="s-box"
-                  style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
-                  <span style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Total
-                     Lifetime</span>
-                  <h3 style="font-size: 2.5rem; margin: 0.5rem 0; color: white;">{{ historyStats.totalLifetime }}</h3>
-                  <span style="font-size: 0.8rem; color: #10b981;">Total Syncs</span>
-               </div>
-               <div class="s-box"
-                  style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
-                  <span style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">This
-                     Month</span>
-                  <h3 style="font-size: 2.5rem; margin: 0.5rem 0; color: white;">{{ historyStats.monthly }}</h3>
-                  <span style="font-size: 0.8rem; color: #8b5cf6;">Active Nodes</span>
-               </div>
-               <div class="s-box"
-                  style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
-                  <span style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Weekly
-                     Avg</span>
-                  <h3 style="font-size: 2.5rem; margin: 0.5rem 0; color: white;">{{ historyStats.weeklyAverage }}</h3>
-                  <span style="font-size: 0.8rem; color: #38bdf8;">Sessions/Week</span>
-               </div>
-               <div class="s-box"
-                  style="grid-column: 1 / -1; background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
-                  <div>
-                     <span
-                        style="font-size: 0.8rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Favorite
-                        Protocol</span>
-                     <h3 style="font-size: 1.2rem; margin: 0.5rem 0 0; color: #38bdf8;">{{ historyStats.favorite }}</h3>
-                  </div>
-                  <div
-                     style="background: rgba(56,189,248,0.1); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #38bdf8;">
-                     <span class="material-icons">fitness_center</span>
-                  </div>
-               </div>
-            </div>
-         </div>
-
-         <!-- Evolution AI Prediction -->
-         <div class="glass-container section"
-            style="background: linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9)); position: relative; overflow: hidden;">
-            <div class="ai-glow"
-               [style.background]="'radial-gradient(circle at right top, ' + evolutionPrediction.color + '40, transparent 60%)'"
-               style="position: absolute; right: -50px; top: -50px; width: 300px; height: 300px; z-index: 0; pointer-events: none;">
-            </div>
-
-            <div style="position: relative; z-index: 1;">
-               <div class="section-header border-b-0 pb-0 mb-4">
-                  <span class="material-icons" [style.color]="evolutionPrediction.color">psychology</span>
-                  <h2>Evolution Prediction</h2>
-               </div>
-               <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem;">{{ evolutionPrediction.desc }}</p>
-
-               <!-- Projection Timeline -->
-               <div class="projection-timeline"
-                  style="display: flex; justify-content: space-between; align-items: flex-end; padding: 2rem; background: rgba(0,0,0,0.4); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem;">
-                  <div class="p-node text-center">
-                     <span
-                        style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">CURRENT</span>
-                     <strong style="font-size: 1.5rem; color: white;">{{ evolutionPrediction.current }}</strong><span
-                        style="font-size: 0.8rem; color: #64748b;">kg</span>
-                  </div>
-                  <div class="p-line"
-                     style="flex-grow: 1; height: 2px; background: rgba(255,255,255,0.1); margin: 0 1rem 1rem 1rem; position: relative;">
-                     <span class="material-icons" [style.color]="evolutionPrediction.color"
-                        style="position: absolute; left: 50%; top: -12px; transform: translateX(-50%); background: #0f172a; padding: 0 5px; font-size: 1.2rem;">{{
-                        evolutionPrediction.trendIcon }}</span>
-                  </div>
-                  <div class="p-node text-center">
-                     <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">IN 4
-                        WEEKS</span>
-                     <strong style="font-size: 1.5rem; color: white;">{{ evolutionPrediction.month1 }}</strong><span
-                        style="font-size: 0.8rem; color: #64748b;">kg</span>
-                  </div>
-                  <div class="p-line"
-                     style="flex-grow: 1; height: 2px; background: rgba(255,255,255,0.1); margin: 0 1rem 1rem 1rem; position: relative;">
-                     <span class="material-icons" [style.color]="evolutionPrediction.color"
-                        style="position: absolute; left: 50%; top: -12px; transform: translateX(-50%); background: #0f172a; padding: 0 5px; font-size: 1.2rem;">{{
-                        evolutionPrediction.trendIcon }}</span>
-                  </div>
-                  <div class="p-node text-center">
-                     <span style="display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">IN 12
-                        WEEKS</span>
-                     <strong style="font-size: 1.5rem;" [style.color]="evolutionPrediction.color">{{
-                        evolutionPrediction.month3 }}</strong><span style="font-size: 0.8rem; color: #64748b;">kg</span>
-                  </div>
-               </div>
-
-               <div class="warning-pill"
-                  style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.75rem; background: rgba(239,68,68,0.1); color: #ef4444; padding: 6px 12px; border-radius: 100px;">
-                  <span class="material-icons" style="font-size: 1rem;">info</span>
-                  Predictions assume 100% adherence to tracking and caloric targets.
-               </div>
-            </div>
-         </div>
-
-      </section>
-
-      <!-- PROFESSIONAL DYNAMIC PERFORMANCE HUB -->
-      <section class="workout-progress-hub glass-container" style="grid-column: 1 / -1; margin-bottom: 2rem;">
-         <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
-               <span class="material-icons" style="color: #10b981;">trending_up</span>
-               <h2>Muscular Evolution Hub</h2>
-               <p style="font-size: 0.85rem; color: #64748b; margin-top: 5px;">Synchronized growth analysis based on
-                  targeted workout protocols.</p>
+               <h3>Aura Intelligence</h3>
+               <span class="status">Neural Network Online</span>
             </div>
-
-            <!-- MUSCLE FILTER SYSTEM -->
-            <div class="muscle-filters"
-               style="display: flex; gap: 8px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-               <button *ngFor="let cat of ['all', 'chest', 'back', 'legs', 'shoulders']"
-                  (click)="setAnalysisCategory(cat)"
-                  [style.background]="analysisCategory === cat ? 'rgba(139, 92, 246, 0.2)' : 'transparent'"
-                  [style.color]="analysisCategory === cat ? '#c4b5fd' : '#64748b'"
-                  [style.border-color]="analysisCategory === cat ? 'rgba(139, 92, 246, 0.4)' : 'transparent'"
-                  style="border: 1px solid transparent; outline: none; border-radius: 8px; padding: 6px 14px; font-size: 0.7rem; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; letter-spacing: 1px;">
-                  {{ cat }}
-               </button>
+            <button class="close-btn" (click)="toggleAiChat()"><span class="material-icons">close</span></button>
+         </div>
+         <div class="chat-body" #chatBody>
+            <div class="message" *ngFor="let msg of aiMessages" [class.ai]="msg.role === 'ai'" [class.user]="msg.role === 'user'">
+               <div class="msg-content">{{ msg.content }}</div>
+               <span class="msg-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+            </div>
+            <div class="message ai typing" *ngIf="isAiThinking">
+               <div class="dot"></div><div class="dot"></div><div class="dot"></div>
             </div>
          </div>
+         <div class="chat-footer">
+            <input type="text" #aiInput placeholder="Ask about your fitness..." (keyup.enter)="sendAiMessage(aiInput)">
+            <button (click)="sendAiMessage(aiInput)"><span class="material-icons">send</span></button>
+         </div>
+      </div>
 
-         <div class="performance-grid" *ngIf="filteredVolumeStats; else noData"
-            style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; padding: 1rem;">
+      <!-- ========================================== -->
+      <!-- TAB 1: OVERVIEW -->
+      <!-- ========================================== -->
+      <ng-container *ngIf="activeTab === 'overview'">
+         <!-- Heatmap & Activity Summary -->
+         <section class="section glass-container" style="grid-column: 1 / span 3;">
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: center;">
+                <div class="activity-summary">
+                   <div class="section-header">
+                      <span class="material-icons" style="color: #8b5cf6;">query_stats</span>
+                      <h2>Consistency Hub</h2>
+                   </div>
+                   
+                   <div class="consistency-gauge">
+                      <div class="gauge-meta">
+                         <span class="label">30-Day Consistency</span>
+                         <span class="percent">{{ consistencyRate }}%</span>
+                      </div>
+                      <div class="gauge-bar">
+                         <div class="fill" [style.width.%]="consistencyRate"></div>
+                      </div>
+                      <p class="gauge-hint">Target: 3 sessions/week</p>
+                   </div>
 
-            <!-- Volume Analytics Chart -->
-            <div class="analytics-card"
-               style="background: rgba(0,0,0,0.3); padding: 2rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
-               <div
-                  style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;">
-                  <div>
-                     <span style="font-size: 0.75rem; color: #64748b; font-weight: 800; text-transform: uppercase;">{{
-                        analysisCategory }} Volume Trend</span>
-                     <h3 style="font-size: 1.5rem; color: white; margin: 4px 0;">Pulse Intensity</h3>
+                   <div class="milestone-preview" *ngIf="nextAchievement">
+                      <span class="m-label">NEXT MILESTONE</span>
+                      <div class="m-card">
+                         <span class="material-icons">{{ nextAchievement.icon }}</span>
+                         <div class="m-info">
+                            <h4>{{ nextAchievement.title }}</h4>
+                            <div class="m-progress">
+                               <div class="bar-container"><div class="bar" [style.width.%]="(nextAchievement.current / nextAchievement.target) * 100"></div></div>
+                               <span>{{ nextAchievement.target - nextAchievement.current }} more to go</span>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <div class="sync-activity-map">
+                   <div class="heatmap-header">
+                      <span class="label">Activity (Last 30 Days)</span>
+                      <div class="heatmap-legend">
+                         <span>Less</span>
+                         <div class="l-cell level-0"></div>
+                         <div class="l-cell level-1"></div>
+                         <div class="l-cell level-2"></div>
+                         <div class="l-cell level-3"></div>
+                         <span>More</span>
+                      </div>
+                   </div>
+                   <div class="heatmap-grid">
+                      @for (item of activityMap; track item.day) {
+                        <div class="heatmap-cell" 
+                             [class.active]="item.active"
+                             [attr.data-level]="item.level"
+                             [title]="item.day">
+                        </div>
+                      }
+                   </div>
+                   <div class="activity-meta">
+                      <div class="meta-node">
+                         <span class="val">{{ currentStreak }}</span>
+                         <span class="lbl">Day Streak</span>
+                      </div>
+                      <div class="meta-divider"></div>
+                      <div class="meta-node">
+                         <span class="val">{{ historyStats.totalLifetime }}</span>
+                         <span class="lbl">Total Nodes</span>
+                      </div>
+                   </div>
+                </div>
+            </div>
+         </section>
+
+         <!-- Achievements (Milestones) -->
+         <section class="section glass-container" style="grid-column: 1 / span 3;">
+            <div class="section-header">
+               <span class="material-icons" style="color: #f59e0b;">stars</span>
+               <h2>Achievements</h2>
+            </div>
+            <div class="achievements-grid" *ngIf="!loading; else skeletonAchievements">
+               <div class="achievement-badge" *ngFor="let ach of achievements" [class.locked]="ach.locked" [class.active]="!ach.locked">
+                  <div class="badge-aura"></div>
+                  <span class="material-icons icon">{{ ach.icon }}</span>
+                  <div class="ach-info">
+                     <h4>{{ ach.title }}</h4>
+                     <p>{{ ach.label }}</p>
                   </div>
-                  <div [style.color]="filteredVolumeStats.recentChange >= 0 ? '#10b981' : '#ef4444'"
-                     style="font-weight: 900; font-size: 1rem; display: flex; flex-direction: column; align-items: flex-end;">
-                     <div
-                        style="display: flex; align-items: center; gap: 4px; background: rgba(16,185,129,0.1); padding: 4px 12px; border-radius: 100px;">
-                        <span class="material-icons" style="font-size: 1.1rem;">{{ filteredVolumeStats.recentChange >= 0
-                           ? 'arrow_upward' : 'arrow_downward' }}</span>
+                  <div class="badge-progress" *ngIf="ach.locked">
+                     <div class="bar-container"><div class="bar" [style.width.%]="(ach.current / ach.target) * 100"></div></div>
+                     <span class="val">{{ ach.current }}/{{ ach.target }}</span>
+                  </div>
+                  <div class="status-pill" *ngIf="!ach.locked">EARNED</div>
+               </div>
+            </div>
+         </section>
+      </ng-container>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: TRACKING -->
+      <!-- ========================================== -->
+      <ng-container *ngIf="activeTab === 'tracking'">
+         <section class="section glass-container" style="grid-column: 1 / span 3;">
+            <div class="section-header">
+               <span class="material-icons" style="color: #34d399;">biotech</span>
+               <h2>Body Stats</h2>
+            </div>
+            <div class="tracking-dashboard" *ngIf="stats" [class.syncing]="isUpdatingBio"
+               style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+               
+               <!-- Protocol Objective -->
+               <div class="tracker-card glass-item">
+                  <h3 class="card-title"><span class="material-icons">track_changes</span> My Goal</h3>
+                  <select class="glass-select" [value]="fitnessGoal" (change)="onFitnessGoalChange($event)">
+                     <option value="cut">Fat Loss (Cut -500 kcal)</option>
+                     <option value="maintain">Maintenance</option>
+                     <option value="bulk">Muscle Gain (Bulk +500 kcal)</option>
+                  </select>
+                  <div class="target-cals">
+                     <span class="label">Daily Caloric Target</span>
+                     <span class="val">{{ getTargetCalories() | number:'1.0-0' }} Kcal</span>
+                  </div>
+               </div>
+
+               <!-- Weight, Height & Hydration -->
+               <div class="tracker-card glass-item">
+                  <h3 class="card-title"><span class="material-icons">straighten</span> Physical Metrics</h3>
+                  <div class="input-grid-triple">
+                     <div class="input-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" step="0.1" #weightInput [value]="stats.weight" (change)="updateBiometrics('weight', weightInput.value)" class="glass-input">
+                     </div>
+                     <div class="input-group">
+                        <label>Height (cm)</label>
+                        <input type="number" step="1" #heightInput [value]="stats.height" (change)="updateBiometrics('height', heightInput.value)" class="glass-input">
+                     </div>
+                     <div class="input-group">
+                        <label>Hydration (L)</label>
+                        <input type="number" step="0.1" #waterInput [value]="stats.water" (change)="updateBiometrics('water', waterInput.value)" class="glass-input">
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Macro Sync -->
+               <div class="tracker-card glass-item">
+                  <h3 class="card-title"><span class="material-icons">restaurant</span> Biometric Macro Sync</h3>
+                  <div class="macro-stats-grid">
+                     <div class="macro-pill">
+                        <div class="p-header">
+                           <span class="p-label">Protein</span>
+                           <span class="p-val">{{ stats.protein }} / {{ macroTargets.protein }}g</span>
+                        </div>
+                        <div class="p-track"><div class="p-fill" [style.width.%]="(stats.protein / macroTargets.protein) * 100" style="background: linear-gradient(90deg, #f87171, #ef4444);"></div></div>
+                        <input type="number" #pIn [value]="stats.protein" (change)="updateBiometrics('protein', pIn.value)" class="glass-input-sm">
+                     </div>
+                     <div class="macro-pill">
+                        <div class="p-header">
+                           <span class="p-label">Carbs</span>
+                           <span class="p-val">{{ stats.carbs }} / {{ macroTargets.carbs }}g</span>
+                        </div>
+                        <div class="p-track"><div class="p-fill" [style.width.%]="(stats.carbs / macroTargets.carbs) * 100" style="background: linear-gradient(90deg, #60a5fa, #3b82f6);"></div></div>
+                        <input type="number" #cIn [value]="stats.carbs" (change)="updateBiometrics('carbs', cIn.value)" class="glass-input-sm">
+                     </div>
+                     <div class="macro-pill">
+                        <div class="p-header">
+                           <span class="p-label">Fats</span>
+                           <span class="p-val">{{ stats.fats }} / {{ macroTargets.fats }}g</span>
+                        </div>
+                        <div class="p-track"><div class="p-fill" [style.width.%]="(stats.fats / macroTargets.fats) * 100" style="background: linear-gradient(90deg, #fbbf24, #f59e0b);"></div></div>
+                        <input type="number" #fIn [value]="stats.fats" (change)="updateBiometrics('fats', fIn.value)" class="glass-input-sm">
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Hydration -->
+               <div class="tracker-card glass-item">
+                  <h3 class="card-title"><span class="material-icons">water_drop</span> Hydration Protocol</h3>
+                  <div class="hydration-sync">
+                     <div class="h-main">
+                        <div class="h-header">
+                           <span class="h-val">{{ stats.water }} / {{ macroTargets.water }}L</span>
+                           <span class="h-label">Daily Target</span>
+                        </div>
+                        <div class="h-track"><div class="h-fill" [style.width.%]="(stats.water / macroTargets.water) * 100"></div></div>
+                     </div>
+                     <div class="h-action">
+                        <input type="number" step="0.1" #wIn [value]="stats.water" (change)="updateBiometrics('water', wIn.value)" class="glass-input-sm">
+                        <span class="h-unit">Liters</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </section>
+      </ng-container>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: PHYSICAL -->
+      <!-- ========================================== -->
+      <ng-container *ngIf="activeTab === 'physical'">
+         <!-- PRs -->
+         <section class="section glass-container" style="grid-column: 1 / span 1;">
+            <div class="section-header">
+               <span class="material-icons" style="color: #f59e0b;">workspace_premium</span>
+               <h2>Personal Records</h2>
+            </div>
+            <div class="pr-list">
+               <div class="pr-card glass-item" *ngFor="let pr of personalRecords">
+                  <div class="pr-main">
+                     <span class="exercise">{{ pr.exercise }}</span>
+                     <div class="val-group">
+                        <span class="weight">{{ pr.weight }}</span>
+                        <span class="unit">kg</span>
+                     </div>
+                  </div>
+                  <div class="pr-meta">
+                     <span class="date">{{ pr.date | date:'MMM dd' }}</span>
+                     <span class="trend" [class.up]="pr.trend.includes('+')">{{ pr.trend }}</span>
+                  </div>
+               </div>
+            </div>
+         </section>
+
+         <!-- Measurements & Photos -->
+         <section class="section glass-container" style="grid-column: 2 / span 2;">
+            <div class="physical-split">
+               <div class="measurements">
+                  <div class="section-header">
+                     <span class="material-icons" style="color: #10b981;">straighten</span>
+                     <h2>Body Measurements</h2>
+                  </div>
+                  <div class="metrics-visual">
+                     <div class="metric-row" *ngFor="let m of ['chest', 'waist', 'biceps', 'thighs']">
+                        <span class="m-label">{{ m | titlecase }}</span>
+                        <div class="visual-bar"><div [style.width.%]="bodyMeasurements[m] || 0" [style.background]="getRank().color"></div></div>
+                        <span class="m-val">{{ bodyMeasurements[m] || 0 }}%</span>
+                     </div>
+                  </div>
+
+                  <!-- Neural Analysis Results -->
+                  <div class="ai-insights-box" *ngIf="aiInsights && aiInsights.length > 0">
+                     <h4 style="margin: 20px 0 10px; color: #a855f7; display: flex; align-items: center; gap: 8px; font-size: 1rem; text-shadow: 0 0 10px rgba(168,85,247,0.3);">
+                        <span class="material-icons" style="font-size: 18px;">psychology</span>
+                        Aura AI Analysis
+                     </h4>
+                     <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: #d4d4d8;">
+                        <li *ngFor="let insight of aiInsights" style="margin-bottom: 8px; padding-left: 15px; position: relative;">
+                           <span style="position: absolute; left: 0; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 5px #a855f7;"></span>
+                           {{ insight }}
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+               
+               <div class="timeline" style="position: relative;">
+                  <div class="section-header">
+                     <span class="material-icons" style="color: #f472b6;">photo_library</span>
+                     <h2>Visual Timeline</h2>
+                  </div>
+                  
+                  <!-- Neural Scan Overlay -->
+                  <div class="neural-scan-overlay" *ngIf="isAnalyzing">
+                     <div class="scan-line"></div>
+                     <div class="scan-glow"></div>
+                     <p>Analyzing your photo...</p>
+                  </div>
+
+                  <div class="photo-grid" [style.opacity]="isAnalyzing ? 0.3 : 1">
+                     <div class="photo-card glass-item" *ngFor="let photo of analyzedPhotos">
+                        <img [src]="photo.url" alt="Progress">
+                        <span class="tag">{{ photo.date | date:'MMM dd' }}</span>
+                        <div class="score-pill" *ngIf="photo.score">
+                           <span class="material-icons">psychology</span>
+                           {{ photo.score }}
+                        </div>
+                     </div>
+                     <div class="add-photo glass-item" (click)="triggerPhotoUpload()">
+                        <span class="material-icons">add_a_photo</span>
+                        <span>Add Photo</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </section>
+      </ng-container>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: ANALYTICS -->
+      <!-- ========================================== -->
+      <ng-container *ngIf="activeTab === 'analytics'">
+         <!-- Muscular Evolution Hub -->
+         <section class="section glass-container" style="grid-column: 1 / span 3;">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+               <div>
+                  <span class="material-icons" style="color: #10b981;">trending_up</span>
+                  <h2>Workout Volume</h2>
+               </div>
+               <div class="evolution-wrapper">
+                  <div class="lvl-label">Lvl</div>
+                  <div class="evolution-orb">
+                     <div class="orb-inner">
+                        <div class="lvl-value">01</div>
+                     </div>
+                  </div>
+               </div>
+               <div class="muscle-filters">
+                  <button *ngFor="let cat of ['all', 'chest', 'back', 'legs', 'shoulders']"
+                     (click)="setAnalysisCategory(cat)" [class.active]="analysisCategory === cat">{{ cat }}</button>
+               </div>
+            </div>
+            
+            <div class="performance-content" *ngIf="filteredVolumeStats; else noData">
+               <div class="chart-area">
+                  <div class="chart-header">
+                     <div class="title-group">
+                        <span class="label">{{ analysisCategory | uppercase }} VOLUME TREND</span>
+                        <h3>Training Volume</h3>
+                     </div>
+                     <div class="growth-pill" [class.negative]="filteredVolumeStats.recentChange < 0">
+                        <span class="material-icons">{{ filteredVolumeStats.recentChange >= 0 ? 'arrow_upward' : 'arrow_downward' }}</span>
                         {{ filteredVolumeStats.recentChange }}%
                      </div>
-                     <span style="font-size: 0.6rem; color: #64748b; margin-top: 5px; font-weight: 400;">Week-over-week
-                        Growth</span>
                   </div>
-               </div>
-
-               <!-- Dynamic Volume Chart Bars -->
-               <div class="volume-chart"
-                  style="display: flex; align-items: flex-end; gap: 20px; height: 180px; margin-bottom: 2.5rem; padding: 0 1rem;">
-                  <div class="v-bar-node" *ngFor="let d of filteredVolumeStats.data"
-                     style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative;">
-                     <div
-                        style="width: 100%; min-height: 4px; border-radius: 6px 6px 0 0; background: linear-gradient(to top, rgba(139,92,246,0.3), #8b5cf6); transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);"
-                        [style.height.px]="(Number(d.volume) / Number(filteredVolumeStats.maxRaw) * 180)">
-                     </div>
-                     <span style="font-size: 0.65rem; color: #475569; font-weight: 800;">{{ d.date }}</span>
-                  </div>
-               </div>
-
-               <div
-                  style="display: flex; justify-content: space-between; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05);">
-                  <div class="m-stat">
-                     <span style="display: block; font-size: 0.7rem; color: #64748b; font-weight: 800;">LIFETIME {{
-                        analysisCategory.toUpperCase() }} WORK</span>
-                     <strong style="color: #fff; font-size: 1.25rem;">{{ filteredVolumeStats.totalLifetime }} <small
-                           style="font-size: 0.7rem; color: #64748b;">kg</small></strong>
-                  </div>
-                  <div class="m-stat text-right">
-                     <span style="display: block; font-size: 0.7rem; color: #64748b; font-weight: 800;">PEAK PROTOCOL
-                        LOAD</span>
-                     <strong style="color: #8b5cf6; font-size: 1.25rem;">{{ filteredVolumeStats.maxVolume }} <small
-                           style="font-size: 0.7rem; color: #64748b;">kg</small></strong>
-                  </div>
-               </div>
-            </div>
-
-            <!-- Summary info -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-               <div class="summary-card glass-item"
-                  style="padding: 1.5rem; border-radius: 20px; background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.1);">
-                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
-                     <div
-                        style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139,92,246,0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd;">
-                        <span class="material-icons" style="font-size: 1.2rem;">fitness_center</span>
-                     </div>
-                     <div>
-                        <h4 style="margin: 0; font-size: 0.9rem; font-weight: 900; color: #fff;">{{
-                           analysisCategory.toUpperCase() }} FOCUS</h4>
-                        <span style="font-size: 0.65rem; color: #64748b;">Intensity Vector Active</span>
+                  <div class="volume-chart">
+                     <div class="v-bar-node" *ngFor="let d of filteredVolumeStats.data">
+                        <div class="bar-fill" [style.height.px]="filteredVolumeStats.maxRaw > 0 ? (Number(d.volume) / Number(filteredVolumeStats.maxRaw) * 150) : 0"></div>
+                        <span class="bar-label">{{ d.date }}</span>
                      </div>
                   </div>
-                  <p style="font-size: 0.8rem; line-height: 1.6; color: #94a3b8; margin: 0;">
-                     This chart visualizes your progressive overload for <strong>{{ analysisCategory === 'all' ? 'All
-                        Groups' : analysisCategory }}</strong>. By tracking volume sessions for this body group, we
-                     measure muscular intensity evolution.
-                  </p>
-               </div>
-
-               <div class="empty-prog"
-                  style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 20px; border: 2px dashed rgba(255,255,255,0.05); color: #475569; padding: 2rem; text-align: center;">
-                  <span class="material-icons"
-                     style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;">insights</span>
-                  <p style="font-size: 0.75rem;">Switch between categories to see your training synergy breakdown across
-                     your entire physique.</p>
                </div>
             </div>
+         </section>
 
-         </div>
-
-         <ng-template #noData>
-            <div style="padding: 4.5rem; text-align: center; color: #64748b;">
-               <span class="material-icons"
-                  style="font-size: 4rem; opacity: 0.1; margin-bottom: 1.5rem;">query_stats</span>
-               <p style="font-size: 1rem; font-weight: 800; color: #fff;">No synchronization pulse detected for {{
-                  analysisCategory.toUpperCase() }}.</p>
-               <p style="font-size: 0.75rem; margin-top: 8px;">Log protocols targeting this muscle category to activate
-                  your evolution visualization.</p>
+         <!-- Evolution Prediction -->
+         <section class="section glass-container" style="grid-column: 1 / span 1;">
+            <div class="section-header">
+               <span class="material-icons" [style.color]="evolutionPrediction.color">psychology</span>
+               <h2>Weight Prediction</h2>
             </div>
-         </ng-template>
-      </section>
+            <p class="pred-desc">{{ evolutionPrediction.desc }}</p>
+            <div class="projection-stack">
+               <div class="p-item"><span>4 Weeks</span><strong>{{ evolutionPrediction.month1 }}kg</strong></div>
+               <div class="p-item"><span>12 Weeks</span><strong [style.color]="evolutionPrediction.color">{{ evolutionPrediction.month3 }}kg</strong></div>
+               <div class="p-item"><span>24 Weeks</span><strong>{{ evolutionPrediction.month6 }}kg</strong></div>
+            </div>
+         </section>
 
-      <!-- Achievement Badges -->
-      <section class="section glass-container">
-         <div class="section-header">
-            <span class="material-icons">stars</span>
-            <h2>Node Milestones</h2>
-         </div>
-         <div class="achievements-grid" *ngIf="!loading; else skeletonAchievements">
-            <div class="achievement-badge" *ngFor="let ach of achievements" [class.locked]="ach.locked"
-               [class.active]="!ach.locked">
-               <div class="badge-aura"></div>
-               <span class="icon">{{ ach.icon }}</span>
-               <h4>{{ ach.title }}</h4>
-               <p>{{ ach.label }}</p>
-               <div class="badge-progress" *ngIf="ach.locked">
-                  <span class="val">{{ ach.current }}/{{ ach.target }}</span>
-                  <div class="bar-container">
-                     <div class="bar" [style.width.%]="(ach.current / ach.target) * 100"></div>
+         <!-- Full History -->
+         <section class="section glass-container" style="grid-column: 2 / span 2;">
+            <div class="section-header">
+               <span class="material-icons">history</span>
+               <h2>Workout History</h2>
+            </div>
+            <div class="history-scroll">
+               <div class="history-item glass-item" *ngFor="let record of attendances.slice(0, 10)">
+                  <div class="h-icon"><span class="material-icons">task_alt</span></div>
+                  <div class="h-info">
+                     <h4>{{ record.session?.course?.name || 'Open Gym' }}</h4>
+                     <span>{{ record.created_at | date:'MMM dd, HH:mm' }}</span>
                   </div>
+                  <div class="h-tag">DONE</div>
                </div>
-               <div class="status-pill" *ngIf="!ach.locked">SYNCED</div>
             </div>
-         </div>
-      </section>
+         </section>
+      </ng-container>
 
-      <!-- Attendance History -->
-      <section class="section glass-container history-section">
-         <div class="section-header">
-            <span class="material-icons">history</span>
-            <h2>Training Node History</h2>
-         </div>
-         <div class="history-list" *ngIf="attendances.length > 0; else noHistory">
-            <div class="attendance-item glass-item animate-slide-right"
-               *ngFor="let record of displayedAttendances; let i = index" [style.animation-delay]="i * 0.05 + 's'">
-               <div class="record-icon">
-                  <span class="material-icons">done_all</span>
-               </div>
-               <div class="record-info">
-                  <div class="item-tag">FACILITY_ACCESS</div>
-                  <h4>{{ record.session?.course?.name || 'Open Gym Session' }}</h4>
-                  <p>{{ record.session?.course?.gym?.name || 'Metropolitan Node' }}</p>
-               </div>
-               <div class="record-time">
-                  <span class="date">{{ record.created_at | date:'MMM dd, yyyy' }}</span>
-                  <span class="time">{{ record.created_at | date:'HH:mm' }}</span>
-               </div>
-            </div>
-
-            <div class="history-actions" *ngIf="attendances.length > 5" style="text-align: center; margin-top: 1.5rem;">
-               <button (click)="toggleHistory()"
-                  style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); color: #c4b5fd; padding: 0.8rem 2rem; border-radius: 12px; font-weight: 800; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;">
-                  <span class="material-icons">{{ showAllHistory ? 'expand_less' : 'expand_more' }}</span>
-                  {{ showAllHistory ? 'Collapse Timeline' : 'Access Full Archive' }}
-               </button>
-            </div>
-         </div>
-         <ng-template #noHistory>
-            <div class="empty-state animate-fade-in" *ngIf="!loading">
-               <div class="empty-orb">✨</div>
-               <p>No training pulses detected. Start your first session to begin your timeline.</p>
-               <button class="btn-primary-mini glass" routerLink="/member/gyms">Find Nodes</button>
-            </div>
-         </ng-template>
-      </section>
    </div>
 
    <ng-template #skeletonAchievements>
       <div class="achievements-grid">
          <div class="skeleton-badge glass-card skeleton-pulse" *ngFor="let s of [1,2,3]"></div>
+      </div>
+   </ng-template>
+
+   <ng-template #noData>
+      <div class="no-data-placeholder">
+         <span class="material-icons">query_stats</span>
+         <p>No workout data found for {{ analysisCategory.toUpperCase() }}.</p>
       </div>
    </ng-template>
 </div>

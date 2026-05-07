@@ -40,7 +40,7 @@ export class OwnerDashboardComponent implements OnInit {
   upcomingSessions = signal<UpcomingSession[]>([]);
   inventoryAlerts = signal<InventoryAlert[]>([]);
   expiringMemberships = signal<ExpiringMembership[]>([]);
-  focusAreas = signal<FocusArea[]>([]);
+
   staffSnapshot = signal<StaffSnapshotMember[]>([]);
 
 
@@ -60,7 +60,7 @@ export class OwnerDashboardComponent implements OnInit {
           this.upcomingSessions.set(data.upcomingSessions || []);
           this.inventoryAlerts.set(data.inventoryAlerts || []);
           this.expiringMemberships.set(data.expiringMemberships || []);
-          this.focusAreas.set(data.focusAreas || []);
+
           this.staffSnapshot.set(data.staffSnapshot || []);
 
         }

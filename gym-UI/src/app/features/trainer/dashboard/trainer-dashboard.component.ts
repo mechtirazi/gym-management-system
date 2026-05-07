@@ -64,6 +64,24 @@ export class TrainerDashboardComponent implements OnInit, OnDestroy {
     return hours > 0 ? `${hours}h ${mins % 60}m` : `${mins}m`;
   });
 
+  isProfileIncomplete = computed(() => {
+    return this.profileCompletion().percentage < 100;
+  });
+
+  profileCompletion = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) return { percentage: 0, missing: [] };
+    
+    let score = 0;
+    const missing = [];
+
+    if (user.profile_picture) score += 30; else missing.push('Photo');
+    if (user.bio) score += 35; else missing.push('Biography');
+    if (user.career_specialties) score += 35; else missing.push('Specialties');
+
+    return { percentage: score, missing };
+  });
+
   ngOnInit() {
     this.loadAssignedGyms();
     this.loadDashboardData();
@@ -177,5 +195,16 @@ export class TrainerDashboardComponent implements OnInit, OnDestroy {
   getAttendanceProgress(session: any): number {
     const capacity = session.course?.max_capacity || 20;
     return session.attendances_count ? (session.attendances_count / capacity) * 100 : 0;
+  }
+
+  getAvatarUrl(): string {
+    const user = this.authService.currentUser();
+    return this.authService.getAvatarUrl(user?.profile_picture);
+  }
+
+  hasField(field: string): boolean {
+    const user = this.authService.currentUser();
+    if (!user) return false;
+    return !!(user as any)[field];
   }
 }

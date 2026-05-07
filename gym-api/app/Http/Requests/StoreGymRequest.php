@@ -33,6 +33,8 @@ class StoreGymRequest extends FormRequest
             'open_sat' => 'sometimes|string|max:255',
             'open_sun' => 'sometimes|string|max:255',
             'id_owner' => 'required|exists:users,id_user',
+            'platform_subscription_price' => 'nullable|numeric|min:0',
+            'platform_subscription_type' => 'nullable|string|in:monthly,semester,yearly',
             'picture' => 'nullable|string',
             'logo' => 'nullable|image|max:10240',
         ];

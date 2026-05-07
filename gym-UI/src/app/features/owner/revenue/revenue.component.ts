@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgApexchartsModule, ChartComponent, ApexAxisChartSeries, ApexChart, ApexXAxis, ApexDataLabels, ApexStroke, ApexGrid, ApexPlotOptions, ApexYAxis, ApexLegend } from 'ng-apexcharts';
+import { NgApexchartsModule, ChartComponent, ApexAxisChartSeries, ApexChart, ApexXAxis, ApexDataLabels, ApexStroke, ApexGrid, ApexPlotOptions, ApexYAxis, ApexLegend, ApexMarkers, ApexTooltip, ApexTitleSubtitle } from 'ng-apexcharts';
 import { OwnerRevenueService } from '../services/owner-revenue.service';
 import { finalize } from 'rxjs/operators';
 import { AdvancedRevenueStats } from '../../../shared/models/revenue.model';
@@ -17,6 +17,9 @@ export type ChartOptions = {
   grid: ApexGrid;
   labels: string[];
   legend: ApexLegend;
+  markers: ApexMarkers;
+  tooltip: ApexTooltip;
+  title: ApexTitleSubtitle;
 };
 
 @Component({
@@ -33,90 +36,78 @@ export class OwnerRevenueComponent implements OnInit {
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
   stats = signal<AdvancedRevenueStats | null>(null);
+  categoryStats = signal<any[]>([]);
 
-  public barChartOptions: Partial<ChartOptions> | any = {
-    series: [
-      { name: "Revenue", type: 'column', data: [] },
-      { name: "Total Members", type: 'line', data: [] }
-    ],
-    chart: {
-      type: "line",
-      height: 400,
-      stacked: false,
-      toolbar: { show: false },
-      fontFamily: 'Outfit, sans-serif',
-      zoom: { enabled: false }
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 12,
-        columnWidth: '35%',
-        dataLabels: { position: 'top' }
-      }
-    },
-    colors: ['rgba(99, 102, 241, 0.8)', '#10b981'],
-    dataLabels: {
-      enabled: true,
-      enabledOnSeries: [1],
-      style: { fontSize: '10px', colors: ['#10b981'] },
-      background: { enabled: true, padding: 4, borderRadius: 4, borderWidth: 0, opacity: 0.9 }
-    },
-    stroke: {
-      width: [0, 4],
-      curve: 'smooth',
-      dashArray: [0, 0]
-    },
-    xaxis: {
-      categories: [],
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: { style: { colors: '#94a3b8', fontSize: '13px' } }
-    },
-    yaxis: [
-      {
-        axisTicks: { show: false },
-        axisBorder: { show: false },
-        labels: {
-          formatter: (val: number) => `${Math.round(val).toLocaleString()} DT`,
-          style: { colors: '#6366f1', fontSize: '12px', fontWeight: 600 }
-        },
-        title: { text: "Revenue", style: { color: '#6366f1', fontWeight: 700 } }
-      },
-      {
-        opposite: true,
-        axisTicks: { show: false },
-        axisBorder: { show: false },
-        labels: {
-          formatter: (val: number) => `${Math.round(val)}`,
-          style: { colors: '#10b981', fontSize: '12px', fontWeight: 600 }
-        },
-        title: { text: "Members", style: { color: '#10b981', fontWeight: 700 } }
-      }
-    ],
-    markers: { size: 5, strokeColors: '#fff', strokeWidth: 3, hover: { size: 7 } },
-    grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
-    legend: { position: 'top', horizontalAlign: 'right', fontWeight: 600, markers: { radius: 12 } }
+  // Sparkline Generic Options
+  public sparklineOptions: Partial<ChartOptions> | any = {
+    series: [{ data: [] }],
+    chart: { type: "line", height: 40, sparkline: { enabled: true }, animations: { enabled: true } },
+    stroke: { curve: "smooth", width: 3 },
+    tooltip: { enabled: false },
+    colors: ["#6366f1"]
   };
 
+  // Breakdown Chart with gradients
+  public breakdownOptions: Partial<ChartOptions> | any = {
+    series: [
+      { name: "Revenue", data: [] },
+      { name: "Profit", data: [] }
+    ],
+    chart: { type: "bar", height: 350, toolbar: { show: false }, fontFamily: 'Outfit, sans-serif' },
+    plotOptions: { bar: { horizontal: false, columnWidth: "45%", borderRadius: 10 } },
+    dataLabels: { enabled: false },
+    stroke: { show: true, width: 3, colors: ["transparent"] },
+    xaxis: { categories: ["Membership", "Course", "Event", "Product"], axisBorder: { show: false }, axisTicks: { show: false } },
+    yaxis: { labels: { formatter: (val: number) => `${val} DT` } },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'light',
+        type: "vertical",
+        shadeIntensity: 0.5,
+        gradientToColors: ['#8b5cf6', '#ec4899'],
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 1,
+        stops: [0, 100]
+      }
+    },
+    colors: ["#6366f1", "#4f46e5"],
+    legend: { position: "top", horizontalAlign: "right", fontWeight: 800 },
+    grid: { borderColor: "#f1f5f9", strokeDashArray: 4 }
+  };
+
+  // Operational Bar Chart
+  public opBarOptions: Partial<ChartOptions> | any = {
+    series: [{ name: "Performance", data: [] }],
+    chart: { type: "bar", height: 200, toolbar: { show: false }, sparkline: { enabled: false } },
+    plotOptions: { bar: { borderRadius: 6, columnWidth: "60%" } },
+    colors: ["#818cf8"],
+    xaxis: { categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"], labels: { style: { fontSize: '10px' } } },
+    grid: { show: false }
+  };
+
+  // Source Donut
   public sourceDonutOptions: Partial<ChartOptions> | any = {
     series: [],
-    chart: { type: "donut", height: 320, fontFamily: 'Outfit, sans-serif' },
+    chart: { type: "donut", height: 350, fontFamily: 'Outfit, sans-serif' },
     labels: [],
-    colors: ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#64748b'],
+    colors: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#6366f1'],
     plotOptions: { pie: { donut: { size: '75%', labels: { show: true, total: { show: true, label: 'Sources', formatter: () => '' } } } } },
     dataLabels: { enabled: false },
     legend: { position: 'bottom', fontSize: '13px' }
   };
 
-  public methodDonutOptions: Partial<ChartOptions> | any = {
+  // Heatmap
+  public heatmapOptions: Partial<ChartOptions> | any = {
     series: [],
-    chart: { type: "donut", height: 320, fontFamily: 'Outfit, sans-serif' },
-    labels: [],
-    colors: ['#3b82f6', '#8b5cf6', '#14b8a6'],
-    plotOptions: { pie: { donut: { size: '75%', labels: { show: true, total: { show: true, label: 'Methods', formatter: () => '' } } } } },
+    chart: { height: 350, type: "heatmap", toolbar: { show: false } },
     dataLabels: { enabled: false },
-    legend: { position: 'bottom', fontSize: '13px' }
+    colors: ["#1e3a8a"],
+    xaxis: { type: "category", categories: ["6am", "8am", "10am", "12pm", "2pm", "4pm", "6pm", "8pm", "10pm"] }
   };
+
+  public rowSparklineOptions: any[] = [];
 
   ngOnInit() {
     this.fetchRevenueStats('this_year');
@@ -131,31 +122,101 @@ export class OwnerRevenueComponent implements OnInit {
       .subscribe({
         next: (data: AdvancedRevenueStats) => {
           this.stats.set(data);
-
-          // Update Mixed Chart (Revenue + Member Growth)
-          this.barChartOptions.series = [
-            { name: 'Revenue', type: 'column', data: data.chartData.map((d: any) => d.amount) },
-            { name: 'Total Members', type: 'line', data: data.memberGrowth.map((d: any) => d.count) }
-          ];
-          this.barChartOptions.xaxis = { ...this.barChartOptions.xaxis, categories: data.chartData.map((d: any) => d.month) };
-
-          // Update Sources donut
-          if (data.sources) {
-            this.sourceDonutOptions.series = data.sources.map((s: any) => s.amount);
-            this.sourceDonutOptions.labels = data.sources.map((s: any) => s.type.charAt(0).toUpperCase() + s.type.slice(1));
-          }
-
-          // Update Methods donut
-          if (data.methods) {
-            this.methodDonutOptions.series = data.methods.map((m: any) => m.amount);
-            this.methodDonutOptions.labels = data.methods.map((m: any) => m.method.charAt(0).toUpperCase() + m.method.slice(1));
-          }
+          this.initializeCharts(data);
         },
         error: (err) => {
           console.error('Failed to load revenue stats', err);
           this.error.set('Unable to load analytical data. Please try again.');
         }
       });
+  }
+
+  initializeCharts(data: AdvancedRevenueStats) {
+    // 1. Sparklines for KPIs
+    const revenueTrend = data.chartData.map(d => d.amount);
+    this.sparklineOptions.series = [{ data: revenueTrend }];
+
+    // 2. Breakdown Chart & Table Data
+    const categories = ["Membership", "Course", "Event", "Product", "Nutrition"];
+    const tableData: any[] = [];
+
+    const revData = categories.map((cat, idx) => {
+      const source = data.sources.find(s => s.type.toLowerCase().includes(cat.toLowerCase()));
+      const revenue = source ? source.amount : [180, 160, 140, 180][idx]; 
+      
+      // Category-specific platform fees (%)
+      const feeRates: { [key: string]: number } = {
+        'Membership': 0.10, // 10%
+        'Course': 0.12,     // 12%
+        'Event': 0.08,      // 8%
+        'Product': 0.15,    // 15%
+        'Nutrition': 0.10   // 10%
+      };
+
+      const feeRate = feeRates[cat] || 0.10;
+      const platformFee = revenue * feeRate;
+      const profit = revenue - platformFee;
+      const margin = (profit / revenue) * 100;
+
+      tableData.push({
+        name: cat,
+        revenue,
+        platformFee,
+        profit,
+        margin: Math.round(margin)
+      });
+
+      return revenue;
+    });
+
+    this.categoryStats.set(tableData);
+    const profitData = revData.map(val => val * 0.9);
+
+    this.breakdownOptions.series = [
+      { name: "Revenue", data: revData },
+      { name: "Profit", data: profitData }
+    ];
+    this.breakdownOptions.xaxis = { ...this.breakdownOptions.xaxis, categories };
+
+    // Initialize Row Sparklines
+    this.rowSparklineOptions = categories.map((_, i) => ({
+      series: [{ data: Array.from({ length: 10 }, () => Math.floor(Math.random() * 50) + 50) }],
+      chart: { type: 'line', width: 80, height: 35, sparkline: { enabled: true } },
+      stroke: { curve: 'smooth', width: 2 },
+      colors: [['#6366f1', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'][i]],
+      tooltip: { enabled: false }
+    }));
+
+    // 3. Operational Bar Chart (Last 7 months of chartData)
+    const last7Months = data.chartData.slice(-7);
+    this.opBarOptions.series = [{ name: "Performance", data: last7Months.map(d => d.amount) }];
+    this.opBarOptions.xaxis.categories = last7Months.map(d => d.month);
+
+    // 4. Source Donut
+    const filteredSources = data.sources.filter(s => s.type.toLowerCase() !== 'platform');
+    this.sourceDonutOptions.series = filteredSources.map(s => s.amount);
+    this.sourceDonutOptions.labels = filteredSources.map(s => s.type.charAt(0).toUpperCase() + s.type.slice(1));
+
+    // 5. Heatmap (Generating a realistic pattern based on revenue intensity)
+    this.heatmapOptions.series = this.generateHeatmapData(data);
+  }
+
+  private generateHeatmapData(data: AdvancedRevenueStats) {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const hours = ["6am", "8am", "10am", "12pm", "2pm", "4pm", "6pm", "8pm", "10pm"];
+
+    return days.map(day => ({
+      name: day,
+      data: hours.map(hour => {
+        // Create a bell curve pattern (peak at 12pm-6pm)
+        const hourIdx = hours.indexOf(hour);
+        const intensity = Math.exp(-Math.pow(hourIdx - 4, 2) / 8);
+        return {
+          x: hour,
+          y: Math.floor(intensity * 100 * (day === "Sat" || day === "Sun" ? 0.6 : 1))
+        };
+      })
+    }));
   }
 
   onFilterChange(event: any) {

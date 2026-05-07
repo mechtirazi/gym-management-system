@@ -1,10 +1,16 @@
-<div class="member-dashboard-container">
+<div class="member-dashboard-container" [class.is-premium]="user()?.platform_tier === 'premium'">
   <!-- Architectural Hero Section -->
   <header class="dashboard-hero animate-fade-in">
     <div class="hero-aura"></div>
     <div class="hero-content">
       <div class="greeting-layer">
-        <span class="status-token">MEMBER_PROFILE_ACTIVE</span>
+        <div class="status-token-wrapper">
+          <span class="status-token">MEMBER_PROFILE_ACTIVE</span>
+          <span class="premium-badge animate-glow" *ngIf="user()?.platform_tier === 'premium'">
+            <span class="material-icons">workspace_premium</span>
+            ELITE PROTOCOL ACTIVE
+          </span>
+        </div>
         <h1>{{ getGreeting() }}, <span class="text-gradient">{{ user()?.name }}</span></h1>
         <p class="subtitle">System heartbeat: Normal. Consistency level: Optimal.</p>
       </div>
@@ -25,21 +31,21 @@
         <div class="stat-pill titanium purple" [class.pulse]="stats.activeWorkouts > 0">
           <div class="stat-icon"><span class="material-icons">fitness_center</span></div>
           <div class="stat-data">
-            <span class="label">Integrated Programs</span>
+            <span class="label">Active Memberships</span>
             <h3 class="value">{{ stats.activeWorkouts }}</h3>
           </div>
         </div>
         <div class="stat-pill titanium cyan">
           <div class="stat-icon"><span class="material-icons">local_fire_department</span></div>
           <div class="stat-data">
-            <span class="label">Daily Performance (Kcal)</span>
+            <span class="label">Daily Calorie Burn</span>
             <h3 class="value">{{ stats.caloriesBurned | number:'1.0-0' }}</h3>
           </div>
         </div>
         <div class="stat-pill titanium orange">
           <div class="stat-icon"><span class="material-icons">bolt</span></div>
           <div class="stat-data">
-            <span class="label">Gym Visits</span>
+            <span class="label">Total Check-ins</span>
             <h3 class="value">{{ stats.completedSessions }}</h3>
           </div>
         </div>
@@ -162,11 +168,23 @@
         </section>
       </ng-template>
 
-      <div class="premium-upgrade-card">
+      <div class="premium-upgrade-card animate-pulse-slow" *ngIf="user()?.platform_tier !== 'premium'">
         <div class="shimmer"></div>
-        <h4>Upgrade to Elite Tier</h4>
-        <p>Unlock personal coaching nodes and advanced biometric tracking.</p>
-        <button class="btn-premium" (click)="initiateUpgrade()">ACTIVATE_ELITE</button>
+        <div class="card-glow"></div>
+        <div class="card-content">
+          <div class="badge">PRO_ACCESS_REQUIRED</div>
+          <h4>Evolve Your Potential</h4>
+          <p>Unlock Neural Coaching nodes, advanced biometric tracking, and global hub access.</p>
+          <div class="benefits-row">
+            <div class="b-item"><mat-icon>psychology</mat-icon> AI Coaching</div>
+            <div class="b-item"><mat-icon>monitor_heart</mat-icon> Bio-Sync</div>
+            <div class="b-item"><mat-icon>public</mat-icon> Global</div>
+          </div>
+          <button class="btn-premium-titanium" (click)="initiateUpgrade()">
+            <span>ACTIVATE_ELITE_PROTOCOL</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -178,7 +196,7 @@
       <div class="modal-header">
         <div class="title-group">
           <span class="material-icons">workspace_premium</span>
-          <h3>Elite Tier Benefits</h3>
+          <h3>Premium Membership Benefits</h3>
         </div>
         <button class="close-btn" (click)="showEliteBenefitsModal = false"><span
             class="material-icons">close</span></button>
@@ -187,27 +205,27 @@
         <div class="benefit-item">
           <span class="material-icons">psychology</span>
           <div class="text">
-            <strong>Neural Coaching Nodes</strong>
-            <p>Access customized AI-driven training plans that adapt to your body's biometric output in real-time.</p>
+            <strong>Smart AI Coaching</strong>
+            <p>Get personalized workout plans that adjust to your body in real-time.</p>
           </div>
         </div>
         <div class="benefit-item">
           <span class="material-icons">monitor_heart</span>
           <div class="text">
-            <strong>Advanced Biometric Sync</strong>
-            <p>Full integration with wearable sensors for metabolic tracking and recovery optimization.</p>
+            <strong>Health Sensor Sync</strong>
+            <p>Connect your smartwatch to easily track your heart rate, recovery, and calories.</p>
           </div>
         </div>
         <div class="benefit-item">
           <span class="material-icons">door_open</span>
           <div class="text">
-            <strong>24/7 Global Hub Access</strong>
-            <p>Unrestricted access to any facility within the Metropolitan Hub network worldwide.</p>
+            <strong>Global Gym Access</strong>
+            <p>Work out at any of our partner gyms around the world, anytime.</p>
           </div>
         </div>
 
         <button class="btn-check-in-titanium full-width" (click)="proceedToPayment()">
-          PROCEED TO ACTIVATION
+          UPGRADE NOW
           <span class="material-icons">arrow_forward</span>
         </button>
       </div>
@@ -215,14 +233,12 @@
   </div>
 
   <!-- High-Fidelity Checkout Vault (Matched to Program Style) -->
-  <app-payment-modal [showModal]="showPaymentPicker" [headerTitle]="'Elite Protocol Activation'"
-    [itemTitle]="'Elite Tier: Neural Access'" [itemSubtitle]="'One-Time Program Integration'"
+  <app-payment-modal [showModal]="showPaymentPicker" [headerTitle]="'Upgrade to Premium'"
+    [itemTitle]="'Premium Membership'" [itemSubtitle]="'One-Time Upgrade'"
     [itemImage]="'https://images.unsplash.com/photo-1540206395-6880f9490e44?auto=format&fit=crop&q=80&w=600'"
-    [purchaseTerms]="'Enrolling in the Elite Tier grants you permanent access to Neural Coaching nodes and advanced biometric tracking protocols across the Vanguard network.'"
+    [purchaseTerms]="'By upgrading to Premium, you get permanent access to AI coaching, smartwatch syncing, and all our partner gyms globally.'"
     [processingPayment]="isProcessingPayment" [paymentError]="paymentError" [stripePublicKey]="stripePublicKey"
-    [wallets]="stats.wallets"
-    [currentGymId]="selectedWalletGymId"
-    [totalPrice]="99.99"
+    [wallets]="stats.wallets" [currentGymId]="selectedWalletGymId" [totalPrice]="99.99"
     (cancelPayment)="showPaymentPicker = false" (confirmPayment)="processPurchase($event)">
   </app-payment-modal>
 
@@ -240,15 +256,6 @@
         <div class="qr-aura"></div>
         <img [src]="qrCodeUrl" alt="Member QR Code" class="qr-image">
       </div>
-
-      <div class="member-brief" *ngIf="user()">
-        <div class="m-avatar">{{ user()?.name?.charAt(0) }}</div>
-        <div class="m-info">
-          <span class="m-name">{{ user()?.name }}</span>
-          <span class="m-id">MEMBER_ID: {{ user()?.id_user?.substring(0, 8) }}</span>
-        </div>
-      </div>
-
       <button class="btn-close-vault" (click)="closeQRModal()">
         <span class="material-icons">close</span>
         Dismiss Sync

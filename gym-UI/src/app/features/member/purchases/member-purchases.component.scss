@@ -345,3 +345,111 @@
     margin-bottom: 2rem;
     font-weight: 600;
 }
+
+/* ================================================ */
+/* LIGHT MODE OVERRIDES                             */
+/* ================================================ */
+:host-context(html:not(.dark)) {
+    .purchases-container { background: #f8fafc; }
+    
+    .purchases-header .header-card {
+        background: #ffffff;
+        border-color: rgba(0, 0, 0, 0.06);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        
+        .badge {
+            background: rgba(139, 92, 246, 0.08);
+            border-color: rgba(139, 92, 246, 0.15);
+            color: #6d28d9;
+        }
+
+        h1 { 
+            background: linear-gradient(135deg, #0f172a, #334155); 
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; 
+        }
+
+        p { color: #475569; }
+
+        .stats-group .stat-item {
+            .stat-value { color: #0f172a; }
+            .stat-label { color: #64748b; }
+        }
+    }
+
+    .purchases-table-wrapper {
+        background: #ffffff;
+        border-color: rgba(0, 0, 0, 0.06);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+    }
+
+    .purchases-table {
+        thead { 
+            background: #f8fafc; 
+            border-bottom-color: #e2e8f0; 
+            th { color: #64748b; }
+        }
+        tbody tr { 
+            border-bottom-color: #f1f5f9; 
+            &:hover { background: #f8fafc; }
+            td { color: #334155; }
+        }
+    }
+
+    .date-cell {
+        .primary-date { color: #0f172a; }
+        .id-tag { color: #94a3b8; }
+    }
+
+    .asset-cell {
+        .asset-icon {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+            color: #4f46e5;
+        }
+        .asset-info {
+            .asset-name { color: #0f172a; }
+            .asset-gym { color: #64748b; }
+        }
+    }
+
+    .amount-value { color: #0f172a; }
+    
+    .method-cell {
+        color: #64748b;
+        span:first-child { opacity: 0.4; }
+    }
+
+    .status-pill {
+        background: #ecfdf5;
+        color: #059669;
+        &.urgent { background: #fef2f2; color: #dc2626; }
+    }
+
+    .type-pill {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        color: #475569;
+
+        &[data-type="membership"] {
+            background: #eff6ff;
+            color: #2563eb;
+            border-color: #dbeafe;
+        }
+        &[data-type="product"] {
+            background: #fdf4ff;
+            color: #c026d3;
+            border-color: #fae8ff;
+        }
+        &[data-type="course"] {
+            background: #ecfdf5;
+            color: #059669;
+            border-color: #d1fae5;
+        }
+        &[data-type="event"] {
+            background: #fffbeb;
+            color: #d97706;
+            border-color: #fef3c7;
+        }
+    }
+}

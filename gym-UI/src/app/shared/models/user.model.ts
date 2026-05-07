@@ -26,6 +26,8 @@ export interface User {
   evolution_points?: number;
   bio?: string;
   career_specialties?: string;
+  platform_tier?: 'standard' | 'premium';
+  platform_upgrade_expires_at?: string;
 }
 export interface AuthResponse {
   success: boolean;

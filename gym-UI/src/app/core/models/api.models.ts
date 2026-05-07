@@ -71,9 +71,29 @@ export interface GymDto {
   suspension_reason?: string;
   created_at?: string;
   updated_at?: string;
+  subscription_expires_at?: string;
+  platform_subscription_price?: number;
+  platform_subscription_type?: string;
   expiry_date?: string;
   days_remaining?: number;
+  revenue_at_risk?: number;
   owner?: UserVm;
+}
+
+export interface GymInfo {
+  id_gym: string;
+  name: string;
+  address: string;
+  phone: string;
+  id_owner: string;
+  logo_url?: string;
+  status?: string;
+  suspension_reason?: string;
+  // Subscription fields
+  subscription_end?: string;
+  days_remaining?: number;
+  platform_subscription_type?: string;
+  subscription_expires_at?: string;
 }
 
 export interface ProductDto {

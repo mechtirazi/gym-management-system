@@ -35,6 +35,17 @@ export class EditProductModalComponent implements OnInit {
   isSubmitting = signal<boolean>(false);
   error = signal<string | null>(null);
 
+  get isFormInvalid(): boolean {
+    return (
+      !this.product.name?.trim() ||
+      !this.product.category ||
+      this.product.price === null ||
+      this.product.stock === null ||
+      this.product.price < 0 ||
+      this.product.stock < 0
+    );
+  }
+
   ngOnInit() {
     const data = this.productData();
     if (data) {

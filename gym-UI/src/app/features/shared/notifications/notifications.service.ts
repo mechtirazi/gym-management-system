@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { forkJoin, map, Observable, of } from 'rxjs';
+import { forkJoin, map, Observable, of, finalize, switchMap } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { AdminOwnersService } from '../../../core/services/admin-owners.service';
 import { TrainerService } from '../../trainer/services/trainer.service';
@@ -23,10 +23,34 @@ export class NotificationFeatureService {
   private _invitations = signal<StaffInvitation[]>([]);
   
   // Public Signals
-  targets = this._targets.asReadonly();
+  targets = computed(() => {
+    const currentId = this.authService.currentUser()?.id_user;
+    return this._targets().filter(t => t.id_user !== currentId);
+  });
   invitations = this._invitations.asReadonly();
   notifications = this.coreNotifService.notifications;
   unreadCount = this.coreNotifService.unreadCount;
+  processingIds = signal<Set<string>>(new Set());
+
+  startProcessing(id: string) {
+    this.processingIds.update(set => {
+      const newSet = new Set(set);
+      newSet.add(id);
+      return newSet;
+    });
+  }
+
+  stopProcessing(id: string) {
+    this.processingIds.update(set => {
+      const newSet = new Set(set);
+      newSet.delete(id);
+      return newSet;
+    });
+  }
+
+  isProcessing(id: string): boolean {
+    return this.processingIds().has(id);
+  }
 
   // Role Helpers
   currentUser = this.authService.currentUser;
@@ -88,7 +112,8 @@ export class NotificationFeatureService {
           if (res.staff?.data) {
             res.staff.data.forEach((s: any) => {
               if (s.user) {
-                combinedTargets.push({ ...s.user, role: s.role || 'staff' });
+                const actualRole = s.user.role || s.role || 'staff';
+                combinedTargets.push({ ...s.user, role: actualRole });
               }
             });
           }
@@ -108,22 +133,28 @@ export class NotificationFeatureService {
   }
 
   acceptInvitation(invitation: StaffInvitation): Observable<any> {
+    this.startProcessing(invitation.id_notification);
     return this.staffService.joinGym(invitation).pipe(
-      map(res => {
+      switchMap(res => {
         this.loadInvitations();
-        this.coreNotifService.fetchNotifications().subscribe();
-        return res;
-      })
+        return this.coreNotifService.fetchNotifications().pipe(
+          map(() => res)
+        );
+      }),
+      finalize(() => this.stopProcessing(invitation.id_notification))
     );
   }
 
   declineInvitation(id: string): Observable<any> {
+    this.startProcessing(id);
     return this.staffService.declineInvitation(id).pipe(
-      map(res => {
+      switchMap(res => {
         this.loadInvitations();
-        this.coreNotifService.fetchNotifications().subscribe();
-        return res;
-      })
+        return this.coreNotifService.fetchNotifications().pipe(
+          map(() => res)
+        );
+      }),
+      finalize(() => this.stopProcessing(id))
     );
   }
 
@@ -137,11 +168,15 @@ export class NotificationFeatureService {
       role: parts[2]
     };
 
+    this.startProcessing(notif.id);
     return this.staffService.joinGym(payload).pipe(
-      map(res => {
-        this.coreNotifService.fetchNotifications().subscribe();
-        return res;
-      })
+      switchMap(res => {
+        this.loadInvitations();
+        return this.coreNotifService.fetchNotifications().pipe(
+          map(() => res)
+        );
+      }),
+      finalize(() => this.stopProcessing(notif.id))
     );
   }
 
@@ -151,6 +186,10 @@ export class NotificationFeatureService {
 
   broadcastToAll(message: string, type: string): Observable<any> {
     return this.coreNotifService.sendToAllUsers(message, type);
+  }
+
+  broadcastToOwners(message: string, type: string): Observable<any> {
+    return this.coreNotifService.sendToAllOwners(message, type);
   }
 
   markAsRead(id: string) {

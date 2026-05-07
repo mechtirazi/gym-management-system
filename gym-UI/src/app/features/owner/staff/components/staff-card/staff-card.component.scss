@@ -98,3 +98,34 @@
     border-color: #0ea5e9;
   }
 }
+
+/* ─── Dark Mode Overrides ─── */
+:host-context(.dark) {
+  .member-avatar {
+    background: rgba(255, 255, 255, 0.05);
+    .status-indicator { border-color: #0f172a; }
+  }
+
+  .member-role.badge {
+    background: rgba(14, 165, 233, 0.1);
+  }
+
+  .profile-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #818cf8;
+    &:hover { border-color: #818cf8; background: rgba(129, 140, 248, 0.08); }
+  }
+
+  .hover-elevate:hover {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: #818cf8;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .error-btn {
+    background: rgba(225, 29, 72, 0.1);
+    color: #fb7185;
+    &:hover { background: rgba(225, 29, 72, 0.15); }
+  }
+}

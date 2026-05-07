@@ -23,8 +23,9 @@ export class MemberGymsComponent implements OnInit {
   loading = true;
   errorMessage = '';
   searchTerm = '';
-  activeFilter = 'All Facilities';
-  filterCategories = ['All Facilities', 'Performance', 'Movement', 'Bio-Hacking', 'Boxing', 'Wellness'];
+  showFilterMenu = false;
+  statusFilter: 'all' | 'open' = 'all';
+  sortBy: 'none' | 'rating' | 'members' = 'none';
 
   // Payment State
   showPaymentModal = false;
@@ -36,22 +37,38 @@ export class MemberGymsComponent implements OnInit {
   membershipPlans: any[] = [];
 
   get filteredGyms() {
-    return this.gyms.filter(gym => {
+    let result = this.gyms.filter(gym => {
       const matchSearch = !this.searchTerm ||
         gym.name?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         gym.adress?.toLowerCase().includes(this.searchTerm.toLowerCase());
 
-      // Since gyms might not have categories mapped properly in DB yet,
-      // we mock the filter for the UI demonstration
-      const matchFilter = this.activeFilter === 'All Facilities' ||
-        (gym.name?.length % this.filterCategories.length === this.filterCategories.indexOf(this.activeFilter));
+      const matchStatus = this.statusFilter === 'all' || this.isGymOpen(gym);
 
-      return matchSearch && (this.activeFilter === 'All Facilities' ? true : matchFilter);
+      return matchSearch && matchStatus;
     });
+
+    if (this.sortBy === 'rating') {
+      result.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
+    } else if (this.sortBy === 'members') {
+      result.sort((a, b) => (b.members_count || 0) - (a.members_count || 0));
+    }
+
+    return result;
   }
 
-  setFilter(filter: string): void {
-    this.activeFilter = filter;
+  toggleFilterMenu(): void {
+    this.showFilterMenu = !this.showFilterMenu;
+    this.cdr.detectChanges();
+  }
+
+  setStatusFilter(status: 'all' | 'open'): void {
+    this.statusFilter = status;
+    this.cdr.detectChanges();
+  }
+
+  setSortBy(sort: 'none' | 'rating' | 'members'): void {
+    this.sortBy = sort;
+    this.cdr.detectChanges();
   }
 
   ngOnInit(): void {
@@ -149,10 +166,10 @@ export class MemberGymsComponent implements OnInit {
 
   isGymOpen(gym: any): boolean {
     if (!gym) return false;
-    
+
     const now = new Date();
     const day = now.getDay(); // 0 = Sunday, 1 = Monday... 6 = Saturday
-    
+
     let hoursStr = '';
     if (day === 0) {
       hoursStr = gym.open_sun;
@@ -163,7 +180,7 @@ export class MemberGymsComponent implements OnInit {
     }
 
     if (!hoursStr || hoursStr.toLowerCase() === 'closed') return false;
-    
+
     // Parse "06:00 - 22:00"
     const parts = hoursStr.split('-');
     if (parts.length !== 2) return true; // If format unknown, assume open
@@ -175,7 +192,7 @@ export class MemberGymsComponent implements OnInit {
 
       const currentH = now.getHours();
       const currentM = now.getMinutes();
-      
+
       const currentTotalM = currentH * 60 + currentM;
       const startTotalM = (startH || 0) * 60 + (startM || 0);
       const endTotalM = (endH || 0) * 60 + (endM || 0);
@@ -195,7 +212,7 @@ export class MemberGymsComponent implements OnInit {
         if (plansRes.data && plansRes.data.length > 0) {
           this.membershipPlans = plansRes.data;
         } else {
-           this.membershipPlans = [];
+          this.membershipPlans = [];
         }
         this.showPaymentModal = true;
         this.cdr.detectChanges();

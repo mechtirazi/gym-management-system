@@ -53,7 +53,9 @@ export class DashboardComponent implements OnInit {
   errorMetrics = signal<string | null>(null);
   mrr = signal(0);
   activeGyms = signal(0);
-  activeMembers = signal(0);
+  totalOwnersMetric = signal(0);
+  totalMembers = signal(0);
+  upgradedMembers = signal(0);
   recentChurn = signal(0);
 
   owners = signal<UserVm[]>([]);
@@ -88,7 +90,9 @@ export class DashboardComponent implements OnInit {
   }
 
   processData({ owners, notifications }: any) {
-    // Owners
+    const currentUserId = this.authService.currentUser()?.id_user;
+
+    // Owners stats
     const verified = owners.filter((o: any) => !!o.email_verified_at);
     this.totalOwners.set(owners.length);
     this.verifiedOwners.set(verified.length);
@@ -98,7 +102,9 @@ export class DashboardComponent implements OnInit {
     // Notifications
     this.notifications.set(notifications.slice(0, 5));
 
-    this.owners.set(owners);
+    // Filter out current user from the dropdown list
+    const filteredOwners = owners.filter((o: any) => o.id_user !== currentUserId);
+    this.owners.set(filteredOwners);
     this.loading.set(false);
   }
 
@@ -122,13 +128,22 @@ export class DashboardComponent implements OnInit {
       catchError((err) => {
         console.error('[GodView] Metrics fetch failed:', err);
         this.errorMetrics.set('Failed to load platform metrics. Please try again.');
-        return of({ total_active_gyms: 0, total_active_members: 0, mrr: 0, recent_churn: 0 } as PlatformMetrics);
+        return of({ 
+          total_active_gyms: 0, 
+          total_active_owners: 0, 
+          total_members: 0, 
+          upgraded_members: 0, 
+          mrr: 0, 
+          recent_churn: 0 
+        } as PlatformMetrics);
       })
     ).subscribe(metrics => {
       console.log('[GodView] Metrics received:', metrics);
       this.mrr.set(metrics.mrr);
       this.activeGyms.set(metrics.total_active_gyms);
-      this.activeMembers.set(metrics.total_active_members);
+      this.totalOwnersMetric.set(metrics.total_active_owners);
+      this.totalMembers.set(metrics.total_members);
+      this.upgradedMembers.set(metrics.upgraded_members);
       this.recentChurn.set(metrics.recent_churn);
       this.loadingMetrics.set(false);
     });
@@ -182,13 +197,37 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  isAllOwnersMode = signal(false);
+
+  toggleAllOwnersMode() {
+    this.isAllOwnersMode.update(v => !v);
+    const ownerControl = this.targetedForm.get('ownerId');
+    if (this.isAllOwnersMode()) {
+      ownerControl?.clearValidators();
+      ownerControl?.setValue('all_owners');
+    } else {
+      ownerControl?.setValidators([Validators.required]);
+      ownerControl?.setValue('');
+    }
+    ownerControl?.updateValueAndValidity();
+  }
+
   sendTargeted() {
     if (this.targetedForm.invalid) return;
     this.sendingTargeted.set(true);
     const { ownerId, type, message } = this.targetedForm.value;
-    this.notificationsService.sendToOwner(ownerId!, message!, type!).subscribe({
+    const isAll = this.isAllOwnersMode() || ownerId === 'all_owners';
+
+    const request = isAll
+      ? this.notificationsService.sendToAllOwners(message!, type!)
+      : this.notificationsService.sendToOwner(ownerId!, message!, type!);
+
+    request.subscribe({
       next: () => {
-        this.snackBar.open('Direct alert sent to owner.', 'Dismiss', { duration: 3000 });
+        const successMsg = isAll
+          ? 'Broadcast alert sent to all owners.'
+          : 'Direct alert sent to owner.';
+        this.snackBar.open(successMsg, 'Dismiss', { duration: 3000 });
         this.targetedForm.reset({ ownerId: '', type: 'info', message: '' });
         this.sendingTargeted.set(false);
         this.refreshData();

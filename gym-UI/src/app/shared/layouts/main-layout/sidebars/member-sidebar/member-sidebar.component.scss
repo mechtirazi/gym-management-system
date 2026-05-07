@@ -47,7 +47,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 80px;
+  height: 100px;
   margin-bottom: 0.2rem;
   transition: var(--transition-vibe);
 
@@ -68,22 +68,22 @@
   }
 
   .logo-icon {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    background: linear-gradient(135deg, var(--member-accent) 0%, #7c3aed 100%);
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    background: transparent; // Removed violet background
     color: white;
-    border-radius: 15px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 16px var(--member-accent-glow);
+    padding: 0; // Removed padding for image
     transition: var(--transition-vibe);
 
-    svg {
-      width: 24px;
-      height: 24px;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
   }
 
@@ -104,17 +104,19 @@
     }
 
     span:first-child {
-      font-size: 1.4rem;
-      font-weight: 800;
+      font-size: 1.8rem;
+      font-weight: 900;
       color: var(--text-main);
-      letter-spacing: -1px;
+      letter-spacing: -2px;
+      line-height: 1;
 
       .text-primary {
         color: var(--member-accent);
-        background: linear-gradient(to right, var(--member-accent), #c4b5fd);
+        background: linear-gradient(to right, #6366f1, #8b5cf6);
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
+        margin-left: -2px;
       }
     }
 
@@ -206,7 +208,7 @@
     align-items: center;
     justify-content: center;
     transition: var(--transition-vibe);
-    
+
     ::ng-deep svg {
       width: 100%;
       height: 100%;
@@ -419,7 +421,7 @@
   &.active {
     opacity: 1;
     pointer-events: auto;
-    
+
     .support-modal {
       transform: translateY(0) scale(1);
     }
@@ -455,10 +457,19 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 1rem;
-      svg { width: 32px; height: 32px; }
+
+      svg {
+        width: 32px;
+        height: 32px;
+      }
     }
 
-    h3 { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin: 0; }
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 0;
+    }
 
     .btn-close {
       position: absolute;
@@ -474,23 +485,43 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      &:hover { color: var(--text-main); transform: rotate(90deg); transition: 0.3s; }
-      svg { width: 18px; height: 18px; }
+
+      &:hover {
+        color: var(--text-main);
+        transform: rotate(90deg);
+        transition: 0.3s;
+      }
+
+      svg {
+        width: 18px;
+        height: 18px;
+      }
     }
   }
 
   .modal-body {
-    p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center; }
+    p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
     textarea {
       width: 100%;
-      background: var(--bg-input, rgba(255,255,255,0.05));
+      background: var(--bg-input, rgba(255, 255, 255, 0.05));
       border: 1px solid var(--glass-border);
       color: var(--text-main);
       border-radius: 12px;
       padding: 1rem;
       font-family: inherit;
       resize: vertical;
-      &:focus { outline: none; border-color: var(--member-accent); }
+
+      &:focus {
+        outline: none;
+        border-color: var(--member-accent);
+      }
     }
   }
 
@@ -498,6 +529,7 @@
     display: flex;
     gap: 1rem;
     margin-top: 1.5rem;
+
     button {
       flex: 1;
       padding: 0.8rem;
@@ -505,8 +537,32 @@
       font-weight: 700;
       cursor: pointer;
       transition: 0.2s;
-      &.btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-main); &:hover { background: var(--bg-hover); } }
-      &.btn-primary { background: var(--member-accent); border: none; color: white; &:disabled { opacity: 0.5; cursor: not-allowed; } &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px var(--member-accent-glow); } }
+
+      &.btn-outline {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: var(--text-main);
+
+        &:hover {
+          background: var(--bg-hover);
+        }
+      }
+
+      &.btn-primary {
+        background: var(--member-accent);
+        border: none;
+        color: white;
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px var(--member-accent-glow);
+        }
+      }
     }
   }
 }

@@ -19,6 +19,7 @@ Route::get('bio-sync-test', function () {
     return response()->json(['status' => 'online', 'module' => 'Biometric intelligence Hub']);
 });
 use App\Http\Controllers\Api\NutritionPlanController;
+use App\Http\Controllers\Api\NutritionMessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\EnrollmentController;
 use App\Http\Controllers\Api\GymStaffController;
@@ -44,6 +45,11 @@ Route::prefix('auth')->group(function () {
     // Email Verification
     Route::get('verify/{id}/{hash}', [AuthController::class, 'verify'])->name('verification.verify');
     Route::post('resend-verification', [AuthController::class, 'resendVerification'])->name('verification.resend');
+
+    // Password Reset
+    Route::post('forgot-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'forgotPassword'])->name('auth.forgot-password');
+    Route::post('verify-code', [\App\Http\Controllers\Api\PasswordResetController::class, 'verifyCode'])->name('auth.verify-code');
+    Route::post('reset-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword'])->name('auth.reset-password');
 
     Route::get('health', function () {
         return response()->json(['success' => true, 'status' => 'optimal', 'timestamp' => now()]);
@@ -99,6 +105,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::apiResource('orders', OrderController::class);
 
     // Payment routes
+    Route::post('payments/{payment}/finalize', [PaymentController::class, 'finalize'])->name('payments.finalize');
     Route::apiResource('payments', PaymentController::class);
 
     // Review routes
@@ -115,6 +122,11 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     Route::post('nutrition-plans/meals/{nutritionMeal}/toggle', [NutritionPlanController::class, 'toggleMealLog'])->name('nutrition-plans.meals.toggle');
     Route::post('nutrition-plans/water-log', [NutritionPlanController::class, 'logWater'])->name('nutrition-plans.water.log');
     Route::apiResource('nutrition-plans', NutritionPlanController::class);
+
+    // Nutrition Messaging routes
+    Route::get('nutrition-messages/conversations', [NutritionMessageController::class, 'conversations']);
+    Route::get('nutrition-messages/{recipientId}', [NutritionMessageController::class, 'index']);
+    Route::post('nutrition-messages', [NutritionMessageController::class, 'store']);
 
     // Notification routes
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
@@ -142,6 +154,8 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     // Gym Receipt Upload (Excluded from subscription check so they can pay when expired)
     Route::post('owner/gyms/{gym}/upload-receipt', [OwnerController::class, 'uploadReceipt'])
         ->name('owner.gyms.upload-receipt');
+    Route::post('owner/gyms/{gym}/renew', [App\Http\Controllers\Api\OwnerController::class, 'renewSubscription'])
+        ->name('owner.gyms.renew');
 
     // Owner Dashboard routes (with subscription check)
     Route::middleware(['subscription.check'])->group(function () {
@@ -163,6 +177,7 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
     // Member Dashboard routes
     Route::middleware(['role:member'])->prefix('member')->group(function () {
         Route::get('dashboard-stats', [App\Http\Controllers\Api\MemberController::class, 'getDashboardStats'])->name('member.dashboard-stats');
+        Route::post('platform-upgrade', [App\Http\Controllers\Api\MemberController::class, 'upgradePlatform'])->name('member.platform-upgrade');
         Route::post('courses/{course}/enroll', [App\Http\Controllers\Api\MemberController::class, 'enrollCourse'])->name('member.courses.enroll');
         Route::post('events/{event}/enroll', [App\Http\Controllers\Api\MemberController::class, 'enrollEvent'])->name('member.events.enroll');
         Route::get('attendance-events', [App\Http\Controllers\Api\MemberController::class, 'getMyAttendanceEvents'])->name('member.events.history');
@@ -184,6 +199,8 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::post('social/like', [SocialController::class, 'toggleLike']);
         Route::post('social/comment', [SocialController::class, 'addComment']);
         Route::get('social/comments', [SocialController::class, 'getComments']);
+        Route::post('ai/ask', [App\Http\Controllers\Api\MemberController::class, 'askAi'])->name('member.ai.ask');
+        Route::post('ai/analyze-image', [App\Http\Controllers\Api\MemberController::class, 'analyzeImage'])->name('member.ai.analyze');
     });
 
     // Trainer Dashboard routes
@@ -210,12 +227,14 @@ Route::middleware(['auth:api', 'gym.status'])->group(function () {
         Route::delete('owners/{id_owner}', [AdminController::class, 'deleteOwner']);
         Route::get('owners/{id_owner}/gyms', [AdminController::class, 'getOwnerGyms']);
         Route::post('notifications/all', [AdminController::class, 'broadcastNotification'])->name('admin.notifications.all');
+        Route::post('notifications/owners', [AdminController::class, 'broadcastNotificationToOwners'])->name('admin.notifications.owners');
         Route::post('notifications/owner/{id_owner}', [AdminController::class, 'notifyOwner'])->name('admin.notifications.owner');
         Route::post('gyms/{id_gym}/renew', [AdminController::class, 'renewGymSubscription'])->name('admin.gyms.renew');
         Route::get('analytics/revenue', [AdminController::class, 'getRevenueStats'])->name('admin.analytics.revenue');
         Route::get('metrics/overview', [SuperAdminAnalyticsController::class, 'getOverviewMetrics'])->name('admin.metrics.overview');
         Route::post('gyms/{id_gym}/suspend', [AdminController::class, 'suspendGym'])->name('admin.gyms.suspend');
         Route::post('gyms/{id_gym}/activate', [AdminController::class, 'activateGym'])->name('admin.gyms.activate');
+        Route::delete('gyms/{id_gym}', [AdminController::class, 'deleteGym'])->name('admin.gyms.delete');
         Route::post('owners/{id_owner}/disable-gyms', [AdminController::class, 'disableAllOwnerGyms'])->name('admin.owners.disable-gyms');
         Route::post('owners/{id_owner}/activate-gyms', [AdminController::class, 'activateAllOwnerGyms'])->name('admin.owners.activate-gyms');
     });

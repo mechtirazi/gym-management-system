@@ -23,6 +23,15 @@
 
   .admin-form-group {
     gap: 0.75rem;
+
+    .two-col-grid, .three-col-grid, .four-col-grid {
+      display: grid;
+      gap: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .two-col-grid { grid-template-columns: repeat(2, 1fr); }
+    .three-col-grid { grid-template-columns: repeat(3, 1fr); }
+    .four-col-grid { grid-template-columns: repeat(4, 1fr); }
     
     .form-field {
       label { font-size: 0.625rem; margin-bottom: 2px; }
@@ -32,11 +41,108 @@
         background: rgba(255, 255, 255, 0.02);
       }
       textarea { min-height: 60px; }
-      .error-text { font-size: 0.65rem; margin-top: 2px; }
+      .error-text { font-size: 0.65rem; margin-top: 4px; color: var(--admin-accent-rose); font-weight: 600; display: block; }
+
+      .dual-time-wrap {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--admin-item-border);
+        border-radius: 1rem;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        &:hover {
+          border-color: var(--admin-accent-indigo);
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 12px var(--admin-focus-glow);
+        }
+        
+        &:focus-within {
+          background: var(--admin-input-focus-bg);
+          border-color: var(--admin-accent-indigo);
+          box-shadow: 0 0 0 3px var(--admin-focus-glow), inset 0 2px 4px rgba(0, 0, 0, 0.02);
+          transform: translateY(-2px);
+        }
+        
+        input[type="time"] {
+          flex: 1;
+          min-width: 0;
+          padding: 0.75rem 0.25rem;
+          text-align: center;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          font-family: 'JetBrains Mono', monospace;
+          color: #f8fafc;
+          
+          &::-webkit-calendar-picker-indicator {
+             filter: invert(1);
+             opacity: 0.6;
+             cursor: pointer;
+             transition: opacity 0.2s;
+             &:hover { opacity: 1; }
+          }
+        }
+        
+        .separator {
+          color: #64748b;
+          font-weight: 800;
+          font-size: 0.8rem;
+          user-select: none;
+        }
+      }
     }
   }
 
-  .admin-dialog-footer {
+  .subscription-selector-wrap {
+    .tier-cards-grid {
+      .tier-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        
+        h4 { color: #f8fafc; }
+        span { color: #94a3b8; }
+        
+        &.active {
+          background: rgba(16, 185, 129, 0.1);
+          border-color: var(--admin-accent-emerald) !important;
+          transform: translateY(-4px);
+          box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+          h4 { color: var(--admin-accent-emerald); }
+        }
+        
+        &:hover:not(.active) {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+      }
+    }
+  }
+
+  /* Light mode overrides if needed via global body class */
+  :host-context(html:not(.dark)) {
+     .tier-card {
+        background: #ffffff;
+        border: 2px solid #e2e8f0 !important;
+        h4 { color: #1e293b; }
+        &.active {
+           background: rgba(16, 185, 129, 0.05);
+           border-color: var(--admin-accent-emerald) !important;
+        }
+     }
+
+     .dual-time-wrap {
+        background: #ffffff !important;
+        input[type="time"] {
+           color: #1e293b;
+           &::-webkit-calendar-picker-indicator {
+              filter: none;
+           }
+        }
+     }
+  }
+
+.admin-dialog-footer {
     margin-top: 1.5rem;
     padding-top: 1rem;
     button { padding: 0.65rem 1.25rem; font-size: 0.75rem; }

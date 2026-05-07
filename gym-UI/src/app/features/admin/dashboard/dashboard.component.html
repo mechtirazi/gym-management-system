@@ -33,7 +33,7 @@
         <div class="metric-info">
           <p class="label">Total MRR</p>
           <div *ngIf="!loadingMetrics(); else loadingState">
-            <h2 class="value">{{ mrr() | currency:'USD':'symbol':'1.0-0' }}</h2>
+            <h2 class="value">{{ mrr() | currency:'TND':'symbol':'1.0-0' }}</h2>
           </div>
           <div class="sub-meta">
             <span class="trend-tag">
@@ -45,8 +45,56 @@
         </div>
       </div>
 
-      <!-- Active Gyms -->
+      <!-- Total Platform Members -->
+      <div class="metric-card style-indigo">
+        <div class="metric-icon-box">
+          <mat-icon>groups</mat-icon>
+        </div>
+        <div class="metric-info">
+          <p class="label">Total Members</p>
+          <div *ngIf="!loadingMetrics(); else loadingState">
+            <h2 class="value">{{ totalMembers() | number }}</h2>
+          </div>
+          <div class="sub-meta">
+            <span class="caption">Global User Base</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Elite Members (Upgraded) -->
+      <div class="metric-card style-fuchsia">
+        <div class="metric-icon-box">
+          <mat-icon>verified</mat-icon>
+        </div>
+        <div class="metric-info">
+          <p class="label">Elite Upgrades</p>
+          <div *ngIf="!loadingMetrics(); else loadingState">
+            <h2 class="value">{{ upgradedMembers() | number }}</h2>
+          </div>
+          <div class="sub-meta">
+            <span class="caption">Premium conversion</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Owners -->
       <div class="metric-card style-blue">
+        <div class="metric-icon-box">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="metric-info">
+          <p class="label">Total Owners</p>
+          <div *ngIf="!loadingMetrics(); else loadingState">
+            <h2 class="value">{{ totalOwnersMetric() | number }}</h2>
+          </div>
+          <div class="sub-meta">
+            <span class="caption">Facility Proprietors</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Gyms -->
+      <div class="metric-card style-amber">
         <div class="metric-icon-box">
           <mat-icon>fitness_center</mat-icon>
         </div>
@@ -57,22 +105,6 @@
           </div>
           <div class="sub-meta">
             <span class="caption">Onboarded facilities</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total Members -->
-      <div class="metric-card style-fuchsia">
-        <div class="metric-icon-box">
-          <mat-icon>groups</mat-icon>
-        </div>
-        <div class="metric-info">
-          <p class="label">Total Owners</p>
-          <div *ngIf="!loadingMetrics(); else loadingState">
-            <h2 class="value">{{ activeMembers() | number }}</h2>
-          </div>
-          <div class="sub-meta">
-            <span class="caption">Active platform users</span>
           </div>
         </div>
       </div>
@@ -95,17 +127,18 @@
     </section>
 
     <!-- Error Alerts -->
-    <div *ngIf="errorMetrics()" class="admin-alert mb-0" 
-         style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose);">
-      <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
+    <div *ngIf="errorMetrics()" class="admin-alert mb-0"
+      style="background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose);">
+      <div class="alert-icon-box"
+        style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
         <mat-icon>error</mat-icon>
       </div>
       <div class="alert-content">
         <span class="alert-tag" style="color: var(--admin-accent-rose);">Platform Error</span>
         <p style="color: var(--admin-accent-rose); font-weight: 800;">{{ errorMetrics() }}</p>
       </div>
-      <button (click)="loadPlatformMetrics()" class="admin-btn" 
-              style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.625rem; background: rgba(244, 63, 94, 0.1);">Retry</button>
+      <button (click)="loadPlatformMetrics()" class="admin-btn"
+        style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.625rem; background: rgba(244, 63, 94, 0.1);">Retry</button>
     </div>
 
     <!-- Content Grid -->
@@ -118,7 +151,7 @@
           </div>
           <h3>Platform Summary</h3>
         </div>
-        
+
         <div class="status-row">
           <div class="status-info">
             <p class="label">Total Registered Owners</p>
@@ -175,7 +208,8 @@
 
         <form [formGroup]="broadcastForm" (ngSubmit)="sendBroadcast()" class="admin-form-group">
           <div class="form-field">
-            <div class="field-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+            <div class="field-header"
+              style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
               <label style="margin: 0;">Global Announcement</label>
               <div class="compact-type-selector">
                 <label class="type-btn info">
@@ -217,14 +251,32 @@
 
         <form [formGroup]="targetedForm" (ngSubmit)="sendTargeted()" class="admin-form-group">
           <div class="form-field">
-            <label>Recipient Owner</label>
-            <select formControlName="ownerId">
-              <option value="" disabled selected>Select an Owner</option>
-              <option *ngFor="let o of owners()" [value]="o.id_user">{{ o.name }} {{ o.last_name }}</option>
-            </select>
+            <div class="toggle-container" (click)="toggleAllOwnersMode()" [class.active]="isAllOwnersMode()"
+              style="margin-bottom: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--admin-item-bg); border-radius: 12px; border: 1px solid var(--admin-item-border);">
+              <div class="toggle-switch" [class.active]="isAllOwnersMode()"
+                [style.background]="isAllOwnersMode() ? 'var(--admin-accent-indigo)' : '#e5e7eb'"
+                style="width: 36px; height: 20px; border-radius: 10px; position: relative; transition: all 0.3s;">
+                <div class="toggle-knob"
+                  style="width: 14px; height: 14px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: all 0.3s;"
+                  [style.transform]="isAllOwnersMode() ? 'translateX(16px)' : 'translateX(0)'"></div>
+              </div>
+              <span style="font-size: 0.8rem; font-weight: 700; color: var(--admin-text-primary);">Target All
+                Owners</span>
+              <mat-icon *ngIf="isAllOwnersMode()"
+                style="font-size: 16px; width: 16px; height: 16px; color: var(--admin-accent-indigo);">groups</mat-icon>
+            </div>
+
+            <div *ngIf="!isAllOwnersMode()" class="form-field-animate">
+              <label>Recipient Owner</label>
+              <select formControlName="ownerId">
+                <option value="" disabled selected>Select a Recipient</option>
+                <option *ngFor="let o of owners()" [value]="o.id_user">{{ o.name }} {{ o.last_name }}</option>
+              </select>
+            </div>
           </div>
           <div class="form-field">
-            <div class="field-header" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+            <div class="field-header"
+              style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
               <label style="margin: 0;">Direct Alert</label>
               <div class="compact-type-selector">
                 <label class="type-btn info">
@@ -245,7 +297,8 @@
                 </label>
               </div>
             </div>
-            <textarea formControlName="message" style="min-height: 80px;" placeholder="Type your direct alert for this owner..."></textarea>
+            <textarea formControlName="message" style="min-height: 80px;"
+              placeholder="Type your direct alert for this owner..."></textarea>
           </div>
           <button type="submit" [disabled]="targetedForm.invalid || sendingTargeted()" class="admin-btn btn-primary">
             <mat-icon *ngIf="!sendingTargeted()">mail</mat-icon>

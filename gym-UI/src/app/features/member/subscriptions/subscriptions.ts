@@ -44,7 +44,7 @@ export class SubscriptionsComponent implements OnInit {
     this.loading = true;
     this.memberService.getMyEnrollments().subscribe({
       next: (res: any) => {
-        this.subscriptions = res.data || [];
+        this.subscriptions = (res.data || []).filter((sub: any) => sub.id_plan);
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -76,23 +76,32 @@ export class SubscriptionsComponent implements OnInit {
     return `${baseUrl}${cleanPath}`;
   }
 
-  getDaysLeft(endDate: string): number {
-    if (!endDate) return 0;
+  getDaysLeft(endDate: string, status: string = 'active'): number {
+    if (!endDate || status?.toLowerCase() !== 'active') return 0;
     const end = new Date(endDate);
     const now = new Date();
     const diff = end.getTime() - now.getTime();
     return Math.max(0, Math.ceil(diff / (1000 * 3600 * 24)));
   }
 
-  getSubscriptionProgress(endDate: string, type: string = 'standard'): number {
-    if (!endDate) return 0;
+  getSubscriptionProgress(endDate: string, type: string = 'standard', status: string = 'active'): number {
+    if (!endDate || status?.toLowerCase() !== 'active') return 0;
     const total = (type?.toLowerCase() === 'premium') ? 90 : 30;
-    const left = this.getDaysLeft(endDate);
+    const left = this.getDaysLeft(endDate, status);
     return Math.min(100, Math.round((left / total) * 100));
   }
 
   isStandardPlan(planName: string): boolean {
     return planName?.toLowerCase().includes('standard');
+  }
+
+  getFeatures(sub: any): string[] {
+    const type = (sub.plan?.type || sub.type || '').toLowerCase();
+    const base = ['Unlimited Gym Access', 'Locker Access'];
+    if (type === 'premium') {
+      return [...base, 'Sauna & Spa', '24/7 Access', 'Personal Training Session'];
+    }
+    return base;
   }
 
   reactivate(sub: any) {

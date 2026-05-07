@@ -22,6 +22,7 @@ export class MemberCoursesComponent implements OnInit {
   courses: any[] = [];
   gyms: any[] = [];
   myPaidSessionIds: string[] = [];
+  myCourseSubscriptionIds: string[] = [];
   reservedSessionIds: string[] = [];
   loading = true;
   errorMessage = '';
@@ -36,18 +37,38 @@ export class MemberCoursesComponent implements OnInit {
   // Payment UI State
   showPaymentModal = false;
   selectedCourse: any = null;
+  isSubscriptionMode: boolean = false;
   processingPayment = false;
   paymentError: string | null = null;
   stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
   wallets: any[] = [];
 
-  categories = [
-    { id: 'all', label: 'All Programs' },
-    { id: 'Strength', label: 'Strength' },
-    { id: 'Cardio', label: 'Cardio' },
-    { id: 'Yoga', label: 'Mind & Body' },
-    { id: 'HIIT', label: 'HIIT' }
-  ];
+  // Map of professional categories and their associated keywords
+  private CATEGORY_KEYWORDS: Record<string, string[]> = {
+    'Fitness & HIIT': ['fitness', 'hiit', 'cardio', 'tabata', 'circuit', 'interval', 'workout', 'gym', 'core', 'pump', 'body', 'training', 'conditioning', 'abs', 'glutes', 'functional', 'crossfit'],
+    'Yoga & Pilates': ['yoga', 'pilates', 'stretch', 'flow', 'meditation', 'flexibility', 'zen', 'balance', 'mind', 'wellness', 'vinyasa', 'ashtanga', 'hatha', 'mobility', 'breath'],
+    'Combat Sports': ['boxing', 'kickboxing', 'mma', 'martial', 'fight', 'combat', 'strike', 'judo', 'karate', 'taekwondo', 'sparring', 'defense', 'bjj', 'grappling', 'muay', 'warrior'],
+    'Dance & Zumba': ['zumba', 'dance', 'aerobics', 'rhythm', 'step', 'salsa', 'bachata', 'cardio dance', 'hip hop', 'latin', 'bollywood', 'twerk'],
+    'Cycling': ['spin', 'cycling', 'bike', 'ride', 'rpm', 'peloton', 'indoor cycling', 'sprint'],
+    'Aquatics': ['swim', 'water', 'aqua', 'pool', 'diving', 'hydro', 'lap'],
+    'Strength & Iron': ['strength', 'weight', 'iron', 'heavy', 'powerlifting', 'bodybuilding', 'muscle', 'hypertrophy', 'barbell', 'dumbbell', 'lifting', 'deadlift', 'squat', 'bench', 'strongman']
+  };
+
+  categories: any[] = [{ id: 'all', label: 'All Classes' }];
+
+  private getCourseCategory(course: any): string {
+    if (course.category) return course.category;
+    if (course.type) return course.type;
+
+    const textToSearch = `${course.name || ''} ${course.description || ''}`.toLowerCase();
+
+    for (const [category, keywords] of Object.entries(this.CATEGORY_KEYWORDS)) {
+      if (keywords.some(kw => textToSearch.includes(kw))) {
+        return category;
+      }
+    }
+    return 'General';
+  }
 
   // Toast Notification State
   toastMessage: string = '';
@@ -73,7 +94,7 @@ export class MemberCoursesComponent implements OnInit {
         course.description?.toLowerCase().includes(this.searchText.toLowerCase());
 
       const matchesCategory = this.selectedCategory === 'all' ||
-        (course.category && course.category.toLowerCase() === this.selectedCategory.toLowerCase());
+        this.getCourseCategory(course).toLowerCase() === this.selectedCategory.toLowerCase();
 
       const matchesGym = this.selectedGymId === 'all' ||
         course.id_gym === this.selectedGymId;
@@ -97,13 +118,16 @@ export class MemberCoursesComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  formatDuration(val: any): string {
-    if (!val) return '0 WEEKS';
+  formatDuration(val: any, unit?: string): string {
+    if (!val) return '0 MIN';
     const s = val.toString().toUpperCase();
-    if (s.includes('WEEK') || s.includes('MONTH') || s.includes('MIN')) {
-      return s;
-    }
-    return `${s} WEEKS`;
+    const u = (unit || 'MIN').toUpperCase();
+    return `${s} ${u}`;
+  }
+
+  getGymInitials(name: string): string {
+    if (!name) return 'GYM';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   }
 
   onFilterChange() {
@@ -123,6 +147,7 @@ export class MemberCoursesComponent implements OnInit {
       allCourses: this.memberService.getAvailableCourses().pipe(catchError(() => of({ data: [] }))),
       myPayments: this.memberService.getMyPayments().pipe(catchError(() => of({ data: [] }))),
       mySubscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ data: [] }))),
+      myEnrollments: this.memberService.getMyEnrollments().pipe(catchError(() => of({ data: [] }))),
       myAttendances: this.memberService.getMyAttendances().pipe(catchError(() => of({ data: [] }))),
       myWallets: this.memberService.getMyWallets().pipe(catchError(() => of({ data: [] })))
     }).subscribe({
@@ -140,6 +165,11 @@ export class MemberCoursesComponent implements OnInit {
 
         // Store sessions the member has officially reserved
         this.reservedSessionIds = attendancesRaw.map((a: any) => a.id_session || a.session?.id_session).filter((id: any) => !!id);
+
+        // Check for active course-level subscriptions (Abonnements)
+        this.myCourseSubscriptionIds = res.myEnrollments?.data
+          ?.filter((e: any) => e.type === 'subscription' && e.status === 'active')
+          .map((e: any) => e.id_course) || [];
 
         // Extract unique gyms
         this.gyms = [];
@@ -162,19 +192,20 @@ export class MemberCoursesComponent implements OnInit {
 
           // Gather valid sessions
           const activeSessions = course.sessions?.filter((s: any) => s.status !== 'completed' && s.status !== 'cancelled') || [];
-          
+
           // Determine the most accurate trainer data
           const primaryTrainer = activeSessions.length > 0 ? activeSessions[0]?.trainer : (course.trainer || null);
           const tName = primaryTrainer?.user?.name || primaryTrainer?.name || course.trainer?.name || 'Master Coach';
           const tAvatar = primaryTrainer?.user?.avatar || primaryTrainer?.avatar || course.trainer?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(tName)}&background=00d2ff&color=fff&bold=true`;
 
-          return {
+          const finalCourse = {
             ...course,
             id_course: course.id_course || course.id,
             imageUrl: imageUrl || 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600',
             gymName: course.gym?.name || 'Local Hub',
             gymLogo: course.gym?.logo_url || `https://ui-avatars.com/api/?name=${course.gym?.name || 'Gym'}&background=8b5cf6&color=fff`,
             duration: course.duration || '0',
+            duration_unit: course.duration_unit || 'min',
             members_count: course.enrolled_members_count || course.count || 0,
             max_capacity: course.max_capacity || 20,
             activeSessions: activeSessions,
@@ -182,9 +213,22 @@ export class MemberCoursesComponent implements OnInit {
             selectedSessionId: activeSessions.length > 0 ? activeSessions[0].id_session || activeSessions[0].id : null,
             displayTrainerName: tName,
             displayTrainerAvatar: tAvatar,
-            isOwned: activeSessions.some((s: any) => this.myPaidSessionIds.includes(s.id_session || s.id))
+            isOwned: activeSessions.some((s: any) => this.myPaidSessionIds.includes(s.id_session || s.id)),
+            hasAbonnement: this.myCourseSubscriptionIds.includes(course.id_course || course.id),
+            isSubscriptionEnabled: !!course.is_subscription_enabled || course.is_subscription_enabled === '1',
+            subscriptionPrice: course.subscription_price || course.price,
+            category: this.getCourseCategory(course) // Ensure it's stored on the object
           };
+          return finalCourse;
         });
+
+        // Dynamic Category Extraction
+        const types = new Set<string>();
+        this.courses.forEach(c => types.add(c.category));
+        this.categories = [
+          { id: 'all', label: 'All Classes' },
+          ...Array.from(types).sort().map(t => ({ id: t, label: t }))
+        ];
 
         this.loading = false;
         this.cdr.detectChanges();
@@ -199,12 +243,13 @@ export class MemberCoursesComponent implements OnInit {
   }
 
   onReserve(course: any): void {
-    if (course.hasActiveSession && !course.selectedSessionId) {
-      alert('Please select a session to reserve.');
+    if (course.hasActiveSession && !course.selectedSessionId && !course.hasAbonnement) {
+      alert('Please select a session to reserve or choose Abonnement.');
       return;
     }
 
     this.selectedCourse = course;
+    this.isSubscriptionMode = false;
 
     // In 'Pay Per Session' model, we always trigger payment modal unless already reserved/paid
     if (this.isSessionReserved(course)) {
@@ -222,17 +267,29 @@ export class MemberCoursesComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  onSubscribe(course: any): void {
+    if (course.hasAbonnement) {
+      alert('You already have an active subscription for this course.');
+      return;
+    }
+
+    this.selectedCourse = course;
+    this.isSubscriptionMode = true;
+    this.showPaymentModal = true;
+    this.cdr.detectChanges();
+  }
+
   private completeFreeCourseEnrollment() {
     if (!this.selectedCourse) return;
     this.processingPayment = true;
     this.cdr.detectChanges();
 
     const courseId = this.selectedCourse.id_course || this.selectedCourse.id;
-    const sessionId = this.selectedCourse.selectedSessionId;
-    
-    this.memberService.enrollInCourse(courseId, sessionId, 'free').subscribe({
+    const sessionId = this.isSubscriptionMode ? undefined : this.selectedCourse.selectedSessionId;
+
+    this.memberService.enrollInCourse(courseId, sessionId, 'free', this.isSubscriptionMode).subscribe({
       next: () => {
-        this.handleSuccess('Session Secured Successfully!');
+        this.handleSuccess(this.isSubscriptionMode ? 'Abonnement Activated!' : 'Session Secured Successfully!');
       },
       error: (err: any) => this.handleError(err)
     });
@@ -257,6 +314,7 @@ export class MemberCoursesComponent implements OnInit {
   closePaymentModal() {
     this.showPaymentModal = false;
     this.selectedCourse = null;
+    this.isSubscriptionMode = false;
     this.cdr.detectChanges();
   }
 
@@ -269,15 +327,17 @@ export class MemberCoursesComponent implements OnInit {
 
     if (event.method === 'zen_wallet') {
       const courseId = this.selectedCourse.id_course || this.selectedCourse.id;
-      const sessionId = this.selectedCourse.selectedSessionId;
-      this.memberService.enrollInCourse(courseId, sessionId).subscribe({
+      const sessionId = this.isSubscriptionMode ? undefined : this.selectedCourse.selectedSessionId;
+      this.memberService.enrollInCourse(courseId, sessionId, 'zen_wallet', this.isSubscriptionMode).subscribe({
         next: () => {
-          this.handleSuccess('Session Secured Successfully!');
+          this.handleSuccess(this.isSubscriptionMode ? 'Abonnement Activated!' : 'Session Secured Successfully!');
         },
         error: (err: any) => this.handleError(err)
       });
     } else {
-      const amount = this.selectedCourse.price ? parseFloat(this.selectedCourse.price) : 49.99;
+      const amount = this.isSubscriptionMode
+        ? parseFloat(this.selectedCourse.subscriptionPrice || this.selectedCourse.price)
+        : parseFloat(this.selectedCourse.price || 49.99);
       // Stripe Flow
       this.memberService.createPaymentIntent(this.selectedCourse.id_gym, amount).subscribe({
         next: (res: any) => {
@@ -288,10 +348,10 @@ export class MemberCoursesComponent implements OnInit {
               this.handleError({ error: { message: result.error.message } });
             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
               const courseId = this.selectedCourse.id_course || this.selectedCourse.id;
-              const sessionId = this.selectedCourse.selectedSessionId;
-              this.memberService.enrollInCourse(courseId, sessionId, 'credit_card').subscribe({
+              const sessionId = this.isSubscriptionMode ? undefined : this.selectedCourse.selectedSessionId;
+              this.memberService.enrollInCourse(courseId, sessionId, 'credit_card', this.isSubscriptionMode).subscribe({
                 next: () => {
-                  this.handleSuccess('Session Secured Successfully!');
+                  this.handleSuccess(this.isSubscriptionMode ? 'Abonnement Activated!' : 'Session Secured Successfully!');
                 },
                 error: (err) => this.handleError(err)
               });
@@ -306,7 +366,7 @@ export class MemberCoursesComponent implements OnInit {
   private handleSuccess(msg = 'Transaction successful!') {
     this.processingPayment = false;
     this.paymentError = null;
-    
+
     // Give the user 1.5s to see the 'Success' state in the modal before auto-closing
     setTimeout(() => {
       this.closePaymentModal();
@@ -338,14 +398,14 @@ export class MemberCoursesComponent implements OnInit {
     const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === course.selectedSessionId);
     const trainer = session?.trainer || course.trainer;
     const tName = trainer?.name || trainer?.user?.name || 'Master Coach';
-    
+
     const path = trainer?.profile_picture || trainer?.user?.profile_picture || trainer?.avatar || trainer?.user?.avatar;
     if (path) {
       if (path.startsWith('http')) return path;
       const baseUrl = environment.apiUrl.replace('/api', '');
       return `${baseUrl}/storage/${path.startsWith('/') ? path.substring(1) : path}`;
     }
-    
+
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(tName)}&background=00d2ff&color=fff&bold=true`;
   }
 
@@ -371,10 +431,10 @@ export class MemberCoursesComponent implements OnInit {
 
   getSelectedSessionCapacity(course: any): string {
     if (!course.selectedSessionId && course.activeSessions?.length === 0) return 'N/A';
-    
+
     // If no session selected yet but sessions exist, default to the first one's data
     const targetId = course.selectedSessionId || (course.activeSessions?.length > 0 ? (course.activeSessions[0].id_session || course.activeSessions[0].id) : null);
-    
+
     const session = course.activeSessions?.find((s: any) => (s.id_session || s.id) === targetId);
     const enrolled = session?.attendances_count || 0;
     const max = session?.max_capacity || course.max_capacity || 20;

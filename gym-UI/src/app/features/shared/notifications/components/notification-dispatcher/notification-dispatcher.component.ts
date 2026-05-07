@@ -1,13 +1,14 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { RecipientTarget } from '../../notifications.model';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-notification-dispatcher',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
   animations: [
     trigger('slideIn', [
       transition(':enter', [
@@ -30,25 +31,29 @@ import { trigger, transition, style, animate } from '@angular/animations';
       <form [formGroup]="form" (ngSubmit)="onSubmit.emit()" class="dispatch-form">
         <div class="form-field">
           <label>Recipients</label>
-          <div class="radio-group">
-            <label class="radio-btn">
-              <input type="radio" formControlName="recipientType" value="all">
-              <span class="btn-content">All {{ roleLabels.all }}</span>
-            </label>
-            <label class="radio-btn" *ngIf="showStaffOption">
-              <input type="radio" formControlName="recipientType" value="staff">
-              <span class="btn-content">Staff</span>
-            </label>
-            <label class="radio-btn" *ngIf="showMembersOption">
-              <input type="radio" formControlName="recipientType" value="members">
-              <span class="btn-content">Members</span>
-            </label>
-            <label class="radio-btn">
-              <input type="radio" formControlName="recipientType" value="single">
-              <span class="btn-content">{{ roleLabels.single }}</span>
-            </label>
+          <div class="recipient-selection-wrapper">
+            <div class="radio-group">
+              <label class="radio-btn">
+                <input type="radio" formControlName="recipientType" value="all">
+                <span class="btn-content">All {{ roleLabels.all }}</span>
+              </label>
+              <label class="radio-btn" *ngIf="showStaffOption">
+                <input type="radio" formControlName="recipientType" value="staff">
+                <span class="btn-content">Staff</span>
+              </label>
+              <label class="radio-btn" *ngIf="showMembersOption">
+                <input type="radio" formControlName="recipientType" value="members">
+                <span class="btn-content">Members</span>
+              </label>
+              
+              <label class="radio-btn">
+                <input type="radio" formControlName="recipientType" value="single">
+                <span class="btn-content">{{ roleLabels.single }}</span>
+              </label>
+              <!-- Hidden radio for 'owners' but still part of the form state -->
           </div>
         </div>
+      </div>
         
         <div class="form-field">
           <label>Notification Type</label>
@@ -70,14 +75,30 @@ import { trigger, transition, style, animate } from '@angular/animations';
           </div>
         </div>
 
-        <div class="form-field owner-select" *ngIf="form.get('recipientType')?.value === 'single'" [@slideIn]>
-          <label>Select {{ roleLabels.single }}</label>
-          <select formControlName="targetId">
-            <option value="" disabled>Select recipient...</option>
-            <option *ngFor="let t of targets" [value]="t.id_user">
-              {{ t.name }} {{ t.last_name }} ({{ t.role || 'Member' }})
-            </option>
-          </select>
+        <div class="form-field owner-select" *ngIf="form.get('recipientType')?.value === 'single' || form.get('recipientType')?.value === 'owners'" [@slideIn]>
+          <!-- Conditional Toggle for Owners -->
+          <div *ngIf="showOwnersOption" class="toggle-container" (click)="toggleOwnersMode()" 
+               [class.active]="form.get('recipientType')?.value === 'owners'"
+               style="margin-bottom: 1.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--admin-item-bg); border-radius: 12px; border: 1px solid var(--admin-item-border); transition: all 0.3s;">
+            <div class="toggle-switch" [class.active]="form.get('recipientType')?.value === 'owners'" 
+                 [style.background]="form.get('recipientType')?.value === 'owners' ? 'var(--admin-accent-indigo)' : '#e5e7eb'"
+                 style="width: 36px; height: 20px; border-radius: 10px; position: relative; transition: all 0.3s;">
+              <div class="toggle-knob" style="width: 14px; height: 14px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: all 0.3s;"
+                   [style.transform]="form.get('recipientType')?.value === 'owners' ? 'translateX(16px)' : 'translateX(0)'"></div>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--admin-text-primary);">Broadcast to ALL owners instead</span>
+            <mat-icon *ngIf="form.get('recipientType')?.value === 'owners'" style="font-size: 16px; width: 16px; height: 16px; color: var(--admin-accent-indigo);">groups</mat-icon>
+          </div>
+
+          <ng-container *ngIf="form.get('recipientType')?.value === 'single'">
+            <label>Select {{ roleLabels.single }}</label>
+            <select formControlName="targetId">
+              <option value="" disabled>Select recipient...</option>
+              <option *ngFor="let t of targets" [value]="t.id_user">
+                {{ t.name }} {{ t.last_name }} ({{ t.role | titlecase }})
+              </option>
+            </select>
+          </ng-container>
         </div>
 
         <div class="form-field">
@@ -230,11 +251,18 @@ export class NotificationDispatcherComponent {
   @Input() isDispatching = false;
   @Input() showStaffOption = false;
   @Input() showMembersOption = false;
+  @Input() showOwnersOption = false;
   @Input() roleLabels = { all: 'Targets', single: 'Single' };
   @Input() tipText = '';
 
   @Output() onSubmit = new EventEmitter<void>();
   @Output() onReset = new EventEmitter<void>();
+
+  toggleOwnersMode() {
+    const current = this.form.get('recipientType')?.value;
+    const newValue = current === 'owners' ? 'all' : 'owners';
+    this.form.patchValue({ recipientType: newValue });
+  }
 
   notificationTypes = [
     { value: 'info', label: 'Info', icon: '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>' },

@@ -15,11 +15,17 @@ export class SessionService {
     return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
 
+  getSessions(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/sessions`, { headers: this.authHeaders }).pipe(
+      map(res => res?.data || [])
+    );
+  }
+
   getCourseSessions(idCourse: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/sessions`, { headers: this.authHeaders }).pipe(
       map(res => {
-          const sessions = res?.data || [];
-          return sessions.filter((s: any) => s.id_course === idCourse);
+        const sessions = res?.data || [];
+        return sessions.filter((s: any) => s.id_course === idCourse);
       })
     );
   }
@@ -35,7 +41,7 @@ export class SessionService {
   deleteSession(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/sessions/${id}`, { headers: this.authHeaders });
   }
-  
+
   getTrainers(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/gym-staff`, { headers: this.authHeaders }).pipe(
       map(res => {

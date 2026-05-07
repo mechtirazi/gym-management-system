@@ -72,13 +72,37 @@ class PaymentController extends BaseApiController
     }
 
     /**
-     * Override update to prevent modifying payments
+     * Finalize a pending payment (e.g., when a product is delivered)
+     */
+    public function finalize($id)
+    {
+        $payment = $this->findModel($id) ?? $this->service->getById($id);
+        if (!$payment) {
+            return response()->json(['success' => false, 'message' => 'Payment not found'], 404);
+        }
+
+        $this->authorize('update', $payment);
+
+        try {
+            $payment = $this->service->finalizePayment($payment, auth()->id());
+            return response()->json([
+                'success' => true,
+                'data' => new \App\Http\Resources\PaymentResource($payment),
+                'message' => 'Payment finalized successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Override update to prevent modifying payments except finalization
      */
     public function update(\Illuminate\Http\Request $request, $id)
     {
         return response()->json([
             'success' => false,
-            'message' => 'Payments are immutable and cannot be modified once recorded.'
+            'message' => 'Payments are immutable. Use the [finalize] endpoint to complete pending transactions.'
         ], 403);
     }
 

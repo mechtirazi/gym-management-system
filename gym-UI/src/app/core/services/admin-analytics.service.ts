@@ -6,7 +6,9 @@ import { ApiResponse, GymDto } from '../models/api.models';
 
 export interface PlatformMetrics {
   total_active_gyms: number;
-  total_active_members: number;
+  total_active_owners: number;
+  total_members: number;
+  upgraded_members: number;
   mrr: number;
   recent_churn: number;
 }
@@ -24,6 +26,11 @@ export interface RevenueAnalytics {
   at_risk_revenue?: number;
   churned_revenue?: number;
   expiring_gyms?: GymDto[];
+  member_distribution?: {
+    standard: number;
+    elite: number;
+  };
+  ecosystem_mrr?: number;
 }
 
 @Injectable({ providedIn: 'root' })

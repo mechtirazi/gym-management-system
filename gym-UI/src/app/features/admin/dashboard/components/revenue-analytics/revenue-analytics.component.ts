@@ -1,18 +1,18 @@
 import { Component, OnInit, inject, signal, ViewChild, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { 
-  NgApexchartsModule, 
-  ChartComponent, 
-  ApexAxisChartSeries, 
-  ApexChart, 
-  ApexXAxis, 
-  ApexDataLabels, 
-  ApexStroke, 
-  ApexGrid, 
-  ApexYAxis, 
-  ApexTooltip, 
-  ApexTheme, 
+import {
+  NgApexchartsModule,
+  ChartComponent,
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexXAxis,
+  ApexDataLabels,
+  ApexStroke,
+  ApexGrid,
+  ApexYAxis,
+  ApexTooltip,
+  ApexTheme,
   ApexFill,
   ApexNonAxisChartSeries,
   ApexResponsive,
@@ -23,7 +23,7 @@ import { AdminAnalyticsService, RevenueAnalytics } from '../../../../../core/ser
 import { AdminGymsService } from '../../../../../core/services/admin-gyms.service';
 import { ThemeService } from '../../../../../core/services/theme.service';
 import { GymDto } from '../../../../../core/models/api.models';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, finalize, of, forkJoin } from 'rxjs';
 
 export type LineChartOptions = {
   series: ApexAxisChartSeries;
@@ -65,19 +65,24 @@ export class RevenueAnalyticsComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   mrr = signal(0);
+  ecosystemMrr = signal(0);
   activeSubscriptions = signal(0);
   arpu = signal(0);
   mrrGrowth = signal(0);
   isHealthyGrowth = signal(true);
-  
+  totalMembers = signal(0);
+
   atRiskRevenue = signal(0);
   churnedRevenue = signal(0);
   expiringGyms = signal<GymDto[]>([]);
-  
+
+  platformInsights = signal<{ icon: string, text: string, type: 'positive' | 'warning' | 'neutral', action?: string, actionFn?: () => void }[]>([]);
+
   actionLoading = signal<string | null>(null);
 
   public lineChartOptions: Partial<LineChartOptions> | any;
-  public donutChartOptions: Partial<DonutChartOptions> | any;
+  public memberDonutOptions: Partial<DonutChartOptions> | any;
+  public gymSubDonutOptions: Partial<DonutChartOptions> | any;
 
   constructor() {
     effect(() => {
@@ -104,17 +109,23 @@ export class RevenueAnalyticsComponent implements OnInit {
         animations: { enabled: true, easing: 'easeinout', speed: 800 }
       },
       dataLabels: { enabled: false },
-      stroke: { curve: "smooth", width: 3, colors: ['#818cf8'] }, 
-      colors: ['#818cf8'],
+      stroke: { curve: "smooth", width: 3, colors: ['#6366f1'] }, // Sleek Indigo
+      colors: ['#6366f1'],
       fill: {
         type: "gradient",
         gradient: {
           shade: 'dark',
           type: "vertical",
           shadeIntensity: 1,
-          opacityFrom: 0.5,
+          opacityFrom: 0.6,
           opacityTo: 0,
-          stops: [0, 100]
+          stops: [0, 100],
+          colorStops: [
+            [
+              { offset: 0, color: "#818cf8", opacity: 0.5 },
+              { offset: 100, color: "#4f46e5", opacity: 0 }
+            ]
+          ]
         }
       },
       grid: {
@@ -128,50 +139,48 @@ export class RevenueAnalyticsComponent implements OnInit {
         categories: [],
         axisBorder: { show: false },
         axisTicks: { show: false },
-        labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 700 } }
+        labels: { style: { colors: '#94a3b8', fontSize: '11px', fontWeight: 600, fontFamily: 'Inter, system-ui, sans-serif' } }
       },
       yaxis: {
         labels: {
-          style: { colors: '#64748b', fontSize: '10px', fontWeight: 700 },
-          formatter: (val: number) => `$${Math.round(val/1000)}k`
+          style: { colors: '#94a3b8', fontSize: '11px', fontWeight: 600, fontFamily: 'Inter, system-ui, sans-serif' },
+          formatter: (val: number) => `${val.toLocaleString()} TND`
         }
       },
-      tooltip: { 
+      tooltip: {
         theme: 'dark',
         x: { show: true },
         marker: { show: true }
       }
     };
 
-    this.donutChartOptions = {
-      series: [0, 0],
+    // Common donut config
+    const donutBase = {
       chart: {
         type: "donut",
-        height: 280,
+        height: 240,
         fontFamily: 'Inter, system-ui, sans-serif',
         background: 'transparent'
       },
-      labels: ["Basic", "Pro"],
-      colors: ['#10b981', '#c026d3'],
       stroke: { show: true, width: 2, colors: ['rgba(0,0,0,0)'] },
       plotOptions: {
         pie: {
           donut: {
-            size: '80%',
+            size: '75%',
             labels: {
               show: true,
               name: { show: true, fontSize: '12px', fontWeight: 700, color: '#94a3b8', offsetY: -10 },
-              value: { 
-                show: true, 
-                fontSize: '24px', 
-                fontWeight: 900, 
-                color: '#ffffff', 
+              value: {
+                show: true,
+                fontSize: '20px',
+                fontWeight: 900,
+                color: '#ffffff',
                 offsetY: 10,
-                formatter: (val: string) => val 
+                formatter: (val: string) => val
               },
               total: {
                 show: true,
-                label: 'TOTAL NODES',
+                label: 'TOTAL',
                 color: '#475569',
                 fontSize: '10px',
                 fontWeight: 800,
@@ -186,6 +195,20 @@ export class RevenueAnalyticsComponent implements OnInit {
       legend: { show: false },
       tooltip: { theme: 'dark' }
     };
+
+    this.memberDonutOptions = {
+      ...donutBase,
+      series: [0, 0],
+      labels: ["Standard", "Elite"],
+      colors: ['#34d399', '#a78bfa'] // Emerald, Soft Purple
+    };
+
+    this.gymSubDonutOptions = {
+      ...donutBase,
+      series: [0, 0, 0],
+      labels: ["Monthly", "Semester", "Yearly"],
+      colors: ['#60a5fa', '#34d399', '#fbbf24'] // Distinct: Blue, Emerald, Amber
+    };
   }
 
   private updateChartThemes() {
@@ -197,88 +220,208 @@ export class RevenueAnalyticsComponent implements OnInit {
     this.lineChartOptions = {
       ...this.lineChartOptions,
       grid: { ...this.lineChartOptions.grid, borderColor },
-      xaxis: { 
-        ...this.lineChartOptions.xaxis, 
-        labels: { ...this.lineChartOptions.xaxis.labels, style: { ...this.lineChartOptions.xaxis.labels.style, colors: labelColor } } 
+      xaxis: {
+        ...this.lineChartOptions.xaxis,
+        labels: { ...this.lineChartOptions.xaxis.labels, style: { ...this.lineChartOptions.xaxis.labels.style, colors: labelColor } }
       },
-      yaxis: { 
-        ...this.lineChartOptions.yaxis, 
-        labels: { ...this.lineChartOptions.yaxis.labels, style: { ...this.lineChartOptions.yaxis.labels.style, colors: labelColor } } 
+      yaxis: {
+        ...this.lineChartOptions.yaxis,
+        labels: { ...this.lineChartOptions.yaxis.labels, style: { ...this.lineChartOptions.yaxis.labels.style, colors: labelColor } }
       },
       tooltip: { ...this.lineChartOptions.tooltip, theme: isDark ? 'dark' : 'light' }
     };
 
-    this.donutChartOptions = {
-      ...this.donutChartOptions,
+    const updateDonut = (options: any) => ({
+      ...options,
       plotOptions: {
-        ...this.donutChartOptions.plotOptions,
+        ...options.plotOptions,
         pie: {
-          ...this.donutChartOptions.plotOptions.pie,
+          ...options.plotOptions.pie,
           donut: {
-            ...this.donutChartOptions.plotOptions.pie.donut,
+            ...options.plotOptions.pie.donut,
             labels: {
-              ...this.donutChartOptions.plotOptions.pie.donut.labels,
-              name: { ...this.donutChartOptions.plotOptions.pie.donut.labels.name, color: labelColor },
-              value: { ...this.donutChartOptions.plotOptions.pie.donut.labels.value, color: valueColor }
+              ...options.plotOptions.pie.donut.labels,
+              name: { ...options.plotOptions.pie.donut.labels.name, color: labelColor },
+              value: { ...options.plotOptions.pie.donut.labels.value, color: valueColor }
             }
           }
         }
       },
-      tooltip: { ...this.donutChartOptions.tooltip, theme: isDark ? 'dark' : 'light' }
-    };
+      tooltip: { ...options.tooltip, theme: isDark ? 'dark' : 'light' }
+    });
+
+    this.memberDonutOptions = updateDonut(this.memberDonutOptions);
+    this.gymSubDonutOptions = updateDonut(this.gymSubDonutOptions);
   }
 
   loadData() {
     this.loading.set(true);
-    this.analyticsService.getRevenueAnalytics().pipe(
+
+    // Fetch both analytics and full gym list for deeper insights
+    forkJoin({
+      analytics: this.analyticsService.getRevenueAnalytics(),
+      gyms: this.gymsService.getGyms()
+    }).pipe(
       catchError(err => {
         this.error.set('Failed to load revenue analytics');
         return of(null);
       }),
       finalize(() => this.loading.set(false))
-    ).subscribe(data => {
-      if (data) {
-        this.mrr.set(data.mrr || 0);
-        const activeSub = (data?.basic_gyms_count || 0) + (data?.pro_gyms_count || 0);
-        this.activeSubscriptions.set(activeSub);
-        this.arpu.set(activeSub > 0 ? (data.mrr || 0) / activeSub : 0);
-        
-        this.atRiskRevenue.set(data.at_risk_revenue || 0);
-        this.churnedRevenue.set(data.churned_revenue || 0);
-        this.expiringGyms.set(data.expiring_gyms || []);
+    ).subscribe(res => {
+      if (!res) return;
 
-        if (data?.revenue_trend && data.revenue_trend.length >= 2) {
-          const currentMonthRev = data.revenue_trend[data.revenue_trend.length - 1].revenue;
-          const lastMonthRev = data.revenue_trend[data.revenue_trend.length - 2].revenue;
-          if (lastMonthRev > 0) {
-            const growth = ((currentMonthRev - lastMonthRev) / lastMonthRev) * 100;
-            this.mrrGrowth.set(Math.round(growth));
-            this.isHealthyGrowth.set(growth > 0);
-          } else if (currentMonthRev > 0) {
-            this.mrrGrowth.set(100);
-            this.isHealthyGrowth.set(true);
-          } else {
-            this.mrrGrowth.set(0);
-            this.isHealthyGrowth.set(true);
-          }
+      const { analytics, gyms } = res;
+
+      // KPI Updates
+      this.mrr.set(analytics.mrr || 0);
+      this.ecosystemMrr.set(analytics.ecosystem_mrr || 0);
+      const activeSub = gyms.length;
+      this.activeSubscriptions.set(activeSub);
+      this.arpu.set(activeSub > 0 ? (analytics.mrr || 0) / activeSub : 0);
+
+      this.atRiskRevenue.set(analytics.at_risk_revenue || 0);
+      this.churnedRevenue.set(analytics.churned_revenue || 0);
+      this.expiringGyms.set(analytics.expiring_gyms || []);
+
+      // Revenue Trend
+      let growth = 0;
+      if (analytics?.revenue_trend && analytics.revenue_trend.length >= 2) {
+        const currentMonthRev = analytics.revenue_trend[analytics.revenue_trend.length - 1].revenue;
+        const lastMonthRev = analytics.revenue_trend[analytics.revenue_trend.length - 2].revenue;
+        if (lastMonthRev > 0) {
+          growth = ((currentMonthRev - lastMonthRev) / lastMonthRev) * 100;
+          this.mrrGrowth.set(Math.round(growth));
+          this.isHealthyGrowth.set(growth > 0);
         }
-
-        // Update Line Chart
-        this.lineChartOptions.series = [{
-          name: 'Revenue',
-          data: data?.revenue_trend?.map(item => item.revenue) || [0, 0, 0, 0, 0, 0]
-        }];
-        this.lineChartOptions.xaxis = {
-          ...this.lineChartOptions.xaxis,
-          categories: data?.revenue_trend?.map(item => item.month) || ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
-        };
-
-        // Update Donut Chart
-        this.donutChartOptions.series = [
-          data?.basic_gyms_count || 0,
-          data?.pro_gyms_count || 0
-        ];
       }
+
+      this.lineChartOptions.series = [{
+        name: 'Revenue',
+        data: analytics?.revenue_trend?.map(item => item.revenue) || [0, 0, 0, 0, 0, 0]
+      }];
+      this.lineChartOptions.xaxis = {
+        ...this.lineChartOptions.xaxis,
+        categories: analytics?.revenue_trend?.map(item => item.month) || []
+      };
+
+      // Member Distribution
+      if (analytics.member_distribution) {
+        this.memberDonutOptions.series = [
+          analytics.member_distribution.standard,
+          analytics.member_distribution.elite
+        ];
+        this.totalMembers.set(analytics.member_distribution.standard + analytics.member_distribution.elite);
+      }
+
+      // Gym Subscription Types breakdown
+      const typeMap: Record<string, number> = { 'Monthly': 0, 'Semester': 0, 'Yearly': 0 };
+      gyms.forEach(g => {
+        let rawType = g.platform_subscription_type || 'monthly';
+        rawType = rawType.toLowerCase();
+
+        let type = 'Monthly';
+        if (rawType === 'yearly' || rawType === 'year') type = 'Yearly';
+        else if (rawType === 'semester' || rawType === 'semestrial') type = 'Semester';
+
+        typeMap[type]++;
+      });
+
+      this.gymSubDonutOptions.series = Object.values(typeMap);
+      this.gymSubDonutOptions.labels = Object.keys(typeMap);
+      this.gymSubDonutOptions.plotOptions.pie.donut.labels.total.label = 'TOTAL NODES';
+
+      this.generateInsights(growth, analytics.expiring_gyms || []);
+    });
+  }
+
+  private generateInsights(growth: number, expiring: GymDto[]) {
+    const insights = [];
+
+    // Growth Insight
+    if (growth >= 5) {
+      insights.push({
+        icon: 'trending_up',
+        text: `Strong performance! Platform MRR grew by ${Math.round(growth)}% this month. Keep up the good work.`,
+        type: 'positive'
+      });
+    } else if (growth < 0) {
+      insights.push({
+        icon: 'trending_down',
+        text: `MRR decreased by ${Math.abs(Math.round(growth))}%. Consider reviewing retention strategies.`,
+        type: 'warning'
+      });
+    }
+
+    // Expiration Insight
+    if (expiring.length > 0) {
+      const expiredCount = expiring.filter(g => (g.days_remaining || 0) <= 0).length;
+      if (expiredCount > 0) {
+        insights.push({
+          icon: 'report_problem',
+          text: `Critical: ${expiredCount} facilities have expired subscriptions. Immediate action required.`,
+          type: 'warning',
+          action: 'Send Bulk Reminders',
+          actionFn: () => this.bulkNotifyExpiring(expiring)
+        });
+      } else {
+        insights.push({
+          icon: 'schedule',
+          text: `${expiring.length} facilities have subscriptions expiring in the next 7 days.`,
+          type: 'neutral',
+          action: 'View List',
+          actionFn: () => {
+            document.querySelector('.expiring-table-card')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
+    } else {
+      insights.push({
+        icon: 'verified',
+        text: 'All managed facilities are currently active with healthy subscriptions.',
+        type: 'positive'
+      });
+    }
+
+    this.platformInsights.set(insights as any);
+  }
+
+  exportReport() {
+    const data = [
+      ['Metric', 'Value'],
+      ['Total MRR', `${this.mrr()} TND`],
+      ['Active Subscriptions', this.activeSubscriptions()],
+      ['ARPU', `${this.arpu()} TND`],
+      ['At Risk Revenue', `${this.atRiskRevenue()} TND`],
+      ['Churned Revenue', `${this.churnedRevenue()} TND`]
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `platform_revenue_report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  bulkNotifyExpiring(expiring: GymDto[]) {
+    // Notify all expired or urgent gyms
+    expiring.filter(g => (g.days_remaining || 0) <= 3).forEach(gym => {
+      this.notifyOwner(gym);
+    });
+  }
+
+  notifyOwner(gym: GymDto) {
+    if (!gym.id_owner) return;
+    const message = `URGENT: Your platform subscription for ${gym.name} requires immediate attention. Please renew to ensure uninterrupted service.`;
+
+    this.actionLoading.set(gym.id_gym + '_notify');
+    this.gymsService.notifyOwner(gym.id_owner, message).subscribe({
+      next: () => {
+        this.actionLoading.set(null);
+      },
+      error: () => this.actionLoading.set(null)
     });
   }
 

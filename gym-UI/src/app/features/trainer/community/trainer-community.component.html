@@ -5,19 +5,19 @@
       <div class="title-section">
         <div class="icon-bubble">✨</div>
         <div class="text-content">
-          <h1>Community Outreach</h1>
-          <p class="subtitle">Monitor member reviews and community engagement.</p>
+          <h1>Professional Feedback</h1>
+          <p class="subtitle">Monitor your personal reviews and professional performance rating.</p>
         </div>
       </div>
       
       <div class="stats-overview">
         <div class="stat-pill primary">
           <span class="stat-value">{{ stats.averageRating }} <small>★</small></span>
-          <span class="stat-label">Avg. Global Rating</span>
+          <span class="stat-label">Profile Rating</span>
         </div>
         <div class="stat-pill success">
           <span class="stat-value">{{ stats.positiveRate }}%</span>
-          <span class="stat-label">Satisfaction rate</span>
+          <span class="stat-label">Member Satisfaction</span>
         </div>
       </div>
     </div>
@@ -49,7 +49,13 @@
           <article class="review-card glass-card">
             <div class="review-header">
               <div class="user-info">
-                <div class="avatar">{{ review.user?.name?.charAt(0) }}{{ review.user?.last_name?.charAt(0) }}</div>
+                <div class="avatar-wrap">
+                  @if (review.user?.profile_picture) {
+                    <img [src]="getAvatarUrl(review.user?.profile_picture)" alt="User">
+                  } @else {
+                    <div class="initials">{{ review.user?.name?.charAt(0) }}{{ review.user?.last_name?.charAt(0) }}</div>
+                  }
+                </div>
                 <div>
                   <h4 class="user-name">{{ review.user?.name }} {{ review.user?.last_name }}</h4>
                   <span class="review-date">{{ review.created_at | date:'mediumDate' }}</span>

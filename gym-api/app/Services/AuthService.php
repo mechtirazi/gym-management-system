@@ -271,6 +271,8 @@ class AuthService
             'profile_picture',
             'status',
             'nutritionist_advisory',
+            'platform_tier',
+            'platform_upgrade_expires_at',
         ]), [
             'gym_id' => $context['id_gym'] ?? null,
             'gym_status' => $context['status'] ?? 'active',
@@ -296,6 +298,8 @@ class AuthService
             'profile_picture',
             'status',
             'nutritionist_advisory',
+            'platform_tier',
+            'platform_upgrade_expires_at',
         ]), [
             'gym_id' => $context['id_gym'] ?? null,
             'gym_status' => $context['status'] ?? 'active',

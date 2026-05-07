@@ -1,7 +1,7 @@
 import { UserVm } from '../../../core/models/api.models';
 
 export type NotificationLogFilter = 'all' | 'unread';
-export type RecipientType = 'all' | 'staff' | 'members' | 'single';
+export type RecipientType = 'all' | 'staff' | 'members' | 'owners' | 'single';
 export type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
 export interface StaffInvitation {

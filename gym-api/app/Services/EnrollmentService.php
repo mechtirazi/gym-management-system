@@ -41,9 +41,26 @@ class EnrollmentService extends BaseService
 
         $query = $this->query()->orderBy('created_at', 'desc');
 
-        // Apply course filter if requested
+        // Apply course filter if requested, otherwise default to showing only plan-based memberships
         if (request()->has('id_course') && request('id_course')) {
             $query->where('id_course', request('id_course'));
+        } else {
+            $query->whereNotNull('id_plan');
+        }
+
+        // Apply status filter if requested
+        if (request()->has('status') && request('status') !== 'All') {
+            $query->where('status', strtolower(request('status')));
+        }
+
+        // Apply search filter if requested
+        if (request()->has('search') && request('search')) {
+            $search = request('search');
+            $query->whereHas('member', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
         // Super Admin sees all enrollments
@@ -79,16 +96,10 @@ class EnrollmentService extends BaseService
     }
 
 
-    /**
-     * Automatically mark standard enrollments older than 1 month as expired
-     */
     protected function checkExpirations($user)
     {
-        $oneMonthAgo = now()->subMonth();
-
-        $query = Enrollment::where('type', 'standard')
-            ->where('status', 'active')
-            ->where('enrollment_date', '<', $oneMonthAgo);
+        $query = Enrollment::with('plan')
+            ->whereIn('status', ['active', 'pending']);
 
         // Scope to user's gyms if not superadmin
         if ($user->role !== User::ROLE_SUPER_ADMIN) {
@@ -98,6 +109,23 @@ class EnrollmentService extends BaseService
             }
         }
 
-        $query->update(['status' => 'expired']);
+        $enrollments = $query->get();
+        $today = now()->startOfDay();
+
+        foreach ($enrollments as $enrollment) {
+            if (!$enrollment->enrollment_date)
+                continue;
+
+            $startDate = \Carbon\Carbon::parse($enrollment->enrollment_date)->startOfDay();
+            $endDate = $enrollment->end_date ? \Carbon\Carbon::parse($enrollment->end_date)->startOfDay() : null;
+
+            if ($endDate && $endDate->lt($today)) {
+                // Expired
+                $enrollment->update(['status' => 'expired']);
+            } elseif ($enrollment->status === 'pending' && $startDate->lte($today)) {
+                // Activate pending
+                $enrollment->update(['status' => 'active']);
+            }
+        }
     }
 }

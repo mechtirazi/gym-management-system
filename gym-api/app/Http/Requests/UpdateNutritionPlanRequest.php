@@ -20,6 +20,9 @@ class UpdateNutritionPlanRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            'image' => 'sometimes|nullable|string',
             'goal' => 'sometimes|string',
             'start_date' => 'sometimes|date',
             'end_date' => 'sometimes|date|after:start_date',
@@ -27,6 +30,29 @@ class UpdateNutritionPlanRequest extends FormRequest
             'id_members' => 'sometimes|array',
             'id_members.*' => 'exists:users,id_user',
             'price' => 'sometimes|numeric|min:0',
+            'protein' => 'sometimes|nullable|numeric',
+            'carbs' => 'sometimes|nullable|numeric',
+            'fats' => 'sometimes|nullable|numeric',
+            'calories' => 'sometimes|nullable|numeric',
+            'score' => 'sometimes|nullable|integer',
+            'is_active' => 'sometimes|nullable|boolean',
+
+            // Nested Meals
+            'meals' => 'sometimes|array',
+            'meals.*.name' => 'required_with:meals|string',
+            'meals.*.time' => 'required_with:meals|string',
+            'meals.*.description' => 'nullable|string',
+            'meals.*.protein' => 'nullable|numeric',
+            'meals.*.carbs' => 'nullable|numeric',
+            'meals.*.fats' => 'nullable|numeric',
+            'meals.*.calories' => 'nullable|numeric',
+
+            // Nested Supplements
+            'supplements' => 'sometimes|array',
+            'supplements.*.name' => 'required_with:supplements|string',
+            'supplements.*.dosage' => 'required_with:supplements|string',
+            'supplements.*.timing' => 'required_with:supplements|string',
+            'supplements.*.type' => 'required_with:supplements|string|in:capsule,powder,liquid',
         ];
     }
 

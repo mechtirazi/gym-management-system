@@ -44,6 +44,17 @@ class ReviewService extends BaseService
         // Staff (Receptionist, Trainer, Nutritionist) see reviews for their assigned gyms
         if (in_array($user->role, [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST])) {
             
+            // For trainers specifically, prioritize their personal feedback
+            if ($user->role === User::ROLE_TRAINER) {
+                $query->where('id_trainer', $user->id_user);
+                
+                // If they have an active gym context, they might also want to see gym-wide reviews?
+                // The user request suggests they want to see "his profile" reviews.
+                // So we strictly filter by id_trainer.
+                return $perPage ? $query->paginate($perPage) : $query->get();
+            }
+
+            // Fallback for other staff roles (Receptionist, Nutritionist)
             // 1. First apply gym scoping based on the active gym header if present
             $this->applyActiveGymScope($query, $user, 'id_gym', function ($q, $gymId) {
                 $q->where(function ($sub) use ($gymId) {
@@ -57,16 +68,11 @@ class ReviewService extends BaseService
             // 2. If no header is present, fallback to all allowed gyms
             if (!$this->getActiveGymId()) {
                 $gymIds = $user->allowedGymIds();
-                $query->where(function ($q) use ($gymIds, $user) {
+                $query->where(function ($q) use ($gymIds) {
                     $q->whereIn('id_gym', $gymIds)
                       ->orWhereHas('event', fn($sq) => $sq->whereIn('id_gym', $gymIds))
                       ->orWhereHas('course', fn($sq) => $sq->whereIn('id_gym', $gymIds))
                       ->orWhereHas('session.course', fn($sq) => $sq->whereIn('id_gym', $gymIds));
-                    
-                    // Specific to trainers: always show their own reviews regardless of gym
-                    if ($user->role === User::ROLE_TRAINER) {
-                        $q->orWhere('id_trainer', $user->id_user);
-                    }
                 });
             }
 
@@ -108,11 +114,15 @@ class ReviewService extends BaseService
             $aiScore = $analysis['score'];
             
             // 2. Blend AI score with manual rating for higher fidelity
-            // If the user gave 4 or 5 stars, the sentiment shouldn't be "Negative" unless the text is truly bad.
-            // We use a weighted average: 60% Rating, 40% AI analysis
+            // If AI failed or returned exactly 0.5 (fallback), we prioritize the rating weight
             if (isset($data['rating'])) {
                 $ratingWeight = $data['rating'] / 5;
-                $data['ai_sentiment_score'] = ($ratingWeight * 0.6) + ($aiScore * 0.4);
+                if ($aiScore === 0.5) {
+                    $data['ai_sentiment_score'] = $ratingWeight;
+                } else {
+                    // Weighted average: 60% Rating, 40% AI analysis
+                    $data['ai_sentiment_score'] = ($ratingWeight * 0.6) + ($aiScore * 0.4);
+                }
             } else {
                 $data['ai_sentiment_score'] = $aiScore;
             }

@@ -37,41 +37,44 @@
                     <tr *ngFor="let purchase of purchases; let i = index" class="animate-slide-up" [style.animation-delay]="i * 0.05 + 's'">
                         <td>
                             <div class="date-cell">
-                                <span class="primary-date">{{ purchase.created_at | date:'MMM d, y' }}</span>
-                                <span class="id-tag">#{{ purchase.id_transaction || 'TXN-ALPHA' }}</span>
+                                <span class="primary-date">{{ purchase.date }}</span>
+                                <span class="id-tag">#{{ purchase.id || 'TXN-ALPHA' }}</span>
                             </div>
                         </td>
                         <td>
                             <div class="asset-cell">
                                 <div class="asset-icon">
                                     <span class="material-symbols-rounded">
-                                        {{ purchase.type === 'product' ? 'shopping_bag' : 
-                                           (purchase.type === 'course' ? 'exercise' : 
-                                           (purchase.type === 'event' ? 'event' : 'verified')) }}
+                                        {{ (purchase.category?.value === 'product') ? 'shopping_bag' : 
+                                           (purchase.category?.value === 'course' ? 'exercise' : 
+                                           (purchase.category?.value === 'event' ? 'event' : 
+                                           (purchase.category?.value === 'membership' ? 'verified' : 'receipt_long'))) }}
                                     </span>
                                 </div>
                                 <div class="asset-info">
                                     <span class="asset-name">{{ getItemName(purchase) }}</span>
-                                    <span class="asset-gym">{{ purchase.gym?.name || 'Central Hub' }}</span>
+                                    <span class="asset-gym">{{ purchase.gym_name || 'Central Hub' }}</span>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="type-pill" [attr.data-type]="purchase.type">
-                                {{ getTypeLabel(purchase.type) }}
+                            <span class="type-pill" [attr.data-type]="purchase.category?.value">
+                                {{ getTypeLabel(purchase.category?.value) }}
                             </span>
                         </td>
                         <td>
-                            <span class="amount-value">${{ purchase.amount | number:'1.2-2' }}</span>
+                            <span class="amount-value">{{ purchase.amount?.formatted || ('$' + (purchase.amount?.value | number:'1.2-2')) }}</span>
                         </td>
                         <td>
                             <div class="method-cell">
-                                <span class="material-symbols-rounded">{{ getMethodIcon(purchase.method) }}</span>
-                                <span>{{ purchase.method === 'zen_wallet' ? 'Zen Credits' : 'Stripe Node' }}</span>
+                                <span class="material-symbols-rounded">{{ getMethodIcon(purchase.gateway?.value) }}</span>
+                                <span>{{ purchase.gateway?.label || 'Direct Sync' }}</span>
                             </div>
                         </td>
                         <td>
-                            <span class="status-pill">Synchronized</span>
+                            <span class="status-pill" [class.urgent]="purchase.status?.value === 'failed'">
+                                {{ purchase.status?.label || 'Synchronized' }}
+                            </span>
                         </td>
                     </tr>
                 </tbody>

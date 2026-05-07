@@ -103,3 +103,35 @@
   border-radius: 8px;
   border: 1px dashed #cbd5e1;
 }
+
+/* ─── Dark Mode Overrides ─── */
+:host-context(.dark) {
+  .chart-header h2 { color: #f1f5f9; }
+
+  .chart-filter {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    &:hover { border-color: rgba(255,255,255,0.15); background: #1e293b; }
+  }
+
+  .loading-spinner { border-color: rgba(255,255,255,0.1); border-top-color: #818cf8; }
+
+  .main-chart {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .donut-card {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .empty-state {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #475569;
+  }
+}

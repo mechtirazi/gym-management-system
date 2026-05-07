@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { StaffService } from '../../services/staff.service';
+import { environment } from '../../../../../../environments/environment';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -106,6 +107,12 @@ export class HireStaffModalComponent {
       next: (res: any) => {
         this.isSearching.set(false);
         this.existingUser.set(res.data);
+        
+        // Auto-select their current role (or trainer if they are a member)
+        if (res.data) {
+          const suggestedRole = res.data.role === 'member' ? 'trainer' : res.data.role;
+          this.addForm.get('role')?.setValue(suggestedRole);
+        }
       },
       error: (err: any) => {
         this.isSearching.set(false);
@@ -132,9 +139,7 @@ export class HireStaffModalComponent {
       last_name: form.last_name?.trim(),
       email:     form.email.trim(),
       phone:     form.phone?.trim() || '',
-      role:      this.isExistingUserMode() 
-                 ? (this.existingUser()?.role === 'member' ? 'trainer' : this.existingUser()?.role) 
-                 : 'trainer',
+      role:      form.role,
       password:  form.password || 'TempPass123!'
     };
 
@@ -182,5 +187,27 @@ export class HireStaffModalComponent {
         }
       }
     });
+  }
+
+  getImageUrl(path?: string): string | null {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    let cleanPath = path.replace(/^\//, '');
+    
+    // Ensure the path points to the Laravel storage directory if it's a relative path
+    if (!cleanPath.startsWith('storage/')) {
+      cleanPath = `storage/${cleanPath}`;
+    }
+
+    return `${baseUrl}/${cleanPath}`;
+  }
+
+  onImageError(event: any, user: any) {
+    const fallbackUrl = `https://ui-avatars.com/api/?name=${user?.name}+${user?.last_name}&background=8b5cf6&color=fff`;
+    if (event.target.src !== fallbackUrl) {
+      event.target.src = fallbackUrl;
+    }
   }
 }

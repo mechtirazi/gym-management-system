@@ -24,7 +24,15 @@ export class AdminGymsService {
     return this.http.post(`${this.baseUrl}/${id_gym}/activate`, {});
   }
 
+  deleteGym(id_gym: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${id_gym}`);
+  }
+
   renewGym(id_gym: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/${id_gym}/renew`, {});
+  }
+
+  notifyOwner(id_owner: string, message: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/admin/notifications/owner/${id_owner}`, { text: message });
   }
 }

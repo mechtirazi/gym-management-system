@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { SessionService } from '../../services/session.service';
 import { finalize } from 'rxjs';
 import { ConfirmDialogService } from '../../../../../shared/services/confirm-dialog.service';
@@ -44,7 +44,35 @@ export class SessionsModalComponent implements OnInit {
       end_time: ['11:00:00', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)]],
       id_trainer: ['', Validators.required],
       status: ['upcoming', Validators.required]
-    });
+    }, { validators: this.timeRangeValidator });
+  }
+
+  // Custom validator to ensure start_time < end_time
+  timeRangeValidator(group: AbstractControl): ValidationErrors | null {
+    const start = group.get('start_time')?.value;
+    const end = group.get('end_time')?.value;
+
+    if (start && end) {
+      if (start >= end) {
+        return { timeRange: true };
+      }
+    }
+    return null;
+  }
+
+  getFieldError(field: string): string | null {
+    const control = this.sessionForm.get(field);
+    if (control && control.touched && control.errors) {
+      if (control.errors['required']) return 'This field is required';
+      if (control.errors['pattern']) return 'Invalid time format (HH:MM:SS)';
+    }
+    
+    // Group-level errors
+    if (field === 'timeRange' && this.sessionForm.touched && this.sessionForm.errors?.['timeRange']) {
+      return 'Start time must be before end time';
+    }
+
+    return null;
   }
 
   ngOnInit() {

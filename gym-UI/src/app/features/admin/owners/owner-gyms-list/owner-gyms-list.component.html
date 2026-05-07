@@ -35,9 +35,14 @@
       </div>
       <div class="card-top">
         <h4>{{ gym.name }}</h4>
-        <span class="mini-badge" [ngClass]="gym.status === 'active' ? 'active' : 'suspended'">
-          {{ gym.status }}
-        </span>
+        <div class="status-wrap">
+          <span class="mini-badge" [ngClass]="gym.status === 'active' ? 'active' : 'suspended'">
+            {{ gym.status }}
+          </span>
+          <span class="mini-badge plan-badge" *ngIf="gym.platform_subscription_type">
+            {{ gym.platform_subscription_type }}
+          </span>
+        </div>
       </div>
       
       <div class="card-meta">
@@ -59,6 +64,10 @@
         <button *ngIf="gym.status === 'suspended'" (click)="activateGym(gym)" class="admin-btn btn-primary" 
                 style="padding: 0.4rem 0.75rem; font-size: 0.625rem;">
           <mat-icon style="font-size: 14px; width: 14px; height: 14px;">check_circle</mat-icon> Activate
+        </button>
+        <button (click)="deleteGym(gym)" class="admin-btn" 
+                style="padding: 0.4rem 0.75rem; font-size: 0.625rem; background: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); border-color: rgba(244, 63, 94, 0.2); margin-left: 0.5rem;">
+          <mat-icon style="font-size: 14px; width: 14px; height: 14px;">delete_forever</mat-icon>
         </button>
       </div>
     </div>

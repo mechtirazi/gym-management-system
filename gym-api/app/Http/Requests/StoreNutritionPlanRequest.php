@@ -21,6 +21,9 @@ class StoreNutritionPlanRequest extends FormRequest
     {
         return [
             'id_gym' => 'required|exists:gyms,id_gym',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|string', // Could be a path or base64
             'goal' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
@@ -28,6 +31,29 @@ class StoreNutritionPlanRequest extends FormRequest
             'id_members' => 'nullable|array',
             'id_members.*' => 'exists:users,id_user',
             'price' => 'required|numeric|min:0',
+            'protein' => 'nullable|numeric',
+            'carbs' => 'nullable|numeric',
+            'fats' => 'nullable|numeric',
+            'calories' => 'nullable|numeric',
+            'score' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+            
+            // Nested Meals
+            'meals' => 'nullable|array',
+            'meals.*.name' => 'required|string',
+            'meals.*.time' => 'required|string',
+            'meals.*.description' => 'nullable|string',
+            'meals.*.protein' => 'nullable|numeric',
+            'meals.*.carbs' => 'nullable|numeric',
+            'meals.*.fats' => 'nullable|numeric',
+            'meals.*.calories' => 'nullable|numeric',
+
+            // Nested Supplements
+            'supplements' => 'nullable|array',
+            'supplements.*.name' => 'required|string',
+            'supplements.*.dosage' => 'required|string',
+            'supplements.*.timing' => 'required|string',
+            'supplements.*.type' => 'required|string|in:capsule,powder,liquid',
         ];
     }
 

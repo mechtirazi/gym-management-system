@@ -1,151 +1,260 @@
 <div class="plans-page animate-fade-in">
-  <app-page-header
-    [title]="'Dietary Protocols'"
-    [subtitle]="'Architect and deploy specialized nutrition plans for your clients.'"
-    [buttonText]="'Add Protocol'"
-    (addClick)="onAddPlan()"
-  >
+  <app-page-header [title]="'Dietary Protocols'"
+    [subtitle]="'Architect and deploy specialized nutrition plans for your clients.'" [buttonText]="'Add Protocol'"
+    (addClick)="onAddPlan()">
     <span header-icon class="material-symbols-rounded">restaurant</span>
   </app-page-header>
 
   <div class="controls glass-card">
-    <app-filter-controls
-      [searchQuery]="rawSearchQuery()"
-      (searchChange)="onSearchChange($event)"
-      [searchPlaceholder]="'Search by goal or member name...'"
-      [selectedFilter]="selectedFilter()"
-      (filterChange)="onFilterChange($event)"
-      [filterOptions]="filterOptions"
-      [allText]="'All Protocols'"
-    />
+    <app-filter-controls [searchQuery]="rawSearchQuery()" (searchChange)="onSearchChange($event)"
+      [searchPlaceholder]="'Search by goal or member name...'" [selectedFilter]="selectedFilter()"
+      (filterChange)="onFilterChange($event)" [filterOptions]="filterOptions" [allText]="'All Protocols'" />
   </div>
 
   @if (notification()) {
-    <div class="toast animate-scale-in" [class.success]="notification()?.type === 'success'" [class.error]="notification()?.type === 'error'">
-      <span class="icon">{{ notification()?.type === 'success' ? '✅' : '❌' }}</span>
-      {{ notification()?.text }}
-    </div>
+  <div class="toast animate-scale-in" [class.success]="notification()?.type === 'success'"
+    [class.error]="notification()?.type === 'error'">
+    <span class="icon">{{ notification()?.type === 'success' ? '✅' : '❌' }}</span>
+    {{ notification()?.text }}
+  </div>
   }
 
   @if (showModal()) {
-    <div class="modal-backdrop" (click)="closeModal()">
-      <div class="modal-container glass-card animate-scale-in" (click)="$event.stopPropagation()">
-        <header class="modal-header">
-          <h2>{{ modalMode() === 'add' ? 'New Protocol' : 'Modify Protocol' }}</h2>
-          <button class="close-btn" (click)="closeModal()">✕</button>
-        </header>
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-container glass-card animate-scale-in" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>{{ modalMode() === 'add' ? 'New Protocol' : 'Modify Protocol' }}</h2>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </header>
 
-        <form (ngSubmit)="submitPlan()" class="modal-body">
+      <form (ngSubmit)="submitPlan()" class="modal-body architect-body">
+        <!-- Section 1: Identity & Schedule -->
+        <div class="architect-section">
+          <h3 class="section-title"><span class="material-symbols-rounded">fingerprint</span> Identity & Schedule</h3>
           <div class="form-grid">
             <div class="form-group span-2">
-              <label>Target Goal</label>
-              <input [(ngModel)]="planForm().goal" name="goal" placeholder="e.g. Hypertrophy, Metabolic Reset..." required />
+              <label>Protocol Name</label>
+              <input [(ngModel)]="planForm().name" name="name" placeholder="e.g. Phase 1: Metabolic Priming" required />
             </div>
-
+            <div class="form-group span-2">
+              <label>Target Goal / Directive</label>
+              <input [(ngModel)]="planForm().goal" name="goal" placeholder="e.g. Hypertrophy, Metabolic Reset..."
+                required />
+            </div>
+            <div class="form-group span-2">
+              <label>Protocol Visualization (Image)</label>
+              <div class="upload-zone glass-card" (click)="fileInput.click()">
+                <div class="preview-area" *ngIf="planForm().image">
+                  <img [src]="planForm().image" alt="Preview" />
+                  <button type="button" class="remove-img"
+                    (click)="$event.stopPropagation(); planForm.update(p => ({...p, image: ''}))">✕</button>
+                </div>
+                <div class="upload-prompt" *ngIf="!planForm().image">
+                  <span class="material-symbols-rounded">cloud_upload</span>
+                  <p>Click to synchronize protocol image</p>
+                  <small>JPG, PNG (Max 2MB)</small>
+                </div>
+                <input #fileInput type="file" (change)="onImageSelected($event)" accept="image/*" hidden />
+              </div>
+            </div>
             <div class="form-group">
               <label>Assigned Gym</label>
               <select [(ngModel)]="selectedGymId" name="id_gym" required>
                 <option [ngValue]="null" disabled>Select context...</option>
                 @for (g of gyms(); track g.id_gym) {
-                  <option [ngValue]="g.id_gym">{{ g.name }}</option>
+                <option [ngValue]="g.id_gym">{{ g.name }}</option>
                 }
               </select>
-              @if (gyms().length === 0) {
-                <small class="error-text">No gym context available.</small>
-              }
             </div>
-
             <div class="form-group">
               <label>Base Valuation ($)</label>
               <input type="number" [(ngModel)]="planForm().price" name="price" min="0" required />
             </div>
-
             <div class="form-group">
-              <label>Initiation Date</label>
+              <label>Initiation</label>
               <input type="date" [(ngModel)]="planForm().start_date" name="start_date" required />
             </div>
-
             <div class="form-group">
-              <label>Termination Date</label>
+              <label>Termination</label>
               <input type="date" [(ngModel)]="planForm().end_date" name="end_date" required />
             </div>
-
             <div class="form-group span-2">
               <label>Target Clients</label>
               <select [(ngModel)]="planForm().id_members" name="id_members" multiple required class="multi-select">
                 @for (m of members(); track m.id_user) {
-                  <option [value]="m.id_user">{{ m.name }} {{ m.last_name }}</option>
+                <option [value]="m.id_user">{{ m.name }} {{ m.last_name }}</option>
                 }
               </select>
-              <small class="hint">Hold Cmd/Ctrl for multiple selection</small>
             </div>
           </div>
+        </div>
 
-          <footer class="modal-footer">
-            <button type="button" class="secondary-btn" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="primary-btn">{{ modalMode() === 'add' ? 'Deploy' : 'Update' }}</button>
-          </footer>
-        </form>
-      </div>
+        <!-- Section 2: Metabolic Targets -->
+        <div class="architect-section">
+          <h3 class="section-title"><span class="material-symbols-rounded">biotech</span> Metabolic Targets</h3>
+          <div class="form-grid macro-grid">
+            <div class="form-group">
+              <label>Protein (g)</label>
+              <input type="number" [(ngModel)]="planForm().protein" name="protein" />
+            </div>
+            <div class="form-group">
+              <label>Carbs (g)</label>
+              <input type="number" [(ngModel)]="planForm().carbs" name="carbs" />
+            </div>
+            <div class="form-group">
+              <label>Fats (g)</label>
+              <input type="number" [(ngModel)]="planForm().fats" name="fats" />
+            </div>
+            <div class="form-group">
+              <label>Calories (kcal)</label>
+              <input type="number" [(ngModel)]="planForm().calories" name="calories" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Meal Cycle Architect -->
+        <div class="architect-section">
+          <div class="section-header">
+            <h3 class="section-title"><span class="material-symbols-rounded">restaurant</span> Meal Cycle</h3>
+            <button type="button" class="btn-add-node" (click)="addMeal()">+ Add Meal</button>
+          </div>
+          <div class="node-list">
+            @for (meal of planForm().meals; track $index) {
+            <div class="node-item glass-card">
+              <div class="node-inputs">
+                <input [(ngModel)]="meal.name" [name]="'meal_name_'+$index" placeholder="Meal Name" />
+                <input type="time" [(ngModel)]="meal.time" [name]="'meal_time_'+$index" />
+              </div>
+              <button type="button" class="btn-remove-node" (click)="removeMeal($index)">✕</button>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Section 4: Protocol Enhancements -->
+        <div class="architect-section">
+          <div class="section-header">
+            <h3 class="section-title"><span class="material-symbols-rounded">pill</span> Protocol Enhancements</h3>
+            <button type="button" class="btn-add-node" (click)="addSupplement()">+ Add Supplement</button>
+          </div>
+          <div class="node-list">
+            @for (supp of planForm().supplements; track $index) {
+            <div class="node-item glass-card">
+              <div class="node-inputs">
+                <input [(ngModel)]="supp.name" [name]="'supp_name_'+$index" placeholder="Supplement Name" />
+                <input [(ngModel)]="supp.dosage" [name]="'supp_dosage_'+$index" placeholder="Dosage" />
+                <input [(ngModel)]="supp.timing" [name]="'supp_timing_'+$index" placeholder="Timing" />
+              </div>
+              <button type="button" class="btn-remove-node" (click)="removeSupplement($index)">✕</button>
+            </div>
+            }
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="primary-btn architect-deploy-btn">
+            {{ modalMode() === 'add' ? 'Deploy Protocol' : 'Sync Changes' }}
+          </button>
+        </footer>
+      </form>
     </div>
+  </div>
   }
 
   @if (pendingDeleteId()) {
-    <div class="modal-backdrop" (click)="cancelDelete()">
-      <div class="modal-container confirm-card glass-card animate-scale-in" (click)="$event.stopPropagation()">
-        <div class="confirm-content">
-          <div class="warning-icon">⚠️</div>
-          <h3>Decommission Protocol?</h3>
-          <p>This action is irreversible and will remove access for all assigned members.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="secondary-btn" (click)="cancelDelete()">Retain</button>
-          <button type="button" class="danger-btn" (click)="confirmDelete()">Decommission</button>
-        </div>
+  <div class="modal-backdrop" (click)="cancelDelete()">
+    <div class="modal-container confirm-card glass-card animate-scale-in" (click)="$event.stopPropagation()">
+      <div class="confirm-content">
+        <div class="warning-icon">⚠️</div>
+        <h3>Decommission Protocol?</h3>
+        <p>This action is irreversible and will remove access for all assigned members.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="secondary-btn" (click)="cancelDelete()">Retain</button>
+        <button type="button" class="danger-btn" (click)="confirmDelete()">Decommission</button>
       </div>
     </div>
+  </div>
   }
 
   @if (isLoading()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Synchronizing dietary directives...</p>
-    </div>
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Synchronizing dietary directives...</p>
+  </div>
   } @else if (error()) {
-    <div class="state-card error glass-card">
-      <span class="icon">⚠️</span>
-      <p>{{ error() }}</p>
-      <button class="primary-btn" (click)="loadPlans()">Retry</button>
-    </div>
+  <div class="state-card error glass-card">
+    <span class="icon">⚠️</span>
+    <p>{{ error() }}</p>
+    <button class="primary-btn" (click)="loadPlans()">Retry</button>
+  </div>
   } @else if (filteredPlans().length === 0) {
-    <div class="state-card empty glass-card">
-      <span class="icon">📜</span>
-      <p>No dietary protocols found in the selected context.</p>
-    </div>
+  <div class="state-card empty glass-card">
+    <span class="icon">📜</span>
+    <p>No dietary protocols found in the selected context.</p>
+  </div>
   } @else {
-    <div class="plans-grid">
-      @for (plan of pagedPlans(); track plan.id_plan) {
-        <app-nutrition-card
-          [plan]="plan"
-          (deleteClick)="requestDelete($event)"
-          (editClick)="onEditPlan(plan)"
-        />
-      }
-    </div>
-
-    @if (totalPages() > 1) {
-      <div class="pagination-footer glass-card">
-        <button class="nav-btn" [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">
-          <span class="icon">←</span> Prev
-        </button>
-        <div class="page-indicator">
-          Protocol Batch {{ currentPage() }} of {{ totalPages() }}
-        </div>
-        <button class="nav-btn" [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">
-          Next <span class="icon">→</span>
-        </button>
-      </div>
+  <div class="plans-grid">
+    @for (plan of pagedPlans(); track plan.id_plan) {
+    <app-nutrition-card [plan]="plan" (deleteClick)="requestDelete($event)" (editClick)="onEditPlan(plan)"
+      (messageClick)="onMessagePlan(plan)" />
     }
+  </div>
+
+  @if (selectedMemberForPlanChat() || showMemberSelector()) {
+  <div class="floating-chat-hub animate-slide-up">
+    <aside class="hub-sidebar">
+      <header class="sidebar-header">
+        <h4>Plan Members</h4>
+        <button class="close-hub-btn" (click)="closePlanChat()">✕</button>
+      </header>
+      <div class="members-list">
+        @for (m of (showMemberSelector() || currentPlanMembers()); track m.id_user) {
+        <button class="member-tab" [class.active]="selectedMemberForPlanChat()?.id_user === m.id_user"
+          (click)="initiateBioLink(m)">
+          <div class="m-avatar">
+            @if (m.profile_picture) {
+            <img [src]="getAvatarUrl(m.profile_picture)" (error)="$event.target.style.display='none'" />
+            }
+            <span>{{ m.name.charAt(0) }}</span>
+          </div>
+          <div class="m-info">
+            <span class="m-name">{{ m.name }}</span>
+            <span class="m-status">Bio-Link</span>
+          </div>
+        </button>
+        }
+      </div>
+    </aside>
+
+    <main class="hub-viewport">
+      @if (selectedMemberForPlanChat()) {
+      <app-nutrition-messages [recipientId]="selectedMemberForPlanChat().id_user"
+        [recipientName]="selectedMemberForPlanChat().name + ' ' + selectedMemberForPlanChat().last_name"
+        [fullPage]="true" (close)="closePlanChat()" />
+      } @else {
+      <div class="viewport-placeholder">
+        <span class="material-symbols-rounded">forum</span>
+        <p>Select a member to establish secure Bio-Link</p>
+      </div>
+      }
+    </main>
+  </div>
+  }
+
+  @if (totalPages() > 1) {
+  <div class="pagination-footer glass-card">
+    <button class="nav-btn" [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">
+      <span class="icon">←</span> Prev
+    </button>
+    <div class="page-indicator">
+      Protocol Batch {{ currentPage() }} of {{ totalPages() }}
+    </div>
+    <button class="nav-btn" [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">
+      Next <span class="icon">→</span>
+    </button>
+  </div>
+  }
   }
 </div>
-

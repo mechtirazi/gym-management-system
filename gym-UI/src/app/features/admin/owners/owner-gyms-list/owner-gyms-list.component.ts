@@ -9,6 +9,7 @@ import { AdminOwnersService } from '../../../../core/services/admin-owners.servi
 import { AdminGymsService } from '../../../../core/services/admin-gyms.service';
 import { GymDialogComponent } from '../gym-dialog/gym-dialog.component';
 import { SuspendDialogComponent } from '../../gyms/suspend-dialog.component';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../../../environments/environment';
 
 @Component({
@@ -55,7 +56,7 @@ export class OwnerGymsListComponent implements OnInit {
 
   openAddGymDialog() {
     const dialogRef = this.dialog.open(GymDialogComponent, {
-      width: '640px',
+      width: '850px',
       maxWidth: '95vw',
       data: { ownerId: this.ownerId, ownerName: this.ownerName }
     });
@@ -94,6 +95,36 @@ export class OwnerGymsListComponent implements OnInit {
         this.fetchGyms();
       },
       error: () => this.loading.set(false)
+    });
+  }
+
+  deleteGym(gym: GymDto) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Delete Gym Permanently',
+        message: `Are you sure you want to delete <strong>${gym.name}</strong>?<br><br>This action is <strong>irreversible</strong> and will delete all associated members, courses, and financial records.`,
+        confirmText: 'Delete Permanently',
+        cancelText: 'Keep Gym',
+        isDestructive: true,
+        icon: 'delete_forever'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loading.set(true);
+        this.adminGymsService.deleteGym(gym.id_gym).subscribe({
+          next: () => {
+            this.fetchGyms();
+          },
+          error: (err) => {
+            console.error('Delete error:', err);
+            this.error.set(err.error?.message || 'Failed to delete gym.');
+            this.loading.set(false);
+          }
+        });
+      }
     });
   }
 

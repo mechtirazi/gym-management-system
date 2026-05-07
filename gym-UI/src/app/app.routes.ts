@@ -24,6 +24,10 @@ export const routes: Routes = [
         path: 'verify/:id/:hash',
         loadComponent: () => import('./features/auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent)
       },
+      {
+        path: 'forgot-password',
+        loadComponent: () => import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+      },
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },
@@ -144,6 +148,10 @@ export const routes: Routes = [
           {
             path: 'revenue',
             loadComponent: () => import('./features/admin/dashboard/components/revenue-analytics/revenue-analytics.component').then(m => m.RevenueAnalyticsComponent)
+          },
+          {
+            path: 'reclamations',
+            loadComponent: () => import('./features/admin/reclamations/reclamations.component').then(m => m.ReclamationsComponent)
           },
           { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]

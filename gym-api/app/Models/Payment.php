@@ -23,6 +23,7 @@ class Payment extends Model
     public const TYPE_COURSE = 'course';
     public const TYPE_EVENT = 'event';
     public const TYPE_NUTRITION = 'nutrition';
+    public const TYPE_PLATFORM = 'platform';
     public const TYPE_OTHER = 'other';
 
     protected $fillable = [

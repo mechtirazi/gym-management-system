@@ -52,10 +52,10 @@ export class ReceptionistPaymentsService {
   }
 
   listByGym(
-    idGym: string, 
-    page: number = 1, 
-    perPage: number = 10, 
-    startDate?: string, 
+    idGym: string,
+    page: number = 1,
+    perPage: number = 10,
+    startDate?: string,
     endDate?: string,
     status?: string,
     gateway?: string,
@@ -71,7 +71,7 @@ export class ReceptionistPaymentsService {
     if (status) params = params.set('status', status);
     if (gateway) params = params.set('gateway', gateway);
     if (search) params = params.set('search', search);
-      
+
     return this.http.get<ApiResponse<PaymentDto[]>>(this.baseUrl, { params }).pipe(
       map((r: any) => ({
         data: r?.data ?? [],
@@ -100,6 +100,10 @@ export class ReceptionistPaymentsService {
 
   update(id_payment: string, payload: Partial<{ member_id: string; id_gym: string; amount: number; gateway: string; category?: string | null; id_product?: string | null; external_reference?: string | null }>) {
     return this.http.put<ApiResponse<PaymentDto>>(`${this.baseUrl}/${id_payment}`, payload);
+  }
+
+  finalize(id_payment: string) {
+    return this.http.post<ApiResponse<PaymentDto>>(`${this.baseUrl}/${id_payment}/finalize`, {});
   }
 }
 

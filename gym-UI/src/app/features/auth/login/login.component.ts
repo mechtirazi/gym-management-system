@@ -26,8 +26,7 @@ export class LoginComponent {
   }
 
   loginWith(provider: string) {
-    // Redirect to backend social auth endpoint
-    // The browser will be sent to Google/GitHub, then back to the handleProviderCallback in Laravel
+    // The browser will be sent to the social provider (e.g., Google), then back to the handleProviderCallback in Laravel
     window.location.href = `${this.authService.getApiUrl()}/auth/${provider}/redirect`;
   }
 
@@ -46,7 +45,7 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.isLoading.set(true);
       this.errorMessage.set('');
-      
+
       this.authService.login(this.loginForm.value).subscribe({
         next: (res: any) => {
           this.isLoading.set(false);

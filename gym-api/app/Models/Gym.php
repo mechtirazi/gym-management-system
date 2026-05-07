@@ -35,11 +35,39 @@ class Gym extends Model
         'status',
         'suspension_reason',
         'plan',
+        'platform_subscription_type',
+        'platform_subscription_price',
         'subscription_expires_at',
         'last_payment_date',
         'last_receipt_image',
         'is_payment_pending',
     ];
+
+    /**
+     * Boot the model to handle automatic subscription expiry calculation
+     */
+    protected static function booted()
+    {
+        static::creating(function ($gym) {
+            // Set subscription expiration date based on type
+            if ($gym->platform_subscription_type) {
+                $now = now();
+                switch ($gym->platform_subscription_type) {
+                    case 'monthly':
+                        $gym->subscription_expires_at = $now->addMonth();
+                        break;
+                    case 'semester':
+                        $gym->subscription_expires_at = $now->addMonths(6);
+                        break;
+                    case 'yearly':
+                        $gym->subscription_expires_at = $now->addYear();
+                        break;
+                    default:
+                        $gym->subscription_expires_at = $now->addMonth();
+                }
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.

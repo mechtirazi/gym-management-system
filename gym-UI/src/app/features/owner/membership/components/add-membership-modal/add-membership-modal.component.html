@@ -46,16 +46,18 @@
           <label for="id_user">Select Subscriber</label>
           <select id="id_user" formControlName="id_user"
             [class.invalid]="membershipForm.get('id_user')?.touched && membershipForm.get('id_user')?.invalid">
-            <option value="" disabled selected>{{ isLoadingData() ? 'Loading interest list...' : 'Choose a subscriber' }}</option>
+            <option value="" disabled selected>{{ isLoadingData() ? 'Loading interest list...' : 'Choose a subscriber'
+              }}</option>
             @for (member of members(); track member.id_user) {
             <option [value]="member.id_user">{{ member.name }} {{ member.last_name }} ({{ member.email }})</option>
             }
           </select>
           @if (members().length === 0 && !isLoadingData()) {
-            <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; display: block;">No interested users found for this gym.</small>
+          <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; display: block;">No interested users
+            found for this gym.</small>
           }
           @if (membershipForm.get('id_user')?.touched && membershipForm.get('id_user')?.invalid) {
-            <span class="error-text">Please select a subscriber.</span>
+          <span class="error-text">Please select a subscriber.</span>
           }
         </div>
         } @else {
@@ -91,7 +93,7 @@
           <select id="id_plan" formControlName="id_plan">
             <option value="" disabled selected>Select a plan</option>
             @for (plan of plans(); track plan.id) {
-              <option [value]="plan.id">{{ plan.name }} - {{ plan.type | titlecase }}</option>
+            <option [value]="plan.id">{{ plan.name }} - {{ plan.type | titlecase }}</option>
             }
           </select>
         </div>
@@ -99,9 +101,21 @@
         <!-- Enrollment Date -->
         <div class="form-group">
           <label for="subscribe_date">Enrollment Date</label>
-          <input type="date" id="subscribe_date" formControlName="subscribe_date"
+          <input type="date" id="subscribe_date" formControlName="subscribe_date" [min]="todayDate"
             [class.invalid]="membershipForm.get('subscribe_date')?.touched && membershipForm.get('subscribe_date')?.invalid">
+          @if (membershipForm.get('subscribe_date')?.errors?.['pastDate']) {
+          <span class="error-text">Date cannot be in the past.</span>
+          }
         </div>
+
+        @if (calculatedExpiryDate()) {
+        <div class="form-group full-width preview-box animate-reveal">
+          <div class="preview-item">
+            <span class="p-label">Projected Expiry Date</span>
+            <span class="p-value">{{ calculatedExpiryDate() | date:'fullDate' }}</span>
+          </div>
+        </div>
+        }
       </div>
 
       <div class="form-footer">

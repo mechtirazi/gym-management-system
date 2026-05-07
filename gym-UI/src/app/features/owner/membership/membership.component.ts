@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MembershipService } from './services/membership.service';
@@ -7,7 +7,7 @@ import { MembershipCardComponent } from './components/membership-card/membership
 import { AddMembershipModalComponent } from './components/add-membership-modal/add-membership-modal.component';
 import { ViewMembershipModalComponent } from './components/view-membership-modal/view-membership-modal.component';
 import { EditMembershipModalComponent } from './components/edit-membership-modal/edit-membership-modal.component';
-import { finalize } from 'rxjs';
+import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { MemberStatsComponent } from '../member/components/member-stats/member-stats.component';
 
@@ -27,11 +27,13 @@ import { MemberStatsComponent } from '../member/components/member-stats/member-s
   templateUrl: './membership.component.html',
   styleUrl: './membership.component.scss'
 })
-export class MembershipManagementComponent implements OnInit {
+export class MembershipManagementComponent implements OnInit, OnDestroy {
   private membershipService = inject(MembershipService);
   private confirmService = inject(ConfirmDialogService);
 
   private allSubscriptions = signal<any[]>([]);
+  private searchSubject = new Subject<string>();
+
   searchQuery = signal<string>('');
   selectedStatus = signal<string>('All');
   isLoading = signal<boolean>(true);
@@ -64,6 +66,19 @@ export class MembershipManagementComponent implements OnInit {
 
   ngOnInit() {
     this.refreshSubscriptions();
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.searchQuery.set(query);
+      this.currentPage.set(1);
+      this.refreshSubscriptions();
+    });
+  }
+
+  ngOnDestroy() {
+    this.searchSubject.complete();
   }
 
   refreshSubscriptions() {
@@ -95,7 +110,21 @@ export class MembershipManagementComponent implements OnInit {
             this.lastPage.set(1);
           }
 
-          this.allSubscriptions.set(items);
+          // Automatic Expiry Detection
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const processedItems = items.map(m => {
+            if (m.end_date) {
+              const expiry = new Date(m.end_date);
+              if (expiry < today && m.status?.toLowerCase() !== 'cancelled') {
+                return { ...m, status: 'expired' };
+              }
+            }
+            return m;
+          });
+
+          this.allSubscriptions.set(processedItems);
         },
         error: (err) => {
           console.error('Failed to load memberships', err);
@@ -111,9 +140,7 @@ export class MembershipManagementComponent implements OnInit {
   }
 
   onSearchChange(query: string) {
-    this.searchQuery.set(query);
-    this.currentPage.set(1);
-    this.refreshSubscriptions();
+    this.searchSubject.next(query);
   }
 
   // ─── Modal Actions ────────────────────────────────────────────────────────

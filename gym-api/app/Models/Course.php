@@ -15,7 +15,7 @@ class Course extends Model
     protected $appends = ['is_liked', 'likes_count', 'comments_count'];
     public $incrementing = false;
     protected $keyType = 'string';
-    
+
     protected $fillable = [
         'name',
         'description',
@@ -25,6 +25,19 @@ class Course extends Model
         'max_capacity',
         'count',
         'duration',
+        'is_subscription_enabled',
+        'subscription_price',
+        'is_recurring',
+        'recurring_days',
+        'recurring_start_time',
+        'recurring_end_time',
+        'recurrence_weeks',
+    ];
+
+    protected $casts = [
+        'recurring_days' => 'array',
+        'is_subscription_enabled' => 'boolean',
+        'is_recurring' => 'boolean',
     ];
 
     // Relationships

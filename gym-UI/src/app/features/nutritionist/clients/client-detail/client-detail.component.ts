@@ -11,10 +11,12 @@ import { finalize } from 'rxjs';
 
 import { FormsModule } from '@angular/forms';
 
+import { NutritionMessagesComponent } from '../../utils/nutrition-messages.component';
+
 @Component({
   selector: 'app-client-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageHeaderComponent, NutritionCardComponent],
+  imports: [CommonModule, RouterModule, FormsModule, PageHeaderComponent, NutritionCardComponent, NutritionMessagesComponent],
   templateUrl: './client-detail.component.html',
   styleUrl: './client-detail.component.scss'
 })
@@ -35,10 +37,13 @@ export class ClientDetailComponent implements OnInit {
   showNotesModal = signal(false);
   showReportModal = signal(false);
   showAdvisoryModal = signal(false);
+  showMessenger = signal(false);
   isSavingNotes = signal(false);
 
   clientAdvisory = signal<string | null>(null);
+  clientNotes = signal<string | null>(null);
   newAdvisoryText = '';
+  newNotesText = '';
 
   // Real Progress Data from API
   progressData = signal<any[]>([]);
@@ -200,6 +205,8 @@ export class ClientDetailComponent implements OnInit {
         if (target) {
           this.client.set(target);
           this.clientAdvisory.set(target.nutritionist_advisory || null);
+          this.clientNotes.set(target.nutritionist_notes || null);
+          this.newNotesText = target.nutritionist_notes || '';
           this.loadClientPlans(id);
           this.loadBiometrics(id);
           this.loadWorkoutHistory(id);
@@ -252,7 +259,7 @@ export class ClientDetailComponent implements OnInit {
   }
 
   onIssueAdvisory(): void {
-    this.showAdvisoryModal.set(true);
+    this.showMessenger.set(true);
   }
 
   sendAdvisory(remark: string): void {
@@ -268,6 +275,25 @@ export class ClientDetailComponent implements OnInit {
       },
       error: () => {
         console.error('Failed to pin professional advisory.');
+      }
+    });
+  }
+
+  savePrivateNotes(): void {
+    const id = this.clientId();
+    if (!id) return;
+    
+    this.isSavingNotes.set(true);
+    this.api.updateMemberNotes(id, this.newNotesText).subscribe({
+      next: () => {
+        this.clientNotes.set(this.newNotesText);
+        this.showNotesModal.set(false);
+        this.isSavingNotes.set(false);
+        console.log('Internal notes updated.');
+      },
+      error: () => {
+        this.isSavingNotes.set(false);
+        console.error('Failed to save professional notes.');
       }
     });
   }

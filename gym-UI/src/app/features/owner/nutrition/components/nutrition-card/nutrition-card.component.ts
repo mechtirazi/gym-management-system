@@ -14,4 +14,5 @@ export class NutritionCardComponent {
   readonly = input<boolean>(false);
   deleteClick = output<string>();
   editClick = output<NutritionPlan>();
+  messageClick = output<NutritionPlan>();
 }

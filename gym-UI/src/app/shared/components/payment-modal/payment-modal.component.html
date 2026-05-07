@@ -92,7 +92,7 @@
                     </div>
                 </div>
 
-                <div class="vault-form horizontal-compact" [style.display]="selectedMethod === 'credit_card' ? 'flex' : 'none'">
+                <div class="vault-form" [style.display]="selectedMethod === 'credit_card' ? 'flex' : 'none'">
                     <div class="holographic-card compact">
                         <div class="card-header-row">
                             <div class="card-chip"></div>
@@ -107,18 +107,19 @@
                                 <label>CARD NUMBER</label>
                                 <div id="card-number" class="holo-input stripe-element"></div>
                             </div>
+                            
+                            <div class="card-extra-info">
+                                <div class="form-row">
+                                    <label>VALID THRU</label>
+                                    <div id="card-expiry" class="holo-input stripe-element"></div>
+                                </div>
+                                <div class="form-row">
+                                    <label>CVC / CVV</label>
+                                    <div id="card-cvc" class="holo-input stripe-element"></div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="card-expiry-cvc-side">
-                        <div class="form-row">
-                            <label>VALID THRU</label>
-                            <div id="card-expiry" class="holo-input stripe-element"></div>
-                        </div>
-                        <div class="form-row">
-                            <label>CVC / CVV</label>
-                            <div id="card-cvc" class="holo-input stripe-element"></div>
-                        </div>
+                        <div class="holo-glare"></div>
                     </div>
                 </div>
 

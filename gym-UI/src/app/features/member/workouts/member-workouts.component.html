@@ -7,14 +7,14 @@
         {{ showCatalog ? 'Back to Session' : 'View Catalog' }}
       </button>
     </div>
-    <p class="subtitle">Manage your training schedule and discover new courses.</p>
+    <p class="subtitle">Track your workouts and discover new exercises.</p>
   </header>
 
   <!-- KATALOG VIEW -->
   <section class="catalog-grid-view animate-fade-in" *ngIf="showCatalog">
     <div class="catalog-instructions glass-container mb-4">
       <span class="material-icons">info</span>
-      <p>Browse global exercise protocols. Click an item to view details or go back to add to session.</p>
+      <p>Browse all available exercises. Click one to add it to your workout.</p>
     </div>
 
     <div class="catalog-toolbar glass-container mb-4">
@@ -47,7 +47,7 @@
         </div>
         <div class="sync-indicator">
           <span class="material-icons">{{ isInCatalog(ex.name) ? 'bookmark_added' : 'sync' }}</span>
-          {{ isInCatalog(ex.name) ? 'IN CATALOG' : 'SYNC PROTOCOL' }}
+          {{ isInCatalog(ex.name) ? 'SAVED' : 'ADD TO LIST' }}
         </div>
       </div>
     </div>
@@ -59,7 +59,7 @@
     <aside class="library-pane glass-container animate-fade-in">
       <div class="pane-header">
         <span class="material-icons">bookmark_added</span>
-        <h3 class="pane-title">Personal Catalog</h3>
+        <h3 class="pane-title">My Exercises</h3>
       </div>
 
       <!-- Filters for your personal list -->
@@ -92,7 +92,7 @@
         </div>
 
         <div class="empty-sync-list" *ngIf="selectedExercisesNames.length === 0">
-          <p>Your catalog is empty. Sync exercises from the main list above.</p>
+          <p>Your list is empty. Add exercises from the catalog above.</p>
         </div>
       </div>
     </aside>
@@ -102,17 +102,17 @@
       <div class="pane-header">
         <div class="header-main">
           <span class="material-icons">fitness_center</span>
-          <h2>Active Pulse Protocol</h2>
+          <h2>Today's Workout</h2>
         </div>
         <button class="btn-commit" (click)="saveWorkout()" [disabled]="isSaving || workoutForm.exercises.length === 0">
           <span class="material-icons">{{ isSaving ? 'sync' : 'cloud_upload' }}</span>
-          {{ isSaving ? 'Syncing...' : 'Commit Session' }}
+          {{ isSaving ? 'Saving...' : 'Save Workout' }}
         </button>
       </div>
 
       <div class="session-form custom-scrollbar">
         <div class="form-group mb-5">
-          <label>Protocol Identity</label>
+          <label>Workout Name</label>
           <input type="text" [(ngModel)]="workoutForm.name" class="titanium-input" placeholder="Name your session...">
         </div>
 
@@ -142,14 +142,14 @@
             </div>
 
             <button class="btn-add-set-link" (click)="addSet(i)">
-              <span class="material-icons">add</span> Add Intensive Set
+              <span class="material-icons">add</span> Add Set
             </button>
           </div>
         </div>
 
         <div class="empty-builder" *ngIf="workoutForm.exercises.length === 0">
           <span class="material-icons big-icon">add_to_photos</span>
-          <p>Select exercises from the library to initiate protocol.</p>
+          <p>Pick exercises from the left panel to build your workout.</p>
         </div>
       </div>
     </main>

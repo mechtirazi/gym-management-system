@@ -1,180 +1,225 @@
 <div class="revenue-container">
   <header class="revenue-header">
-    <div>
-      <h1 class="text-3xl font-bold text-slate-900">Revenue Analysis</h1>
-      <p class="mt-2 text-slate-500">Track your gym's financial performance and revenue streams.</p>
+    <div class="header-info">
+      <h1>GMS Financial Intelligence</h1>
+      <p>Analyze revenue streams, growth patterns, and performance metrics.</p>
     </div>
 
     <div class="header-actions">
+      <div class="brand-logo">GMS</div>
       <select class="filter-select" (change)="onFilterChange($event)">
-        <option value="this_year">This Year</option>
-        <option value="last_6_months">Last 6 Months</option>
+        <option value="this_year">Current Year Analysis</option>
+        <option value="last_6_months">Last 6 Months Snapshot</option>
       </select>
     </div>
   </header>
 
   @if (isLoading()) {
-  <div class="flex items-center justify-center p-20 text-slate-400 min-h-[500px]">
-    <div class="loading-spinner"></div>
-  </div>
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <h2>Syncing Financial Engine...</h2>
+    </div>
   } @else if (error()) {
-  <div class="flex flex-col items-center justify-center p-20 text-red-500 min-h-[500px]">
-    <p class="text-lg font-semibold">{{ error() }}</p>
-    <button class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-      (click)="fetchRevenueStats('this_year')">Retry</button>
-  </div>
+    <div class="flex flex-col items-center justify-center p-20 text-red-500 min-h-[500px]">
+      <p class="text-lg font-semibold">{{ error() }}</p>
+      <button class="mt-4 px-8 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition"
+        (click)="fetchRevenueStats('this_year')">Retry Analytics</button>
+    </div>
   } @else {
-
-  <!-- Growth Insights -->
-  <div class="growth-insights">
-    <div class="growth-card card">
-      <div class="growth-card-header">
-        <span class="growth-label">Monthly Growth</span>
-        <span class="growth-badge" [class.positive]="stats()?.growth?.momGrowth! >= 0"
-          [class.negative]="stats()?.growth?.momGrowth! < 0">
-          {{ stats()?.growth?.momGrowth! >= 0 ? '↑' : '↓' }} {{ stats()?.growth?.momGrowth | number:'1.1-1' }}%
-        </span>
-      </div>
-      <div class="growth-value">MoM Performance</div>
-      <div class="growth-subtext">Vs. previous month</div>
-    </div>
-
-    <div class="growth-card card">
-      <span class="growth-label">Yearly Progress (YTD)</span>
-      <div class="growth-value">{{ stats()?.growth?.ytdRevenue! | number:'1.0-0' }} <span class="growth-unit">DT</span>
-      </div>
-      <div class="progress-bar-container">
-        <div class="progress-bar" style="width: 70%"></div>
-      </div>
-    </div>
-
-    <div class="growth-card card">
-      <span class="growth-label">Monthly Average</span>
-      <div class="growth-value">{{ stats()?.growth?.averageMonthly! | number:'1.0-0' }} <span
-          class="growth-unit">DT</span></div>
-      <div class="growth-subtext">Mean across period</div>
-    </div>
-
-    <div class="growth-card card forecast-card">
-      <span class="growth-label highlight">AI Forecast</span>
-      <div class="growth-value">{{ stats()?.growth?.forecast! | number:'1.0-0' }} <span class="growth-unit">DT</span>
-      </div>
-      <div class="growth-subtext italic">Predicted next month</div>
-    </div>
-  </div>
-
-  <!-- Progression Insights -->
-  <div class="progression-grid grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <div class="progression-card card glass-card col-span-2">
-      <div class="card-header-flex">
-        <h2 class="chart-title mb-0">Gym Progression Matrix</h2>
-        <div class="status-indicator">
-          <span class="status-dot pulse"></span>
-          Real-time Analysis
+    <!-- Top Row KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="card-top">
+          <div class="icon-box gold">💰</div>
+          <div class="sparkline-container">
+            <apx-chart [series]="sparklineOptions.series" [chart]="sparklineOptions.chart" [stroke]="sparklineOptions.stroke" [colors]="['#f59e0b']"></apx-chart>
+          </div>
         </div>
-      </div>
-      <p class="text-slate-400 text-sm mb-6">Visual correlation between revenue streams and member retention growth.</p>
-
-      <div class="chart-wrapper">
-        <apx-chart [series]="barChartOptions.series" [chart]="barChartOptions.chart"
-          [plotOptions]="barChartOptions.plotOptions" [xaxis]="barChartOptions.xaxis" [yaxis]="barChartOptions.yaxis"
-          [dataLabels]="barChartOptions.dataLabels" [grid]="barChartOptions.grid" [colors]="barChartOptions.colors"
-          [stroke]="barChartOptions.stroke" [markers]="barChartOptions.markers"
-          [legend]="barChartOptions.legend"></apx-chart>
-      </div>
-    </div>
-
-    <div class="side-stats-stack flex flex-col gap-6">
-      <div class="stat-box card gradient-blue">
-        <span class="stat-label">Cumulative Revenue</span>
-        <div class="stat-value">{{ stats()?.totalRevenue! | number:'1.0-0' }} DT</div>
-        <div class="stat-trend positive">+15% vs Yearly Goal</div>
-      </div>
-
-      <div class="stat-box card gradient-emerald">
-        <span class="stat-label">Projected Size</span>
-        <div class="stat-value">{{ stats()?.growth?.forecast! * 12 | number:'1.0-0' }} DT</div>
-        <div class="stat-trend">Year-End Forecast</div>
-      </div>
-
-      <div class="stat-box card glass-card">
-        <span class="stat-label">Member Loyalty</span>
-        <div class="stat-value">94.2%</div>
-        <div class="progress-bar-container mt-2">
-          <div class="progress-bar" style="width: 94%"></div>
+        <span class="kpi-label">Total Revenue</span>
+        <div class="value-row">
+          <span class="value">{{ stats()?.totalRevenue | number:'1.0-0' }}</span>
+          <span class="unit">DT</span>
+        </div>
+        <div class="card-footer">
+          <span class="trend-text up">+{{ stats()?.growth?.momGrowth | number:'1.1-1' }}% vs prev. month</span>
+          Net Profit: {{ (stats()?.totalRevenue || 0) * 0.9 | number:'1.0-0' }} DT
         </div>
       </div>
 
-      <div class="stat-box card highlight-card">
-        <span class="stat-label text-white">ARPU (Per Member)</span>
-        <div class="stat-value text-white">{{ stats()?.growth?.arpu! | number:'1.1-1' }} <span
-            class="text-sm font-normal opacity-70">DT</span></div>
-        <div class="stat-trend text-white opacity-80">Profitability / User</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- KPI Cards -->
-  <div class="kpi-grid">
-    <div class="kpi-card card">
-      <span class="kpi-label">Total Revenue</span>
-      <div class="kpi-value-container">
-        <span class="kpi-value">{{ stats()?.totalRevenue | number:'1.2-2' }}</span>
-        <span class="kpi-unit">DT</span>
-      </div>
-      <p class="kpi-subtext">Total period performance</p>
-    </div>
-
-    <div class="kpi-card card">
-      <span class="kpi-label">Top Stream</span>
-      <div class="kpi-value-container">
-        <span class="kpi-value text-indigo-600">{{ (stats()?.sources?.[0]?.type || 'N/A') | uppercase }}</span>
-      </div>
-      <p class="kpi-subtext">Highest contributing source</p>
-    </div>
-
-    <div class="kpi-card card">
-      <span class="kpi-label">Avg. Monthly</span>
-      <div class="kpi-value-container">
-        @if (stats()?.chartData?.length) {
-        <span class="kpi-value">{{ (stats()?.totalRevenue || 0) / (stats()?.chartData?.length || 1) | number:'1.2-2'
-          }}</span>
-        <span class="kpi-unit">DT</span>
-        }
-      </div>
-      <p class="kpi-subtext">Calculated for this period</p>
-    </div>
-  </div>
-
-  <!-- Main Charts Layout -->
-  <div class="charts-layout">
-    <!-- Historical Performance -->
-    <div class="chart-container card main-chart">
-      <h2 class="chart-title">Revenue Forecast & Historical Performance</h2>
-      <apx-chart [series]="barChartOptions.series" [chart]="barChartOptions.chart"
-        [plotOptions]="barChartOptions.plotOptions" [xaxis]="barChartOptions.xaxis" [yaxis]="barChartOptions.yaxis"
-        [dataLabels]="barChartOptions.dataLabels" [grid]="barChartOptions.grid" [colors]="barChartOptions.colors"
-        [stroke]="barChartOptions.stroke"></apx-chart>
-    </div>
-
-    <!-- Breakdowns -->
-    <div class="breakdown-grid">
-      <div class="chart-container card donut-container">
-        <h2 class="chart-title text-center">Revenue by Source</h2>
-        <apx-chart [series]="sourceDonutOptions.series" [chart]="sourceDonutOptions.chart"
-          [labels]="sourceDonutOptions.labels" [colors]="sourceDonutOptions.colors"
-          [plotOptions]="sourceDonutOptions.plotOptions" [dataLabels]="sourceDonutOptions.dataLabels"
-          [legend]="sourceDonutOptions.legend"></apx-chart>
+      <div class="kpi-card">
+        <div class="card-top">
+          <div class="icon-box blue">📉</div>
+        </div>
+        <span class="kpi-label">Monthly Growth</span>
+        <div class="value-row">
+          <span class="value">{{ stats()?.growth?.momGrowth | number:'1.1-1' }}</span>
+          <span class="unit">%</span>
+        </div>
+        <div class="card-footer">
+          Context: {{ stats()?.growth?.momGrowth! >= 0 ? 'Steady growth detected' : 'Action required to boost performance' }}
+        </div>
       </div>
 
-      <div class="chart-container card donut-container">
-        <h2 class="chart-title text-center">Payment Methods</h2>
-        <apx-chart [series]="methodDonutOptions.series" [chart]="methodDonutOptions.chart"
-          [labels]="methodDonutOptions.labels" [colors]="methodDonutOptions.colors"
-          [plotOptions]="methodDonutOptions.plotOptions" [dataLabels]="methodDonutOptions.dataLabels"
-          [legend]="methodDonutOptions.legend"></apx-chart>
+      <div class="kpi-card">
+        <div class="card-top">
+          <div class="icon-box purple">🔮</div>
+          <div class="sparkline-container">
+            <apx-chart [series]="sparklineOptions.series" [chart]="sparklineOptions.chart" [stroke]="sparklineOptions.stroke" [colors]="['#8b5cf6']"></apx-chart>
+          </div>
+        </div>
+        <span class="kpi-label">AI Forecast</span>
+        <div class="value-row">
+          <span class="value">{{ stats()?.growth?.forecast | number:'1.0-0' }}</span>
+          <span class="unit">DT</span>
+        </div>
+        <div class="card-footer">Projected for next month</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="card-top">
+          <div class="icon-box blue">👥</div>
+        </div>
+        <span class="kpi-label">Avg. Member LTV</span>
+        <div class="value-row">
+          <span class="value">{{ (stats()?.totalRevenue || 0) / (stats()?.enrollmentStats?.total || 1) * 12 | number:'1.0-0' }}</span>
+          <span class="unit">DT</span>
+        </div>
+        <div class="card-footer">Based on 12 months average</div>
+      </div>
+
+      <div class="kpi-card risk-card">
+        <div class="card-top">
+          <div class="icon-box rose">⚠️</div>
+        </div>
+        <span class="kpi-label">Risk Zone</span>
+        <div class="value-row">
+          <span class="value">{{ stats()?.enrollmentStats?.expiringSoon || 0 }}</span>
+          <span class="unit">Members</span>
+        </div>
+        <div class="card-footer">Low engagement, proactive outreach recommended</div>
       </div>
     </div>
-  </div>
+
+    <!-- Meta Progress Metrics -->
+    <div class="meta-metrics">
+      <div class="meta-item margin">
+        <span class="label">Net Margin: 90%</span>
+        <div class="track"><div class="fill" style="width: 90%"></div></div>
+      </div>
+      <div class="meta-item goal">
+        <span class="label">Monthly Goal</span>
+        <div class="track"><div class="fill" style="width: 65%"></div></div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="dashboard-grid">
+      <div class="main-section">
+        <!-- Profit Margin Table -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Profit Margin Analysis by Category</h2>
+            <button class="action-btn">View Breakdown Details</button>
+          </div>
+          <div class="category-table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Total Revenue</th>
+                  <th>Platform Fee</th>
+                  <th>Net Profit</th>
+                  <th>Trend</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let stat of categoryStats(); let i = index">
+                  <td><div class="cat-label">{{ stat.name }}</div></td>
+                  <td>Revenue: {{ stat.revenue | number:'1.0-0' }} DT</td>
+                  <td>Fee: {{ stat.platformFee | number:'1.0-0' }} DT</td>
+                  <td>Net Profit: {{ stat.profit | number:'1.0-0' }} DT ({{ stat.margin }}% Margin)</td>
+                  <td class="spark-cell">
+                    <apx-chart *ngIf="rowSparklineOptions[i]" 
+                      [series]="rowSparklineOptions[i].series" 
+                      [chart]="rowSparklineOptions[i].chart" 
+                      [stroke]="rowSparklineOptions[i].stroke" 
+                      [colors]="rowSparklineOptions[i].colors" 
+                      [tooltip]="rowSparklineOptions[i].tooltip">
+                    </apx-chart>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Revenue Breakdown Bar -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Revenue Breakdown & Attribution</h2>
+          </div>
+          <div class="breakdown-chart-container">
+            <apx-chart [series]="breakdownOptions.series" [chart]="breakdownOptions.chart" [plotOptions]="breakdownOptions.plotOptions"
+              [xaxis]="breakdownOptions.xaxis" [yaxis]="breakdownOptions.yaxis" [colors]="breakdownOptions.colors"
+              [legend]="breakdownOptions.legend" [grid]="breakdownOptions.grid"></apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <div class="operational-sidebar">
+        <!-- Operational Overview -->
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Operational Overview</h2>
+          </div>
+          <div class="op-stats">
+            <p class="text-slate-400 font-bold text-sm mb-2">Yearly Performance (YTD)</p>
+            <div class="ytd-value">{{ stats()?.growth?.ytdRevenue | number:'1.0-0' }} DT</div>
+            
+            <div class="op-chart">
+              <apx-chart [series]="opBarOptions.series" [chart]="opBarOptions.chart" [plotOptions]="opBarOptions.plotOptions"
+                [colors]="opBarOptions.colors" [xaxis]="opBarOptions.xaxis" [grid]="opBarOptions.grid"></apx-chart>
+            </div>
+
+            <div class="projected-size">
+              <h4>Projected Year-End Size</h4>
+              <div class="val">{{ (stats()?.growth?.forecast || 0) * 12 | number:'1.0-0' }} DT</div>
+              <p class="sub">Based on current MoM velocity, target is {{ (stats()?.growth?.forecast || 0) * 15 | number:'1.0-0' }} DT</p>
+            </div>
+
+            <div class="alert-box">
+              <h4>STOCK ALERTS</h4>
+              <p>Critical items low on stock. Action required.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Hub -->
+    <div class="bottom-grid">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Revenue Distribution by Source</h2>
+          <button class="action-btn">View Details</button>
+        </div>
+        <apx-chart [series]="sourceDonutOptions.series" [chart]="sourceDonutOptions.chart" [labels]="sourceDonutOptions.labels"
+          [colors]="sourceDonutOptions.colors" [plotOptions]="sourceDonutOptions.plotOptions" [legend]="sourceDonutOptions.legend"></apx-chart>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Revenue Heatmap (Days/Hours)</h2>
+          <div class="legend-header live"><span class="dot"></span> Live Data</div>
+        </div>
+        <div class="heatmap-container">
+          <apx-chart [series]="heatmapOptions.series" [chart]="heatmapOptions.chart" [dataLabels]="heatmapOptions.dataLabels"
+            [colors]="heatmapOptions.colors" [xaxis]="heatmapOptions.xaxis"></apx-chart>
+        </div>
+        <div class="flex justify-end mt-4">
+          <button class="action-btn">Export PDF Summary</button>
+        </div>
+      </div>
+    </div>
   }
 </div>

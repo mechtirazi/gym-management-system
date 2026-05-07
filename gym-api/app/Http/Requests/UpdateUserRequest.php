@@ -48,6 +48,7 @@ class UpdateUserRequest extends FormRequest
             'notification_app_updates' => 'sometimes|boolean',
             'bio' => 'nullable|string',
             'career_specialties' => 'nullable|string',
+            'nutritionist_notes' => 'nullable|string',
         ];
     }
 

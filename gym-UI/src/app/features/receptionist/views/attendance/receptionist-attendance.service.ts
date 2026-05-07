@@ -7,18 +7,19 @@ export type SessionDto = {
   id_session: string;
   id_course: string;
   id_trainer: string;
-  date?: string;
+  date_session?: string;
   start_time?: string;
   end_time?: string;
   status?: string;
   course?: any;
+  trainer?: any;
 };
 
 export type AttendanceDto = {
   id_attendance: string;
   id_member: string;
   id_session: string;
-  status: 'absent' | 'present' | 'late';
+  status: 'absent' | 'present' | 'late' | 'pending';
   member?: any;
 };
 
@@ -51,12 +52,35 @@ export class ReceptionistAttendanceService {
       .pipe(map((r: any) => r?.data ?? []));
   }
 
-  createAttendance(payload: { id_member: string; id_session: string; status: 'absent' | 'present' | 'late' }) {
+  listEvents() {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/events`).pipe(map((r: any) => r?.data ?? []));
+  }
+
+  listAttendancesByEvent(eventId: string) {
+    const params = new HttpParams().set('id_event', eventId);
+    return this.http
+      .get<ApiResponse<any[]>>(`${this.apiUrl}/attendance-events`, { params })
+      .pipe(map((r: any) => r?.data ?? []));
+  }
+
+  listSubscriptions() {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/subscribes`).pipe(map((r: any) => r?.data ?? []));
+  }
+
+  createAttendance(payload: { id_member: string; id_session: string; status: 'absent' | 'present' | 'late' | 'pending' }) {
     return this.http.post<ApiResponse<AttendanceDto>>(`${this.apiUrl}/attendances`, payload);
   }
 
-  updateAttendance(id_attendance: string, payload: Partial<{ status: 'absent' | 'present' | 'late' }>) {
+  updateAttendance(id_attendance: string, payload: Partial<{ status: 'absent' | 'present' | 'late' | 'pending' }>) {
     return this.http.put<ApiResponse<AttendanceDto>>(`${this.apiUrl}/attendances/${id_attendance}`, payload);
+  }
+
+  createEventAttendance(payload: { id_member: string; id_event: string; status: string }) {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/attendance-events`, payload);
+  }
+
+  updateEventAttendance(id_attendance: string, payload: Partial<{ status: string }>) {
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/attendance-events/${id_attendance}`, payload);
   }
 }
 

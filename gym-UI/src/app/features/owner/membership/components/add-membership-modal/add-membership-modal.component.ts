@@ -39,7 +39,7 @@ export class AddMembershipModalComponent implements OnInit {
     id_user: ['', Validators.required],
     status: ['active', Validators.required],
     id_plan: ['', Validators.required],
-    subscribe_date: [new Date().toISOString().split('T')[0], Validators.required],
+    subscribe_date: [new Date().toISOString().split('T')[0], [Validators.required, this.futureDateValidator]],
     // New member fields
     first_name: [''],
     last_name: [''],
@@ -48,13 +48,21 @@ export class AddMembershipModalComponent implements OnInit {
     password: ['']
   });
 
+  calculatedExpiryDate = signal<string | null>(null);
+  todayDate = new Date().toISOString().split('T')[0];
+
   ngOnInit() {
     this.loadInitialData();
+
+    // Watch for changes to update preview
+    this.membershipForm.valueChanges.subscribe(() => {
+      this.updateExpiryPreview();
+    });
   }
 
   loadInitialData() {
     this.isLoadingData.set(true);
-    
+
     this.membershipService.getSubscribers().pipe(
       finalize(() => this.isLoadingData.set(false))
     ).subscribe({
@@ -65,9 +73,16 @@ export class AddMembershipModalComponent implements OnInit {
         const mems = subscribers
           .map((s: any) => s.user)
           .filter((u: any) => u && u.id_user);
-        
-        console.log('Filtered subscribers:', mems);
-        this.members.set(mems);
+
+        const uniqueMemsMap = new Map<string, any>();
+        mems.forEach((m: any) => {
+          if (!uniqueMemsMap.has(m.id_user)) {
+            uniqueMemsMap.set(m.id_user, m);
+          }
+        });
+
+        console.log('Filtered subscribers:', Array.from(uniqueMemsMap.values()));
+        this.members.set(Array.from(uniqueMemsMap.values()));
       },
       error: (err) => {
         console.error('Failed to load subscribers', err);
@@ -89,6 +104,27 @@ export class AddMembershipModalComponent implements OnInit {
         error: (err) => console.error('Failed to load plans', err)
       });
     }
+  }
+
+  updateExpiryPreview() {
+    const formValue = this.membershipForm.value;
+    if (!formValue.id_plan || !formValue.subscribe_date) {
+      this.calculatedExpiryDate.set(null);
+      return;
+    }
+
+    const selectedPlan = this.plans().find(p => p.id === formValue.id_plan);
+    const durationDays = selectedPlan?.duration_days || 30;
+    const enrollmentDate = new Date(formValue.subscribe_date);
+    
+    if (isNaN(enrollmentDate.getTime())) {
+      this.calculatedExpiryDate.set(null);
+      return;
+    }
+
+    const expiryDate = new Date(enrollmentDate);
+    expiryDate.setDate(expiryDate.getDate() + durationDays);
+    this.calculatedExpiryDate.set(expiryDate.toISOString().split('T')[0]);
   }
 
   toggleCreationMode() {
@@ -135,13 +171,13 @@ export class AddMembershipModalComponent implements OnInit {
     this.error.set(null);
 
     const formValue = this.membershipForm.getRawValue();
-    
+
     // Dynamic Status Calculation logic
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const enrollmentDate = new Date(formValue.subscribe_date || new Date().toISOString());
     enrollmentDate.setHours(0, 0, 0, 0);
-    
+
     const selectedPlan = this.plans().find(p => p.id === formValue.id_plan);
     const durationDays = selectedPlan?.duration_days || 30;
     const expiryDate = new Date(enrollmentDate);
@@ -157,14 +193,14 @@ export class AddMembershipModalComponent implements OnInit {
     if (this.isNewMember()) {
       this.isSubmitting.set(true);
       this.isCreatingUser.set(true);
-      
+
       const newUserData = {
         name: formValue.first_name,
         last_name: formValue.last_name,
         email: formValue.email,
         phone: formValue.phone,
         role: 'member',
-        password: formValue.password || 'password123', 
+        password: formValue.password || 'password123',
         creation_date: new Date().toISOString().split('T')[0]
       };
 
@@ -217,5 +253,15 @@ export class AddMembershipModalComponent implements OnInit {
           }
         });
     }
+  }
+
+  private futureDateValidator(control: any) {
+    if (!control.value) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(control.value);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    return selectedDate >= today ? null : { pastDate: true };
   }
 }

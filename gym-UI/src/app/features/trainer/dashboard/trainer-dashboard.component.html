@@ -32,6 +32,52 @@
     </div>
   </header>
 
+  @if (isProfileIncomplete()) {
+  <div class="profile-strength-banner glass-card animate-slide-up">
+    <div class="strength-viz">
+      <svg class="circular-progress" viewBox="0 0 100 100">
+        <circle class="bg" cx="50" cy="50" r="45"></circle>
+        <circle class="fg" cx="50" cy="50" r="45" [style.stroke-dashoffset]="283 - (283 * profileCompletion().percentage / 100)"></circle>
+      </svg>
+      <div class="avatar-wrap">
+        <img [src]="getAvatarUrl()" (error)="$any($event.target).src = 'assets/images/default-avatar.png'" alt="Profile">
+      </div>
+      <div class="percentage-badge">{{ profileCompletion().percentage }}%</div>
+    </div>
+
+    <div class="alert-content">
+      <div class="content-header">
+        <span class="status-tag">
+          <span class="material-symbols-rounded">verified_user</span>
+          Profile Strength: {{ profileCompletion().percentage < 50 ? 'Basic' : 'Growing' }}
+        </span>
+        <h3>Complete Your Professional Brand</h3>
+      </div>
+      <p>A professional account builds trust with members. Complete your details:</p>
+      
+      <div class="missing-items-grid">
+        <div class="m-item" [class.done]="hasField('profile_picture')">
+          <span class="material-symbols-rounded">{{ hasField('profile_picture') ? 'check_circle' : 'add_a_photo' }}</span>
+          <span>Avatar</span>
+        </div>
+        <div class="m-item" [class.done]="hasField('bio')">
+          <span class="material-symbols-rounded">{{ hasField('bio') ? 'check_circle' : 'history_edu' }}</span>
+          <span>Biography</span>
+        </div>
+        <div class="m-item" [class.done]="hasField('career_specialties')">
+          <span class="material-symbols-rounded">{{ hasField('career_specialties') ? 'check_circle' : 'psychology' }}</span>
+          <span>Specialties</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="complete-btn" routerLink="/settings">
+      <span>Complete Now</span>
+      <span class="material-symbols-rounded">rocket_launch</span>
+    </button>
+  </div>
+  }
+
   @if (nextSession()) {
   <div class="spotlight-section">
     <div class="spotlight-card glass-card next-up">
@@ -66,33 +112,48 @@
 
   <div class="stats-row">
     <div class="stat-card glass-card">
-      <div class="icon-box cyan">👥</div>
-      <div class="stat-data">
-        <span class="value">{{ stats().activeClients }}</span>
+      <div class="card-bg-icon">groups</div>
+      <div class="stat-visual cyan">
+        <span class="material-symbols-rounded">groups</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-header">
+          <span class="value">{{ stats().activeClients }}</span>
+          <span [class]="'trend-badge ' + (stats().activeClientsTrend.startsWith('+') ? 'up' : 'down')">
+            {{ stats().activeClientsTrend }}
+          </span>
+        </div>
         <span class="label">Active Clients</span>
       </div>
-      <div [class]="'trend ' + (stats().activeClientsTrend.startsWith('+') ? 'positive' : 'negative')">
-        {{ stats().activeClientsTrend }} this week
-      </div>
     </div>
 
     <div class="stat-card glass-card">
-      <div class="icon-box amber">🕒</div>
-      <div class="stat-data">
-        <span class="value">{{ stats().sessionsToday }}</span>
+      <div class="card-bg-icon">task_alt</div>
+      <div class="stat-visual amber">
+        <span class="material-symbols-rounded">task_alt</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-header">
+          <span class="value">{{ stats().sessionsToday }}</span>
+          <span class="trend-badge neutral">{{ stats().completedToday }} Done</span>
+        </div>
         <span class="label">Today's Goals</span>
       </div>
-      <div class="trend">{{ stats().completedToday }} Completed</div>
     </div>
 
     <div class="stat-card glass-card">
-      <div class="icon-box emerald">⭐️</div>
-      <div class="stat-data">
-        <span class="value">{{ stats().rating }}</span>
-        <span class="label">Performance</span>
+      <div class="card-bg-icon">auto_graph</div>
+      <div class="stat-visual emerald">
+        <span class="material-symbols-rounded">auto_graph</span>
       </div>
-      <div [class]="'trend ' + (stats().ratingTrend.startsWith('+') ? 'positive' : 'negative')">
-        {{ stats().ratingTrend }} Improvement
+      <div class="stat-content">
+        <div class="stat-header">
+          <span class="value">{{ stats().rating }}</span>
+          <span [class]="'trend-badge ' + (stats().ratingTrend.startsWith('+') ? 'up' : 'down')">
+            {{ stats().ratingTrend }}
+          </span>
+        </div>
+        <span class="label">Performance Index</span>
       </div>
     </div>
   </div>

@@ -1,7 +1,28 @@
-@import '../admin-shared.scss';
+@use '../admin-shared.scss' as *;
 
 :host {
   display: block;
+}
+
+.expiry-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  border-radius: 0.75rem;
+  color: var(--admin-accent-emerald);
+  font-size: 0.7rem;
+  font-weight: 800;
+  
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+  
+  &.expired {
+    background: rgba(244, 63, 94, 0.05);
+    border-color: rgba(244, 63, 94, 0.1);
+    color: var(--admin-accent-rose);
+  }
 }
 
 .gyms-list-header {

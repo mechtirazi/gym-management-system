@@ -56,7 +56,7 @@ export class EventAttendancesModalComponent implements OnInit {
       is_rewarded: [false],
       reward_amount: [0, [Validators.min(0)]],
       max_winners: [1, [Validators.min(1)]]
-    });
+    }, { validators: this.dateRangeValidator });
 
     // Handle capacity toggle
     this.eventForm.get('ignore_max_capacity')?.valueChanges.subscribe(val => {
@@ -67,6 +67,23 @@ export class EventAttendancesModalComponent implements OnInit {
         control?.enable();
       }
     });
+  }
+
+  dateRangeValidator(group: any): { [key: string]: any } | null {
+    const start_date = group.get('start_date')?.value;
+    const start_time = group.get('start_time')?.value || '00:00';
+    const end_date = group.get('end_date')?.value;
+    const end_time = group.get('end_time')?.value || '23:59';
+
+    if (start_date && end_date) {
+      const start = new Date(`${start_date}T${start_time}`);
+      const end = new Date(`${end_date}T${end_time}`);
+
+      if (end <= start) {
+        return { dateRangeInvalid: true };
+      }
+    }
+    return null;
   }
 
   ngOnInit() {

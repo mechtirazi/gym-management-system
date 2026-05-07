@@ -405,15 +405,18 @@
   <div class="modal-overlay animate-fade-in" (click)="showNotesModal.set(false)">
     <div class="modal-content notes-modal glass-card" (click)="$event.stopPropagation()">
       <header class="modal-header">
-        <h2>Private Professional Notes</h2>
+        <h2>Shared Clinical Notes</h2>
         <button class="close-btn" (click)="showNotesModal.set(false)">&times;</button>
       </header>
       <div class="modal-body">
-        <textarea placeholder="Write clinical observations, dietary adjustments, or follow-up reminders..."></textarea>
+        <p class="modal-hint" style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">These notes will be visible to the member on their nutrition hub.</p>
+        <textarea [(ngModel)]="newNotesText" placeholder="Write clinical observations or adjustments that the member should see..."></textarea>
       </div>
       <footer class="modal-footer">
-        <button class="action-btn outline" (click)="showNotesModal.set(false)">Cancel</button>
-        <button class="action-btn solid" (click)="showNotesModal.set(false)">Save Notes</button>
+        <button class="action-btn outline" (click)="showNotesModal.set(false)" [disabled]="isSavingNotes()">Cancel</button>
+        <button class="action-btn solid" (click)="savePrivateNotes()" [disabled]="isSavingNotes()">
+          {{ isSavingNotes() ? 'Saving...' : 'Save Notes' }}
+        </button>
       </footer>
     </div>
   </div>
@@ -442,6 +445,14 @@
       </footer>
     </div>
   </div>
+}@if (showMessenger()) {
+  <div class="modal-overlay animate-fade-in" (click)="showMessenger.set(false)">
+    <div class="messenger-container" (click)="$event.stopPropagation()">
+      <app-nutrition-messages 
+        [recipientId]="clientId()!" 
+        [recipientName]="client()?.name"
+        (close)="showMessenger.set(false)">
+      </app-nutrition-messages>
+    </div>
+  </div>
 }
-
-

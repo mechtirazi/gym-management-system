@@ -35,7 +35,10 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
           <div class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
               <label>Enrollment Date</label>
-              <input type="date" formControlName="enrollment_date" style="width: 100%; padding: 0.9rem 1.1rem; border-radius: 14px; background: #f8fafc; border: 2px solid #e2e8f0; font-size: 0.95rem; font-weight: 700; color: #1e293b; transition: all 0.2s;">
+              <input type="date" formControlName="enrollment_date" [min]="todayDate" style="width: 100%; padding: 0.9rem 1.1rem; border-radius: 14px; background: #f8fafc; border: 2px solid #e2e8f0; font-size: 0.95rem; font-weight: 700; color: #1e293b; transition: all 0.2s;">
+              @if (editForm.get('enrollment_date')?.errors?.['pastDate']) {
+                <span class="error-text" style="color: #ef4444; font-size: 0.8rem; font-weight: 700; margin-top: 0.5rem; margin-left: 0.5rem; display: block;">Date cannot be in the past.</span>
+              }
             </div>
 
             <div class="form-group">
@@ -194,10 +197,12 @@ export class EditMembershipModalComponent implements OnInit {
 
 
   editForm = this.fb.group({
-    enrollment_date: ['', Validators.required],
+    enrollment_date: ['', [Validators.required, this.futureDateValidator]],
     status: ['', Validators.required],
     id_plan: ['', Validators.required]
   });
+
+  todayDate = new Date().toISOString().split('T')[0];
 
   private statusSub?: Subscription;
 
@@ -258,5 +263,15 @@ export class EditMembershipModalComponent implements OnInit {
         },
         error: (err: any) => this.error.set(err.error?.message || 'Update failed')
       });
+  }
+
+  private futureDateValidator(control: any) {
+    if (!control.value) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(control.value);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    return selectedDate >= today ? null : { pastDate: true };
   }
 }

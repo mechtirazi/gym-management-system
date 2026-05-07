@@ -2,28 +2,31 @@
     <!-- Dynamic Background Aura -->
     <div class="x-bg-aura"></div>
 
-    <header class="hub-header">
+    <!-- Architectural Header -->
+    <header class="x-header animate-slide-up">
         <div class="header-content">
             <div class="discovery-tag">
                 <span class="dot"></span>
-                <span>Bio-Sync Hub 2026</span>
+                <span>Diet Hub</span>
             </div>
-            <h1 class="hub-title">Metabolic <br> <span class="text-gradient">Intelligence.</span></h1>
-            <p class="hub-subtitle">High-performance clinical protocol monitoring and elite marketplace.</p>
+            <h1 class="x-title"><span class="text-gradient">Nutrition <br> Plans.</span></h1>
+            <p class="x-subtitle">Manage your diet and find the best nutrition plans for your goals.</p>
         </div>
 
-        <nav class="hub-navigation">
-            <div class="segmented-control">
-                <button class="segment" [class.active]="activeTab === 'insights'" (click)="setTab('insights')">
-                    <span class="material-symbols-rounded">analytics</span>
-                    My Intelligence
-                </button>
-                <button class="segment" [class.active]="activeTab === 'shop'" (click)="setTab('shop')">
-                    <span class="material-symbols-rounded">biotech</span>
-                    Elite Marketplace
-                </button>
-            </div>
-        </nav>
+        <div class="header-controls">
+            <nav class="hub-navigation">
+                <div class="segmented-control">
+                    <button class="segment" [class.active]="activeTab === 'insights'" (click)="setTab('insights')">
+                        <span class="material-symbols-rounded">analytics</span>
+                        My Progress
+                    </button>
+                    <button class="segment" [class.active]="activeTab === 'shop'" (click)="setTab('shop')">
+                        <span class="material-symbols-rounded">shopping_basket</span>
+                        Plan Store
+                    </button>
+                </div>
+            </nav>
+        </div>
     </header>
 
     <div *ngIf="loading" class="x-skeleton-grid">
@@ -31,34 +34,36 @@
     </div>
 
     <div *ngIf="!loading && errorMessage" class="error-hub">
-        <span class="material-symbols-rounded">dns</span>
+        <span class="material-symbols-rounded">error</span>
         <p>{{ errorMessage }}</p>
     </div>
 
     <ng-container *ngIf="!loading && !errorMessage">
-        <!-- INTELLIGENCE HUB VIEW -->
+        <!-- NUTRITION PROGRESS VIEW -->
         <div class="hub-intelligence-deck animate-slide-up" *ngIf="activeTab === 'insights'">
-            <!-- Active Protocol Bento Module -->
-            <section class="active-protocol-module" [class.empty]="!activePlan" (click)="viewActiveDetails()">
+            <!-- Active Plan Module -->
+            <section class="active-protocol-module" [class.empty]="!activePlan">
                 <ng-container *ngIf="activePlan; else noActiveView">
                     <div class="module-header">
                         <div class="status-indicator live"></div>
-                        <span class="module-label">Live Sync Status: Protocol Active</span>
-                        <div class="gym-tag">SOURCE: {{ activePlan.gymName }}</div>
+                        <span class="module-label">Current Active Plan</span>
+                        <div class="gym-tag">Gym: {{ activePlan.gymName }}</div>
                     </div>
 
                     <div class="active-card-content">
                         <div class="protocol-identity">
-                            <span class="category-meta">Current Metabolic Strategy</span>
+                            <span class="category-meta">Plan Details</span>
                             <h2>{{ activePlan.name }}</h2>
                         </div>
 
                         <div class="macro-circuits">
-                            <!-- Protein Gauge -->
+                            <!-- Protein -->
                             <div class="circuit-node p">
                                 <svg viewBox="0 0 36 36" class="circular-chart">
-                                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="circle" [style.stroke-dasharray]="activePlan.macroStatus.pPercent + ', 100'"
+                                    <path class="circle-bg"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle"
+                                        [style.stroke-dasharray]="activePlan.macroStatus.pPercent + ', 100'"
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                 </svg>
                                 <div class="node-info">
@@ -67,99 +72,122 @@
                                 </div>
                             </div>
 
-                            <!-- Carbs Gauge -->
+                            <!-- Carbs -->
                             <div class="circuit-node c">
                                 <svg viewBox="0 0 36 36" class="circular-chart">
-                                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="circle" [style.stroke-dasharray]="activePlan.macroStatus.cPercent + ', 100'"
+                                    <path class="circle-bg"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle"
+                                        [style.stroke-dasharray]="activePlan.macroStatus.cPercent + ', 100'"
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                 </svg>
                                 <div class="node-info">
                                     <span class="val">{{ activePlan.macroStatus.carbs }}<small>g</small></span>
-                                    <span class="lab">Carbohydrates</span>
+                                    <span class="lab">Carbs</span>
                                 </div>
                             </div>
 
-                            <!-- Fats Gauge -->
+                            <!-- Fats -->
                             <div class="circuit-node f">
                                 <svg viewBox="0 0 36 36" class="circular-chart">
-                                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="circle" [style.stroke-dasharray]="activePlan.macroStatus.fPercent + ', 100'"
+                                    <path class="circle-bg"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle"
+                                        [style.stroke-dasharray]="activePlan.macroStatus.fPercent + ', 100'"
                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                 </svg>
                                 <div class="node-info">
                                     <span class="val">{{ activePlan.macroStatus.fats }}<small>g</small></span>
-                                    <span class="lab">Lipids / Fats</span>
+                                    <span class="lab">Fats</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="daily-meta">
                             <div class="meta-item">
-                                <span class="label">Caloric Ceiling</span>
+                                <span class="label">Daily Calories</span>
                                 <span class="value">{{ activePlan.macroStatus.calories }} kcal</span>
                             </div>
                             <div class="meta-item">
-                                <span class="label">Protocol Stability</span>
-                                <span class="value">{{ activePlan.macroStatus.score }}% Optimized</span>
+                                <span class="label">Plan Adherence</span>
+                                <span class="value">{{ activePlan.macroStatus.score }}%</span>
                             </div>
-                        <div class="action-row">
-                                <button class="btn-glass-primary" (click)="viewExpertRemarks()">View Specialist Remarks</button>
-                                <button class="btn-glass-secondary" (click)="viewActiveDetails()">Sync Shopping List</button>
+                            <div class="action-row">
+                                <button class="btn-glass-primary" (click)="viewExpertRemarks()">
+                                    <span class="material-symbols-rounded">assignment</span>
+                                    Nutritionist Notes
+                                </button>
+                                <button class="btn-glass-secondary" (click)="viewActiveDetails()">
+                                    <span class="material-symbols-rounded">info</span>
+                                    View Details
+                                </button>
                             </div>
                         </div>
 
-                        <!-- NEW: Hydration & Adherence Circuit Hub -->
                         <div class="bio-synergy-hub">
-                            <!-- Hydration Intelligence -->
+                            <!-- Water Intake -->
                             <div class="bio-node hydration-tracker">
-                                <div class="liquid-container">
+                                <div class="liquid-container circular">
                                     <div class="liquid" [style.height.%]="waterPercentage"></div>
-                                    <div class="wave"></div>
                                     <div class="content">
-                                        <span class="val">{{ waterIntake }}<small>ml</small></span>
-                                        <label>Hydration Sync</label>
+                                        <span class="val"><!-- DEBUG: {{ waterIntake }} -->{{ waterIntake |
+                                            number:'1.2-2' }}<small>ml</small></span>
+                                        <label>WATER INTAKE</label>
                                     </div>
                                 </div>
-                                <div class="controls">
-                                    <button (click)="addWater(250)">+250ml</button>
-                                    <button (click)="addWater(500)">+500ml</button>
+                                <div class="controls vertical">
+                                    <button (click)="addWater(250)">+250ML</button>
+                                    <button (click)="addWater(500)">+500ML</button>
+                                </div>
+                                <div class="intake-notice">
+                                    <span class="material-symbols-rounded">calculate</span>
+                                    <div class="notice-content">
+                                        <p class="formula">Hydration Protocol: weight(kg) × 35ml</p>
+                                        <p class="example">Ex: {{ (waterGoal / 35) | number:'1.0-0' }}kg × 35ml = {{
+                                            waterGoal }}ml/day</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Daily Adherence Intelligence -->
+                            <!-- Meal Tracking -->
                             <div class="bio-node adherence-tracker">
                                 <header>
-                                    <span class="label">Daily Adherence Pulse</span>
-                                    <span class="value">{{ adherenceRate }}% SYNCED</span>
+                                    <span class="label">Meal Tracking</span>
+                                    <span class="value">{{ adherenceRate }}% COMPLETED</span>
                                 </header>
                                 <div class="adherence-ring-bg">
                                     <div class="ring-fill" [style.width.%]="adherenceRate"></div>
                                 </div>
-                                <p class="sub-label">Metabolic window adherence status</p>
+                                <p class="sub-label">Track your daily meal goals</p>
                             </div>
                         </div>
                     </div>
                 </ng-container>
                 <ng-template #noActiveView>
                     <div class="empty-state-content">
-                        <span class="material-symbols-rounded">biotech</span>
-                        <h3>No Active Protocol</h3>
-                        <p>Synchronize your first clinical nutrition protocol from the elite marketplace.</p>
-                        <button class="btn-initialize-now" (click)="setTab('shop')">Browse Marketplace</button>
+                        <span class="material-symbols-rounded">restaurant</span>
+                        <h3>No Active Plan</h3>
+                        <p>Find your first diet plan in the plan store.</p>
+                        <button class="btn-initialize-now" (click)="setTab('shop')">Browse Store</button>
                     </div>
                 </ng-template>
             </section>
 
-            <!-- Expert Bridge Sidecard -->
+            <!-- Nutritionist Chat Sidecard -->
             <aside class="nutritionist-bridge-card">
+                <button class="btn-expert-action" (click)="bridgeContact()"
+                    style="margin-bottom: 2rem; position: relative; z-index: 9999;">
+                    Open Chat (PRIORITY)
+                </button>
+
                 <div class="bridge-header">
-                    <span class="material-symbols-rounded">medical_services</span>
-                    <span class="label">Expert Sync Bridge</span>
+                    <span class="material-symbols-rounded">chat</span>
+                    <span class="label">Nutritionist Chat</span>
                 </div>
 
                 <div class="expert-profile">
-                    <img [src]="activePlan?.expertImage || 'https://ui-avatars.com/api/?name=Expert&background=8b5cf6&color=fff&bold=true'" alt="Expert">
+                    <img [src]="getAvatarUrl(nutritionistInsight.image || activePlan?.expertImage) || 'https://ui-avatars.com/api/?name=Expert&background=8b5cf6&color=fff&bold=true'"
+                        alt="Expert">
                     <div class="meta">
                         <span class="name">{{ nutritionistInsight.expert }}</span>
                         <span class="role">{{ nutritionistInsight.role }}</span>
@@ -171,57 +199,18 @@
                     <span class="timestamp">LAST UPDATE: {{ nutritionistInsight.timestamp | uppercase }}</span>
                 </div>
 
-                <button class="btn-expert-action" (click)="bridgeContact(nutritionistInsight.expert)">
-                    Initialize Secure Bridge
-                </button>
 
-                <!-- NEW: Supplement Enhancement Node -->
-                <div class="supplement-calibration-section" *ngIf="supplementStack.length > 0">
-                    <div class="section-header">
-                        <span class="material-symbols-rounded">pill</span>
-                        <span class="label">Protocol Enhancements</span>
-                    </div>
-                    <div class="supp-list">
-                        <div class="supp-item" *ngFor="let supp of supplementStack">
-                            <span class="material-symbols-rounded icon">{{ supp.type === 'powder' ? 'biotech' : 'pill' }}</span>
-                            <div class="meta">
-                                <span class="name">{{ supp.name }}</span>
-                                <span class="dosage">{{ supp.dosage }} • {{ supp.timing }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- NEW: Daily Meal Bio-Tracker -->
-                <div class="meal-tracker-section" *ngIf="dailyMeals.length > 0">
-                    <div class="section-header">
-                        <span class="material-symbols-rounded">restaurant</span>
-                        <span class="label">Meal Cycle Adherence</span>
-                    </div>
-                    <div class="meals-list">
-                        <div class="meal-item" *ngFor="let meal of dailyMeals" [class.completed]="meal.is_completed" (click)="toggleMeal(meal)">
-                            <div class="check-node">
-                                <span class="material-symbols-rounded" *ngIf="meal.is_completed">done_all</span>
-                            </div>
-                            <div class="meta">
-                                <span class="name">{{ meal.name }}</span>
-                                <span class="time">{{ meal.time }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Protocol Switcher for Multiple Nodes -->
+                <!-- Plan Switcher -->
                 <div class="protocol-switcher-section" *ngIf="ownedPlans.length > 1">
                     <div class="switcher-header">
-                        <span class="material-symbols-rounded">hub</span>
-                        <span class="label">Synchronized Plans</span>
+                        <span class="material-symbols-rounded">swap_horiz</span>
+                        <span class="label">My Plans</span>
                     </div>
                     <div class="nodes-list">
-                        <div class="node-item" 
-                             *ngFor="let plan of ownedPlans" 
-                             [class.active]="(activePlan?.id_plan || activePlan?.id) === (plan.id_plan || plan.id)"
-                             (click)="switchProtocol(plan)">
+                        <div class="node-item" *ngFor="let plan of ownedPlans"
+                            [class.active]="(activePlan?.id_plan || activePlan?.id) === (plan.id_plan || plan.id)"
+                            (click)="switchProtocol(plan)">
                             <div class="node-indicator"></div>
                             <span class="node-name">{{ plan.name }}</span>
                         </div>
@@ -230,24 +219,24 @@
             </aside>
         </div>
 
-        <!-- MARKETPLACE GRID VIEW -->
+        <!-- PLAN STORE VIEW -->
         <div class="shop-view animate-slide-up" *ngIf="activeTab === 'shop'">
             <div class="shop-controls-bar">
                 <div class="search-orb">
                     <span class="material-symbols-rounded">search</span>
-                    <input type="text" [(ngModel)]="searchText" placeholder="Query clinical protocols..." class="search-input">
+                    <input type="text" [(ngModel)]="searchText" placeholder="Search diet plans..." class="search-input">
                 </div>
 
                 <div class="filter-shell">
                     <select [(ngModel)]="selectedGymId" class="hub-selector">
-                        <option value="all">Global Resource Hubs</option>
+                        <option value="all">All Gyms</option>
                         <option *ngFor="let gym of gyms" [value]="gym.id_gym">{{ gym.name }}</option>
                     </select>
                 </div>
             </div>
 
             <main class="nutrition-bento-grid" *ngIf="paginatedPlans.length > 0; else noPlans">
-                @for (plan of paginatedPlans; track plan.name) {
+                @for (plan of paginatedPlans; track plan.id_plan) {
                 <article class="plan-card shop-style" [class.owned]="plan.isOwned" [class.is-inactive]="!plan.isActive">
                     <div class="card-glass-body">
                         <div class="protocol-header">
@@ -255,13 +244,25 @@
                                 <img [src]="plan.gymLogo" alt="Gym">
                                 <span>{{ plan.gymName }}</span>
                             </div>
-                            <div class="plan-price" *ngIf="!plan.isOwned">$19.99</div>
+                            <div class="plan-price" *ngIf="!plan.isOwned">${{ plan.price || '19.99' }}</div>
                             <div class="owner-chip" *ngIf="plan.isOwned">
-                                <span class="material-symbols-rounded">verified</span> Active Sync
+                                <span class="material-symbols-rounded">check_circle</span> Owned
                             </div>
                         </div>
 
+                        <div class="protocol-image" *ngIf="plan.image">
+                            <img [src]="plan.image" alt="Protocol">
+                        </div>
+                        <div class="protocol-image placeholder" *ngIf="!plan.image">
+                            <span class="material-symbols-rounded">restaurant</span>
+                        </div>
+
                         <div class="plan-info">
+                            <div class="author-attribution" *ngIf="plan.nutritionist">
+                                <img [src]="getAvatarUrl(plan.nutritionist.profile_picture) || 'https://ui-avatars.com/api/?name=' + plan.nutritionist.name"
+                                    alt="Author">
+                                <span>{{ plan.nutritionist.name }} {{ plan.nutritionist.last_name }}</span>
+                            </div>
                             <h3>{{ plan.name }}</h3>
                             <p>{{ plan.description }}</p>
                         </div>
@@ -283,16 +284,16 @@
 
                         <button class="btn-buy" [disabled]="plan.isOwned || !plan.isActive" (click)="buyPlan(plan)">
                             <span class="material-symbols-rounded">
-                                {{ plan.isOwned ? 'sync' : (plan.isActive ? 'lock_open' : 'cloud_off') }}
+                                {{ plan.isOwned ? 'check' : (plan.isActive ? 'shopping_cart' : 'block') }}
                             </span>
-                            {{ plan.isOwned ? 'Sync Established' : (plan.isActive ? 'Acquire Protocol' : 'Plan Offline') }}
+                            {{ plan.isOwned ? 'Owned' : (plan.isActive ? 'Buy Plan' : 'Plan Unavailable') }}
                         </button>
                     </div>
                 </article>
                 }
             </main>
 
-            <!-- Pagination Controls -->
+            <!-- Pagination -->
             <div class="pagination-hub" *ngIf="totalPages > 1">
                 <button class="btn-page-nav" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
                     <span class="material-symbols-rounded">chevron_left</span>
@@ -305,30 +306,32 @@
                     </span>
                 </div>
 
-                <button class="btn-page-nav" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+                <button class="btn-page-nav" [disabled]="currentPage === totalPages"
+                    (click)="changePage(currentPage + 1)">
                     <span class="material-symbols-rounded">chevron_right</span>
                 </button>
             </div>
         </div>
 
-        <!-- Empty State for Search -->
+        <!-- Empty State -->
         <ng-template #noPlans>
             <div class="empty-hub">
                 <span class="material-symbols-rounded icon">search_off</span>
-                <h3>No Clinical Matches</h3>
-                <p>We couldn't find any protocols matching your bio-query node.</p>
+                <h3>No Plans Found</h3>
+                <p>We couldn't find any diet plans matching your search.</p>
             </div>
         </ng-template>
     </ng-container>
 
-    <!-- PROFESSIONAL METABOLIC ADVISORY OVERLAY -->
+    <!-- NUTRITIONIST ADVISORY OVERLAY -->
     <div class="advisory-overlay" *ngIf="showAdvisoryModal" (click)="closeAdvisory()">
         <div class="advisory-modal" (click)="$event.stopPropagation()">
             <div class="modal-glow"></div>
-            
+
             <header class="modal-top">
                 <div class="expert-info">
-                    <img [src]="activePlan?.expertImage || 'https://ui-avatars.com/api/?name=Expert&background=8b5cf6&color=fff&bold=true'" alt="Expert">
+                    <img [src]="nutritionistInsight.image || activePlan?.expertImage || 'https://ui-avatars.com/api/?name=Expert&background=8b5cf6&color=fff&bold=true'"
+                        alt="Expert">
                     <div class="text">
                         <span class="name">{{ nutritionistInsight.expert }}</span>
                         <span class="role">{{ nutritionistInsight.role }}</span>
@@ -341,17 +344,18 @@
 
             <main class="modal-body">
                 <div class="intelligence-tag">
-                    <span class="material-symbols-rounded">neurology</span>
-                    Clinical Metabolic Directive
+                    <span class="material-symbols-rounded">assignment</span>
+                    Nutritionist Advice
                 </div>
-                <h3 class="directive-title">Active Protocol Insight</h3>
-                <p class="directive-message">"{{ nutritionistInsight.message || 'Initializing secure communication node with laboratory specialist...' }}"</p>
-                
-                <!-- NEW: Clinical Analysis Snapshot (Basis for Recommendation) -->
+                <h3 class="directive-title">Your Nutritionist's Note</h3>
+                <p class="directive-message">"{{ nutritionistInsight.message || 'Waiting for your nutritionist to
+                    provide feedback...' }}"</p>
+
+                <!-- Basis for Recommendation -->
                 <div class="analysis-snapshot" *ngIf="analyzedBiometrics">
                     <header class="snapshot-header">
                         <span class="material-symbols-rounded">analytics</span>
-                        Basis for Recommendation (Analyzed Data)
+                        Why this plan? (Based on your data)
                     </header>
                     <div class="metrics-mini-grid">
                         <div class="m-node">
@@ -363,7 +367,7 @@
                             <span>{{ analyzedBiometrics.calories || '--' }}<small>kcal</small></span>
                         </div>
                         <div class="m-node">
-                            <label>Evolution</label>
+                            <label>Points</label>
                             <span>{{ analyzedBiometrics.evolutionPoints || '0' }}<small>pts</small></span>
                         </div>
                     </div>
@@ -371,36 +375,90 @@
 
                 <div class="biometric-pulse">
                     <div class="pulse-ring"></div>
-                    <span>SYNC VERIFIED</span>
+                    <span>SYNCED</span>
                 </div>
             </main>
 
             <footer class="modal-actions">
-                <button class="btn-acknowledge" (click)="closeAdvisory()">Acknowledge Directive</button>
+                <button class="btn-acknowledge" (click)="closeAdvisory()">I Understand</button>
             </footer>
         </div>
     </div>
 
-    <!-- NEW: CLINICAL SHOPPING LIST OVERLAY -->
-    <div class="advisory-overlay" *ngIf="showShoppingList" (click)="closeShoppingList()">
+    <!-- PLAN DETAILS OVERLAY -->
+    <div class="advisory-overlay" *ngIf="showPlanDetails" (click)="closePlanDetails()">
         <div class="advisory-modal list-modal" (click)="$event.stopPropagation()">
             <div class="modal-glow"></div>
-            
+
             <header class="modal-top">
                 <div class="expert-info">
-                    <span class="material-symbols-rounded icon">shopping_cart</span>
+                    <span class="material-symbols-rounded icon">info</span>
                     <div class="text">
-                        <span class="name">Smart Shopping Assistant</span>
-                        <span class="role">Based on: {{ activePlan?.name }}</span>
+                        <span class="name">Plan Details</span>
+                        <span class="role">For plan: {{ activePlan?.name }}</span>
                     </div>
                 </div>
-                <button class="close-btn" (click)="closeShoppingList()">
+                <button class="close-btn" (click)="closePlanDetails()">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </header>
 
             <main class="modal-body">
-                <div class="shopping-bento">
+                <!-- Supplements -->
+                <div class="supplement-calibration-section" *ngIf="supplementStack.length > 0"
+                    style="margin-bottom: 2rem;">
+                    <div class="section-header"
+                        style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: #f8fafc;">
+                        <span class="material-symbols-rounded" style="color: #8b5cf6;">pill</span>
+                        <span class="label" style="font-weight: 600;">Supplements</span>
+                    </div>
+                    <div class="supp-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div class="supp-item" *ngFor="let supp of supplementStack"
+                            style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
+                            <span class="material-symbols-rounded icon"
+                                style="padding: 0.75rem; background: rgba(139, 92, 246, 0.1); color: #a78bfa; border-radius: 10px;">{{
+                                supp.type === 'powder' ? 'science' : 'pill' }}</span>
+                            <div class="meta" style="display: flex; flex-direction: column;">
+                                <span class="name" style="color: #f8fafc; font-weight: 500;">{{ supp.name }}</span>
+                                <span class="dosage" style="color: #94a3b8; font-size: 0.85rem;">{{ supp.dosage }} • {{
+                                    supp.timing }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Meals -->
+                <div class="meal-tracker-section" *ngIf="dailyMeals.length > 0" style="margin-bottom: 2rem;">
+                    <div class="section-header"
+                        style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: #f8fafc;">
+                        <span class="material-symbols-rounded" style="color: #10b981;">restaurant</span>
+                        <span class="label" style="font-weight: 600;">Daily Meal Tracker</span>
+                    </div>
+                    <div class="meals-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div class="meal-item" *ngFor="let meal of dailyMeals" [class.completed]="meal.is_completed"
+                            (click)="toggleMeal(meal)"
+                            style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                            <div class="check-node"
+                                style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid #334155; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-rounded" *ngIf="meal.is_completed"
+                                    style="font-size: 14px; color: #10b981;">done</span>
+                            </div>
+                            <div class="meta" style="display: flex; flex-direction: column;">
+                                <span class="name" style="color: #f8fafc; font-weight: 500;"
+                                    [style.textDecoration]="meal.is_completed ? 'line-through' : 'none'"
+                                    [style.opacity]="meal.is_completed ? '0.5' : '1'">{{ meal.name }}</span>
+                                <span class="time" style="color: #94a3b8; font-size: 0.85rem;">{{ meal.time }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="shopping-bento" *ngIf="shoppingIngredients.length > 0">
+                    <div class="section-header"
+                        style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: #f8fafc;">
+                        <span class="material-symbols-rounded" style="color: #3b82f6;">shopping_cart</span>
+                        <span class="label" style="font-weight: 600;">Shopping List</span>
+                    </div>
                     <div class="category-node" *ngFor="let cat of shoppingIngredients">
                         <h4>{{ cat.category }}</h4>
                         <ul>
@@ -414,21 +472,24 @@
             </main>
 
             <footer class="modal-actions">
-                <button class="btn-acknowledge" (click)="closeShoppingList()">Sync to Mobile</button>
+                <button class="btn-acknowledge" (click)="closePlanDetails()">Close</button>
             </footer>
         </div>
     </div>
 
-    <!-- Payment Modal for Acquiring Protocols -->
-    <app-payment-modal 
-        [showModal]="showPaymentModal" 
-        [itemTitle]="selectedPlan?.name"
-        [itemSubtitle]="'Metabolic Clinical Protocol'"
-        [itemImage]="selectedPlan?.gymLogo"
-        [plans]="[selectedPlan]"
-        [paymentError]="paymentError"
-        [processingPayment]="processingPayment"
-        (cancelPayment)="showPaymentModal = false"
+    <!-- Payment Modal -->
+    <app-payment-modal [showModal]="showPaymentModal" [itemTitle]="selectedPlan?.name" [itemSubtitle]="'Nutrition Plan'"
+        [itemImage]="selectedPlan?.gymLogo" [plans]="[selectedPlan]" [paymentError]="paymentError"
+        [processingPayment]="processingPayment" (cancelPayment)="showPaymentModal = false"
         (confirmPayment)="confirmPayment($event)">
     </app-payment-modal>
+
+    <!-- Messenger Overlay -->
+    <div class="messenger-overlay" *ngIf="showMessenger" (click)="showMessenger = false">
+        <div class="messenger-container" (click)="$event.stopPropagation()">
+            <app-nutrition-messages [recipientId]="activeRecipientId" [recipientName]="nutritionistInsight.expert"
+                (close)="showMessenger = false">
+            </app-nutrition-messages>
+        </div>
+    </div>
 </div>

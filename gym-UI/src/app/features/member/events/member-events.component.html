@@ -1,23 +1,30 @@
-<div class="events-container animate-fade-in">
-  <header class="header-hub">
-    <div class="glass-card header-content">
-      <div class="text-group">
-        <h1>Exclusive Events</h1>
-        <p>Workshops, seminars, and challenges from your elite gym network.</p>
+<div class="x-hub-container">
+  <!-- Dynamic Background Effects -->
+  <div class="x-bg-aura aura-1"></div>
+  <div class="x-bg-aura aura-2"></div>
+
+  <!-- Architectural Header -->
+  <header class="x-header animate-slide-up">
+    <div class="header-content">
+      <div class="discovery-tag">
+        <span class="dot"></span>
+        <span>Exclusive Node</span>
       </div>
-
-      <div class="header-filters">
-        <div class="search-box">
-          <span class="material-symbols-rounded">search</span>
-          <input type="text" [(ngModel)]="searchText" (ngModelChange)="onFilterChange()"
-            placeholder="Search events or workshops..." />
-        </div>
-
-        <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="gym-node-selector">
+      <h1 class="x-title"><span class="text-gradient">Upcoming <br> Events.</span></h1>
+      <p class="x-subtitle">Workshops, seminars, and challenges from your elite gym network.</p>
+    </div>
+    <div class="header-controls">
+      <div class="x-search-orb">
+        <span class="material-symbols-rounded">search</span>
+        <input type="text" [(ngModel)]="searchText" (ngModelChange)="onFilterChange()"
+          placeholder="Search for events or workshops..." />
+      </div>
+      <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="gym-node-selector">
           <option value="all">Global Hub (All Gyms)</option>
-          <option *ngFor="let gym of gyms" [value]="gym.id_gym">{{ gym.name }}</option>
-        </select>
-      </div>
+          @for (gym of gyms; track gym.id_gym) {
+              <option [value]="gym.id_gym">{{ gym.name }}</option>
+          }
+      </select>
     </div>
   </header>
 
@@ -25,8 +32,9 @@
     <p>{{ errorMessage }}</p>
   </div>
 
+  <!-- Events Grid -->
   @if (!loading) {
-  <div class="events-grid" *ngIf="paginatedEvents.length > 0; else noEvents">
+  <div class="events-grid" *ngIf="filteredEvents.length > 0; else noEvents">
     @for (event of paginatedEvents; track event.id_event) {
     <div class="event-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'"
       [class.is-reserved]="isEventReserved(event)">
@@ -35,6 +43,7 @@
           [src]="event.imageUrl"
           [alt]="event.title"
           (error)="event.imageUrl = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800'">
+        
         <div class="date-overlay">
           <span class="day">{{ event.start_date | date:'dd' }}</span>
           <span class="month">{{ event.start_date | date:'MMM' }}</span>
@@ -60,7 +69,7 @@
         </div>
 
         <h3 class="event-title">{{ event.title }}</h3>
-        <p class="event-desc">{{ (event.description | slice:0:100) + '...' }}</p>
+        <p class="event-desc">{{ (event.description | slice:0:120) + '...' }}</p>
 
         <div class="event-meta-modern">
           <div class="meta-node">
@@ -77,14 +86,6 @@
               <div class="meta-stack">
                 <span class="meta-label">REWARD</span>
                 <span class="meta-value reward-text">{{ event.rewardAmount }} Points</span>
-              </div>
-            </div>
-            
-            <div class="meta-node">
-              <span class="material-symbols-rounded info-icon">emoji_events</span>
-              <div class="meta-stack">
-                <span class="meta-label">WINNERS</span>
-                <span class="meta-value">{{ event.maxWinners }} Top Spots</span>
               </div>
             </div>
           } @else {
@@ -116,7 +117,7 @@
               (click)="onReserve(event)" 
               [title]="isEventReserved(event) ? 'Already secured' : 'Secure your spot'">
               <span class="material-symbols-rounded">{{ isEventReserved(event) ? 'verified' : 'stadium' }}</span>
-              {{ isEventReserved(event) ? 'Secured' : (event.price > 0 ? 'Get Access' : 'Enroll for Free') }}
+              {{ isEventReserved(event) ? 'Secured' : (event.price > 0 ? 'Get Access' : 'Enroll Free') }}
             </button>
           </div>
         </div>
@@ -132,10 +133,12 @@
     </button>
 
     <div class="page-indicators">
-      <button *ngFor="let p of [].constructor(totalPages); let i = index" class="page-pill"
-        [class.active]="currentPage === i + 1" (click)="changePage(i + 1)">
-        {{ i + 1 }}
-      </button>
+      @for (p of [].constructor(totalPages); track $index) {
+          <button class="page-pill"
+            [class.active]="currentPage === $index + 1" (click)="changePage($index + 1)">
+            {{ $index + 1 }}
+          </button>
+      }
     </div>
 
     <button class="nav-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
@@ -145,7 +148,8 @@
 
   <ng-template #noEvents>
     <div class="empty-state">
-      <h3>No upcoming events found</h3>
+      <span class="material-symbols-rounded icon">event_busy</span>
+      <h3>No events found</h3>
       <p>Check back later for new workshops and challenges.</p>
     </div>
   </ng-template>

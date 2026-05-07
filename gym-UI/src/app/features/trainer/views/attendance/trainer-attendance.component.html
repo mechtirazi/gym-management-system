@@ -47,7 +47,7 @@
             <div class="session-info">
               <span class="course-name">{{ s.course?.name || s.course?.title || 'Session ' + s.id_session }}</span>
               <div class="session-meta">
-                <span class="date">📅 {{ s.date || 'TBA' }}</span>
+                <span class="date">📅 {{ s.date_session || 'TBA' }}</span>
                 <span class="time">⏰ {{ s.start_time || '--:--' }} {{ s.end_time ? '- ' + s.end_time : '' }}</span>
               </div>
             </div>

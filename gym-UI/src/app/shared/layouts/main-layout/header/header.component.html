@@ -7,7 +7,7 @@
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
     </div>
-    <input type="text" [placeholder]="'Search Zenith resources...'" 
+    <input type="text" [placeholder]="'HEADER.SEARCH_PLACEHOLDER' | translate" 
            [ngModel]="searchTerm()" (input)="onSearchInput($event)"
            (keyup.enter)="onSearch()">
 
@@ -40,7 +40,7 @@
   <div class="header-actions">
     <div class="lang-wrapper">
       <button class="lang-btn" (click)="toggleLangDropdown()"
-        [title]="currentLang() === 'en' ? 'Switch Language' : 'Changer de langue'">
+        [title]="'HEADER.SWITCH_LANG' | translate">
         @if (currentLang() === 'en') {
         <!-- UK Flag SVG -->
         <svg viewBox="0 0 640 480" class="flag-icon">
@@ -89,7 +89,7 @@
     </div>
 
     <button class="theme-toggle-btn" (click)="toggleTheme()"
-      [title]="isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      [title]="(isDarkMode() ? 'HEADER.SWITCH_THEME_LIGHT' : 'HEADER.SWITCH_THEME_DARK') | translate">
       @if (isDarkMode()) {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
         stroke-linejoin="round" class="sun-icon">
@@ -112,7 +112,7 @@
     </button>
 
     <div class="notification-wrapper">
-      <button class="action-btn" title="Notifications" (click)="toggleNotifications()">
+      <button class="action-btn" [title]="'HEADER.NOTIFICATIONS' | translate" (click)="toggleNotifications()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -126,9 +126,9 @@
       @if (showNotifications()) {
       <div class="notifications-dropdown">
         <div class="dropdown-header">
-          <h3>Notifications</h3>
+          <h3>{{ 'HEADER.NOTIFICATIONS' | translate }}</h3>
           <div class="mark-all-row">
-            <button class="mark-all" (click)="markAllAsRead()">Mark all as read</button>
+            <button class="mark-all" (click)="markAllAsRead()">{{ 'HEADER.MARK_ALL_READ' | translate }}</button>
           </div>
         </div>
 
@@ -179,7 +179,7 @@
         </div>
 
         <div class="dropdown-footer">
-          <button class="view-all" (click)="viewAllNotifications()">View all notifications</button>
+          <button class="view-all" (click)="viewAllNotifications()">{{ 'HEADER.VIEW_ALL_NOTIFICATIONS' | translate }}</button>
         </div>
       </div>
       }
@@ -202,7 +202,7 @@
         @if (user.profile_picture) {
         <img [src]="getAvatarUrl(user.profile_picture)" [alt]="user.name">
         } @else {
-        {{ (user.name[0] || '') + (user.last_name[0] || '') }}
+        {{ (user.name?.charAt(0) || '') + (user.last_name?.charAt(0) || '') }}
         }
       </div>
       <button class="logout-btn" (click)="logout()" title="Logout">

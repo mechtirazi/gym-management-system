@@ -7,6 +7,10 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { MemberService } from '../../../owner/member/services/member.service';
 import { GymMember } from '../../../../shared/models/gym-member.model';
 import { ProductService } from '../../../owner/products/services/product.service';
+import { MembershipPlanService, MembershipPlan } from '../../../owner/services/membership-plan.service';
+import { CourseService } from '../../../owner/courses/services/course.service';
+import { SessionService } from '../../../owner/courses/services/session.service';
+import { EventService } from '../../../owner/events/services/event.service';
 
 @Component({
   selector: 'app-receptionist-payments',
@@ -21,14 +25,33 @@ export class ReceptionistPaymentsComponent implements OnInit {
   private authService = inject(AuthService);
   private memberService = inject(MemberService);
   private productService = inject(ProductService);
+  private planService = inject(MembershipPlanService);
+  private courseService = inject(CourseService);
+  private sessionService = inject(SessionService);
+  private eventService = inject(EventService);
 
   isLoading = signal(false);
   error = signal<string | null>(null);
 
   payments = signal<PaymentDto[]>([]);
   members = signal<GymMember[]>([]);
+  plans = signal<MembershipPlan[]>([]);
   products = signal<any[]>([]);
+  courses = signal<any[]>([]);
+  sessions = signal<any[]>([]);
+  events = signal<any[]>([]);
   selectedPayment = signal<PaymentDto | null>(null);
+
+  // Member Search State
+  memberSearchTerm = signal('');
+  filteredMembers = computed(() => {
+    const term = this.memberSearchTerm().toLowerCase().trim();
+    if (!term) return this.members();
+    return this.members().filter(m => 
+      m.name?.toLowerCase().includes(term) || 
+      m.email?.toLowerCase().includes(term)
+    );
+  });
 
   // Pagination State
   currentPage = signal(1);
@@ -56,9 +79,14 @@ export class ReceptionistPaymentsComponent implements OnInit {
   form = this.fb.group({
     id_user: ['', Validators.required],
     amount: [0, [Validators.required, Validators.min(0)]],
+    quantity: [1, [Validators.required, Validators.min(1)]],
     method: ['', Validators.required],
     type: ['membership'],
     id_product: [''],
+    id_plan: [''],
+    id_course: [''],
+    id_session: [''],
+    id_event: [''],
     id_transaction: ['']
   });
 
@@ -76,6 +104,24 @@ export class ReceptionistPaymentsComponent implements OnInit {
         this.refresh();
         this.loadMembers();
         this.loadProducts();
+        this.loadPlans();
+        this.loadCourses();
+      }
+    });
+
+    this.form.get('type')?.valueChanges.subscribe(type => {
+      if (type === 'event') {
+        this.loadAllEvents();
+      } else if (type === 'course') {
+        this.sessions.set([]); // Clear sessions until a course is picked
+      }
+    });
+  }
+
+  loadAllEvents() {
+    this.eventService.getEvents(1, 100).subscribe({
+      next: (res: any) => {
+        this.events.set(res.data || []);
       }
     });
   }
@@ -84,21 +130,34 @@ export class ReceptionistPaymentsComponent implements OnInit {
     this.refresh();
     this.loadMembers();
     this.loadProducts();
+    this.loadPlans();
+    this.loadCourses();
   }
 
   loadMembers() {
     this.memberService.getMembers(1, 1000).subscribe({
       next: (res: any) => {
         const raw = res.data || [];
-        const mapped = raw.map((item: any) => {
+        const uniqueMembers = new Map<string, GymMember>();
+
+        raw.forEach((item: any) => {
           const u = item.member;
-          return {
-            userId: u?.id_user || u?.id,
-            name: (u?.name && u?.last_name) ? `${u.name} ${u.last_name}` : (u?.name || 'Unknown'),
-            email: u?.email || ''
-          } as GymMember;
+          if (!u) return;
+
+          const email = (u.email || '').toLowerCase().trim();
+          const fullName = `${u.name || ''} ${u.last_name || ''}`.toLowerCase().trim();
+          const compositeKey = `${fullName}-${email}`;
+
+          if (email && !uniqueMembers.has(compositeKey)) {
+            uniqueMembers.set(compositeKey, {
+              userId: u.id_user || u.id,
+              name: (u.name && u.last_name) ? `${u.name} ${u.last_name}` : (u.name || 'Unknown'),
+              email: u.email || ''
+            } as GymMember);
+          }
         });
-        this.members.set(mapped);
+
+        this.members.set(Array.from(uniqueMembers.values()));
       }
     });
   }
@@ -109,6 +168,78 @@ export class ReceptionistPaymentsComponent implements OnInit {
         this.products.set(res.data || []);
       }
     });
+  }
+
+  loadPlans() {
+    const gymId = this.currentGymId();
+    if (!gymId) return;
+
+    this.planService.getPlans(gymId.toString()).subscribe({
+      next: (res: any) => {
+        this.plans.set(res.data || []);
+      }
+    });
+  }
+
+  loadCourses() {
+    this.courseService.getCourses().subscribe({
+      next: (res: any) => {
+        this.courses.set(res.data || []);
+      }
+    });
+  }
+
+  onCourseSelect(courseId: string) {
+    this.sessions.set([]);
+    this.form.patchValue({ id_session: '' });
+    
+    if (courseId) {
+      this.sessionService.getCourseSessions(courseId).subscribe({
+        next: (sessions) => {
+          this.sessions.set(sessions);
+        }
+      });
+      
+      const course = this.courses().find(c => c.id_course === courseId);
+      if (course && course.price) {
+        this.form.patchValue({ amount: course.price });
+      }
+    }
+  }
+
+  onEventSelect(eventId: string) {
+    const event = this.events().find(e => e.id_event === eventId || e.id === eventId);
+    if (event && event.price) {
+      this.form.patchValue({ amount: event.price });
+    }
+  }
+
+  onPlanSelect(planId: string) {
+    const plan = this.plans().find(p => p.id === planId || (p as any).id_plan === planId);
+    if (plan) {
+      this.form.patchValue({
+        amount: plan.price
+      });
+    }
+  }
+
+  onProductSelect(productId: string) {
+    const product = this.products().find(p => p.id_product === productId);
+    if (product) {
+      this.calculateProductTotal();
+    }
+  }
+
+  calculateProductTotal() {
+    const productId = this.form.get('id_product')?.value;
+    const quantity = this.form.get('quantity')?.value || 1;
+    const product = this.products().find(p => p.id_product === productId);
+    
+    if (product) {
+      this.form.patchValue({
+        amount: product.price * quantity
+      });
+    }
   }
 
   refresh(forceFirstPage = false) {
@@ -127,10 +258,10 @@ export class ReceptionistPaymentsComponent implements OnInit {
 
     forkJoin({
       payments: this.paymentsService.listByGym(
-        gymId.toString(), 
-        this.currentPage(), 
-        this.perPage, 
-        this.startDate(), 
+        gymId.toString(),
+        this.currentPage(),
+        this.perPage,
+        this.startDate(),
         this.endDate(),
         this.statusFilter(),
         this.gatewayFilter(),
@@ -138,27 +269,27 @@ export class ReceptionistPaymentsComponent implements OnInit {
       ),
       stats: this.paymentsService.getStats()
     })
-    .pipe(finalize(() => this.isLoading.set(false)))
-    .subscribe({
-      next: (res: any) => {
-        // Handle Payments
-        this.payments.set(res.payments.data);
-        this.currentPage.set(res.payments.meta.current_page);
-        this.lastPage.set(res.payments.meta.last_page);
-        this.totalItems.set(res.payments.meta.total);
-        
-        // Handle Financial Summary
-        if (res.payments.financial_summary) {
-          this.financialSummary.set(res.payments.financial_summary);
-        }
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (res: any) => {
+          // Handle Payments
+          this.payments.set(res.payments.data);
+          this.currentPage.set(res.payments.meta.current_page);
+          this.lastPage.set(res.payments.meta.last_page);
+          this.totalItems.set(res.payments.meta.total);
 
-        // Handle Stats
-        if (res.stats.success) {
-          this.totalRevenue.set(res.stats.data.kpis.revenueTotal);
-        }
-      },
-      error: () => this.error.set('Could not synchronize ledger data. Check connection.')
-    });
+          // Handle Financial Summary
+          if (res.payments.financial_summary) {
+            this.financialSummary.set(res.payments.financial_summary);
+          }
+
+          // Handle Stats
+          if (res.stats.success) {
+            this.totalRevenue.set(res.stats.data.kpis.revenueTotal);
+          }
+        },
+        error: () => this.error.set('Could not synchronize ledger data. Check connection.')
+      });
   }
 
   onSearch(query: string) {
@@ -192,7 +323,7 @@ export class ReceptionistPaymentsComponent implements OnInit {
 
   printReceipt(p: PaymentDto) {
     this.selectedPayment.set(p);
-    
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -302,9 +433,13 @@ export class ReceptionistPaymentsComponent implements OnInit {
     this.form.reset({
       id_user: '',
       amount: 0,
+      quantity: 1,
       method: '',
       type: 'membership',
       id_product: '',
+      id_plan: '',
+      id_course: '',
+      id_session: '',
       id_transaction: ''
     });
   }
@@ -331,23 +466,44 @@ export class ReceptionistPaymentsComponent implements OnInit {
       gateway: raw.method!,
       category: raw.type ?? 'membership',
       id_product: raw.id_product || null,
+      id_session: raw.id_session || null,
+      id_event: raw.id_event || null,
       external_reference: raw.id_transaction || null
     };
 
     this.isLoading.set(true);
 
     this.paymentsService.create(payload)
-    .pipe(finalize(() => this.isLoading.set(false)))
-    .subscribe({
-      next: () => {
-        this.showNewPaymentForm.set(false);
-        this.refresh();
-      },
-      error: (err) => {
-        const msg = err?.error?.message || 'Operation failed. Check permissions/validation.';
-        this.error.set(msg);
-      }
-    });
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: () => {
+          this.showNewPaymentForm.set(false);
+          this.refresh();
+        },
+        error: (err) => {
+          const msg = err?.error?.message || 'Operation failed. Check permissions/validation.';
+          this.error.set(msg);
+        }
+      });
+  }
+
+  finalizePayment(p: PaymentDto) {
+    if (p.status.value !== 'pending') return;
+
+    this.isLoading.set(true);
+    this.paymentsService.finalize(p.id)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: () => {
+          this.refresh();
+          if (this.selectedPayment()?.id === p.id) {
+            this.selectedPayment.set({ ...p, status: { ...p.status, value: 'finalized', label: 'Finalized', is_locked: true } });
+          }
+        },
+        error: (err) => {
+          this.error.set(err?.error?.message || 'Failed to finalize transaction.');
+        }
+      });
   }
 }
 

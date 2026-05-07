@@ -322,15 +322,99 @@ class OwnerDashboardService
                 "carbs" => $user->manual_carbs,
                 "fats" => $user->manual_fats,
                 "water" => $user->manual_water,
-                "weight" => $user->manual_weight
+                "weight" => $user->manual_weight,
+                "height" => $user->manual_height,
+                "evolutionPoints" => $user->evolution_points
             ],
+            "personalRecords" => $this->getPersonalRecords($user),
+            "bodyMeasurements" => $this->getBodyMeasurements($user),
+            "aiAdvice" => $this->generateAiAdvice($user, $totalAttendance),
+            "projection" => $this->calculateProjection($user),
             "user" => [
                 "name" => $user->name,
                 "last_name" => $user->last_name,
                 "email" => $user->email,
                 "role" => $user->role,
-                "nutritionist_advisory" => $user->nutritionist_advisory
+                "nutritionist_advisory" => $user->nutritionist_advisory,
+                "nutritionist_notes" => $user->nutritionist_notes,
+                "updated_at" => $user->updated_at,
+                "nutritionist" => $user->nutritionPlansAsMember()
+                    ->where('is_active', true)
+                    ->with('nutritionist')
+                    ->first()?->nutritionist
             ]
+        ];
+    }
+
+    private function getPersonalRecords(User $user): array
+    {
+        return DB::table('workout_sets')
+            ->join('workout_exercises', 'workout_sets.id_exercise', '=', 'workout_exercises.id')
+            ->join('workout_logs', 'workout_exercises.id_workout', '=', 'workout_logs.id')
+            ->where('workout_logs.id_member', $user->id_user)
+            ->select('workout_exercises.exercise_name', DB::raw('MAX(workout_sets.weight) as max_weight'), DB::raw('MAX(workout_logs.workout_date) as date'))
+            ->groupBy('workout_exercises.exercise_name')
+            ->orderBy('max_weight', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function ($pr) {
+                return [
+                    'exercise' => $pr->exercise_name,
+                    'weight' => (float)$pr->max_weight,
+                    'date' => Carbon::parse($pr->date)->format('Y-m-d'),
+                    'trend' => 'Calculated'
+                ];
+            })
+            ->toArray();
+    }
+
+    private function getBodyMeasurements(User $user): array
+    {
+        // For now, return what we have in User model, could be expanded to a dedicated table
+        return [
+            'chest' => 0, // Placeholder if not in DB yet
+            'waist' => 0,
+            'biceps' => 0,
+            'thighs' => 0,
+            'lastUpdate' => $user->updated_at->format('Y-m-d')
+        ];
+    }
+
+    private function generateAiAdvice(User $user, int $totalAttendance): array
+    {
+        $advice = [];
+        $weight = $user->manual_weight ?: 70;
+        
+        if ($user->manual_protein < ($weight * 1.5)) {
+            $advice[] = "Protein intake is below the optimal threshold for muscle repair. Aim for " . round($weight * 1.8) . "g.";
+        }
+        
+        if ($user->manual_water < 2.5) {
+            $advice[] = "Hydration alert: Your metabolic efficiency is dropping. Sync 1L of water in the next 2 hours.";
+        }
+
+        if ($totalAttendance > 20) {
+            $advice[] = "High-fidelity training consistency detected. You are entering the 'Advanced Init' phase.";
+        }
+
+        return $advice ?: ["Bio-Pulse data synchronized. Maintain current protocol for 7 days."];
+    }
+
+    private function calculateProjection(User $user): array
+    {
+        $current = $user->manual_weight ?: 70;
+        $target = $user->target_weight ?: $current;
+        $diff = $target - $current;
+        
+        // Simple linear projection (e.g. 0.5kg per month)
+        $rate = 0.5;
+        if ($diff < 0) $rate = -0.5; // Losing weight
+        
+        return [
+            'month1' => round($current + ($rate * 1), 1),
+            'month3' => round($current + ($rate * 3), 1),
+            'month6' => round($current + ($rate * 6), 1),
+            'desc' => abs($diff) < 1 ? 'Stability Protocol' : ($diff < 0 ? 'Caloric Deficit Adaptation' : 'Muscle Hypertrophy Phase')
         ];
     }
 

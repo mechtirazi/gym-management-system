@@ -52,12 +52,18 @@ export class GymProfileComponent implements OnInit {
   gymForm = this.fb.group({
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern('^[0-9+\\- ]{8,15}$')]],
+    phone: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
     address: ['', Validators.required],
     description: [''],
     open_mon_fri: [''],
     open_sat: [''],
     open_sun: [''],
+    open_mon_fri_start: ['08:00'],
+    open_mon_fri_end: ['22:00'],
+    open_sat_start: ['08:00'],
+    open_sat_end: ['20:00'],
+    open_sun_start: ['08:00'],
+    open_sun_end: ['16:00'],
   });
 
   ngOnInit() {
@@ -100,13 +106,19 @@ export class GymProfileComponent implements OnInit {
               name: myGym.name || '',
               // Contact email is often in owner object if not in root
               email: myGym.email || myGym.owner?.email || '',
-              phone: myGym.phone || '',
+              phone: (myGym.phone || '').replace(/^(\+216|00216)/, '').replace(/\s+/g, '').slice(-8),
               // Backend has a typo (adress with one 'd')
               address: myGym.adress || myGym.address || '',
               description: myGym.description || '',
               open_mon_fri: myGym.open_mon_fri || '',
               open_sat: myGym.open_sat || '',
-              open_sun: myGym.open_sun || ''
+              open_sun: myGym.open_sun || '',
+              open_mon_fri_start: (myGym.open_mon_fri || '').split('-')[0]?.trim() || '08:00',
+              open_mon_fri_end: (myGym.open_mon_fri || '').split('-')[1]?.trim() || '22:00',
+              open_sat_start: (myGym.open_sat || '').split('-')[0]?.trim() || '08:00',
+              open_sat_end: (myGym.open_sat || '').split('-')[1]?.trim() || '20:00',
+              open_sun_start: (myGym.open_sun || '').split('-')[0]?.trim() || '08:00',
+              open_sun_end: (myGym.open_sun || '').split('-')[1]?.trim() || '16:00'
             };
 
             this.initialFormValues = { ...fetchedData };
@@ -154,6 +166,22 @@ export class GymProfileComponent implements OnInit {
     payload.adress = payload.address;
     delete payload.address;
 
+    // Prepend Tunisia prefix
+    if (payload.phone && !payload.phone.startsWith('+')) {
+      payload.phone = `+216${payload.phone}`;
+    }
+    
+    payload.open_mon_fri = `${payload.open_mon_fri_start}-${payload.open_mon_fri_end}`;
+    payload.open_sat = `${payload.open_sat_start}-${payload.open_sat_end}`;
+    payload.open_sun = `${payload.open_sun_start}-${payload.open_sun_end}`;
+    
+    delete payload.open_mon_fri_start;
+    delete payload.open_mon_fri_end;
+    delete payload.open_sat_start;
+    delete payload.open_sat_end;
+    delete payload.open_sun_start;
+    delete payload.open_sun_end;
+
     let finalPayload: any = payload;
 
     // Use FormData if a file was selected
@@ -177,6 +205,11 @@ export class GymProfileComponent implements OnInit {
           this.selectedFile = null;
           this.isEditing.set(false);
           this.toast.success('Gym profile updated successfully!');
+          
+          // Automatic reload to synchronize global state
+          setTimeout(() => {
+            window.location.reload();
+          }, 800);
         },
         error: (err) => {
           console.error('Failed to update gym:', err);

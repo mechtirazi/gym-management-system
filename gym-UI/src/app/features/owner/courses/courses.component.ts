@@ -45,12 +45,13 @@ export class CourseManagementComponent implements OnInit {
 
   // Map of professional categories and their associated keywords
   private CATEGORY_KEYWORDS: Record<string, string[]> = {
-    'Fitness': ['fitness', 'hiit', 'cardio', 'strength', 'crossfit', 'workout', 'gym', 'core', 'pump', 'body'],
-    'Yoga': ['yoga', 'pilates', 'stretch', 'flow', 'meditation', 'flexibility'],
-    'Boxing': ['boxing', 'kickboxing', 'mma', 'martial', 'fight', 'combat', 'strike'],
-    'Zumba': ['zumba', 'dance', 'aerobics', 'rhythm', 'step'],
-    'Cycling': ['spin', 'cycling', 'bike', 'ride'],
-    'Aquatics': ['swim', 'water', 'aqua', 'pool']
+    'Fitness & HIIT': ['fitness', 'hiit', 'cardio', 'tabata', 'circuit', 'interval', 'workout', 'gym', 'core', 'pump', 'body', 'training', 'conditioning', 'abs', 'glutes', 'functional', 'crossfit'],
+    'Yoga & Pilates': ['yoga', 'pilates', 'stretch', 'flow', 'meditation', 'flexibility', 'zen', 'balance', 'mind', 'wellness', 'vinyasa', 'ashtanga', 'hatha', 'mobility', 'breath'],
+    'Combat Sports': ['boxing', 'kickboxing', 'mma', 'martial', 'fight', 'combat', 'strike', 'judo', 'karate', 'taekwondo', 'sparring', 'defense', 'bjj', 'grappling', 'muay', 'warrior'],
+    'Dance & Zumba': ['zumba', 'dance', 'aerobics', 'rhythm', 'step', 'salsa', 'bachata', 'cardio dance', 'hip hop', 'latin', 'bollywood', 'twerk'],
+    'Cycling': ['spin', 'cycling', 'bike', 'ride', 'rpm', 'peloton', 'indoor cycling', 'sprint'],
+    'Aquatics': ['swim', 'water', 'aqua', 'pool', 'diving', 'hydro', 'lap'],
+    'Strength & Iron': ['strength', 'weight', 'iron', 'heavy', 'powerlifting', 'bodybuilding', 'muscle', 'hypertrophy', 'barbell', 'dumbbell', 'lifting', 'deadlift', 'squat', 'bench', 'strongman']
   };
 
   // Helper method to intelligently classify a course

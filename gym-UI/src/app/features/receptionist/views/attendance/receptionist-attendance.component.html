@@ -8,12 +8,24 @@
       <div class="live-pulse-badge">
         <span class="pulse-dot"></span> LIVE BROADCAST
       </div>
-      <button class="refresh-btn" (click)="loadCourses()" [disabled]="isLoading()">
+      <button class="refresh-btn" (click)="syncAll()" [disabled]="isLoading()">
         <span class="material-symbols-rounded">sync</span>
         Sync Data
       </button>
     </div>
   </header>
+
+  <!-- Mode Switcher -->
+  <div class="view-mode-tabs">
+    <button class="tab-btn" [class.active]="viewMode() === 'courses'" (click)="setMode('courses')">
+      <span class="material-symbols-rounded">school</span>
+      Course Sessions
+    </button>
+    <button class="tab-btn" [class.active]="viewMode() === 'events'" (click)="setMode('events')">
+      <span class="material-symbols-rounded">celebration</span>
+      Gym Events
+    </button>
+  </div>
 
   @if (error()) {
     <div class="error-message">
@@ -36,61 +48,81 @@
 
   <div class="attendance-grid">
     <div class="sidebar-stack">
-      <!-- Step 1: Course Selection -->
-      <div class="card-panel selection-card">
-        <div class="step-num">01</div>
-        <h2><span class="material-symbols-rounded">category</span> Select Course</h2>
-        <p class="panel-desc">Choose the course or program to manage.</p>
-        <select class="modern-select" [value]="selectedCourseId()" (change)="selectCourse(($any($event.target)).value)">
-          <option value="">-- Choose an active course --</option>
-          @for (c of courses(); track c.id_course) {
-            <option [value]="c.id_course">{{ c.name || c.title || 'Course ' + c.id_course }}</option>
-          }
-        </select>
-      </div>
+      <!-- Step 1: Course/Event Selection -->
+      @if (viewMode() === 'courses') {
+        <div class="card-panel selection-card">
+          <div class="step-num">01</div>
+          <h2><span class="material-symbols-rounded">category</span> Select Course</h2>
+          <p class="panel-desc">Choose the course or program to manage.</p>
+          <select class="modern-select" [value]="selectedCourseId()" (change)="selectCourse(($any($event.target)).value)">
+            <option value="">-- Choose an active course --</option>
+            @for (c of courses(); track c.id_course) {
+              <option [value]="c.id_course">{{ c.name || c.title || 'Course ' + c.id_course }}</option>
+            }
+          </select>
+        </div>
 
-      <!-- Step 2: Session Selection -->
-      <div class="card-panel selection-card" [class.disabled]="!selectedCourseId()">
-        <div class="step-num">02</div>
-        <h2><span class="material-symbols-rounded">event_note</span> Select Today's Session</h2>
-        <p class="panel-desc">Choose the active session occurring today.</p>
-        <select class="modern-select" [value]="selectedSessionId()" (change)="selectSession(($any($event.target)).value)" [disabled]="!selectedCourseId()">
-          <option value="">-- Choose an active session --</option>
-          @for (s of sessions(); track s.id_session) {
-            <option [value]="s.id_session">
-              {{ s.start_time || 'No Time' }}{{ s.end_time ? ' - ' + s.end_time : '' }}
-            </option>
-          }
-        </select>
-      </div>
+        <!-- Step 2: Session Selection -->
+        <div class="card-panel selection-card" [class.disabled]="!selectedCourseId()">
+          <div class="step-num">02</div>
+          <h2><span class="material-symbols-rounded">event_note</span> Select Session</h2>
+          <p class="panel-desc">Choose one of today's sessions for this course.</p>
+          <select class="modern-select" [value]="selectedSessionId()" (change)="selectSession(($any($event.target)).value)" [disabled]="!selectedCourseId()">
+            <option value="">-- Choose an active session --</option>
+            @for (s of sessions(); track s.id_session) {
+              <option [value]="s.id_session">
+                {{ s.date_session || 'No Date' }} | {{ s.start_time || 'No Time' }} - {{ s.trainer?.name || 'No Trainer' }}
+              </option>
+            }
+          </select>
+        </div>
+      } @else {
+        <div class="card-panel selection-card">
+          <div class="step-num">01</div>
+          <h2><span class="material-symbols-rounded">celebration</span> Select Event</h2>
+          <p class="panel-desc">Choose one of today's active events to record attendance.</p>
+          <select class="modern-select" [value]="selectedEventId()" (change)="selectEvent(($any($event.target)).value)">
+            <option value="">-- Choose an active event --</option>
+            @for (e of events(); track e.id_event) {
+              <option [value]="e.id_event">
+                {{ e.title || e.name || 'Event ' + e.id_event }} 
+                ({{ (e.start_date | date:'dd/MM') || 'No start' }} - {{ (e.end_date | date:'dd/MM') || 'Ongoing' }})
+              </option>
+            }
+          </select>
+        </div>
+      }
 
       <!-- Step 3: Quick Mark -->
-      <div class="card-panel selection-card" [class.disabled]="!selectedSessionId()">
-        <div class="step-num">03</div>
+      <div class="card-panel selection-card" [class.disabled]="viewMode() === 'courses' ? !selectedSessionId() : !selectedEventId()">
+        <div class="step-num">{{ viewMode() === 'courses' ? '03' : '02' }}</div>
         <h2><span class="material-symbols-rounded">qr_code_scanner</span> Instant Entrance</h2>
-        <p class="panel-desc">Select an enrolled member to mark their attendance.</p>
+        <p class="panel-desc">Select a gym member to mark their attendance.</p>
         <form [formGroup]="form" (ngSubmit)="quickAdd()" class="quick-form">
           <div class="field">
-            <label>Enrolled Member</label>
+            <label>Find Member</label>
+            <div class="search-input-wrapper">
+              <span class="material-symbols-rounded">search</span>
+              <input 
+                type="text" 
+                class="modern-input" 
+                placeholder="Search name, email, or phone..."
+                [value]="searchTerm()"
+                (input)="searchTerm.set($any($event.target).value)"
+              >
+            </div>
+          </div>
+          <div class="field">
+            <label>Select Member</label>
             <select class="modern-select" formControlName="id_member">
-              <option value="">-- Search Enrolled Member --</option>
-              @for (m of members(); track m.userId) {
+              <option value="">-- {{ filteredMembers().length }} Members Found --</option>
+              @for (m of filteredMembers(); track m.userId) {
                 <option [value]="m.userId">{{ m.name }} · {{ m.email }}</option>
               }
             </select>
           </div>
-          <div class="field">
-            <label>Entrance Status</label>
-            <div class="status-toggle-group">
-              <label class="toggle-btn" [class.active]="form.get('status')?.value === 'present'">
-                <input type="radio" formControlName="status" value="present"> Present
-              </label>
-              <label class="toggle-btn" [class.active]="form.get('status')?.value === 'late'">
-                <input type="radio" formControlName="status" value="late"> Late
-              </label>
-            </div>
-          </div>
-          <button class="save-btn" type="submit" [disabled]="isLoading() || !selectedSessionId() || !form.value.id_member">
+
+          <button class="save-btn" type="submit" [disabled]="isLoading() || (viewMode() === 'courses' ? !selectedSessionId() : !selectedEventId()) || !form.value.id_member">
             Confirm Entrance
           </button>
         </form>
@@ -102,9 +134,9 @@
       <div class="table-header">
         <div class="title-wrap">
           <h2><span class="material-symbols-rounded">group</span> Registered Attendees</h2>
-          <p class="panel-desc">Members currently recorded for this session.</p>
+          <p class="panel-desc">Members currently recorded for this {{ viewMode() === 'courses' ? 'session' : 'event' }}.</p>
         </div>
-        @if (selectedSessionId()) {
+        @if (viewMode() === 'courses' ? selectedSessionId() : selectedEventId()) {
           <div class="stats-pill">
             <span class="material-symbols-rounded">person</span>
             {{ attendances().length }} Members
@@ -112,11 +144,11 @@
         }
       </div>
 
-      @if (!selectedSessionId()) {
+      @if (viewMode() === 'courses' ? !selectedSessionId() : !selectedEventId()) {
         <div class="empty-state">
           <div class="empty-icon"><span class="material-symbols-rounded">touch_app</span></div>
           <h3>Selection Required</h3>
-          <p>Choose a session from the left to start recording.</p>
+          <p>Choose a {{ viewMode() === 'courses' ? 'session' : 'event' }} from the left to start recording.</p>
         </div>
       } @else if (isLoading() && !attendances().length) {
         <div class="empty-state">
@@ -126,8 +158,8 @@
       } @else if (!attendances().length) {
         <div class="empty-state">
           <div class="empty-icon"><span class="material-symbols-rounded">person_search</span></div>
-          <h3>Session Empty</h3>
-          <p>No members have been marked for this session yet.</p>
+          <h3>{{ viewMode() === 'courses' ? 'Session' : 'Event' }} Empty</h3>
+          <p>No members have been marked for this {{ viewMode() === 'courses' ? 'session' : 'event' }} yet.</p>
         </div>
       } @else {
         <div class="attendee-list">
@@ -149,9 +181,10 @@
                 </span>
                 
                 <div class="action-group">
-                  <button title="Mark Present" [class.active-p]="a.status === 'present'" (click)="upsertAttendanceForMember(a.id_member, 'present')" [disabled]="isLoading()">P</button>
-                  <button title="Mark Late" [class.active-l]="a.status === 'late'" (click)="upsertAttendanceForMember(a.id_member, 'late')" [disabled]="isLoading()">L</button>
-                  <button title="Mark Absent" [class.active-a]="a.status === 'absent'" (click)="upsertAttendanceForMember(a.id_member, 'absent')" [disabled]="isLoading()">A</button>
+                  <button title="Mark Pending" [class.active-pending]="a.status === 'pending' || a.status === 'upcoming'" (click)="upsertAttendanceForMember(a.id_member, 'pending')" [disabled]="isLoading()">?</button>
+                  <button title="Mark Present" [class.active-p]="a.status === 'present' || a.status === 'completed'" (click)="upsertAttendanceForMember(a.id_member, 'present')" [disabled]="isLoading()">P</button>
+                  <button title="Mark Late" [class.active-l]="a.status === 'late' || a.status === 'ongoing'" (click)="upsertAttendanceForMember(a.id_member, 'late')" [disabled]="isLoading()">L</button>
+                  <button title="Mark Absent" [class.active-a]="a.status === 'absent' || a.status === 'cancelled'" (click)="upsertAttendanceForMember(a.id_member, 'absent')" [disabled]="isLoading()">A</button>
                 </div>
               </div>
             </div>

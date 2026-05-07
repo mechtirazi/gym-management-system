@@ -97,7 +97,7 @@
 
       <div class="form-footer">
         <button type="button" class="cancel-btn" (click)="close.emit()">Cancel</button>
-        <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
+        <button type="submit" class="submit-btn" [disabled]="isSubmitting() || isFormInvalid">
           @if (isSubmitting()) {
             <span class="spinner-small"></span>
             Updating...

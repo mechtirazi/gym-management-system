@@ -168,7 +168,15 @@ class UserPolicy
 
             // For Nutritionists, check if they are the assigned nutritionist
             if ($user->role === User::ROLE_NUTRITIONIST) {
-                return $targetUser->nutritionPlansAsMember()
+                // Check direct assignment
+                $directMatch = $targetUser->nutritionPlansAsMember()
+                    ->where('id_nutritionist', $user->id_user)
+                    ->exists();
+                
+                if ($directMatch) return true;
+
+                // Check pivot table assignment (modern multi-member plans)
+                return $targetUser->nutritionPlans()
                     ->where('id_nutritionist', $user->id_user)
                     ->exists();
             }

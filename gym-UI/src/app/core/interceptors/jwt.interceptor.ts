@@ -18,7 +18,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     Authorization: `Bearer ${token}`
   };
 
-  if (gymId) {
+  if (gymId && !req.headers.has('X-Gym-Id')) {
     headers['X-Gym-Id'] = gymId.toString();
   }
 

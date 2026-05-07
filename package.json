@@ -1,0 +1,23 @@
+{
+  "name": "gym-management-system",
+  "version": "1.0.0",
+  "description": "End-to-end local setup for the **Gym API (Laravel + MySQL + Passport)** and **Gym UI (Angular)**.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mechtirazi/gym-management-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mechtirazi/gym-management-system/issues"
+  },
+  "homepage": "https://github.com/mechtirazi/gym-management-system#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0"
+  }
+}

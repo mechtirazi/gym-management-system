@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StaffInvitation } from '../../notifications.model';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { NotificationFeatureService } from '../../notifications.service';
 
 @Component({
   selector: 'app-staff-invitations',
@@ -16,46 +17,84 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ]),
   ],
   template: `
-    <div class="invitations-section" *ngIf="invitations.length > 0">
-      <div class="section-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <line x1="19" y1="8" x2="19" y2="14"></line>
-          <line x1="22" y1="11" x2="16" y2="11"></line>
-        </svg>
-        <h2>Staff Invitations</h2>
-        <div class="count-badge pulse">{{ invitations.length }}</div>
-      </div>
+    @if (invitations.length > 0) {
+      <div class="invitations-section">
+        <div class="section-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <line x1="19" y1="8" x2="19" y2="14"></line>
+            <line x1="22" y1="11" x2="16" y2="11"></line>
+          </svg>
+          <h2>Staff Invitations</h2>
+          <div class="count-badge pulse">{{ invitations.length }}</div>
+        </div>
 
-      <div class="invitations-list">
-        @for (invite of invitations; track invite.id_notification) {
-          <div class="invite-card glass-card" [@slideIn]>
-            <div class="invite-info">
-              <div class="gym-icon">
-                <span>{{ invite.gym_name?.charAt(0) || 'G' }}</span>
+        <div class="invitations-list">
+          @for (invite of invitations; track invite.id_notification) {
+            <div class="invite-card glass-card" [@slideIn]>
+              <div class="invite-info">
+                <div class="gym-icon">
+                  <span>{{ invite.gym_name?.charAt(0) || 'G' }}</span>
+                </div>
+                <div class="invite-text">
+                  <h3>Join {{ invite.gym_name }}</h3>
+                  <p>Hiring for {{ invite.role }} position</p>
+                </div>
               </div>
-              <div class="invite-text">
-                <h3>Join {{ invite.gym_name }}</h3>
-                <p>Hiring for {{ invite.role }} position</p>
+              <div class="invite-actions">
+                @if (!isItemProcessing(invite.id_notification)) {
+                  <button class="accept-btn" (click)="handleAccept(invite)">Accept</button>
+                  <button class="reject-btn" (click)="handleReject(invite.id_notification)">Decline</button>
+                } @else {
+                  <div class="processing-status">
+                    <div class="mini-spinner"></div>
+                    <span>Syncing...</span>
+                  </div>
+                }
               </div>
             </div>
-            <div class="invite-actions">
-              <button class="accept-btn" (click)="onAccept.emit(invite)">Accept</button>
-              <button class="reject-btn" (click)="onReject.emit(invite.id_notification)">Decline</button>
-            </div>
-          </div>
-        }
+          }
+        </div>
       </div>
-    </div>
+    }
   `,
   styles: [`
+    .processing-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--admin-accent-indigo);
+      padding: 0.5rem;
+    }
+
+    .mini-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--admin-accent-indigo);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
     .section-badge {
       display: flex;
       align-items: center;
       gap: 1rem;
       padding: 0.5rem 0;
       margin-bottom: 1rem;
+      
+      svg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        color: var(--admin-accent-indigo);
+      }
 
       h2 {
         font-size: 1rem;
@@ -167,8 +206,33 @@ import { trigger, transition, style, animate } from '@angular/animations';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StaffInvitationsComponent {
+  private featureService = inject(NotificationFeatureService, { optional: true });
   @Input() invitations: StaffInvitation[] = [];
   
   @Output() onAccept = new EventEmitter<StaffInvitation>();
   @Output() onReject = new EventEmitter<string>();
+
+  localProcessingIds = signal<Set<string>>(new Set());
+
+  handleAccept(invite: StaffInvitation) {
+    this.localProcessingIds.update(set => {
+      const newSet = new Set(set);
+      newSet.add(invite.id_notification);
+      return newSet;
+    });
+    this.onAccept.emit(invite);
+  }
+
+  handleReject(id: string) {
+    this.localProcessingIds.update(set => {
+      const newSet = new Set(set);
+      newSet.add(id);
+      return newSet;
+    });
+    this.onReject.emit(id);
+  }
+
+  isItemProcessing(id: string): boolean {
+    return this.featureService?.isProcessing(id) || this.localProcessingIds().has(id);
+  }
 }

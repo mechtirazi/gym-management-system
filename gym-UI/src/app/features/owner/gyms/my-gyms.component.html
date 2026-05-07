@@ -1,88 +1,159 @@
 <div class="my-gyms-page">
-  <div class="page-header animate-reveal">
+  <!-- Dynamic Background Elements -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="page-header animate-reveal">
     <div class="header-content">
-      <h1>My Gym Network</h1>
-      <p class="subtitle">Monitor and manage the status of all your facility nodes</p>
+      <div class="protocol-badge">
+        <mat-icon>security</mat-icon>
+        ZENITH SECURE CORE
+      </div>
+      <h1>My Facility Network</h1>
+      <p class="subtitle">Advanced node management for your fitness infrastructure. Monitor real-time status and maintain protocol synchronization.</p>
     </div>
     <div class="header-actions">
       <button class="btn-refresh" (click)="loadGyms()" [disabled]="isLoading()">
-        <svg [class.spinning]="isLoading()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg [class.spinning]="isLoading()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
         </svg>
-        Refresh Status
+        <span>SYNC MATRIX</span>
       </button>
+    </div>
+  </header>
+
+  <!-- Notification System -->
+  <div class="notification-wrap">
+    <div class="message success animate-reveal" *ngIf="successMessage()">
+      <div class="msg-icon"><mat-icon>check_circle</mat-icon></div>
+      <div class="msg-body">
+        <strong>PROTOCOL UPDATED</strong>
+        <span>{{ successMessage() }}</span>
+      </div>
+      <button class="close-btn" (click)="successMessage.set(null)">×</button>
+    </div>
+
+    <div class="message error animate-reveal" *ngIf="errorMessage()">
+      <div class="msg-icon"><mat-icon>report_problem</mat-icon></div>
+      <div class="msg-body">
+        <strong>SYNC ANOMALY</strong>
+        <span>{{ errorMessage() }}</span>
+      </div>
+      <button class="close-btn" (click)="errorMessage.set(null)">×</button>
     </div>
   </div>
 
-  <!-- Messages -->
-  <div class="message success animate-reveal" *ngIf="successMessage()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-      <path d="M20 6L9 17 4 12" />
-    </svg>
-    <span>{{ successMessage() }}</span>
-    <button class="close-btn" (click)="successMessage.set(null)">×</button>
-  </div>
-
-  <div class="message error animate-reveal" *ngIf="errorMessage()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-      <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
-    </svg>
-    <span>{{ errorMessage() }}</span>
-    <button class="close-btn" (click)="errorMessage.set(null)">×</button>
-  </div>
-
-  <!-- Gym Grid -->
+  <!-- Main Infrastructure Grid -->
   <div class="gyms-grid" *ngIf="!isLoading() || gyms().length > 0; else loadingState">
-    <div class="gym-card glass animate-reveal" *ngFor="let gym of gyms(); let i = index" [style.animation-delay]="(i * 0.1) + 's'" [class.suspended]="gym.status === 'suspended'">
+    <div class="gym-card glass animate-reveal" *ngFor="let gym of gyms(); let i = index"
+      [style.animation-delay]="(i * 0.1) + 's'" [class.suspended]="gym.status === 'suspended'">
+      
       <div class="card-header">
-        <div class="gym-logo">
-          <img *ngIf="gym.logo_url" [src]="gym.logo_url" alt="Logo">
-          <span *ngIf="!gym.logo_url">{{ gym.name.charAt(0) }}</span>
+        <div class="gym-logo-wrap">
+          <div class="gym-logo">
+            <img *ngIf="gym.logo_url" [src]="gym.logo_url" alt="Logo">
+            <span *ngIf="!gym.logo_url">{{ gym.name.charAt(0) }}</span>
+          </div>
+          <div class="logo-glow"></div>
         </div>
-        <div class="status-badge" [class.active]="gym.status === 'active'" [class.suspended]="gym.status === 'suspended'">
-          {{ gym.status === 'suspended' ? 'OFFLINE' : 'ONLINE' }}
+        
+        <div class="status-indicator">
+          <div class="pulse-dot" [class.active]="gym.status === 'active'"
+            [class.suspended]="gym.status === 'suspended'"></div>
+          <span class="status-label">{{ gym.status === 'suspended' ? 'OFFLINE' : 'ONLINE' }}</span>
         </div>
       </div>
 
       <div class="card-body">
-        <h3>{{ gym.name }}</h3>
-        <p class="address">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          {{ gym.address }}
-        </p>
-        
-        <div class="suspension-info" *ngIf="gym.status === 'suspended'">
-          <div class="reason-label">REASON FOR SUSPENSION:</div>
-          <p class="reason-text">{{ gym.suspension_reason || 'Administrative Review Required' }}</p>
+        <div class="gym-info-main">
+          <h3 class="premium-text">{{ gym.name }}</h3>
+          <p class="address">
+            <mat-icon>location_on</mat-icon>
+            {{ gym.address }}
+          </p>
+        </div>
+
+        <!-- Protocol Subscription Info (Premium Glass Card) -->
+        <div class="protocol-box">
+          <div class="p-header">
+            <div class="p-title-group">
+              <mat-icon>hub</mat-icon>
+              <span class="p-title">Platform Protocol</span>
+            </div>
+            <span class="p-tier">{{ (gym.platform_subscription_type || 'Monthly') | uppercase }}</span>
+          </div>
+          
+          <div class="p-meta">
+            <div class="meta-item">
+              <span class="m-label">Contract Expiry</span>
+              <span class="m-value" [class.expired-text]="(gym.days_remaining || 0) <= 0">
+                {{ gym.subscription_expires_at | date:'MMM d, yyyy' }}
+              </span>
+            </div>
+            <div class="meta-item text-right">
+              <span class="m-label">Integrity Status</span>
+              <span class="m-value" [class.warning]="(gym.days_remaining || 0) < 7" [class.expired-text]="(gym.days_remaining || 0) <= 0">
+                {{ (gym.days_remaining || 0) > 0 ? gym.days_remaining + ' Days' : 'Expired' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- High Fidelity Progress Bar -->
+          <div class="sb-bar-wrap">
+            <div class="sb-bar">
+              <div class="sb-fill"
+                [style.width.%]="(gym.days_remaining || 0) > 30 ? 100 : (gym.days_remaining || 0) * 3.33">
+                <div class="sb-glow"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="suspension-info animate-reveal" *ngIf="gym.status === 'suspended'">
+          <div class="reason-label"><mat-icon>warning</mat-icon> SUSPENSION PROTOCOL ACTIVE</div>
+          <p class="reason-text">{{ gym.suspension_reason || 'Administrative Review Required: Please contact Zenith Support.' }}</p>
         </div>
       </div>
 
       <div class="card-footer">
-        <button *ngIf="gym.status === 'suspended'" class="btn-reactivate" (click)="reactivateGym(gym)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-          Reactivate Gym
-        </button>
-        <button *ngIf="gym.status !== 'suspended'" class="btn-manage" [routerLink]="['/owner/gym-profile']">
-          Manage Profile
-        </button>
+        <div class="action-buttons">
+          <button class="btn-renew" (click)="openRenewal(gym)">
+            <mat-icon>autorenew</mat-icon>
+            <span>Extend Node</span>
+          </button>
+
+          <button class="btn-manage" [routerLink]="['/owner/gym-profile']" [queryParams]="{id: gym.id_gym}">
+            <mat-icon>settings_input_component</mat-icon>
+            <span>Manage</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Platform Renewal Checkout -->
+  <app-payment-modal [showModal]="showRenewalModal()" [itemTitle]="selectedGymForRenewal()?.name || 'Platform Protocol'"
+    [itemSubtitle]="'Infrastructure Synchronization'"
+    [purchaseTerms]="'Renewing your gym protocol ensures continued access to platform services, biometric synchronization, and operational tools. This action is processed via secure Zenith Checkout.'"
+    [processingPayment]="processingRenewal()" [paymentError]="errorMessage()" [stripePublicKey]="'pk_test_...'"
+    [plans]="platformPlans" (cancelPayment)="closeRenewal()" (confirmPayment)="completeRenewal($event)">
+  </app-payment-modal>
+
   <!-- Empty State -->
-  <div class="empty-state animate-reveal" *ngIf="!isLoading() && gyms().length === 0">
+  <div class="empty-state glass animate-reveal" *ngIf="!isLoading() && gyms().length === 0">
     <div class="empty-icon">🏢</div>
-    <h2>No Gyms Found</h2>
-    <p>You don't have any gyms registered in our system yet.</p>
-    <button class="btn-primary" routerLink="/owner/dashboard">Return to Dashboard</button>
+    <h2>No Infrastructure Nodes Found</h2>
+    <p>Your facility network is currently empty. Initialize your first gym through the command center to begin platform operations.</p>
+    <button class="btn-primary-zenith" routerLink="/owner/dashboard">
+      <mat-icon>add_business</mat-icon>
+      Create Facility
+    </button>
   </div>
 
-  <!-- Loading Overlay -->
+  <!-- Loading Grid -->
   <ng-template #loadingState>
     <div class="loading-grid">
-      <div class="skeleton-card" *ngFor="let x of [1,2,3]"></div>
+      <div class="skeleton-card" *ngFor="let x of [1,2,3,4]"></div>
     </div>
   </ng-template>
 </div>

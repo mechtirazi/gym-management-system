@@ -41,26 +41,25 @@ export class MemberPurchasesComponent implements OnInit {
 
   getTypeLabel(type: string): string {
     switch(type) {
-      case 'membership': return 'Abonnement';
+      case 'membership': return 'Facility Access';
       case 'product': return 'Marketplace Item';
       case 'course': return 'Training Session';
       case 'event': return 'Special Event';
       case 'nutrition': return 'Nutrition Plan';
-      default: return 'Other';
+      default: return type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Standard';
     }
   }
 
   getItemName(purchase: any): string {
-    if (purchase.type === 'product' && purchase.order?.products?.length) {
-       const p = purchase.order.products[0];
-       return purchase.order.products.length > 1 
-        ? `${p.name} (+${purchase.order.products.length - 1} more)` 
-        : p.name;
+    const type = purchase.category?.value || purchase.type;
+    
+    if (type === 'product') {
+      return purchase.product?.name || 'Retail Product';
     }
-    if (purchase.type === 'course') return purchase.course?.name || 'Training Session';
-    if (purchase.type === 'event') return purchase.event?.title || 'Event Access';
-    if (purchase.type === 'membership') return `Subscription: ${purchase.gym?.name || 'Facility'}`;
-    if (purchase.type === 'nutrition') return purchase.nutritionPlan?.name || 'Meal Program';
+    if (type === 'course') return purchase.course?.name || 'Expert Coaching';
+    if (type === 'event') return purchase.event?.title || 'Arena Access';
+    if (type === 'membership') return `Zenith Membership`;
+    if (type === 'nutrition') return purchase.nutrition_plan?.name || 'Meal Strategy';
     
     return 'Digital Asset';
   }

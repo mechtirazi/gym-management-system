@@ -25,6 +25,56 @@ class NotificationController extends BaseApiController
     }
 
     /**
+     * Store a newly created resource in storage.
+     */
+    public function store(\Illuminate\Http\Request $request)
+    {
+        try {
+            // Manually resolve the StoreNotificationRequest to trigger validation
+            // This is necessary because the method signature must match the base controller
+            $storeRequest = app(StoreNotificationRequest::class);
+            $validatedData = $storeRequest->validated();
+
+            // Authorization is checked here
+            $this->authorize('create', Notification::class);
+
+            // Ensure id_sender is set to the current user
+            $validatedData['id_sender'] = auth()->id();
+
+            // Ensure is_read is false by default
+            $validatedData['is_read'] = false;
+
+            $data = $this->service->create($validatedData);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Notification sent successfully',
+            ], 201);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: ' . $e->getMessage(),
+            ], 403);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('NotificationController store error: ' . $e->getMessage(), [
+                'payload' => $request->all(),
+                'exception' => $e
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error sending notification: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Mark a notification as read
      */
     public function markAsRead($id)
@@ -56,6 +106,9 @@ class NotificationController extends BaseApiController
         $superAdmins = \App\Models\User::where('role', \App\Models\User::ROLE_SUPER_ADMIN)->get();
 
         foreach ($superAdmins as $admin) {
+            if ($admin->id_user == $owner->id_user)
+                continue;
+
             \App\Models\Notification::create([
                 'title' => 'Support Request from ' . $owner->name,
                 'text' => $request->message,

@@ -83,6 +83,7 @@ import { environment } from '../../../../environments/environment';
                 <th>Platform Owner</th>
                 <th>Members Count</th>
                 <th>Status</th>
+                <th>Platform Expiry</th>
                 <th style="text-align: right;">Operations</th>
               </tr>
             </thead>
@@ -111,6 +112,12 @@ import { environment } from '../../../../environments/environment';
                   <div class="status-indicator" [ngClass]="gym.status === 'active' ? 'active' : 'suspended'">
                     <div class="dot"></div>
                     {{ gym.status }}
+                  </div>
+                </td>
+                <td>
+                  <div class="expiry-tag" *ngIf="gym.subscription_expires_at" [class.expired]="isExpired(gym.subscription_expires_at)">
+                    <mat-icon>timer</mat-icon>
+                    <span>{{ gym.subscription_expires_at | date:'mediumDate' }}</span>
                   </div>
                 </td>
                 <td style="text-align: right;">
@@ -251,5 +258,9 @@ export class GymsListComponent implements OnInit {
         return `${baseUrl}/${cleanPath}`;
     }
     return `${baseUrl}/storage/${cleanPath}`;
+  }
+
+  isExpired(date: string | Date): boolean {
+    return new Date(date) < new Date();
   }
 }

@@ -1,0 +1,11 @@
+{
+  "HEADER": {
+    "SEARCH_PLACEHOLDER": "Search Zenith resources...",
+    "SWITCH_LANG": "Switch Language",
+    "SWITCH_THEME_LIGHT": "Switch to Light Mode",
+    "SWITCH_THEME_DARK": "Switch to Dark Mode",
+    "NOTIFICATIONS": "Notifications",
+    "MARK_ALL_READ": "Mark all as read",
+    "VIEW_ALL_NOTIFICATIONS": "View all notifications"
+  }
+}

@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Number;
 
 class PaymentResource extends JsonResource
 {
@@ -26,7 +25,7 @@ class PaymentResource extends JsonResource
             ],
             'amount' => [
                 'value' => $this->amount,
-                'formatted' => Number::currency($this->amount / 100, 'TND')
+                'formatted' => number_format($this->amount, 2) . ' TND'
             ],
             'category' => [
                 'value' => $this->type,
@@ -45,6 +44,18 @@ class PaymentResource extends JsonResource
             'product' => ($this->order && $this->order->products->count() > 0) ? [
                 'name' => $this->order->products->first()->name,
                 'id' => $this->order->products->first()->id_product
+            ] : null,
+            'course' => $this->course ? [
+                'name' => $this->course->name,
+                'id' => $this->course->id_course
+            ] : null,
+            'event' => $this->event ? [
+                'title' => $this->event->title,
+                'id' => $this->event->id_event
+            ] : null,
+            'nutrition_plan' => $this->nutritionPlan ? [
+                'name' => $this->nutritionPlan->name,
+                'id' => $this->nutritionPlan->id_nutrition_plan
             ] : null,
             'gym_name' => $this->gym->name ?? 'Our Gym',
             'processed_by' => $this->createdBy->name ?? 'System',

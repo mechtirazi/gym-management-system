@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\OwnerDashboardService;
 use App\Services\StripeService;
+use App\Services\AuraAiService;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
@@ -12,6 +13,8 @@ use App\Models\WalletTransaction;
 use App\Models\Gym;
 use App\Models\Subscribe;
 use App\Models\Attendance;
+use App\Models\Session;
+use App\Enums\PaymentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,16 +24,19 @@ class MemberController extends Controller
 {
     protected $dashboardService;
     protected $stripeService;
+    protected $auraAi;
 
-    public function __construct(OwnerDashboardService $dashboardService, StripeService $stripeService)
+    public function __construct(OwnerDashboardService $dashboardService, StripeService $stripeService, AuraAiService $auraAi)
     {
         $this->dashboardService = $dashboardService;
         $this->stripeService = $stripeService;
+        $this->auraAi = $auraAi;
     }
 
     public function getDashboardStats(Request $request)
     {
-        $stats = $this->dashboardService->getMemberStats($request->user());
+        $user = $request->user()->fresh();
+        $stats = $this->dashboardService->getMemberStats($user);
         return response()->json($stats);
     }
 
@@ -72,83 +78,146 @@ class MemberController extends Controller
         $wallet = $user->walletForGym($course->id_gym);
         $method = $request->input('payment_method', 'zen_wallet');
         $idSession = $request->input('id_session');
+        $isSubscription = $request->boolean('is_subscription');
 
-        if (!$idSession) {
-            return response()->json(['success' => false, 'message' => 'Node Error: A specific training timeslot (session) is required for synchronization.'], 400);
-        }
+        // Logic check: Subscription vs Single Session
+        if ($isSubscription) {
+            if (!$course->is_subscription_enabled) {
+                return response()->json(['success' => false, 'message' => 'This course does not support weekly Abonnement access.'], 403);
+            }
+            $price = $course->subscription_price ?? $course->price;
 
-        // 1. Check if already paid for this SPECIFIC session
-        $exists = Payment::where('id_user', $user->id_user)
-            ->where('id_session', $idSession)
-            ->where('type', 'course')
-            ->exists();
+            // Check for existing active subscription
+            $hasActiveSub = Enrollment::where('id_member', $user->id_user)
+                ->where('id_course', $course->id_course)
+                ->where('type', 'subscription')
+                ->where('status', 'active')
+                ->exists();
 
-        if ($exists) {
-            return response()->json(['success' => false, 'message' => 'Your biometric signature is already synced with this specific timeslot.'], 400);
+            if ($hasActiveSub) {
+                return response()->json(['success' => false, 'message' => 'You already have an active weekly Abonnement for this course.'], 400);
+            }
+        } else {
+            if (!$idSession) {
+                return response()->json(['success' => false, 'message' => 'A specific training timeslot (session) is required for single-session enrollment.'], 400);
+            }
+            $price = $course->price;
+
+            // Check if already paid for this SPECIFIC session
+            $exists = Payment::where('id_user', $user->id_user)
+                ->where('id_session', $idSession)
+                ->where('type', 'course')
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['success' => false, 'message' => 'Your biometric signature is already synced with this specific timeslot.'], 400);
+            }
         }
 
         // 2. Logic based on payment method
-        if ($method === 'zen_wallet' && $course->price > 0) {
-            if (!$wallet || $wallet->balance < $course->price) {
+        if ($method === 'zen_wallet' && $price > 0) {
+            if (!$wallet || $wallet->balance < $price) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Insufficient Zen Credits. balance: ' . ($wallet ? $wallet->balance : '0') . ' pts',
-                    'required' => $course->price
+                    'required' => $price
                 ], 400);
             }
         }
 
-        return DB::transaction(function () use ($user, $course, $wallet, $method, $idSession) {
+        return DB::transaction(function () use ($user, $course, $wallet, $method, $idSession, $isSubscription, $price) {
             $transactionId = 'ZEN-' . strtoupper(Str::random(12));
 
-            if ($method === 'zen_wallet' && $course->price > 0) {
-                $wallet->decrement('balance', $course->price);
+            if ($method === 'zen_wallet' && $price > 0) {
+                $wallet->decrement('balance', $price);
 
                 WalletTransaction::create([
                     'wallet_id' => $wallet->id,
-                    'amount' => $course->price,
+                    'amount' => $price,
                     'type' => 'debit',
-                    'description' => "Session Sync via Points: {$course->name}",
+                    'description' => $isSubscription ? "Weekly Abonnement: {$course->name}" : "Session Sync: {$course->name}",
                     'reference_type' => Course::class,
                     'reference_id' => $course->id_course
                 ]);
             }
 
-            // 3. Create Session-Specific Payment Record
+            // 3. Create Payment Record with explicit finalized status
             Payment::create([
                 'id_user' => $user->id_user,
                 'id_gym' => $course->id_gym,
                 'id_course' => $course->id_course,
-                'id_session' => $idSession,
-                'amount' => $course->price,
+                'id_session' => $isSubscription ? null : $idSession,
+                'amount' => $price,
                 'method' => $method,
                 'type' => 'course',
+                'status' => 'finalized', // Ensure it's marked as complete
                 'id_transaction' => $transactionId
             ]);
 
-            // 4. Automatically Create Attendance (Reservation) upon payment
-            $attendance = Attendance::create([
-                'id_member' => $user->id_user,
-                'id_session' => $idSession,
-                'status' => 'pending'
-            ]);
-
-            // 5. Ensure Enrollment node exists for the overall course
-            Enrollment::updateOrCreate(
+            // 4. Create Enrollment Node with explicit status
+            $enrollment = Enrollment::updateOrCreate(
                 ['id_member' => $user->id_user, 'id_course' => $course->id_course],
                 [
                     'id_gym' => $course->id_gym,
                     'enrollment_date' => now(),
                     'status' => 'active',
-                    'type' => 'standard'
+                    'type' => $isSubscription ? 'subscription' : 'standard',
+                    'end_date' => $isSubscription ? now()->addDays(30) : null
                 ]
             );
 
+            // 5. Proactive Attendance Creation for Subscriptions (Course Master Schedule Only)
+            if ($isSubscription) {
+                // 5. Proactive Attendance Creation for Subscriptions (Master Schedule Protocol)
+                $days = $course->recurring_days ?? [];
+                $startTime = $course->recurring_start_time;
+
+                // We fetch all upcoming sessions and filter in-memory for maximum reliability across DB formats
+                $allSessions = Session::where('id_course', $course->id_course)
+                    ->where('date_session', '>=', now()->toDateString())
+                    ->get();
+
+                foreach ($allSessions as $session) {
+                    // Check Day (Case-Insensitive)
+                    if (!empty($days)) {
+                        $dayName = Carbon::parse($session->date_session)->format('l');
+                        $normalizedDays = array_map('strtolower', $days);
+                        if (!in_array(strtolower($dayName), $normalizedDays)) continue;
+                    }
+
+                    // Check Time (Approx Match - 1 hour window)
+                    if ($startTime) {
+                        $sTime = substr($session->start_time, 0, 5);
+                        $cTime = substr($startTime, 0, 5);
+                        if ($sTime !== $cTime) continue;
+                    }
+
+                    // Standardize creation using model to handle UUID generation automatically
+                    Attendance::updateOrCreate(
+                        [
+                            'id_member' => $user->id_user,
+                            'id_session' => $session->id_session
+                        ],
+                        [
+                            'status' => 'pending'
+                        ]
+                    );
+                }
+            } else {
+                // Single session reservation: Explicitly use firstOrCreate to prevent duplicates
+                Attendance::firstOrCreate([
+                    'id_member' => $user->id_user,
+                    'id_session' => $idSession
+                ], [
+                    'status' => 'pending'
+                ]);
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Session Secured! Program: ' . $course->name,
+                'message' => $isSubscription ? 'Abonnement Activated! Weekly access granted.' : 'Session Secured! Program: ' . $course->name,
                 'data' => [
-                    'attendance' => $attendance,
+                    'type' => $isSubscription ? 'subscription' : 'standard',
                     'payment_method' => $method,
                     'new_balance' => $wallet ? $wallet->fresh()->balance : 0
                 ]
@@ -202,7 +271,7 @@ class MemberController extends Controller
                 ]);
             }
 
-            // 3. Create Event-Specific Payment Record
+            // 3. Create Event-Specific Payment Record with explicit status
             Payment::create([
                 'id_user' => $user->id_user,
                 'id_gym' => $event->id_gym,
@@ -210,13 +279,15 @@ class MemberController extends Controller
                 'amount' => $event->price,
                 'method' => $method,
                 'type' => 'event',
+                'status' => 'finalized',
                 'id_transaction' => $transactionId
             ]);
 
-            // 4. Automatically Create Attendance Event record
-            \App\Models\AttendanceEvent::create([
+            // 4. Automatically Create Attendance Event record with firstOrCreate
+            \App\Models\AttendanceEvent::firstOrCreate([
                 'id_member' => $user->id_user,
-                'id_event' => $event->id_event,
+                'id_event' => $event->id_event
+            ], [
                 'status' => 'upcoming'
             ]);
 
@@ -244,6 +315,84 @@ class MemberController extends Controller
             'success' => true,
             'data' => $events
         ]);
+    }
+
+    /**
+     * Upgrade member account to Premium/Elite status (Global Platform Upgrade).
+     */
+    public function upgradePlatform(Request $request)
+    {
+        $user = $request->user();
+        $method = $request->input('payment_method', 'zen_wallet');
+        $price = 99.99; // Platform Elite price
+
+        // 1. Check if already upgraded and active
+        if ($user->isPremium()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Elite Protocol is already active on this profile node.'
+            ], 400);
+        }
+
+        // 2. Logic based on payment method
+        if ($method === 'zen_wallet') {
+            // Note: Platform upgrades usually require a primary wallet or global credits
+            // For now, we'll look for any wallet with enough balance or fail if no gym context
+            $wallet = $user->wallets()->where('balance', '>=', $price)->first();
+
+            if (!$wallet) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient Zen Credits across all facility nodes to initiate Global Upgrade.',
+                    'required' => $price
+                ], 400);
+            }
+        }
+
+        return DB::transaction(function () use ($user, $method, $price) {
+            $transactionId = 'ZEN-ELITE-' . strtoupper(Str::random(12));
+
+            if ($method === 'zen_wallet') {
+                $wallet = $user->wallets()->where('balance', '>=', $price)->first();
+                $wallet->decrement('balance', $price);
+
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'amount' => $price,
+                    'type' => 'debit',
+                    'description' => "Global Platform Elite Upgrade",
+                    'reference_type' => User::class,
+                    'reference_id' => $user->id_user
+                ]);
+            }
+
+            // 3. Update User Platform Tier
+            $user->update([
+                'platform_tier' => 'premium',
+                'platform_upgrade_expires_at' => now()->addYear() // Default to 1 year for Elite
+            ]);
+
+            // 4. Create Payment Record (Global context, gym_id can be null if DB allows)
+            Payment::create([
+                'id_user' => $user->id_user,
+                'id_gym' => $user->primaryGymId(), // Link to their primary gym for accounting if possible
+                'amount' => $price,
+                'method' => $method,
+                'type' => Payment::TYPE_PLATFORM,
+                'status' => PaymentStatus::Finalized,
+                'is_locked' => true,
+                'id_transaction' => $transactionId
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Elite Protocol Activated! Your profile is now globally enhanced.',
+                'data' => [
+                    'user' => $user->fresh(),
+                    'expires_at' => $user->platform_upgrade_expires_at
+                ]
+            ]);
+        });
     }
 
     /**
@@ -275,16 +424,6 @@ class MemberController extends Controller
                 'premium' => 99.99
             ];
             $price = $pricing[$type] ?? 49.99;
-        }
-
-        // 1. Double-check for existing active enrollment (Abonnement)
-        $exists = Enrollment::where('id_member', $user->id_user)
-            ->where('id_gym', $gym->id_gym)
-            ->where('status', 'active')
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['success' => false, 'message' => 'Active biometric enrollment node already exists for this facility.'], 400);
         }
 
         // 2. Logic based on payment method
@@ -611,7 +750,7 @@ class MemberController extends Controller
     public function getMyWallets(Request $request)
     {
         $wallets = $request->user()->wallets()->with('gym:id_gym,name')->get();
-        
+
         return response()->json([
             'success' => true,
             'data' => $wallets
@@ -650,8 +789,10 @@ class MemberController extends Controller
         ]);
 
         $user = $request->user();
-
-        $review = \App\Models\Review::create([
+        
+        // Use ReviewService to trigger AI analysis
+        $reviewService = app(\App\Services\ReviewService::class);
+        $review = $reviewService->create([
             'id_user' => $user->id_user,
             'id_trainer' => $trainerId,
             'rating' => $request->rating,
@@ -661,8 +802,56 @@ class MemberController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Trainer professional feedback protocol synchronized.',
-            'data' => $review
+            'data' => $review,
+            'message' => 'Professional Feedback Synchronized!'
         ]);
+    }
+
+    /**
+     * Aura AI: Personal fitness assistant logic.
+     */
+    public function askAi(Request $request)
+    {
+        $user = $request->user();
+        $question = $request->input('question', '');
+
+        $stats = $this->dashboardService->getMemberStats($user);
+        $biometrics = $stats['stats'] ?? [];
+
+        $context = [
+            'weight' => $biometrics['weight'] ?? 70,
+            'protein' => $biometrics['protein'] ?? 0,
+            'water' => $biometrics['water'] ?? 0,
+            'goal' => $user->manual_goal ?? 'maintenance',
+            'rank' => $stats['rank']['title'] ?? 'New Recruit'
+        ];
+
+        try {
+            $response = $this->auraAi->ask($question, $context);
+        } catch (\Exception $e) {
+            \Log::error("Aura AI Controller Error: " . $e->getMessage());
+            $response = "Neural sync interrupted by external protocol. Reverting to local biometric analysis.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'response' => $response,
+            'timestamp' => now()
+        ]);
+    }
+
+    public function analyzeImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|string'
+        ]);
+
+        try {
+            $result = $this->auraAi->analyzeImage($request->image);
+            return response()->json(['success' => true, 'data' => $result]);
+        } catch (\Exception $e) {
+            \Log::error("Aura AI Vision Controller Error: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Vision analysis failed'], 500);
+        }
     }
 }

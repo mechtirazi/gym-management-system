@@ -30,6 +30,7 @@ class NotificationPolicy
     public function create(User $user): bool
     {
         return in_array($user->role, [
+            User::ROLE_SUPER_ADMIN,
             User::ROLE_OWNER,
             User::ROLE_RECEPTIONIST,
             User::ROLE_TRAINER, // Added trainer role

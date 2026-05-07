@@ -21,7 +21,10 @@ class NotificationService extends BaseService
         $query = $this->query()
             ->where(function ($query) use ($user) {
                 $query->where('id_user', $user->id_user)
-                    ->orWhereNull('id_user');
+                    ->orWhere(function ($q) use ($user) {
+                        $q->whereNull('id_user')
+                          ->where('id_sender', '!=', $user->id_user);
+                    });
             })
             ->orderByDesc('created_at');
 
@@ -36,7 +39,10 @@ class NotificationService extends BaseService
         return $this->query()
             ->where(function ($query) use ($userId) {
                 $query->where('id_user', $userId)
-                    ->orWhereNull('id_user');
+                    ->orWhere(function ($q) use ($userId) {
+                        $q->whereNull('id_user')
+                          ->where('id_sender', '!=', $userId);
+                    });
             })
             ->orderByDesc('created_at')
             ->get();
@@ -53,12 +59,13 @@ class NotificationService extends BaseService
             ->get();
     }
 
-    public function sendBroadcast(string $text, ?string $senderId = null): Notification
+    public function sendBroadcast(string $text, ?string $senderId = null, string $type = 'info'): Notification
     {
         return $this->create([
             'text' => $text,
             'id_user' => null,
             'id_sender' => $senderId ?: auth()->id(),
+            'type' => $type,
             'is_read' => false,
         ]);
     }

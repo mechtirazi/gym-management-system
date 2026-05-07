@@ -84,7 +84,7 @@
 
         <div class="course-summary">
           <div class="course-summary-label">Programs</div>
-          @if (member.courses?.length) {
+          @if ((member.courses?.length ?? 0) > 0) {
           <div class="course-chip-list">
             @for (course of member.courses; track course) {
             <span class="course-chip">{{ course }}</span>
@@ -160,7 +160,7 @@
       <section class="details-section">
         <h3>Course Enrollments</h3>
         <div class="history-list">
-          @if (selectedMember().courses?.length) {
+          @if ((selectedMember().courses?.length ?? 0) > 0) {
           @for (course of selectedMember().courses; track course) {
           <div class="history-item">
             <div class="hist-main">

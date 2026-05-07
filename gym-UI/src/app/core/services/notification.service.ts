@@ -95,6 +95,10 @@ export class NotificationService {
     return this.http.post(`${environment.apiUrl}/admin/notifications/all`, { text, type });
   }
 
+  sendToAllOwners(text: string, type: string = 'info'): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/admin/notifications/owners`, { text, type });
+  }
+
   sendToOwner(ownerId: string, text: string, type: string = 'info'): Observable<any> {
     return this.http.post(`${environment.apiUrl}/admin/notifications/owner/${ownerId}`, { text, type });
   }

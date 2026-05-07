@@ -85,29 +85,8 @@
         </div>
 
         <div class="flex-col-gap">
-          <!-- Key Focus Areas -->
-          <div class="dashboard-card focus-areas-card">
-            <h2 class="kpi-title" style="text-align: left; margin-bottom: 1.25rem;">Key Focus Areas</h2>
-            <div class="focus-list">
-              @for (area of focusAreas(); track area.label) {
-              <div class="focus-item">
-                <span class="focus-lbl">{{ area.label }}</span>
-                <div class="focus-bar-bg">
-                  <div class="focus-bar-fill {{ area.color }}"
-                    [style.width]="area.value + '%'"
-                    style="box-shadow: 0 0 10px rgba(0,0,0,0.1);"></div>
-                </div>
-              </div>
-              } @empty {
-              <div class="text-center py-4 text-muted font-medium" style="font-size: 0.75rem;">
-                No focus areas data available.
-              </div>
-              }
-            </div>
-          </div>
-
           <!-- Staff Snapshot -->
-          <div class="dashboard-card staff-card mt-6">
+          <div class="dashboard-card staff-card">
             <h2 class="kpi-title" style="text-align: left; margin-bottom: 1rem;">Staff Snapshot</h2>
             <table class="staff-table">
               <thead>
@@ -142,6 +121,46 @@
                 }
               </tbody>
             </table>
+          </div>
+
+          <!-- Recent Alerts -->
+          <div class="dashboard-card">
+            <div class="flex-between" style="margin-bottom: 1.25rem;">
+              <h2 class="kpi-title" style="margin: 0; text-align: left;">Recent Alerts</h2>
+              <span class="material-symbols-rounded" style="color: #f43f5e; font-size: 16px;">warning</span>
+            </div>
+            <div class="flex-col-gap" style="gap: 0.75rem;">
+
+              <!-- Inventory Alerts -->
+              @for (alert of inventoryAlerts(); track alert.name) {
+              <div class="alert-item">
+                <span class="material-symbols-rounded"
+                  style="color: #fef3c7; font-size: 16px; background: #d97706; border-radius: 9999px; padding: 2px;">inventory_2</span>
+                <div style="line-height: 1.3;">
+                  <span style="font-weight: 800; color: #b45309;">Low Stock: {{ alert.name }}</span> <span
+                    style="color: #64748b;">Only {{ alert.stock }} left!</span>
+                </div>
+              </div>
+              }
+
+              <!-- Expiring Memberships -->
+              @for (sub of expiringMemberships(); track sub.memberName) {
+              <div class="alert-item">
+                <span class="material-symbols-rounded"
+                  style="color: #fce7f3; font-size: 16px; background: #be123c; border-radius: 9999px; padding: 2px;">warning</span>
+                <div style="line-height: 1.3;">
+                  <span style="font-weight: 800; color: #9f1239;">{{ sub.memberName }}</span> <span
+                    style="color: #64748b;">Expires in {{ sub.daysLeft }} days!</span>
+                </div>
+              </div>
+              }
+
+              @if (inventoryAlerts().length === 0 && expiringMemberships().length === 0) {
+              <div class="text-center py-4 text-muted font-medium" style="font-size: 0.75rem;">
+                No alerts at this time.
+              </div>
+              }
+            </div>
           </div>
         </div>
 
@@ -222,45 +241,7 @@
         </div>
       </div>
 
-      <!-- Recent Alerts -->
-      <div class="dashboard-card mt-auto-card">
-        <div class="flex-between" style="margin-bottom: 1.25rem;">
-          <h2 class="kpi-title" style="margin: 0; text-align: left;">Recent Alerts</h2>
-          <span class="material-symbols-rounded" style="color: #f43f5e; font-size: 16px;">warning</span>
-        </div>
-        <div class="flex-col-gap" style="gap: 0.75rem;">
 
-          <!-- Inventory Alerts -->
-          @for (alert of inventoryAlerts(); track alert.name) {
-          <div class="alert-item">
-            <span class="material-symbols-rounded"
-              style="color: #fef3c7; font-size: 16px; background: #d97706; border-radius: 9999px; padding: 2px;">inventory_2</span>
-            <div style="line-height: 1.3;">
-              <span style="font-weight: 800; color: #b45309;">Low Stock: {{ alert.name }}</span> <span
-                style="color: #64748b;">Only {{ alert.stock }} left!</span>
-            </div>
-          </div>
-          }
-
-          <!-- Expiring Memberships -->
-          @for (sub of expiringMemberships(); track sub.memberName) {
-          <div class="alert-item">
-            <span class="material-symbols-rounded"
-              style="color: #fce7f3; font-size: 16px; background: #be123c; border-radius: 9999px; padding: 2px;">warning</span>
-            <div style="line-height: 1.3;">
-              <span style="font-weight: 800; color: #9f1239;">{{ sub.memberName }}</span> <span
-                style="color: #64748b;">Expires in {{ sub.daysLeft }} days!</span>
-            </div>
-          </div>
-          }
-
-          @if (inventoryAlerts().length === 0 && expiringMemberships().length === 0) {
-          <div class="text-center py-4 text-muted font-medium" style="font-size: 0.75rem;">
-            No alerts at this time.
-          </div>
-          }
-        </div>
-      </div>
 
     </div>
   </div>

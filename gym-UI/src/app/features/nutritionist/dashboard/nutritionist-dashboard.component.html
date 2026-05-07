@@ -57,7 +57,7 @@
         <h3>Recent Notifications</h3>
         <button class="text-link" (click)="markAllNotificationsRead()">Mark all as read</button>
       </div>
-      
+
       <div class="notifications-list">
         @for (n of latestNotifications(); track n.id) {
         <div class="notification-item" [class.unread]="n.unread">
@@ -68,7 +68,7 @@
             <span class="n-time">{{ n.time }}</span>
           </div>
           @if (n.unread) {
-            <button class="read-btn" (click)="markNotificationRead(n.id)">Mark read</button>
+          <button class="read-btn" (click)="markNotificationRead(n.id)">Mark read</button>
           }
         </div>
         } @empty {
@@ -86,9 +86,13 @@
           <span class="icon">➕</span>
           <span class="txt">Create Plan</span>
         </button>
-        <button class="action-btn active" routerLink="/nutritionist/clients">
+        <button class="action-btn" routerLink="/nutritionist/clients">
           <span class="icon">👥</span>
           <span class="txt">View Clients</span>
+        </button>
+        <button class="action-btn" routerLink="/nutritionist/messages">
+          <span class="icon">💬</span>
+          <span class="txt">Bio-Link</span>
         </button>
         <button class="action-btn" routerLink="/settings">
           <span class="icon">⚙️</span>
@@ -99,4 +103,3 @@
   </div>
   }
 </div>
-

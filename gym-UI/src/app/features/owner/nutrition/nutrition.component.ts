@@ -45,6 +45,11 @@ export class NutritionManagementComponent implements OnInit {
     id_nutritionist: '',
     id_members: [],
     price: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    calories: 0,
+    score: 95
   });
 
   filterOptions = ['All Plans', 'Active', 'Upcoming', 'Expired', 'By Nutritionist'];
@@ -127,6 +132,11 @@ export class NutritionManagementComponent implements OnInit {
       id_nutritionist: '',
       id_members: [],
       price: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
+      calories: 0,
+      score: 95
     });
     this.showModal.set(true);
   }

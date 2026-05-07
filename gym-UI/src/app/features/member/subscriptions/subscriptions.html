@@ -1,16 +1,24 @@
-<div class="membership-container">
-  <!-- Atmospheric Header -->
-  <header class="header-hub">
-      <div class="glass-card header-content">
-          <div class="text-group">
-              <h1>My Memberships</h1>
-              <p>Manage your active gym memberships.</p>
-          </div>
-          <button class="join-btn" routerLink="/member/gyms">
-              <span class="material-icons">add_circle</span>
-              Join New Gym
-          </button>
+<div class="x-hub-container">
+  <!-- Dynamic Background Effects -->
+  <div class="x-bg-aura aura-1"></div>
+  <div class="x-bg-aura aura-2"></div>
+
+  <!-- Architectural Header -->
+  <header class="x-header animate-slide-up">
+    <div class="header-content">
+      <div class="discovery-tag">
+        <span class="dot"></span>
+        <span>Member Portal</span>
       </div>
+      <h1 class="x-title"><span class="text-gradient">My <br> Memberships.</span></h1>
+      <p class="x-subtitle">Manage your active gym memberships and facility access.</p>
+    </div>
+    <div class="header-controls">
+      <button class="join-btn" routerLink="/member/gyms">
+          <span class="material-icons">add_circle</span>
+          Join New Gym
+      </button>
+    </div>
   </header>
 
   <!-- Content States -->
@@ -42,14 +50,25 @@
                        <h2 class="plan-name">{{ sub.plan?.name || sub.gym?.name || 'Gym Membership' }}</h2>
                        <p class="plan-desc">{{ sub.plan?.description || 'Standard facility access.' }}</p>
                        
-                       <div class="progress-node" *ngIf="sub.status?.toLowerCase() === 'active' || sub.status?.toLowerCase() === 'pending'">
+                       <div class="progress-node" *ngIf="sub.status?.toLowerCase() === 'active'">
                            <div class="progress-meta">
-                               <span>{{ getSubscriptionProgress(sub.end_date, sub.plan?.type || sub.type) }}% Usage</span>
-                               <span class="days-pulse">{{ getDaysLeft(sub.end_date) }} Days Left</span>
+                               <span>{{ getSubscriptionProgress(sub.end_date, sub.plan?.type || sub.type, sub.status) }}% Usage</span>
+                               <span class="days-pulse">{{ getDaysLeft(sub.end_date, sub.status) }} Days Left</span>
                            </div>
                            <div class="progress-track">
-                               <div class="progress-bar" [style.width.%]="getSubscriptionProgress(sub.end_date, sub.plan?.type || sub.type)"></div>
+                               <div class="progress-bar" [style.width.%]="getSubscriptionProgress(sub.end_date, sub.plan?.type || sub.type, sub.status)"></div>
                            </div>
+                       </div>
+
+                       <div class="pending-activation-node" *ngIf="sub.status?.toLowerCase() === 'pending'">
+                           <div class="pending-meta">
+                               <span class="material-icons">hourglass_top</span>
+                               <span>Awaiting Activation</span>
+                           </div>
+                           <div class="pending-track">
+                               <div class="pending-bar"></div>
+                           </div>
+                           <p class="pending-hint">Your facility access will be granted once the staff verifies your payment.</p>
                        </div>
                    </div>
 
@@ -64,18 +83,15 @@
                        </div>
                    </div>
 
-                   <div class="plan-features" *ngIf="sub.plan">
-                       <div class="feat-item"><span class="material-icons">check_circle</span> Unlimited Gym Access</div>
-                       <div class="feat-item"><span class="material-icons">check_circle</span> Locker Access</div>
-                       <div class="feat-item" *ngIf="sub.plan.type === 'premium'"><span class="material-icons">check_circle</span> Sauna & Spa</div>
-                       <div class="feat-item" *ngIf="sub.plan.type === 'premium'"><span class="material-icons">check_circle</span> 24/7 Access</div>
-                   </div>
-                   <div class="plan-features" *ngIf="!sub.plan">
-                       <div class="feat-item"><span class="material-icons">check_circle</span> Unlimited Gym Access</div>
-                       <div class="feat-item"><span class="material-icons">check_circle</span> Locker Access</div>
-                       <div class="feat-item" *ngIf="!isStandardPlan(sub.plan?.name)"><span class="material-icons">check_circle</span> Sauna & Spa</div>
-                       <div class="feat-item" *ngIf="!isStandardPlan(sub.plan?.name)"><span class="material-icons">check_circle</span> 24/7 Access</div>
-                   </div>
+                   <div class="plan-features">
+                        @for (feat of getFeatures(sub); track feat) {
+                            <div class="feat-item">
+                                <span class="material-icons">check_circle</span>
+                                {{ feat }}
+                            </div>
+                        }
+                    </div>
+
 
                    <div class="card-footer">
                        <div class="status-pill" [ngClass]="getStatusClass(sub.status)">

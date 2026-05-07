@@ -4,13 +4,16 @@ namespace App\Services;
 
 use App\Models\NutritionPlan;
 use App\Models\User;
+use App\Models\WalletTransaction;
+use App\Models\Payment;
+use Illuminate\Support\Str;
 
 class NutritionPlanService extends BaseService
 {
     public function __construct()
     {
         $this->setModel(new NutritionPlan());
-        $this->setRelations(['gym', 'nutritionist', 'members']);
+        $this->setRelations(['gym', 'nutritionist', 'members', 'meals', 'supplements']);
     }
 
     /**
@@ -77,36 +80,97 @@ class NutritionPlanService extends BaseService
     }
 
     /**
-     * Override create to sync members
+     * Override create to sync members, meals and supplements
      */
     public function create(array $data): \Illuminate\Database\Eloquent\Model
     {
-        $idMembers = $data['id_members'] ?? [];
-        unset($data['id_members']);
+        return \DB::transaction(function () use ($data) {
+            $idMembers = $data['id_members'] ?? [];
+            $meals = $data['meals'] ?? [];
+            $supplements = $data['supplements'] ?? [];
 
-        $plan = $this->model->create($data);
+            // Handle base64 image if present
+            if (isset($data['image']) && strpos($data['image'], 'data:image') === 0) {
+                $data['image'] = $this->saveBase64Image($data['image'], 'nutrition_plans');
+            }
 
-        if (!empty($idMembers)) {
-            $plan->members()->sync($idMembers);
-        }
+            unset($data['id_members'], $data['meals'], $data['supplements']);
 
-        return $plan->fresh($this->relations);
+            $plan = $this->model->create($data);
+
+            if (!empty($idMembers)) {
+                $plan->members()->sync($idMembers);
+            }
+
+            foreach ($meals as $meal) {
+                $plan->meals()->create($meal);
+            }
+
+            foreach ($supplements as $supplement) {
+                $plan->supplements()->create($supplement);
+            }
+
+            return $plan->fresh($this->relations);
+        });
     }
 
     /**
-     * Override update to sync members
+     * Override update to sync members, meals and supplements
      */
     public function update(\Illuminate\Database\Eloquent\Model $plan, array $data): \Illuminate\Database\Eloquent\Model
     {
-        if (array_key_exists('id_members', $data)) {
-            $idMembers = $data['id_members'] ?? [];
-            $plan->members()->sync($idMembers);
-            unset($data['id_members']);
+        return \DB::transaction(function () use ($plan, $data) {
+            // Handle base64 image if present
+            if (isset($data['image']) && strpos($data['image'], 'data:image') === 0) {
+                $data['image'] = $this->saveBase64Image($data['image'], 'nutrition_plans');
+            }
+
+            if (array_key_exists('id_members', $data)) {
+                $idMembers = $data['id_members'] ?? [];
+                $plan->members()->sync($idMembers);
+                unset($data['id_members']);
+            }
+
+            if (array_key_exists('meals', $data)) {
+                $plan->meals()->delete();
+                foreach ($data['meals'] as $meal) {
+                    $plan->meals()->create($meal);
+                }
+                unset($data['meals']);
+            }
+
+            if (array_key_exists('supplements', $data)) {
+                $plan->supplements()->delete();
+                foreach ($data['supplements'] as $supplement) {
+                    $plan->supplements()->create($supplement);
+                }
+                unset($data['supplements']);
+            }
+
+            $plan->update($data);
+
+            return $plan->fresh($this->relations);
+        });
+    }
+
+    /**
+     * Save base64 image to storage
+     */
+    private function saveBase64Image(string $base64, string $folder): string
+    {
+        try {
+            $format = explode('/', explode(':', substr($base64, 0, strpos($base64, ';')))[1])[1];
+            $image = str_replace(' ', '+', substr($base64, strpos($base64, ',') + 1));
+            $imageName = Str::random(20) . '.' . $format;
+            $path = $folder . '/' . $imageName;
+            
+            \Storage::disk('public')->put($path, base64_decode($image));
+            
+            return $path;
+        } catch (\Exception $e) {
+            \Log::error('Base64 Image Save Error: ' . $e->getMessage());
+            return $base64; // Fallback to raw if it fails
         }
-
-        $plan->update($data);
-
-        return $plan->fresh($this->relations);
     }
 
     /**
@@ -134,5 +198,75 @@ class NutritionPlanService extends BaseService
             ->where('start_date', '<=', now())
             ->where('end_date', '>=', now())
             ->get();
+    }
+
+    /**
+     * Purchase a nutrition plan for a member.
+     */
+    public function purchase(NutritionPlan $plan, User $user, array $data = [])
+    {
+        $method = $data['method'] ?? 'zen_wallet';
+        
+        return \DB::transaction(function () use ($plan, $user, $method) {
+            // 1. Check if already owned
+            if ($plan->members()->where('users.id_user', $user->id_user)->exists()) {
+                throw new \Exception('You already have this metabolic protocol synchronized.');
+            }
+
+            $price = $plan->price ?? 19.99; // Default price if not set
+
+            if ($method === 'zen_wallet') {
+                // 2. Check wallet balance for this gym
+                $wallet = $user->walletForGym($plan->id_gym);
+                
+                if (!$wallet || $wallet->balance < $price) {
+                    throw new \Exception('Insufficient Zen Credits. Required: ' . $price . ' pts.');
+                }
+
+                // 3. Deduct from wallet
+                $wallet->decrement('balance', $price);
+
+                // 4. Create Wallet Transaction
+                \App\Models\WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'amount' => $price,
+                    'type' => 'debit',
+                    'description' => "Nutrition Protocol Acquisition: {$plan->name}",
+                    'reference_type' => NutritionPlan::class,
+                    'reference_id' => $plan->id_plan
+                ]);
+
+                // 5. Create Payment Record (Zen Wallet)
+                \App\Models\Payment::create([
+                    'id_user' => $user->id_user,
+                    'id_gym' => $plan->id_gym,
+                    'amount' => $price,
+                    'method' => 'zen_wallet',
+                    'type' => Payment::TYPE_NUTRITION,
+                    'status' => 'finalized',
+                    'id_transaction' => 'ZEN-NUT-' . strtoupper(\Str::random(12))
+                ]);
+            } else {
+                // 5. Create Payment Record (Credit Card / External)
+                \App\Models\Payment::create([
+                    'id_user' => $user->id_user,
+                    'id_gym' => $plan->id_gym,
+                    'amount' => $price,
+                    'method' => 'credit_card',
+                    'type' => Payment::TYPE_NUTRITION,
+                    'status' => 'finalized',
+                    'id_transaction' => 'EXT-NUT-' . strtoupper(\Str::random(12))
+                ]);
+            }
+
+            // 6. Sync Member to Plan
+            $plan->members()->attach($user->id_user);
+
+            return [
+                'success' => true,
+                'message' => 'Protocol Synchronized!',
+                'new_balance' => ($method === 'zen_wallet' && isset($wallet)) ? $wallet->fresh()->balance : null
+            ];
+        });
     }
 }

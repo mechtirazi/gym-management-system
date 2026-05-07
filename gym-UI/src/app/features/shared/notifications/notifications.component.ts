@@ -17,8 +17,8 @@ import { NotificationDispatcherComponent } from './components/notification-dispa
   selector: 'app-notifications',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
+    CommonModule,
+    ReactiveFormsModule,
     MatSnackBarModule,
     StaffInvitationsComponent,
     NotificationFiltersComponent,
@@ -81,6 +81,7 @@ import { NotificationDispatcherComponent } from './components/notification-dispa
               [isDispatching]="isDispatching()"
               [showStaffOption]="featureService.isOwner() || featureService.isReceptionist()"
               [showMembersOption]="featureService.isOwner() || featureService.isTrainer()"
+              [showOwnersOption]="featureService.isAdmin()"
               [roleLabels]="roleLabels()"
               [tipText]="tipText()"
               (onSubmit)="onDispatch()"
@@ -174,7 +175,7 @@ export class NotificationsComponent implements OnInit {
   notifications = this.featureService.notifications;
   unreadCount = this.featureService.unreadCount;
   invitations = this.featureService.invitations;
-  
+
   // Local UI State
   logFilter = signal<NotificationLogFilter>('all');
   searchQuery = signal('');
@@ -205,8 +206,21 @@ export class NotificationsComponent implements OnInit {
 
   filteredNotifications = computed(() => {
     const filter = this.logFilter();
-    const list = this.notifications();
-    return filter === 'unread' ? list.filter(n => n.unread) : list;
+    const query = this.searchQuery().toLowerCase();
+    let list = this.notifications();
+
+    if (filter === 'unread') {
+      list = list.filter(n => n.unread);
+    }
+
+    if (query) {
+      list = list.filter(n =>
+        n.title?.toLowerCase().includes(query) ||
+        n.description?.toLowerCase().includes(query)
+      );
+    }
+
+    return list;
   });
 
   paginatedNotifications = computed(() => {
@@ -217,7 +231,7 @@ export class NotificationsComponent implements OnInit {
     const query = this.searchQuery().toLowerCase();
     const all = this.featureService.targets();
     if (!query) return all;
-    return all.filter(t => 
+    return all.filter(t =>
       `${t.name} ${t.last_name}`.toLowerCase().includes(query) ||
       t.email?.toLowerCase().includes(query)
     );
@@ -285,6 +299,14 @@ export class NotificationsComponent implements OnInit {
       return;
     }
 
+    if (recipientType === 'owners' && this.featureService.isAdmin()) {
+      this.featureService.broadcastToOwners(message!, type!).subscribe({
+        next: () => this.handleSuccess('Announcement broadcasted to all owners.'),
+        error: () => this.handleError('Failed to broadcast to owners.'),
+      });
+      return;
+    }
+
     // Direct and grouped sending
     let targets = this.filteredTargets();
     if (recipientType === 'staff') targets = targets.filter(t => t.role !== 'member');
@@ -296,10 +318,10 @@ export class NotificationsComponent implements OnInit {
       return;
     }
 
-    const requests = targets.map(t => this.featureService.dispatchNotification({ 
-      id_user: t.id_user!, 
-      message: message!, 
-      type: type! 
+    const requests = targets.map(t => this.featureService.dispatchNotification({
+      id_user: t.id_user!,
+      message: message!,
+      type: type!
     }));
 
     forkJoin(requests).subscribe({

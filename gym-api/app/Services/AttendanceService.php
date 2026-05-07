@@ -98,13 +98,21 @@ class AttendanceService extends BaseService
             if ($sessionId) {
                 $session = \App\Models\Session::find($sessionId);
                 if ($session) {
+                    // Check 1: Direct payment for this specific session
                     $isPaid = \App\Models\Payment::where('id_user', $user->id_user)
                         ->where('id_session', $sessionId)
                         ->where('type', 'course')
                         ->exists();
 
-                    if (!$isPaid) {
-                        throw new \Exception('Node synchronization required: You must pay for this specific session timeslot before completing the reservation.');
+                    // Check 2: Active "Full Pass" (Abonnement) for the course
+                    $hasFullPass = \App\Models\Enrollment::where('id_member', $user->id_user)
+                        ->where('id_course', $session->id_course)
+                        ->where('type', 'subscription')
+                        ->where('status', 'active')
+                        ->exists();
+
+                    if (!$isPaid && !$hasFullPass) {
+                        throw new \Exception('Node synchronization required: You must have an active Abonnement or pay for this specific session timeslot.');
                     }
                 }
             }

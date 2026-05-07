@@ -785,6 +785,16 @@
     .metric-icon-box { background: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); border: 1px solid rgba(244, 63, 94, 0.2); }
     &:hover { box-shadow: 0 30px 60px -12px rgba(244, 63, 94, 0.1); }
   }
+
+  &.style-indigo {
+    .metric-icon-box { background: rgba(129, 140, 248, 0.1); color: var(--admin-accent-indigo); border: 1px solid rgba(129, 140, 248, 0.2); }
+    &:hover { box-shadow: 0 30px 60px -12px rgba(129, 140, 248, 0.1); }
+  }
+
+  &.style-amber {
+    .metric-icon-box { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+    &:hover { box-shadow: 0 30px 60px -12px rgba(245, 158, 11, 0.1); }
+  }
 }
 
 // ─── Status Control & Small Info Cards ───

@@ -1,48 +1,53 @@
-<div class="courses-container animate-fade-in">
-  <header class="header-hub">
-    <div class="glass-card header-content">
-      <div class="text-group">
-        <h1>Training Programs</h1>
-        <p>Expert-led courses from your connected fitness nodes.</p>
-      </div>
+<div class="x-hub-container">
+  <!-- Dynamic Background Effects -->
+  <div class="x-bg-aura aura-1"></div>
+  <div class="x-bg-aura aura-2"></div>
 
-      <div class="header-filters">
-        <div class="search-box">
-          <span class="material-symbols-rounded">search</span>
-          <input type="text" [(ngModel)]="searchText" (ngModelChange)="onFilterChange()"
-            placeholder="Search programs or trainers..." />
-        </div>
-
-        <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="gym-node-selector">
-          <option value="all">Global Hub (All Gyms)</option>
-          <option *ngFor="let gym of gyms" [value]="gym.id_gym">{{ gym.name }}</option>
-        </select>
+  <!-- Architectural Header -->
+  <header class="x-header animate-slide-up">
+    <div class="header-content">
+      <div class="discovery-tag">
+        <span class="dot"></span>
+        <span>Class Center</span>
       </div>
+      <h1 class="x-title"><span class="text-gradient">Gym <br> Classes.</span></h1>
+      <p class="x-subtitle">Find and join the best fitness classes at your gym.</p>
+    </div>
+    <div class="header-controls">
+      <div class="x-search-orb">
+        <span class="material-symbols-rounded">search</span>
+        <input type="text" [(ngModel)]="searchText" (ngModelChange)="onFilterChange()"
+          placeholder="Search for courses or trainers..." />
+      </div>
+      <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="gym-node-selector">
+        <option value="all">All Gyms</option>
+        @for (gym of gyms; track gym.id_gym) {
+        <option [value]="gym.id_gym">{{ gym.name }}</option>
+        }
+      </select>
     </div>
   </header>
 
-  <nav class="category-tabs">
-    @for (cat of categories; track cat.id) {
-    <button class="tab-item" [class.active]="selectedCategory === cat.id"
-      (click)="selectedCategory = cat.id; onFilterChange()">
-      {{ cat.label }}
-    </button>
-    }
-  </nav>
-
-  <div *ngIf="errorMessage" class="error-hub">
-    <p>{{ errorMessage }}</p>
+  <!-- High-Performance Filter Track -->
+  <div class="x-filter-track animate-slide-up" style="animation-delay: 0.1s">
+    <div class="track-inner">
+      @for (cat of categories; track cat.id) {
+      <button class="x-chip" [class.active]="selectedCategory === cat.id"
+        (click)="selectedCategory = cat.id; onFilterChange()">
+        {{ cat.label }}
+      </button>
+      }
+    </div>
   </div>
 
+  <!-- Courses Grid (Original Design) -->
   @if (!loading) {
-  <div class="courses-grid" *ngIf="paginatedCourses.length > 0; else noCourses">
+  <div class="courses-grid" *ngIf="filteredCourses.length > 0; else noCourses">
     @for (course of paginatedCourses; track course.id_course) {
     <div class="course-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'"
       [class.is-owned]="course.isOwned">
       <div class="course-poster">
-        <img
-          [src]="course.imageUrl"
-          [alt]="course.name"
+        <img [src]="course.imageUrl" [alt]="course.name"
           (error)="course.imageUrl = 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=600'">
         <div class="category-badge">{{ course.category || 'Elite' }}</div>
       </div>
@@ -53,13 +58,9 @@
             <span class="material-symbols-rounded">domain</span>
             <span>{{ course.gymName }}</span>
           </div>
-          <div class="vendor-info" 
-               (click)="navigateToTrainer(course)"
-               [style.cursor]="getTrainerId(course) ? 'pointer' : 'default'"
-               [title]="getTrainerId(course) ? 'View Trainer Profile' : ''"
-               onmouseover="if(this.style.cursor === 'pointer') this.style.opacity='0.8'"
-               onmouseout="this.style.opacity='1'"
-               style="transition: opacity 0.2s;">
+          <div class="vendor-info" (click)="navigateToTrainer(course)"
+            [style.cursor]="getTrainerId(course) ? 'pointer' : 'default'"
+            [title]="getTrainerId(course) ? 'View Trainer Profile' : ''" style="transition: opacity 0.2s;">
             <img [src]="getTrainerAvatar(course)" class="trainer-avatar" [alt]="getTrainerName(course)">
             <span class="trainer-name">{{ getTrainerName(course) }}</span>
           </div>
@@ -68,85 +69,122 @@
         <h3 class="course-title">{{ course.name }}</h3>
         <p class="course-desc">{{ (course.description | slice:0:120) + '...' }}</p>
 
-        <div class="course-meta-modern">
-          <div class="meta-node">
-            <span class="meta-label">DURATION</span>
-            <span class="meta-value">{{ formatDuration(course.duration) }}</span>
+        <div class="course-stats-row">
+          <div class="stat-orb">
+            <span class="stat-icon material-symbols-rounded">schedule</span>
+            <div class="stat-info">
+              <span class="stat-label">Duration</span>
+              <span class="stat-value">{{ formatDuration(course.duration, course.duration_unit) }}</span>
+            </div>
           </div>
-          <div class="meta-node">
-            <span class="meta-label">SESSIONS</span>
-            <span class="meta-value">{{ course.activeSessions?.length || 0 }} ACTIVE</span>
+          <div class="stat-orb">
+            <span class="stat-icon material-symbols-rounded">layers</span>
+            <div class="stat-info">
+              <span class="stat-label">Sessions</span>
+              <span class="stat-value">{{ course.activeSessions?.length || 0 }} Active</span>
+            </div>
           </div>
-
           @if (course.hasActiveSession) {
-            <div class="meta-node highlight">
-              <span class="meta-label">STATUS</span>
-              <span class="meta-value live-ping"><span class="dot"></span>Live Session</span>
+            <div class="stat-orb live">
+              <span class="stat-icon material-symbols-rounded">sensors</span>
+              <div class="stat-info">
+                <span class="stat-label">Status</span>
+                <span class="stat-value">Live Now</span>
+              </div>
             </div>
           }
         </div>
 
         @if (course.activeSessions?.length > 1) {
-          <div class="session-selection-area">
-            <span class="area-label">SELECT YOUR TIMESLOT</span>
-            <div class="session-pills-wrapper">
-              @for (s of course.activeSessions; track s.id_session || s.id) {
-                <button class="session-pill" 
-                  [class.active]="course.selectedSessionId === (s.id_session || s.id)"
-                  (click)="course.selectedSessionId = (s.id_session || s.id)">
-                  <span class="pill-date">{{ s.date_session | date:'E, MMM d' }}</span>
-                  <span class="pill-time">{{ (s.start_time || '').substring(0,5) }}</span>
-                </button>
+        <div class="session-selection-engine">
+          <div class="engine-header">
+            <span class="material-symbols-rounded">calendar_today</span>
+            <span>Pick a Time</span>
+          </div>
+          <div class="engine-slots">
+            @for (s of course.activeSessions; track s.id_session || s.id) {
+            <button class="slot-chip" [class.active]="course.selectedSessionId === (s.id_session || s.id)"
+              (click)="course.selectedSessionId = (s.id_session || s.id)">
+              <div class="slot-content">
+                <span class="slot-day">{{ s.date_session | date:'EEE' }}</span>
+                <span class="slot-date">{{ s.date_session | date:'MMM d' }}</span>
+                <span class="slot-time">{{ (s.start_time || '').substring(0,5) }}</span>
+              </div>
+            </button>
+            }
+          </div>
+        </div>
+        }
+
+        <div class="card-interaction-zone">
+          <div class="status-price-row">
+            <div class="price-hub" [class.dual-pricing]="course.isSubscriptionEnabled">
+              <div class="price-unit session">
+                <span class="price-label">Session</span>
+                <div class="price-val">
+                  @if (course.price > 0) {
+                    <span class="amount">{{ course.price }}</span>
+                    <span class="currency">DT</span>
+                  } @else {
+                    <span class="free-badge">FREE</span>
+                  }
+                </div>
+              </div>
+
+              @if (course.isSubscriptionEnabled) {
+                <div class="price-separator"></div>
+                <div class="price-unit subscription">
+                  <span class="price-label">Abonnement</span>
+                  <div class="price-val">
+                    <span class="amount">{{ course.subscriptionPrice || course.subscription_price }}</span>
+                    <span class="currency">DT</span>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="badges-hub">
+              <div class="capacity-tag" [class.full]="isSessionFull(course)">
+                <span class="material-symbols-rounded">group</span>
+                <span>{{ getSelectedSessionCapacity(course) }}</span>
+              </div>
+              
+              @if (course.hasAbonnement) {
+                <div class="premium-access-tag">
+                  <span class="material-symbols-rounded">stars</span>
+                  <span>Full Access</span>
+                </div>
               }
             </div>
           </div>
-        }
 
-        <div class="card-footer" [class.no-border]="course.activeSessions?.length > 1">
-          <div class="price-tag">
-            @if (course.price > 0) {
-              <span class="currency">$</span>
-              <span class="amount">{{ course.price }}</span>
-            } @else {
-              <span class="amount free-text">FREE</span>
-            }
-          </div>
-          <div class="actions-group">
+          <div class="action-buttons-grid" [class.has-both]="course.activeSessions?.length > 0 && course.isSubscriptionEnabled">
             @if (course.activeSessions?.length > 0) {
-              <div class="session-info-row">
-                <div class="capacity-indicator" [class.is-full]="isSessionFull(course)">
-                  <span class="material-symbols-rounded">{{ isSessionFull(course) ? 'group_off' : 'groups' }}</span>
-                  <span class="capacity-text">{{ getSelectedSessionCapacity(course) }} Spots</span>
-                </div>
-                @if (course.isOwned) {
-                  <div class="owned-badge">
-                    <span class="material-symbols-rounded">verified</span>
-                    <span>Owned</span>
-                  </div>
-                }
-              </div>
-
-              @if (course.activeSessions?.length === 1) {
-                <div class="single-session-badge">
-                  <span class="material-symbols-rounded">event</span>
-                  {{ course.activeSessions[0].date_session | date:'MMM d' }} | {{ (course.activeSessions[0].start_time || '').substring(0,5) }}
-                </div>
-              }
-              <button class="reserve-btn" 
-                [class.reserved]="isSessionReserved(course)"
-                [class.is-full]="isSessionFull(course)"
+              <button class="primary-action reserve" 
+                [class.owned]="isSessionReserved(course)"
                 [disabled]="isSessionReserved(course) || isSessionFull(course)"
-                (click)="onReserve(course)" 
-                [title]="isSessionReserved(course) ? 'You have officially reserved this timeslot' : (isSessionFull(course) ? 'This session is at maximum capacity' : 'Reserve your spot')">
+                (click)="onReserve(course)">
                 <span class="material-symbols-rounded">
-                  {{ isSessionReserved(course) ? 'check_circle' : (isSessionFull(course) ? 'block' : 'calendar_add_on') }}
+                  {{ isSessionReserved(course) ? 'check_circle' : 'bolt' }}
                 </span>
-                {{ isSessionReserved(course) ? 'Reserved' : (isSessionFull(course) ? 'Full' : (course.price > 0 ? 'Reserve' : 'Enroll Free')) }}
+                <span>{{ isSessionReserved(course) ? 'Secured' : 'Book Session' }}</span>
               </button>
+
+              @if (course.isSubscriptionEnabled) {
+                <button class="secondary-action subscription" 
+                  [class.active]="course.hasAbonnement"
+                  [disabled]="course.hasAbonnement"
+                  (click)="onSubscribe(course)">
+                  <span class="material-symbols-rounded" style="text-transform: none !important;">
+                    {{ course.hasAbonnement ? 'verified' : 'refresh' }}
+                  </span>
+                  <span>{{ course.hasAbonnement ? 'Active' : 'Full Pass' }}</span>
+                </button>
+              }
             } @else {
-              <div class="not-available-badge">
-                <span class="material-symbols-rounded">block</span>
-                Pas Disponible
+              <div class="sold-out-banner">
+                <span class="material-symbols-rounded">event_busy</span>
+                Currently No Active Sessions
               </div>
             }
           </div>
@@ -156,17 +194,17 @@
     }
   </div>
 
-  <!-- Zen Pagination Hub -->
   <div class="pagination-hub animate-fade-in" *ngIf="totalPages > 1">
     <button class="nav-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
       <span class="material-icons">chevron_left</span>
     </button>
 
     <div class="page-indicators">
-      <button *ngFor="let p of [].constructor(totalPages); let i = index" class="page-pill"
-        [class.active]="currentPage === i + 1" (click)="changePage(i + 1)">
-        {{ i + 1 }}
+      @for (p of [].constructor(totalPages); track $index) {
+      <button class="page-pill" [class.active]="currentPage === $index + 1" (click)="changePage($index + 1)">
+        {{ $index + 1 }}
       </button>
+      }
     </div>
 
     <button class="nav-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
@@ -196,24 +234,25 @@
   }
 
   <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
-    [paymentError]="paymentError"
-    [stripePublicKey]="stripePublicKey"
-    [wallets]="wallets"
-    [currentGymId]="selectedCourse?.id_gym"
-    [totalPrice]="selectedCourse?.price"
-    [headerTitle]="'Unlock Program Access'" [itemTitle]="selectedCourse?.name || 'Program'"
-    [itemSubtitle]="selectedCourse?.category || 'Elite Training'"
+    [paymentError]="paymentError" [stripePublicKey]="stripePublicKey" [wallets]="wallets"
+    [currentGymId]="selectedCourse?.id_gym" 
+    [totalPrice]="isSubscriptionMode ? selectedCourse?.subscriptionPrice : selectedCourse?.price" 
+    [itemTitle]="selectedCourse?.name || 'Program'" 
     [itemImage]="selectedCourse?.imageUrl"
-    [purchaseTerms]="'Enrolling grants you full access to all future sessions and training materials for this program duration.'"
+    [headerTitle]="isSubscriptionMode ? 'Get Full Pass' : 'Book Class'"
+    [itemSubtitle]="isSubscriptionMode ? 'Monthly Course Pass' : (selectedCourse?.category || 'Class')"
+    [purchaseTerms]="isSubscriptionMode ? 'Get access to every class session for the next 30 days.' : 'This secures your spot for one class session.'"
     (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
   </app-payment-modal>
 
   <!-- Toast System -->
   <div class="toast-hub-container" *ngIf="toastMessage">
     <div class="glass-toast slide-in" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
-      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ? 'error' : 'info') }}</span>
+      <span class="material-symbols-rounded">{{ toastType === 'success' ? 'check_circle' : (toastType === 'error' ?
+        'error' : 'info') }}</span>
       <div class="toast-content">
-        <strong>{{ toastType === 'success' ? 'Vanguard Sync' : (toastType === 'error' ? 'Sync Failure' : 'System Notice') }}</strong>
+        <strong>{{ toastType === 'success' ? 'Course Updated' : (toastType === 'error' ? 'Enrollment Failed' : 'System
+          Notice') }}</strong>
         <p>{{ toastMessage }}</p>
       </div>
     </div>

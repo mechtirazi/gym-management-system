@@ -21,9 +21,9 @@ class StoreSubscribeRequest extends FormRequest
     {
         return [
             'id_gym' => 'required|exists:gyms,id_gym',
-            'id_user' => 'required|exists:users,id_user',
-            'status' => 'required|in:inactive,active,expired,cancelled',
-            'subscribe_date' => 'required|date',
+            'id_user' => 'nullable|exists:users,id_user',
+            'status' => 'nullable|in:inactive,active,expired,cancelled,paused',
+            'subscribe_date' => 'nullable|date',
         ];
     }
 

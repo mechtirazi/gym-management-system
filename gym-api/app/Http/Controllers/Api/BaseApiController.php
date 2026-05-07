@@ -84,7 +84,17 @@ abstract class BaseApiController extends Controller
                 'message' => ucfirst($this->modelName) . ' retrieved successfully',
             ], 200);
         }
+        catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: ' . $e->getMessage(),
+            ], 403);
+        }
         catch (\Exception $e) {
+            \Log::error('BaseApiController index error: ' . $e->getMessage(), [
+                'model' => $this->modelName,
+                'exception' => $e
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error retrieving ' . $this->modelName . ': ' . $e->getMessage(),
@@ -120,7 +130,25 @@ abstract class BaseApiController extends Controller
                 'message' => ucfirst($this->modelName) . ' created successfully',
             ], 201);
         }
+        catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: ' . $e->getMessage(),
+            ], 403);
+        }
+        catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        }
         catch (\Exception $e) {
+            \Log::error('BaseApiController store error: ' . $e->getMessage(), [
+                'model' => $this->modelName,
+                'payload' => $request->all(),
+                'exception' => $e
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error creating ' . $this->modelName . ': ' . $e->getMessage(),

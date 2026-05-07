@@ -22,14 +22,22 @@ class UpdateCourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'id_gym' => 'sometimes|exists:gyms,id_gym',
-            'price' => 'sometimes|numeric|min:0',
-            'max_capacity' => 'sometimes|integer|min:1',
-            'count' => 'sometimes|integer|min:0',
-            'duration' => 'sometimes|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'name' => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string'],
+            'id_gym' => ['sometimes', 'exists:gyms,id_gym'],
+            'price' => ['sometimes', 'numeric', 'min:0'],
+            'max_capacity' => ['sometimes', 'integer', 'min:1'],
+            'count' => ['sometimes', 'integer', 'min:0'],
+            'duration' => ['sometimes', 'integer', 'min:1'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'is_subscription_enabled' => ['nullable', 'boolean'],
+            'subscription_price' => ['nullable', 'numeric', 'min:0'],
+            'is_recurring' => ['nullable', 'boolean'],
+            'recurring_days' => ['nullable', 'array'],
+            'recurring_start_time' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'recurring_end_time' => ['nullable', 'regex:/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/'],
+            'recurrence_weeks' => ['nullable', 'integer', 'min:0'],
+            'id_trainer' => ['nullable', 'exists:users,id_user'],
         ];
     }
 

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { NutritionPlan } from '../../../shared/models/nutrition.model';
+import { NutritionPlan, NutritionMessage } from '../../../shared/models/nutrition.model';
 
 export interface ApiListResponse<T> {
   success?: boolean;
@@ -39,12 +39,32 @@ export class NutritionistNutritionService {
     return this.http.delete<void>(`${this.apiUrl}/nutrition-plans/${id}`);
   }
 
+  // Real-Time Bio-Communication (Messaging)
+  getConversations(): Observable<ApiListResponse<any>> {
+    return this.http.get<ApiListResponse<any>>(`${this.apiUrl}/nutrition-messages/conversations`);
+  }
+
+  getMessages(memberId: string): Observable<ApiListResponse<NutritionMessage>> {
+    return this.http.get<ApiListResponse<NutritionMessage>>(`${this.apiUrl}/nutrition-messages/${memberId}`);
+  }
+
+  sendMessage(memberId: string, text: string): Observable<NutritionMessage> {
+    return this.http.post<NutritionMessage>(`${this.apiUrl}/nutrition-messages`, { 
+      id_receiver: memberId, 
+      text 
+    });
+  }
+
   getBiometrics(memberId: string): Observable<ApiListResponse<any>> {
     return this.http.get<ApiListResponse<any>>(`${this.apiUrl}/biometrics?memberId=${memberId}`);
   }
 
   updateMemberAdvisory(id: string, advisory: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/users/${id}`, { nutritionist_advisory: advisory });
+  }
+
+  updateMemberNotes(id: string, notes: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${id}`, { nutritionist_notes: notes });
   }
 
   updateTargetWeight(id: string, targetWeight: number): Observable<any> {

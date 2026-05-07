@@ -27,8 +27,9 @@ class TrainerController extends Controller
      */
     protected function validateGymAccess(User $user, $gymId)
     {
-        if (!$gymId) return true;
-        
+        if (!$gymId)
+            return true;
+
         return $user->assignedGyms()->where('gyms.id_gym', $gymId)->exists();
     }
 
@@ -43,12 +44,12 @@ class TrainerController extends Controller
                 'message' => 'Unauthorized access to this gym context.'
             ], 403);
         }
-        
+
         $activeClientsCount = DB::table('attendance')
             ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->distinct('attendance.id_member')
@@ -82,7 +83,7 @@ class TrainerController extends Controller
 
         $sessionsTodayCount = Session::join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->whereDate('sessions.date_session', now()->toDateString())
@@ -90,7 +91,7 @@ class TrainerController extends Controller
 
         $completedSessionsCount = Session::join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->where('sessions.status', Session::STATUS_COMPLETED)
@@ -99,7 +100,7 @@ class TrainerController extends Controller
 
         $rating = DB::table('reviews')
             ->where('id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('reviews.id_gym', $gymId);
             })
             ->avg('rating') ?: 0;
@@ -107,7 +108,7 @@ class TrainerController extends Controller
         // Calculate rating trend (comparing this month to previous month)
         $thisMonthAvg = DB::table('reviews')
             ->where('id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('reviews.id_gym', $gymId);
             })
             ->whereMonth('created_at', now()->month)
@@ -115,7 +116,7 @@ class TrainerController extends Controller
 
         $lastMonthAvg = DB::table('reviews')
             ->where('id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('reviews.id_gym', $gymId);
             })
             ->whereMonth('created_at', now()->subMonth()->month)
@@ -156,12 +157,12 @@ class TrainerController extends Controller
         }
 
         $this->sessionService->syncSessionStatuses();
-        
+
         $sessions = Session::with(['course.gym'])
             ->withCount('attendances')
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->where('sessions.date_session', '>=', now()->toDateString())
@@ -220,7 +221,7 @@ class TrainerController extends Controller
 
         $user = $request->user();
         $gymId = $request->header('X-Gym-Id');
-        
+
         $memberIds = collect();
 
         if (isset($validated['id_course'])) {
@@ -234,7 +235,7 @@ class TrainerController extends Controller
             $memberIds = DB::table('attendance')
                 ->where('id_session', $validated['id_session'])
                 ->pluck('id_member');
-            
+
             // If no attendance yet, fallback to all course members for that session's course
             if ($memberIds->isEmpty()) {
                 $session = Session::find($validated['id_session']);
@@ -250,7 +251,7 @@ class TrainerController extends Controller
             $memberIds = DB::table('enrollments')
                 ->join('courses', 'enrollments.id_course', '=', 'courses.id_course')
                 ->where('courses.id_trainer', $user->id_user)
-                ->when($gymId, function($q) use ($gymId) {
+                ->when($gymId, function ($q) use ($gymId) {
                     return $q->where('courses.id_gym', $gymId);
                 })
                 ->where('enrollments.status', 'active')
@@ -265,6 +266,30 @@ class TrainerController extends Controller
             ], 404);
         }
 
+        // Auto-append Trainer and Session context if a specific session is targeted
+        $finalMessage = $validated['message'];
+        if (isset($validated['id_session'])) {
+            $session = Session::with(['course'])->find($validated['id_session']);
+            if ($session) {
+                $trainerName = $user->name . ' ' . ($user->last_name ?? '');
+                $sessionDate = Carbon::parse($session->date_session)->format('M d, Y');
+                $sessionTime = substr($session->start_time, 0, 5);
+                $courseName = $session->course->name ?? 'Class';
+                
+                $finalMessage .= "\n\n--- Session Details ---\n" .
+                                "Trainer: {$trainerName}\n" .
+                                "Class: {$courseName}\n" .
+                                "When: {$sessionDate} at {$sessionTime}";
+            }
+        } elseif (isset($validated['id_course'])) {
+            $course = DB::table('courses')->where('id_course', $validated['id_course'])->first();
+            if ($course) {
+                 $trainerName = $user->name . ' ' . ($user->last_name ?? '');
+                 $finalMessage .= "\n\n--- From Trainer: {$trainerName} ---\n" .
+                                 "Program: " . ($course->name ?? 'Course');
+            }
+        }
+
         // Send notifications
         $notifications = [];
         $now = now();
@@ -273,7 +298,7 @@ class TrainerController extends Controller
                 'id_notification' => \Illuminate\Support\Str::uuid(),
                 'id_user' => $memberId,
                 'title' => $validated['title'],
-                'text' => $validated['message'],
+                'text' => $finalMessage,
                 'type' => $validated['type'],
                 'is_read' => false,
                 'created_at' => $now,
@@ -326,7 +351,7 @@ class TrainerController extends Controller
             ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->select('courses.name', DB::raw('count(attendance.id_attendance) as total_attendance'))
@@ -343,12 +368,12 @@ class TrainerController extends Controller
                 ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
                 ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
                 ->where('sessions.id_trainer', $user->id_user)
-                ->when($gymId, function($q) use ($gymId) {
+                ->when($gymId, function ($q) use ($gymId) {
                     return $q->where('courses.id_gym', $gymId);
                 })
                 ->whereDate('sessions.date_session', $date)
                 ->count();
-            
+
             $attendanceTrend[] = [
                 'date' => now()->subDays($i)->format('D'),
                 'count' => $count
@@ -361,7 +386,7 @@ class TrainerController extends Controller
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->join('users', 'attendance.id_member', '=', 'users.id_user')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->select('users.name', 'users.last_name', DB::raw('count(attendance.id_attendance) as checkins'))
@@ -375,7 +400,7 @@ class TrainerController extends Controller
             ->join('sessions', 'courses.id_course', '=', 'sessions.id_course')
             ->leftJoin('attendance', 'sessions.id_session', '=', 'attendance.id_session')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->select(
@@ -386,9 +411,9 @@ class TrainerController extends Controller
             )
             ->groupBy('courses.id_course', 'courses.name', 'courses.max_capacity')
             ->get()
-            ->map(function($course) {
+            ->map(function ($course) {
                 $capacity_total = $course->session_count * $course->max_capacity;
-                $course->utilization = $capacity_total > 0 
+                $course->utilization = $capacity_total > 0
                     ? round(($course->total_attendance / $capacity_total) * 100, 1)
                     : 0;
                 return $course;
@@ -399,7 +424,7 @@ class TrainerController extends Controller
             ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->whereMonth('sessions.date_session', now()->month)
@@ -409,7 +434,7 @@ class TrainerController extends Controller
 
         $totalUniqueMembers = $monthlyMembers->count();
         $returningMembers = $monthlyMembers->where('session_count', '>', 1)->count();
-        $retentionRate = $totalUniqueMembers > 0 
+        $retentionRate = $totalUniqueMembers > 0
             ? round(($returningMembers / $totalUniqueMembers) * 100, 1)
             : 0;
 
@@ -418,7 +443,7 @@ class TrainerController extends Controller
             ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->whereMonth('sessions.date_session', now()->month)
@@ -430,7 +455,7 @@ class TrainerController extends Controller
             ->join('sessions', 'attendance.id_session', '=', 'sessions.id_session')
             ->join('courses', 'sessions.id_course', '=', 'courses.id_course')
             ->where('sessions.id_trainer', $user->id_user)
-            ->when($gymId, function($q) use ($gymId) {
+            ->when($gymId, function ($q) use ($gymId) {
                 return $q->where('courses.id_gym', $gymId);
             })
             ->whereMonth('sessions.date_session', $lastMonthDate->month)

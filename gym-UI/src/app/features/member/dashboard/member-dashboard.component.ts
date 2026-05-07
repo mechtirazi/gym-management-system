@@ -7,11 +7,12 @@ import { Observable, forkJoin, map, of, Subject, debounceTime, switchMap, catchE
 
 import { FormsModule } from '@angular/forms';
 import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-member-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaymentModalComponent],
+  imports: [CommonModule, FormsModule, PaymentModalComponent, MatIconModule],
   templateUrl: './member-dashboard.component.html',
   styleUrl: './member-dashboard.component.scss'
 })
@@ -47,21 +48,22 @@ export class MemberDashboardComponent implements OnInit {
   paymentError: string | null = null;
   stripePublicKey = 'pk_test_51TLQe13jzboyv5RLdXqAvrZMNz8jWzDUyVuOfMKOapHK2sDPxyJutifqVFAjAM9dkeqRX91wUm72gLHWKhzjHuoU00aDCrWNnI';
   membershipPlans: any[] = [];
-  
+
   showEliteBenefitsModal = false;
   showQRModal = false;
   isSyncing = false;
   isUpdatingBio = false;
   qrCodeUrl: string = '';
-  
+
   // Wallet State
   selectedWalletGymId: string | null = null;
   selectedWalletBalance: number = 0;
-  
+
   // Point Conversion State
   showPointsModal = false;
   pointsToConvert = 50;
   isConvertingPoints = false;
+  isGlobalUpgrade = false;
 
   // Goal State
   fitnessGoal: 'cut' | 'maintain' | 'bulk' = 'maintain';
@@ -147,15 +149,27 @@ export class MemberDashboardComponent implements OnInit {
         this.recentActivity = data.attendances?.data || [];
         this.nutritionPlan = data.nutrition?.data?.[0] || null;
 
+        const subs = data.subscriptions?.data || [];
+        this.activeSubscription = subs.find((s: any) => s.status?.toLowerCase() === 'active') || subs[0] || null;
+
         const enrs = data.enrollments?.data || [];
-        this.activeEnrollment = enrs.find((e: any) => (e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending') && !e.id_course);
+        this.activeEnrollment = enrs.find((e: any) => (e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending') && !e.id_course) || enrs[0] || null;
 
         this.stats = data.mappedStats;
-        
+
         // Initialize default selected wallet if wallets exist
         if (this.stats.wallets && this.stats.wallets.length > 0) {
-          this.selectedWalletGymId = this.stats.wallets[0].id_gym;
-          this.selectedWalletBalance = this.stats.wallets[0].balance;
+          // Priority 1: Current active gym
+          const currentGymId = this.activeSubscription?.id_gym || this.activeEnrollment?.id_gym;
+          const matchingWallet = this.stats.wallets.find((w: any) => w.id_gym === currentGymId);
+
+          if (matchingWallet) {
+            this.selectedWalletGymId = matchingWallet.id_gym;
+            this.selectedWalletBalance = matchingWallet.balance;
+          } else {
+            this.selectedWalletGymId = this.stats.wallets[0].id_gym;
+            this.selectedWalletBalance = this.stats.wallets[0].balance;
+          }
         } else {
           this.selectedWalletBalance = this.stats.walletBalance;
         }
@@ -182,6 +196,13 @@ export class MemberDashboardComponent implements OnInit {
     if (this.isSyncing) return;
     this.showQRModal = true;
     this.isSyncing = true;
+
+    // Generate QR Code URL using a public API
+    const isDark = document.body.classList.contains('dark');
+    const color = isDark ? 'ffffff' : '0f172a';
+    const bgcolor = isDark ? '1e293b' : 'ffffff';
+    const userId = this.getMemberId();
+    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${userId}&color=${color}&bgcolor=${bgcolor}`;
 
     this.memberService.checkIn().subscribe({
       next: () => {
@@ -339,25 +360,51 @@ export class MemberDashboardComponent implements OnInit {
   }
 
   proceedToPayment(): void {
+    this.isGlobalUpgrade = true;
     this.showEliteBenefitsModal = false;
     this.showPaymentPicker = true;
     this.cdr.detectChanges();
   }
 
   processPurchase(event: any) {
-    const gymId = this.activeSubscription?.id_gym || this.activeSubscription?.gym?.id_gym;
+    if (this.isGlobalUpgrade) {
+      this.isProcessingPayment = true;
+      this.memberService.upgradePlatform(event.method).subscribe({
+        next: (res: any) => {
+          if (res.data?.user) {
+            this.authService.updateCurrentUser(res.data.user);
+          }
+          this.handlePurchaseSuccess(res);
+        },
+        error: (err: any) => this.handlePurchaseError(err)
+      });
+      return;
+    }
+
+    const gymId = this.activeSubscription?.id_gym ||
+      this.activeSubscription?.gym?.id_gym ||
+      this.activeEnrollment?.id_gym ||
+      this.activeEnrollment?.gym?.id_gym ||
+      this.selectedWalletGymId;
+
     if (!gymId) {
-      this.showToast('Protocol Error: Accessing gym facility failed.', 'error');
+      this.showToast('Protocol Error: Accessing gym facility failed. Please select a gym node.', 'error');
       return;
     }
 
     const method = event.method;
-    const plan = event.plan;
+    let plan = event.plan;
+
+    // Handle Elite Upgrade fallback if no specific plan was selected from a list
+    if (!plan && this.showEliteBenefitsModal === false) {
+      plan = { type: 'premium', price: 99.99, id: null };
+    }
+
     if (!plan) {
       this.showToast('Validation Error: No synchronization tier selected.', 'error');
       return;
     }
-    
+
     this.isProcessingPayment = true;
     this.paymentError = null;
 
@@ -380,6 +427,7 @@ export class MemberDashboardComponent implements OnInit {
   private handlePurchaseSuccess(res: any) {
     this.showPaymentPicker = false;
     this.isProcessingPayment = false;
+    this.isGlobalUpgrade = false;
     this.showToast(res.message || 'Payment successful! Elite access protocols active.', 'success');
     this.loadDashboardData();
     this.cdr.detectChanges();
@@ -391,9 +439,9 @@ export class MemberDashboardComponent implements OnInit {
     this.showToast(this.paymentError || 'Error', 'error');
     this.cdr.detectChanges();
   }
- 
+
   // --- Point Conversion Protocols ---
- 
+
   openExchangeModal(): void {
     if (!this.selectedWalletGymId) {
       this.showToast('Please select a gym facility node first.', 'error');
@@ -402,15 +450,15 @@ export class MemberDashboardComponent implements OnInit {
     this.showPointsModal = true;
     this.cdr.detectChanges();
   }
- 
+
   closeExchangeModal(): void {
     this.showPointsModal = false;
     this.cdr.detectChanges();
   }
- 
+
   synthesizePoints(): void {
     if (!this.selectedWalletGymId || this.pointsToConvert < 50) return;
-    
+
     this.isConvertingPoints = true;
     this.memberService.convertPoints(this.selectedWalletGymId, this.pointsToConvert).subscribe({
       next: (res: any) => {
@@ -424,5 +472,12 @@ export class MemberDashboardComponent implements OnInit {
         this.showToast(err.error?.message || 'Synthesis failed.', 'error');
       }
     });
+  }
+
+  getMemberId(): string {
+    const u = this.user() as any;
+    const id = u?.id_user || u?.id || u?.uuid;
+    if (!id) return 'ZEN-MEMBER';
+    return String(id).substring(0, 8).toUpperCase();
   }
 }

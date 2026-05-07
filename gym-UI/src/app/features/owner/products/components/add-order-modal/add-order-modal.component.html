@@ -86,7 +86,14 @@
             <div class="summary-card">
               <div class="summary-header">
                 <span>Order Summary</span>
-                <span class="unit-price">Unit Price: ${{ product().price }}</span>
+                <span class="unit-price">
+                  Unit Price: 
+                  @if ((product().discount_percentage || 0) > 0) {
+                    ${{ product().discounted_price }}
+                  } @else {
+                    ${{ product().price }}
+                  }
+                </span>
               </div>
               <div class="summary-body">
                 <div class="summary-row">

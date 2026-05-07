@@ -34,6 +34,11 @@ export const nutritionistRoutes: Routes = [
           )
       },
       {
+        path: 'messages',
+        loadComponent: () =>
+          import('./messaging/messaging.component').then(m => m.MessagingHubComponent)
+      },
+      {
         path: 'products',
         loadComponent: () =>
           import('../owner/products/products.component').then(m => m.ProductManagementComponent)

@@ -21,10 +21,14 @@ class StorePaymentRequest extends FormRequest
             'amount' => 'required|numeric|min:0',
             'currency' => 'nullable|string|size:3',
             'member_id' => 'nullable|exists:users,id_user',
-            'category' => 'required|string|in:membership,product,course,nutrition,other',
+            'category' => 'required|string|in:membership,product,course,nutrition,event,other',
             'gateway' => 'required|string',
             'external_reference' => 'nullable|string|max:255',
-            'id_gym' => 'required|exists:gyms,id_gym', // Required to attach to a gym in the current architecture
+            'id_gym' => 'required|exists:gyms,id_gym',
+            'id_session' => 'nullable|exists:sessions,id_session',
+            'id_product' => 'nullable|exists:products,id_product',
+            'id_course' => 'nullable|exists:courses,id_course',
+            'id_event' => 'nullable|exists:events,id_event',
 
             // Explicitly Rejected System Fields
             'status' => 'prohibited',

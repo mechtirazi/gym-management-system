@@ -18,21 +18,41 @@
         <span class="material-symbols-rounded">search</span>
         <input type="text" placeholder="Search facilities..." [(ngModel)]="searchTerm">
       </div>
-      <button class="btn-filter-glass">
-        <span class="material-symbols-rounded">tune</span>
-      </button>
+      <div class="filter-wrapper">
+        <button class="btn-filter-glass" (click)="toggleFilterMenu()" [class.active]="showFilterMenu">
+          <span class="material-symbols-rounded">{{ showFilterMenu ? 'close' : 'tune' }}</span>
+        </button>
+
+        <!-- High-Fidelity Filter Menu -->
+        <div class="x-filter-menu" *ngIf="showFilterMenu">
+          <div class="menu-section">
+            <span class="section-label">Availability</span>
+            <div class="chip-group">
+              <button class="menu-chip" [class.active]="statusFilter === 'all'"
+                (click)="setStatusFilter('all')">All</button>
+              <button class="menu-chip" [class.active]="statusFilter === 'open'" (click)="setStatusFilter('open')">
+                <span class="dot"></span> Open Now
+              </button>
+            </div>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <div class="menu-section">
+            <span class="section-label">Sort By</span>
+            <div class="chip-group">
+              <button class="menu-chip" [class.active]="sortBy === 'none'" (click)="setSortBy('none')">Default</button>
+              <button class="menu-chip" [class.active]="sortBy === 'rating'" (click)="setSortBy('rating')">Top
+                Rated</button>
+              <button class="menu-chip" [class.active]="sortBy === 'members'"
+                (click)="setSortBy('members')">Popularity</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- High-Performance Filter Track -->
-  <div class="x-filter-track animate-slide-up" style="animation-delay: 0.1s">
-    <div class="track-inner">
-      <button class="x-chip" *ngFor="let cat of filterCategories" [class.active]="activeFilter === cat"
-        (click)="setFilter(cat)">
-        {{ cat }}
-      </button>
-    </div>
-  </div>
 
   <!-- Bento Architectural Grid -->
   <main class="x-bento-grid">

@@ -20,10 +20,19 @@ class StoreNotificationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'nullable|string|max:255',
+            'id_user' => [
+                'required',
+                'exists:users,id_user',
+                function ($attribute, $value, $fail) {
+                    if ($value == auth()->id()) {
+                        $fail('You cannot send a notification to yourself.');
+                    }
+                }
+            ],
             'text' => 'required|string',
+            'title' => 'nullable|string|max:255',
             'type' => 'nullable|string|in:info,success,warning,error',
-            'id_user' => 'required|exists:users,id_user',
+            'id_sender' => 'nullable|exists:users,id_user',
         ];
     }
 

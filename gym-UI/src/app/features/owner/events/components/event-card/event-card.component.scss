@@ -241,3 +241,30 @@
     height: 18px;
   }
 }
+
+/* ─── Dark Mode Overrides ─── */
+:host-context(.dark) {
+  .details-grid { background: rgba(255, 255, 255, 0.03); }
+
+  .event-card .card-header {
+    .reward-badge { background: rgba(254, 240, 138, 0.1); color: #fde047; }
+    .price-badge { background: rgba(220, 252, 231, 0.1); color: #4ade80; }
+    .free-badge { background: rgba(255, 255, 255, 0.05); color: #94a3b8; }
+  }
+
+  .hover-elevate:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.6);
+    border-color: #818cf8;
+  }
+
+  .primary-btn {
+    background: #4f46e5;
+    &:hover { background: #4338ca; }
+  }
+
+  .icon-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+}

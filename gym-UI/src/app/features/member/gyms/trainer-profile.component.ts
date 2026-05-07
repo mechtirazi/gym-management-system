@@ -786,7 +786,7 @@ export class TrainerProfileComponent implements OnInit {
   }
 
   averageRating(): string {
-    if (this.reviews().length === 0) return '5.0';
+    if (this.reviews().length === 0) return '0.0';
     const sum = this.reviews().reduce((acc, r) => acc + r.rating, 0);
     return (sum / this.reviews().length).toFixed(1);
   }

@@ -961,3 +961,18 @@
   .modal-overlay { padding: 1rem; }
   .form-grid-2 { grid-template-columns: 1fr; }
 }
+
+/* MESSENGER SPECIFIC OVERRIDES FOR DOSSIER */
+.messenger-container {
+  width: 100%;
+  max-width: 500px;
+  height: 650px;
+  background: transparent;
+  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.messenger-overlay {
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(16px);
+}

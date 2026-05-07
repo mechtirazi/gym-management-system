@@ -67,11 +67,11 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(15, 23, 42, 0.85); // Opaque glass background
+    background: var(--admin-glass);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border: 1px solid var(--admin-glass-border);
     margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: var(--admin-glass-shadow);
     .glass-search {
       background: rgba(0,0,0,0.2);
       border: 1px solid rgba(255,255,255,0.1);
@@ -369,8 +369,8 @@
   flex-direction: column;
   padding: 2rem;
   border-radius: 20px;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(139, 92, 246, 0.15);
+  background: var(--admin-glass);
+  border: 1px solid var(--admin-glass-border);
   min-height: 0; // CRITICAL: Allow flex item to be scrollable
 
   .pane-header {
@@ -500,6 +500,197 @@
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ================================================ */
+/* LIGHT MODE OVERRIDES                             */
+/* ================================================ */
+:host-context(html:not(.dark)) {
 
+  .workouts-container {
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  }
 
+  .page-header h1 {
+    color: #1e293b;
+  }
+
+  .btn-toggle-catalog {
+    background: rgba(139, 92, 246, 0.07);
+    border-color: rgba(139, 92, 246, 0.2);
+    color: #1e293b;
+
+    &:hover {
+      background: #8b5cf6;
+      color: #fff;
+    }
+  }
+
+  // Catalog Toolbar — was dark glass, now white card
+  .catalog-grid-view .catalog-toolbar {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(139, 92, 246, 0.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+
+    .glass-search {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #1e293b;
+
+      &::placeholder { color: #94a3b8; }
+      &:focus { border-color: #8b5cf6; }
+    }
+
+    .main-catalog-filters {
+      background: rgba(0, 0, 0, 0.03);
+      border-color: rgba(0, 0, 0, 0.06);
+
+      .filter-chip {
+        color: #64748b;
+
+        &:hover {
+          background: rgba(139, 92, 246, 0.06);
+          color: #1e293b;
+        }
+
+        &.active {
+          background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+          color: #fff;
+          box-shadow: 0 6px 16px rgba(139, 92, 246, 0.25);
+        }
+      }
+    }
+  }
+
+  // Catalog cards
+  .pro-catalog-grid .cat-card {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.07);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+    &:hover, &.is-synced {
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    .card-info-pane .ex-name { color: #1e293b; }
+  }
+
+  // Tabs
+  .tabs-container .tabs {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.07);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+    .tab {
+      color: #64748b;
+
+      &:hover:not(.active) {
+        background: rgba(0, 0, 0, 0.04);
+        color: #1e293b;
+      }
+
+      &.active {
+        color: #fff;
+      }
+    }
+  }
+
+  // Library Pane
+  .library-pane {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.07);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+
+    .category-filters .filter-chip {
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #64748b;
+
+      &.active {
+        background: #8b5cf6;
+        border-color: #8b5cf6;
+        color: #fff;
+      }
+    }
+
+    .exercise-list .library-item {
+      background: #f8fafc;
+      border-color: transparent;
+
+      .ex-detail .name { color: #1e293b; }
+      .ex-detail .meta { color: #94a3b8; }
+
+      &:hover {
+        background: rgba(139, 92, 246, 0.06);
+        border-color: rgba(139, 92, 246, 0.2);
+      }
+    }
+  }
+
+  // Builder Pane
+  .builder-pane {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.07);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+
+    .session-form .exercise-node {
+      background: #f8fafc;
+      border-color: rgba(0, 0, 0, 0.07);
+
+      .node-header {
+        border-bottom-color: rgba(0, 0, 0, 0.06);
+      }
+    }
+  }
+
+  // Sets table inputs
+  .sets-table .row {
+    &.header { color: #94a3b8; }
+
+    .mini-input {
+      background: #f1f5f9;
+      border-color: rgba(0, 0, 0, 0.1);
+      color: #1e293b;
+
+      &:focus {
+        border-color: #8b5cf6;
+        outline: none;
+      }
+    }
+  }
+
+  .empty-builder {
+    color: #94a3b8;
+  }
+
+  .empty-sync-list p {
+    color: #94a3b8;
+  }
+
+  .builder-pane {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.07);
+    .session-form .exercise-node {
+      background: #f8fafc;
+      border-color: rgba(0, 0, 0, 0.07);
+    }
+  }
+
+  .catalog-grid-view .catalog-toolbar .glass-search {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #1e293b;
+  }
+}
+
+:host-context(.dark) {
+  .catalog-grid-view .catalog-toolbar .glass-search {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+  }
+  .sets-table .row .mini-input {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+  }
+}
 

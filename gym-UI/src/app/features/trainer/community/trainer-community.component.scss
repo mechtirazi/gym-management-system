@@ -265,19 +265,29 @@
     align-items: center;
     gap: 1.25rem;
 
-    .avatar {
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.05));
-      border: 1px solid rgba(14, 165, 233, 0.3);
-      color: var(--admin-accent-blue);
-      font-weight: 900;
+    .avatar-wrap {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--admin-item-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
-      letter-spacing: 1px;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .initials {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: #818cf8;
+        letter-spacing: 1px;
+      }
     }
 
     .user-name {

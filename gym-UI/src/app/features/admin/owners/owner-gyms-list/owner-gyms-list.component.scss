@@ -133,12 +133,8 @@
     justify-content: flex-end;
     padding-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  &:hover .card-actions {
     opacity: 1;
+    transition: all 0.3s ease;
   }
 }
 
@@ -165,4 +161,16 @@
 
   &.active { background: rgba(16, 185, 129, 0.1); color: var(--admin-accent-emerald); }
   &.suspended { background: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); }
+  &.plan-badge {
+    background: rgba(129, 140, 248, 0.1);
+    color: var(--admin-accent-indigo);
+    border: 1px solid rgba(129, 140, 248, 0.1);
+  }
+}
+
+.status-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
 }
