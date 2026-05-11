@@ -76,10 +76,6 @@
                 <h4>{{ session.course?.name || 'Training Session' }}</h4>
                 <p>{{ session.gym?.name || 'Central Facility' }}</p>
               </div>
-              <button class="btn-sync" (click)="joinSession(session)">
-                <span class="material-icons">input</span>
-                SYNC
-              </button>
             </div>
           </div>
         </div>
@@ -143,12 +139,12 @@
 
           <div class="m-status-progress">
             <div class="p-labels">
-              <span>{{ getSubscriptionProgress(activeEnrollment.end_date, 'standard') }}% COMPLETED</span>
+              <span>{{ getSubscriptionProgress(activeEnrollment.enrollment_date || activeEnrollment.start_date, activeEnrollment.end_date) }}% COMPLETED</span>
               <span>{{ getDaysLeft(activeEnrollment.end_date) }}d
                 LEFT</span>
             </div>
             <div class="p-bar-base">
-              <div class="p-bar-fill" [style.width.%]="getSubscriptionProgress(activeEnrollment.end_date, 'standard')">
+              <div class="p-bar-fill" [style.width.%]="getSubscriptionProgress(activeEnrollment.enrollment_date || activeEnrollment.start_date, activeEnrollment.end_date)">
               </div>
             </div>
           </div>
@@ -172,16 +168,16 @@
         <div class="shimmer"></div>
         <div class="card-glow"></div>
         <div class="card-content">
-          <div class="badge">PRO_ACCESS_REQUIRED</div>
-          <h4>Evolve Your Potential</h4>
-          <p>Unlock Neural Coaching nodes, advanced biometric tracking, and global hub access.</p>
+          <div class="badge">PREMIUM UPGRADE</div>
+          <h4>Reach Your Full Potential</h4>
+          <p>Get personal AI coaching, advanced health tracking, and access to gyms worldwide.</p>
           <div class="benefits-row">
-            <div class="b-item"><mat-icon>psychology</mat-icon> AI Coaching</div>
-            <div class="b-item"><mat-icon>monitor_heart</mat-icon> Bio-Sync</div>
-            <div class="b-item"><mat-icon>public</mat-icon> Global</div>
+            <div class="b-item"><mat-icon>psychology</mat-icon> AI Training</div>
+            <div class="b-item"><mat-icon>monitor_heart</mat-icon> Health Sync</div>
+            <div class="b-item"><mat-icon>public</mat-icon> Global Access</div>
           </div>
           <button class="btn-premium-titanium" (click)="initiateUpgrade()">
-            <span>ACTIVATE_ELITE_PROTOCOL</span>
+            <span>ACTIVATE ELITE PLAN</span>
             <mat-icon>arrow_forward</mat-icon>
           </button>
         </div>
@@ -286,7 +282,7 @@
             </div>
             <div class="c-arrow"><span class="material-icons">arrow_forward</span></div>
             <div class="c-node highlight">
-              <strong>5.00 D</strong>
+              <strong>5.000 TND</strong>
               <span>Currency Yield</span>
             </div>
           </div>
@@ -299,7 +295,7 @@
             <input type="number" [(ngModel)]="pointsToConvert" step="50" min="50">
             <button (click)="pointsToConvert = pointsToConvert + 50">+50</button>
           </div>
-          <p class="helper">Rate: 10 points = 1.00 D currency</p>
+          <p class="helper">Rate: 10 points = 1.000 TND currency</p>
         </div>
 
         <div class="target-vault-info">

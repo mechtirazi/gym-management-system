@@ -21,6 +21,37 @@
   }
 }
 
+.field-error {
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: var(--admin-accent-rose);
+  margin: 4px 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: errorShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+
+  &::before {
+    content: '⚠️';
+    font-size: 10px;
+  }
+}
+
+.required {
+  color: var(--admin-accent-rose);
+  margin-left: 2px;
+  font-weight: bold;
+}
+
+@keyframes errorShake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
 .admin-dialog-container {
   padding: 1.5rem 1.75rem !important;
   
@@ -44,7 +75,7 @@
     gap: 1rem;
     
     .form-field {
-      label { font-size: 0.65rem; margin-bottom: 4px; }
+      label { font-size: 0.65rem; margin-bottom: 4px; display: flex; align-items: center; }
       input { padding: 0.85rem 1rem; font-size: 0.875rem; }
       
       mat-icon {
@@ -52,6 +83,107 @@
         width: 14px;
         height: 14px;
         color: var(--admin-accent-indigo);
+        margin-right: 4px;
+      }
+
+      &.has-error {
+        .input-glow-wrap, .phone-input-wrap {
+          border-color: var(--admin-accent-rose) !important;
+          background: rgba(244, 63, 94, 0.03) !important;
+          
+          &:focus-within {
+            box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15) !important;
+          }
+        }
+        
+        label mat-icon {
+          color: var(--admin-accent-rose) !important;
+        }
+      }
+
+      .phone-input-wrap {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 !important;
+        background: var(--admin-item-bg);
+        border: 1px solid var(--admin-item-border);
+        border-radius: 1rem;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+
+        &:hover {
+          border-color: var(--admin-accent-indigo);
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+
+        &:focus-within {
+          background: var(--admin-input-focus-bg);
+          border-color: var(--admin-accent-indigo);
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.02);
+          transform: translateY(-2px);
+        }
+        
+        .country-prefix {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          padding: 0 1.25rem;
+          background: rgba(255, 255, 255, 0.02);
+          align-self: stretch;
+          border-right: 1px solid var(--admin-item-border);
+          border-radius: 1rem 0 0 1rem;
+          user-select: none;
+          flex-shrink: 0;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: background 0.2s ease;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.05);
+          }
+          
+          .flag-icon { 
+            width: 24px;
+            height: auto;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+          }
+
+          .country-code-label {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--admin-text-primary);
+            letter-spacing: 0.05em;
+          }
+
+          .dropdown-arrow {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: var(--admin-text-secondary);
+            margin-left: 2px;
+          }
+        }
+        
+        input {
+          flex: 1;
+          width: 0; // Allow flex to determine width
+          min-width: 100px;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 1.125rem 1.25rem !important; // Match standard input padding
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.95rem;
+          letter-spacing: 1px;
+
+          &:focus {
+            transform: none !important;
+            box-shadow: none !important;
+          }
+        }
       }
     }
   }

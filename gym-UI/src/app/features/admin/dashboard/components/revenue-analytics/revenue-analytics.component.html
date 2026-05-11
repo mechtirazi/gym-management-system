@@ -4,7 +4,7 @@
     <div class="header-content">
       <div class="admin-badge-mini premium-badge">
         <mat-icon style="font-size: 14px; width: 14px; height: 14px;">auto_awesome</mat-icon>
-        AI Intelligence Active
+        <span class="premium-text" style="font-size: inherit; background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI Intelligence Active</span>
       </div>
       <h1 class="premium-text">Revenue Intelligence</h1>
       <p class="subtitle">Predictive analytics and platform financial health</p>
@@ -44,7 +44,7 @@
         <div class="icon-wrap"><mat-icon>payments</mat-icon></div>
       </div>
       <div class="stat-body">
-        <h2 class="value">{{ mrr() | currency:'TND':'code':'1.0-1' }}</h2>
+        <h2 class="value">{{ mrr() | number:'1.0-1' }} TND</h2>
         <div class="trend-wrapper">
           <span class="trend-badge" [ngClass]="mrrGrowth() >= 0 ? 'positive' : 'negative'">
             <mat-icon>{{ mrrGrowth() >= 0 ? 'north_east' : 'south_west' }}</mat-icon>
@@ -79,7 +79,7 @@
         <div class="icon-wrap"><mat-icon>public</mat-icon></div>
       </div>
       <div class="stat-body">
-        <h2 class="value">{{ ecosystemMrr() | currency:'TND':'code':'1.0-0' }}</h2>
+        <h2 class="value">{{ ecosystemMrr() | number:'1.0-0' }} TND</h2>
         <div class="trend-wrapper">
           <span class="trend-badge positive">
             <mat-icon>auto_graph</mat-icon> LIVE VOLUME
@@ -113,7 +113,7 @@
         <div class="icon-wrap"><mat-icon>language</mat-icon></div>
       </div>
       <div class="stat-body">
-        <h2 class="value">{{ arpu() | currency:'TND':'code':'1.0-2' }}</h2>
+        <h2 class="value">{{ arpu() | number:'1.0-2' }} TND</h2>
         <div class="trend-wrapper">
           <span class="trend-badge neutral">
             <mat-icon>analytics</mat-icon> SYSTEM AVG
@@ -130,7 +130,7 @@
         <div class="icon-wrap"><mat-icon>warning_amber</mat-icon></div>
       </div>
       <div class="stat-body">
-        <h2 class="value">{{ atRiskRevenue() | currency:'TND':'code':'1.0-0' }}</h2>
+        <h2 class="value">{{ atRiskRevenue() | number:'1.0-0' }} TND</h2>
         <div class="trend-wrapper">
           <span class="trend-badge negative">
             <mat-icon>history</mat-icon> 3M PROJECTION

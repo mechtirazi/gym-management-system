@@ -1,15 +1,16 @@
 <article class="event-card glass-card hover-elevate">
   <div class="banner-wrapper">
     @if (eventImage) {
-      <img [src]="getImageUrl(eventImage)" [alt]="eventModel().title" class="event-banner">
+    <img [src]="getImageUrl(eventImage)" [alt]="eventModel().title" class="event-banner">
     } @else {
-      <div class="default-banner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-          <circle cx="8.5" cy="8.5" r="1.5" />
-          <polyline points="21 15 16 10 5 21" />
-        </svg>
-      </div>
+    <div class="default-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <polyline points="21 15 16 10 5 21" />
+      </svg>
+    </div>
     }
     <div class="card-status active">Upcoming</div>
   </div>
@@ -20,12 +21,12 @@
       <div class="badges-row">
         <span class="badge gym-badge">{{ eventModel().gym?.name || 'Main Gym' }}</span>
         @if (eventModel().is_rewarded) {
-          <span class="badge reward-badge">🎁 {{ eventModel().reward_amount }} Pts</span>
+        <span class="badge reward-badge">🎁 {{ eventModel().reward_amount }} Pts</span>
         }
         @if (eventModel().price > 0) {
-          <span class="badge price-badge">💰 {{ eventModel().price }} DZD</span>
+        <span class="badge price-badge">💰 {{ eventModel().price }} TND </span>
         } @else {
-          <span class="badge free-badge">Free</span>
+        <span class="badge free-badge">Free</span>
         }
       </div>
     </div>
@@ -36,25 +37,28 @@
   <div class="details-grid">
     <div class="detail-item">
       <span class="label">Date & Time</span>
-      <span class="value">{{ eventModel().start_date ? (eventModel().start_date | date:'mediumDate') : 'TBD' }} @ {{ eventModel().start_time?.substring(0, 5) || '--:--' }}</span>
+      <span class="value">{{ eventModel().start_date ? (eventModel().start_date | date:'mediumDate') : 'TBD' }} @ {{
+        eventModel().start_time?.substring(0, 5) || '--:--' }}</span>
     </div>
-      <div class="detail-item">
-        <span class="label">Occupancy</span>
-        <span class="value occupancy" [class.full]="eventModel().max_participants < 999999 && (eventModel().max_participants || 0) - (eventModel().attendances_count || 0) <= 0">
-          @if (eventModel().max_participants >= 999999) {
-            <span class="remaining">{{ eventModel().attendances_count || 0 }} Joined</span>
-            <span class="total">/ Unlimited</span>
-          } @else {
-            <span class="remaining">{{ eventModel().attendances_count || 0 }} Joined</span>
-            <span class="total">/ {{ eventModel().max_participants }} Max</span>
-          }
-        </span>
-      </div>
+    <div class="detail-item">
+      <span class="label">Occupancy</span>
+      <span class="value occupancy"
+        [class.full]="eventModel().max_participants < 999999 && (eventModel().max_participants || 0) - (eventModel().attendances_count || 0) <= 0">
+        @if (eventModel().max_participants >= 999999) {
+        <span class="remaining">{{ eventModel().attendances_count || 0 }} Joined</span>
+        <span class="total">/ Unlimited</span>
+        } @else {
+        <span class="remaining">{{ eventModel().attendances_count || 0 }} Joined</span>
+        <span class="total">/ {{ eventModel().max_participants }} Max</span>
+        }
+      </span>
+    </div>
   </div>
 
   <div class="card-footer">
     <div class="created-at">Created {{ eventModel().created_at | date:'shortDate' }}</div>
     <div class="action-buttons">
+
       <button class="icon-btn remove-btn" (click)="deleteClick.emit(eventModel().id_event)" aria-label="Delete event">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
           stroke-linejoin="round">

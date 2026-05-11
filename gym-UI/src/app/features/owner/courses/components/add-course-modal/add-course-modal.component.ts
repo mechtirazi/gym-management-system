@@ -43,9 +43,9 @@ export class AddCourseModalComponent implements OnInit {
     this.addForm = this.fb.group({
       name:         ['', [Validators.required, Validators.minLength(3)]],
       description:  ['', [Validators.required, Validators.maxLength(500)]],
-      max_capacity: [20, [Validators.required, Validators.min(1)]],
+      max_capacity: [20, [Validators.required, Validators.min(1), Validators.max(500)]],
       isFree:       [false],
-      price:        [49.99,  [Validators.required, Validators.min(0)]],
+      price:        [49.99,  [Validators.required, Validators.min(0), Validators.max(10000)]],
       count:        [1, [Validators.required, Validators.min(0)]],
       duration_hours: [1, [Validators.min(0)]],
       duration_minutes: [0, [Validators.min(0), Validators.max(59)]],
@@ -53,14 +53,14 @@ export class AddCourseModalComponent implements OnInit {
       
       // Abonnement Logic
       is_subscription_enabled: [false],
-      subscription_price: [99.99, [Validators.min(0)]],
+      subscription_price: [99.99, [Validators.min(0), Validators.max(20000)]],
 
       // Recurring Logic
       is_recurring: [false],
       recurring_days: this.fb.array([]),
       recurring_start_time: ['10:00'],
       recurring_end_time: ['11:00'],
-      recurrence_weeks: [4, [Validators.min(1)]],
+      recurrence_weeks: [4, [Validators.min(1), Validators.max(52)]],
       id_trainer: ['']
     });
 

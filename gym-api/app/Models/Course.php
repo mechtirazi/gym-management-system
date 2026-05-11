@@ -9,6 +9,7 @@ class Course extends Model
 {
     use HasFactory;
     use \Illuminate\Database\Eloquent\Concerns\HasUuids;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     use \App\Traits\HasSocialInteractions;
 
     protected $primaryKey = 'id_course';

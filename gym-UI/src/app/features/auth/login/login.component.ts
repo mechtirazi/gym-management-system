@@ -53,7 +53,12 @@ export class LoginComponent {
         },
         error: (err: any) => {
           this.isLoading.set(false);
-          this.errorMessage.set(err.error?.message || 'Login failed. Please check your credentials.');
+          let msg = err.error?.message || 'Login failed. Please check your credentials.';
+
+          // Security Best Practice: Always show a generic error message to prevent email enumeration
+          msg = "Incorrect email or password. Please try again.";
+
+          this.errorMessage.set(msg);
         }
       });
     }

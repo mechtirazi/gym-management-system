@@ -21,6 +21,21 @@ class BiometricController extends Controller
                 ->orderBy('log_date', 'desc')
                 ->get();
 
+            // If no logs found, inject current user status as a baseline
+            if ($logs->isEmpty()) {
+                $user = \App\Models\User::find($memberId);
+                if ($user && ($user->manual_weight || $user->manual_calories)) {
+                    $baseline = new BiometricLog([
+                        'id_member' => $user->id_user,
+                        'weight' => $user->manual_weight,
+                        'calories' => $user->manual_calories,
+                        'log_date' => now()->toDateString(),
+                        'notes' => 'Current Live Baseline'
+                    ]);
+                    $logs = collect([$baseline]);
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $logs

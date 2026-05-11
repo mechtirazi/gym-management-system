@@ -38,31 +38,49 @@
           <div class="form-split-layout">
             <!-- Left Column: Inputs -->
             <div class="inputs-column">
-              <div class="form-group full-width">
-                <label>Event Title</label>
+              <div class="form-group full-width" [class.has-error]="eventForm.get('title')?.invalid && eventForm.get('title')?.touched">
+                <label>Event Title <span class="required">*</span></label>
                 <input type="text" formControlName="title" placeholder="e.g. Summer Fitness Marathon">
+                @if (eventForm.get('title')?.invalid && eventForm.get('title')?.touched) {
+                  <span class="error-text">Title is required (min 3 chars).</span>
+                }
               </div>
 
-              <div class="form-group full-width">
-                <label>Description</label>
+              <div class="form-group full-width" [class.has-error]="eventForm.get('description')?.invalid && eventForm.get('description')?.touched">
+                <label>Description <span class="required">*</span></label>
                 <textarea formControlName="description" rows="3" placeholder="Describe the event..."></textarea>
+                @if (eventForm.get('description')?.invalid && eventForm.get('description')?.touched) {
+                  <span class="error-text">Description is required (max 1000 chars).</span>
+                }
               </div>
 
               <div class="form-row">
-                <div class="form-group">
-                  <label>Start Schedule</label>
+                <div class="form-group" [class.has-error]="(eventForm.get('start_date')?.invalid || eventForm.get('start_time')?.invalid) && (eventForm.get('start_date')?.touched || eventForm.get('start_time')?.touched)">
+                  <label>Start Schedule <span class="required">*</span></label>
                   <div class="datetime-input-wrapper">
-                    <input type="date" formControlName="start_date">
+                    <input type="date" formControlName="start_date" [min]="todayDate" (click)="openPicker($event)">
                     <input type="time" formControlName="start_time">
                   </div>
+                  @if (eventForm.get('start_date')?.touched && eventForm.get('start_date')?.errors?.['pastDate']) {
+                    <span class="error-text">Start date cannot be in the past.</span>
+                  }
+                  @if ((eventForm.get('start_date')?.invalid || eventForm.get('start_time')?.invalid) && (eventForm.get('start_date')?.touched || eventForm.get('start_time')?.touched)) {
+                    <span class="error-text">Required.</span>
+                  }
                 </div>
 
-                <div class="form-group">
-                  <label>End Schedule</label>
+                <div class="form-group" [class.has-error]="(eventForm.get('end_date')?.invalid || eventForm.get('end_time')?.invalid || eventForm.errors?.['dateRangeInvalid']) && (eventForm.get('end_date')?.touched || eventForm.get('end_time')?.touched)">
+                  <label>End Schedule <span class="required">*</span></label>
                   <div class="datetime-input-wrapper">
-                    <input type="date" formControlName="end_date">
+                    <input type="date" formControlName="end_date" [min]="eventForm.get('start_date')?.value || todayDate" (click)="openPicker($event)">
                     <input type="time" formControlName="end_time">
                   </div>
+                  @if (eventForm.errors?.['dateRangeInvalid'] && (eventForm.get('end_date')?.touched || eventForm.get('start_date')?.touched)) {
+                    <span class="error-text">End date must be after start date.</span>
+                  }
+                  @if ((eventForm.get('end_date')?.invalid || eventForm.get('end_time')?.invalid) && (eventForm.get('end_date')?.touched || eventForm.get('end_time')?.touched)) {
+                    <span class="error-text">Required.</span>
+                  }
                 </div>
               </div>
 
@@ -73,21 +91,37 @@
                 </div>
               }
 
+              @if (eventForm.get('start_date')?.touched && eventForm.get('start_date')?.errors?.['pastDate']) {
+                <div class="error-msg mini-error">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  Start date cannot be in the past.
+                </div>
+              }
+
               <div class="form-row">
-                <div class="form-group">
-                  <label>Max Participants</label>
+                <div class="form-group" [class.has-error]="eventForm.get('max_participants')?.invalid && eventForm.get('max_participants')?.touched">
+                  <label>Max Participants <span class="required">*</span></label>
                   <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <input type="number" formControlName="max_participants" [class.disabled-input]="eventForm.get('ignore_max_capacity')?.value" min="1">
+                    <input type="number" formControlName="max_participants" [class.disabled-input]="eventForm.get('ignore_max_capacity')?.value" min="1" max="1000">
                     <div class="checkbox-wrapper mini" style="display: flex; align-items: center; gap: 0.5rem;">
                       <input type="checkbox" formControlName="ignore_max_capacity" id="ignore_max_capacity_edit" style="width: auto; margin: 0;">
                       <label for="ignore_max_capacity_edit" style="margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); cursor: pointer;">No Participant Limit</label>
                     </div>
                   </div>
+                  @if (eventForm.get('max_participants')?.invalid && eventForm.get('max_participants')?.touched) {
+                    <span class="error-text">Required (1-1000).</span>
+                  }
                 </div>
 
-                <div class="form-group">
-                  <label>Price (DZD)</label>
-                  <input type="number" formControlName="price" placeholder="0.00" min="0">
+                <div class="form-group" [class.has-error]="eventForm.get('price')?.invalid && eventForm.get('price')?.touched">
+                  <label>Entry Price <span class="required">*</span></label>
+                  <div class="input-with-icon">
+                    <span class="icon">TND</span>
+                    <input type="number" formControlName="price" placeholder="0.00" min="0" max="10000">
+                  </div>
+                  @if (eventForm.get('price')?.invalid && eventForm.get('price')?.touched) {
+                    <span class="error-text">Valid price required (max 10,000).</span>
+                  }
                 </div>
               </div>
 
@@ -101,13 +135,19 @@
 
                   @if (eventForm.get('is_rewarded')?.value) {
                   <div class="reward-settings">
-                    <div class="setting-item">
+                    <div class="setting-item" [class.has-error]="eventForm.get('reward_amount')?.invalid && eventForm.get('reward_amount')?.touched">
                       <label>Points Amount</label>
-                      <input type="number" formControlName="reward_amount">
+                      <input type="number" formControlName="reward_amount" min="0" max="5000">
+                      @if (eventForm.get('reward_amount')?.invalid && eventForm.get('reward_amount')?.touched) {
+                        <span class="error-text">Max 5000.</span>
+                      }
                     </div>
-                    <div class="setting-item">
+                    <div class="setting-item" [class.has-error]="eventForm.get('max_winners')?.invalid && eventForm.get('max_winners')?.touched">
                       <label>Max Gainers</label>
-                      <input type="number" formControlName="max_winners">
+                      <input type="number" formControlName="max_winners" min="1" max="1000">
+                      @if (eventForm.get('max_winners')?.invalid && eventForm.get('max_winners')?.touched) {
+                        <span class="error-text">Required.</span>
+                      }
                     </div>
                   </div>
                   }

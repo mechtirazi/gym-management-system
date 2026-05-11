@@ -97,7 +97,7 @@ export class SettingsComponent implements OnInit {
       name: [user?.name || '', [Validators.required]],
       last_name: [user?.last_name || '', [Validators.required]],
       email: [{ value: user?.email || '', disabled: true }, [Validators.required, Validators.email]],
-      phone: [user?.phone || ''],
+      phone: [user?.phone || '', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
       bio: [user?.bio || ''],
       career_specialties: [user?.career_specialties || ''],
     });

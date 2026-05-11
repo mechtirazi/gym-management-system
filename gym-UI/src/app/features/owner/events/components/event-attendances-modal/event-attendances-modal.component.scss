@@ -13,7 +13,7 @@
   padding: 1.5rem;
 
   .modal-content {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--bg-card);
     backdrop-filter: blur(25px) saturate(180%);
     border-radius: 40px;
     width: 100%;
@@ -24,7 +24,7 @@
     box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--border-color);
     overflow: hidden;
 
     .modal-header {
@@ -59,7 +59,7 @@
           h2 {
             font-size: 1.85rem;
             font-weight: 950;
-            color: #0f172a;
+            color: var(--text-main);
             letter-spacing: -0.05em;
             margin: 0;
             line-height: 1.1;
@@ -67,7 +67,7 @@
 
           .subtitle {
             font-size: 0.9rem;
-            color: #64748b;
+            color: var(--text-muted);
             margin-top: 4px;
             font-weight: 600;
           }
@@ -75,13 +75,13 @@
       }
 
       .close-btn {
-        background: #f1f5f9;
+        background: var(--bg-hover);
         border: none;
         width: 44px;
         height: 44px;
         border-radius: 15px;
         font-size: 1.6rem;
-        color: #94a3b8;
+        color: var(--text-muted);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -99,7 +99,7 @@
     .modal-tabs {
       display: flex;
       gap: 1.25rem;
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 2px solid var(--border-color);
       margin-bottom: 1.5rem;
 
       .tab-btn {
@@ -109,7 +109,7 @@
         border-bottom: 3.5px solid transparent;
         font-weight: 800;
         font-size: 0.9rem;
-        color: #64748b;
+        color: var(--text-muted);
         cursor: pointer;
         transition: all 0.2s;
 
@@ -188,7 +188,7 @@
               label {
                 font-weight: 850;
                 font-size: 0.75rem;
-                color: #64748b;
+                color: var(--text-muted);
                 text-transform: uppercase;
                 letter-spacing: 0.12em;
                 margin-left: 0.5rem;
@@ -198,8 +198,8 @@
                 .image-preview-container {
                   width: 100%;
                   height: 320px;
-                  background: #f8fafc;
-                  border: 2px dashed #e2e8f0;
+                  background: var(--bg-input);
+                  border: 2px dashed var(--border-color);
                   border-radius: 28px;
                   display: flex;
                   align-items: center;
@@ -211,7 +211,7 @@
 
                   &:hover {
                     border-color: #0ea5e9;
-                    background: #f0f9ff;
+                    background: var(--bg-hover);
                     transform: translateY(-2px);
                   }
 
@@ -257,7 +257,7 @@
                     flex-direction: column;
                     align-items: center;
                     gap: 1rem;
-                    color: #64748b;
+                    color: var(--text-muted);
                     cursor: pointer;
                     width: 100%;
                     height: 100%;
@@ -287,22 +287,22 @@
               textarea {
                 width: 100%;
                 padding: 1rem 1.25rem;
-                background: #f8fafc;
-                border: 1.5px solid #e2e8f0;
+                background: var(--bg-input);
+                border: 1.5px solid var(--border-color);
                 border-radius: 16px;
                 font-size: 0.95rem;
                 font-weight: 500;
-                color: #1e293b;
+                color: var(--text-main);
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 outline: none;
 
                 &::placeholder {
-                  color: #94a3b8;
+                  color: var(--text-muted);
                 }
 
                 &:focus {
                   border-color: #0ea5e9;
-                  background: #fff;
+                  background: var(--bg-card);
                   box-shadow: 0 0 0 5px rgba(14, 165, 233, 0.1);
                   transform: translateY(-1px);
                 }
@@ -310,10 +310,64 @@
                 &.disabled-input {
                   opacity: 0.5;
                   cursor: not-allowed;
-                  background: #f1f5f9;
+                  background: var(--bg-hover);
                   transform: none;
                 }
               }
+
+              input[type="date"] {
+                position: relative;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 1rem center;
+                background-size: 16px;
+                padding-right: 2.8rem;
+
+                &::-webkit-calendar-picker-indicator {
+                  cursor: pointer;
+                  position: absolute;
+                  top: 0;
+                  right: 0;
+                  bottom: 0;
+                  width: 3rem;
+                  opacity: 0;
+                  z-index: 2;
+                }
+              }
+
+              &.has-error {
+                label { color: #ef4444; }
+                input, select, textarea {
+                  border-color: #fca5a5;
+                  background: #fef2f2;
+                  &:focus { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+                }
+              }
+
+            .error-text {
+              font-size: 0.75rem;
+              font-weight: 700;
+              color: #ef4444;
+              margin-top: 0.25rem;
+              display: block;
+              animation: slideDown 0.2s ease-out;
+            }
+
+            .input-with-icon {
+              position: relative;
+              display: flex;
+              align-items: center;
+              .icon { 
+                position: absolute; 
+                left: 1rem; 
+                color: #6366f1; 
+                font-weight: 900; 
+                font-size: 0.8rem;
+                pointer-events: none;
+                z-index: 5;
+              }
+              input { padding-left: 3.5rem !important; }
+            }
 
               .datetime-input-wrapper {
                 display: flex;
@@ -329,8 +383,8 @@
               }
 
               .reward-config-panel {
-                background: #f8fafc;
-                border: 2px solid #e2e8f0;
+                background: var(--bg-input);
+                border: 2px solid var(--border-color);
                 border-radius: 24px;
                 padding: 1.5rem;
                 transition: all 0.3s ease;
@@ -344,7 +398,7 @@
                     margin: 0;
                     cursor: pointer;
                     font-size: 0.95rem;
-                    color: #1e293b;
+                    color: var(--text-main);
                     text-transform: none;
                     letter-spacing: normal;
                   }
@@ -362,7 +416,7 @@
                   gap: 1.5rem;
                   margin-top: 1.5rem;
                   padding-top: 1.5rem;
-                  border-top: 1px solid #e2e8f0;
+                  border-top: 1px solid var(--border-color);
                   animation: slideDown 0.3s ease-out;
 
                   .setting-item {
@@ -377,7 +431,7 @@
 
                     input {
                       padding: 0.85rem 1.1rem;
-                      background: #fff;
+                      background: var(--bg-card);
                     }
                   }
                 }
@@ -405,14 +459,14 @@
                 display: flex;
                 align-items: flex-start;
                 gap: 1.25rem;
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 241, 242, 0.95));
-                border: 1px solid #fecdd3;
+                background: rgba(225, 29, 72, 0.05);
+                border: 1px solid rgba(225, 29, 72, 0.15);
                 border-left: 6px solid #e11d48;
                 border-radius: 20px;
                 padding: 1.5rem;
                 margin-top: 1rem;
                 margin-bottom: 2rem;
-                color: #9f1239;
+                color: #ef4444;
                 font-weight: 600;
                 font-size: 1rem;
                 box-shadow: 0 12px 30px -10px rgba(225, 29, 72, 0.15);
@@ -473,8 +527,8 @@
           gap: 2rem;
 
           .attendance-summary {
-            background: #f8fafc;
-            border: 1.5px solid #e2e8f0;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
             border-radius: 24px;
             padding: 1.5rem;
             display: flex;
@@ -491,7 +545,7 @@
               .label {
                 font-size: 0.75rem;
                 font-weight: 800;
-                color: #64748b;
+                color: var(--text-muted);
                 text-transform: uppercase;
                 letter-spacing: 0.1em;
               }
@@ -499,7 +553,7 @@
               .value {
                 font-size: 1.75rem;
                 font-weight: 900;
-                color: #0f172a;
+                color: var(--text-main);
               }
             }
           }
@@ -514,7 +568,7 @@
               h3 {
                 font-size: 0.9rem;
                 font-weight: 850;
-                color: #64748b;
+                color: var(--text-muted);
                 text-transform: uppercase;
                 letter-spacing: 0.12em;
                 margin: 0;
@@ -524,7 +578,7 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                color: #64748b;
+                color: var(--text-muted);
                 font-size: 0.8rem;
                 font-weight: 700;
 
@@ -551,8 +605,8 @@
                 justify-content: space-between;
                 align-items: center;
                 padding: 1.25rem 1.5rem;
-                background: #fff;
-                border: 1.5px solid #e2e8f0;
+                background: var(--bg-hover);
+                border: 1.5px solid var(--border-color);
                 border-radius: 20px;
                 transition: all 0.3s;
 
@@ -569,13 +623,13 @@
 
                   .member-name {
                     font-weight: 800;
-                    color: #0f172a;
+                    color: var(--text-main);
                     font-size: 1rem;
                   }
 
                   .member-email {
                     font-size: 0.85rem;
-                    color: #64748b;
+                    color: var(--text-muted);
                   }
                 }
 

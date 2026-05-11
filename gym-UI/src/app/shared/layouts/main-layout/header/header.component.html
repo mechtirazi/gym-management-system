@@ -202,7 +202,7 @@
         @if (user.profile_picture) {
         <img [src]="getAvatarUrl(user.profile_picture)" [alt]="user.name">
         } @else {
-        {{ (user.name?.charAt(0) || '') + (user.last_name?.charAt(0) || '') }}
+        {{ (user.name ? user.name.charAt(0) : '') + (user.last_name ? user.last_name.charAt(0) : '') }}
         }
       </div>
       <button class="logout-btn" (click)="logout()" title="Logout">

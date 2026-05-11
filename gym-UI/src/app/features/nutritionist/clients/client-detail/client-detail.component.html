@@ -64,10 +64,7 @@
               <span class="material-symbols-rounded">mail</span>
               <span class="val">{{ client().email }}</span>
             </div>
-            <div class="meta-item">
-              <span class="material-symbols-rounded">location_on</span>
-              <span class="val">{{ client().gymName || 'Default Gym' }}</span>
-            </div>
+
             <div class="meta-item">
               <span class="material-symbols-rounded">calendar_today</span>
               <span class="val">Joined {{ client().created_at | date:'mediumDate' }}</span>
@@ -185,10 +182,10 @@
                   <span class="material-symbols-rounded icon-mini">speed</span>
                 </div>
                 <div class="val-group">
-                  <span class="value">{{ weightVelocity() }}</span>
+                  <span class="value">{{ progressData().length < 2 ? '--' : weightVelocity() }}</span>
                   <span class="unit">kg/week</span>
                 </div>
-                <p class="m-desc">Average biological adaptation rate.</p>
+                <p class="m-desc">{{ progressData().length < 2 ? 'Establishing baseline velocity...' : 'Average biological adaptation rate.' }}</p>
               </div>
 
               <div class="metric-card glass-card">
@@ -197,7 +194,7 @@
                   <span class="material-symbols-rounded icon-mini">body_fat</span>
                 </div>
                 <div class="val-group">
-                  <span class="value">{{ progressData()[0]?.body_fat }}</span>
+                  <span class="value">{{ progressData()[0]?.body_fat || '--' }}</span>
                   <span class="unit">% BF</span>
                 </div>
                 <p class="m-desc Status" [class.opt]="bodyCompScore() === 'Optimal'"> Status: {{ bodyCompScore() }}</p>
@@ -221,10 +218,10 @@
                   <span class="material-symbols-rounded icon-mini">trending_up</span>
                 </div>
                 <div class="val-group">
-                  <span class="value">{{ weightTrend() }}</span>
+                  <span class="value">{{ progressData().length < 2 ? 'New' : weightTrend() }}</span>
                   <span class="unit">kg</span>
                 </div>
-                <p class="m-desc">Total mass flux since first sync.</p>
+                <p class="m-desc">{{ progressData().length < 2 ? 'Sync complete. Tracking active.' : 'Total mass flux since first sync.' }}</p>
               </div>
             </div>
 

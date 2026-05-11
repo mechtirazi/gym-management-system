@@ -20,7 +20,7 @@ export class EditProductModalComponent implements OnInit {
   productUpdated = output<void>();
 
   categories = ['Supplements', 'Equipment', 'Apparel', 'Accessories', 'Nutrition'];
-  
+
   product = {
     name: '',
     description: '',
@@ -42,7 +42,10 @@ export class EditProductModalComponent implements OnInit {
       this.product.price === null ||
       this.product.stock === null ||
       this.product.price < 0 ||
-      this.product.stock < 0
+      this.product.price > 99999 ||
+      this.product.stock < 0 ||
+      this.product.stock > 99999 ||
+      (!this.selectedFile && !this.imagePreview)
     );
   }
 
@@ -74,8 +77,21 @@ export class EditProductModalComponent implements OnInit {
 
   onSubmit(event: Event) {
     event.preventDefault();
-    if (!this.product.name || !this.product.category || this.product.price === null || this.product.stock === null) {
-      this.error.set('Please fill in all required fields.');
+    if (!this.product.name || !this.product.category || this.product.price === null || this.product.stock === null || (!this.selectedFile && !this.imagePreview)) {
+      this.error.set('Please fill in all required fields and ensure a product visual is set.');
+      return;
+    }
+    if (this.product.price < 0 || this.product.price > 99999) {
+      this.error.set('Price must be between 0 and 99,999.');
+      return;
+    }
+    if (this.product.stock < 0 || this.product.stock > 99999) {
+      this.error.set('Stock must be between 0 and 99,999.');
+      return;
+    }
+    const discount = this.product.discount_percentage ?? 0;
+    if (discount < 0 || discount > 100) {
+      this.error.set('Discount must be between 0 and 100.');
       return;
     }
 
@@ -88,7 +104,7 @@ export class EditProductModalComponent implements OnInit {
     formData.append('category', this.product.category);
     formData.append('price', this.product.price.toString());
     formData.append('stock', this.product.stock.toString());
-    formData.append('discount_percentage', this.product.discount_percentage.toString());
+    formData.append('discount_percentage', discount.toString());
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);
     }

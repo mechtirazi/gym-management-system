@@ -13,23 +13,23 @@
   --color-primary-700: #4338ca;
   --sidebar-glass-hover: rgba(255, 255, 255, 0.4);
 
-  --bg-main: #f8fafc;
+  --bg-main: #f0f4f8;
   --bg-card: #ffffff;
-  --bg-header: rgba(255, 255, 255, 0.8);
-  --bg-glass: rgba(255, 255, 255, 0.8);
+  --bg-header: rgba(255, 255, 255, 0.95);
+  --bg-glass: rgba(255, 255, 255, 0.95);
   --bg-sidebar: #ffffff;
-  --bg-hover: #f1f5f9;
-  --bg-input: #f8fafc;
+  --bg-hover: #e8eef5;
+  --bg-input: #ffffff;
 
   --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-muted: #4a6080;
   --text-inverse: #ffffff;
 
-  --border-color: #f1f5f9;
-  --border-glass: rgba(255, 255, 255, 0.6);
+  --border-color: #cbd5e1;
+  --border-glass: rgba(148, 163, 184, 0.35);
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 24px -4px rgba(15, 23, 42, 0.10), 0 2px 8px -2px rgba(15, 23, 42, 0.06);
 
   /* ─── Premium Admin Theme Tokens (Light Mode) ─── */
   --admin-radius-lg: 2.5rem;

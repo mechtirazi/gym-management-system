@@ -168,30 +168,12 @@ class MemberController extends Controller
 
             // 5. Proactive Attendance Creation for Subscriptions (Course Master Schedule Only)
             if ($isSubscription) {
-                // 5. Proactive Attendance Creation for Subscriptions (Master Schedule Protocol)
-                $days = $course->recurring_days ?? [];
-                $startTime = $course->recurring_start_time;
-
-                // We fetch all upcoming sessions and filter in-memory for maximum reliability across DB formats
+                // We fetch all weekly sessions for this course
                 $allSessions = Session::where('id_course', $course->id_course)
-                    ->where('date_session', '>=', now()->toDateString())
+                    ->where('is_weekly', true)
                     ->get();
 
                 foreach ($allSessions as $session) {
-                    // Check Day (Case-Insensitive)
-                    if (!empty($days)) {
-                        $dayName = Carbon::parse($session->date_session)->format('l');
-                        $normalizedDays = array_map('strtolower', $days);
-                        if (!in_array(strtolower($dayName), $normalizedDays)) continue;
-                    }
-
-                    // Check Time (Approx Match - 1 hour window)
-                    if ($startTime) {
-                        $sTime = substr($session->start_time, 0, 5);
-                        $cTime = substr($startTime, 0, 5);
-                        if ($sTime !== $cTime) continue;
-                    }
-
                     // Standardize creation using model to handle UUID generation automatically
                     Attendance::updateOrCreate(
                         [
@@ -581,6 +563,22 @@ class MemberController extends Controller
         }
 
         $user->save();
+
+        // High-Fidelity Historical Tracking: Create a snapshot in BiometricLog for the nutritionist's progress charts
+        if ($request->has('weight') || $request->has('calories')) {
+            \App\Models\BiometricLog::updateOrCreate(
+                [
+                    'id_member' => $user->id_user,
+                    'log_date' => now()->toDateString()
+                ],
+                [
+                    'weight' => $user->manual_weight,
+                    'calories' => $user->manual_calories,
+                    'body_fat' => $user->manual_body_fat ?? null, // Fallback if available
+                    'notes' => 'Bio-Pulse Daily Synchronization'
+                ]
+            );
+        }
 
         $stats = $this->dashboardService->getMemberStats($user);
 

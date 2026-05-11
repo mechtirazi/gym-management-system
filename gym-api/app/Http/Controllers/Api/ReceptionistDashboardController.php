@@ -37,23 +37,37 @@ class ReceptionistDashboardController extends Controller
         $monthStart = Carbon::now()->startOfMonth();
 
         // Members/enrollments
+        // Total unique members who have ever enrolled
         $membersTotal = Enrollment::query()
             ->whereIn('id_gym', $gymIds)
             ->distinct('id_member')
             ->count('id_member');
 
+        // Unique members with at least one 'active' enrollment that hasn't reached its end date
         $activeEnrollments = Enrollment::query()
-            ->whereIn('id_gym', $gymIds)
-            ->where('status', 'active')
-            ->count();
+            ->leftJoin('membership_plans', 'enrollments.id_plan', '=', 'membership_plans.id')
+            ->whereIn('enrollments.id_gym', $gymIds)
+            ->where('enrollments.status', 'active')
+            ->where(function ($q) use ($today) {
+                // If it has a plan, use plan duration. Otherwise fallback to 30 days (standard) or 90 days (premium)
+                $q->whereRaw('DATE_ADD(enrollments.enrollment_date, INTERVAL COALESCE(membership_plans.duration_days, CASE WHEN enrollments.type = "premium" THEN 90 ELSE 30 END) DAY) >= ?', [$today->toDateString()]);
+            })
+            ->distinct('id_member')
+            ->count('id_member');
 
-        // "Expiring soon": standard enrollments ending in next 7 days (assuming 30 days validity)
+        // "Expiring soon": enrollments ending in the next 7 days
         $expiringSoon = Enrollment::query()
-            ->whereIn('id_gym', $gymIds)
-            ->where('status', 'active')
-            ->where('type', 'standard')
-            ->whereBetween('enrollment_date', [$today->copy()->subDays(30), $today->copy()->subDays(23)])
-            ->count();
+            ->leftJoin('membership_plans', 'enrollments.id_plan', '=', 'membership_plans.id')
+            ->whereIn('enrollments.id_gym', $gymIds)
+            ->where('enrollments.status', 'active')
+            ->where(function ($q) use ($today) {
+                $q->whereRaw('DATE_ADD(enrollments.enrollment_date, INTERVAL COALESCE(membership_plans.duration_days, CASE WHEN enrollments.type = "premium" THEN 90 ELSE 30 END) DAY) BETWEEN ? AND ?', [
+                    $today->toDateString(),
+                    $today->copy()->addDays(7)->toDateString()
+                ]);
+            })
+            ->distinct('id_member')
+            ->count('id_member');
 
         // Payments
         $revenueToday = (float) Payment::query()
@@ -63,7 +77,8 @@ class ReceptionistDashboardController extends Controller
 
         $revenueThisMonth = (float) Payment::query()
             ->whereIn('id_gym', $gymIds)
-            ->where('created_at', '>=', $monthStart)
+            ->whereMonth('created_at', $today->month)
+            ->whereYear('created_at', $today->year)
             ->sum('amount');
 
         $paymentsToday = Payment::query()

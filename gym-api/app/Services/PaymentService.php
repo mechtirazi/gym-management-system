@@ -29,9 +29,12 @@ class PaymentService extends BaseService
                     ->orWhere('method', 'like', "%{$search}%")
                     ->orWhere('type', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
+                        $uq->where(function($nq) use ($search) {
+                            $nq->where('name', 'like', "%{$search}%")
+                               ->orWhere('last_name', 'like', "%{$search}%")
+                               ->orWhere('email', 'like', "%{$search}%")
+                               ->orWhere(\Illuminate\Support\Facades\DB::raw("CONCAT(name, ' ', last_name)"), 'like', "%{$search}%");
+                        });
                     });
             });
         }
@@ -65,19 +68,18 @@ class PaymentService extends BaseService
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
-        // Apply Gym Scope using X-Gym-Id or manual gym_id
-        $this->applyActiveGymScope($query, $user);
-
-        // For Owners/Staff, restrict by gym. For Members, we primarily filter by id_user later.
-        if (!$this->getActiveGymId()) {
-            if ($user->role !== User::ROLE_SUPER_ADMIN && $user->role !== User::ROLE_MEMBER) {
-                $query->whereIn('id_gym', $user->allowedGymIds());
-            }
-        }
-
-        // Members only see their own
+        // Members only see their own - across all gyms (ignore X-Gym-Id)
         if ($user->role === User::ROLE_MEMBER) {
             $query->where('id_user', $user->id_user);
+            return $perPage ? $query->paginate($perPage) : $query->paginate(15);
+        }
+
+        // Apply Gym Scope for Owners/Staff using X-Gym-Id or manual gym_id
+        $this->applyActiveGymScope($query, $user);
+
+        // For Owners/Staff, restrict by gym if no active gym is specified
+        if (!$this->getActiveGymId()) {
+            $query->whereIn('id_gym', $user->allowedGymIds());
         }
 
         return $perPage ? $query->paginate($perPage) : $query->paginate(15);
@@ -144,8 +146,10 @@ class PaymentService extends BaseService
             'id_transaction' => $data['external_reference'] ?? 'TXN-' . strtoupper(bin2hex(random_bytes(4))),
             'external_reference' => $data['external_reference'] ?? null,
             'id_order' => $orderId,
+            'id_course' => $data['id_course'] ?? null,
             'id_session' => $data['id_session'] ?? null,
             'id_event' => $data['id_event'] ?? null,
+
 
             // System overrides (strict enforcement)
             'status' => \App\Enums\PaymentStatus::Pending,
@@ -186,14 +190,40 @@ class PaymentService extends BaseService
             'finalized_by' => $finalizedBy,
         ]);
 
-        // Auto-create attendance for course payments
-        if ($payment->type === \App\Models\Payment::TYPE_COURSE && !empty($payment->id_session)) {
-            \App\Models\Attendance::updateOrCreate([
-                'id_member' => $payment->id_user,
-                'id_session' => $payment->id_session,
-            ], [
-                'status' => \App\Models\Attendance::STATUS_PENDING,
-            ]);
+        // Course payments handling
+        if ($payment->type === \App\Models\Payment::TYPE_COURSE) {
+            if (!empty($payment->id_session)) {
+                // Auto-create attendance for single session
+                \App\Models\Attendance::updateOrCreate([
+                    'id_member' => $payment->id_user,
+                    'id_session' => $payment->id_session,
+                ], [
+                    'status' => \App\Models\Attendance::STATUS_PENDING,
+                ]);
+            } else if (!empty($payment->id_course)) {
+                // Auto-enroll for weekly course subscriptions
+                \App\Models\Enrollment::updateOrCreate([
+                    'id_member' => $payment->id_user,
+                    'id_course' => $payment->id_course,
+                ], [
+                    'id_gym' => $payment->id_gym,
+                    'status' => 'active',
+                    'enrollment_date' => now()->toDateString(),
+                ]);
+
+                // Also add the member to ALL weekly sessions of this course as 'pending'
+                $sessions = \App\Models\Session::where('id_course', $payment->id_course)
+                    ->where('is_weekly', true)
+                    ->get();
+                foreach ($sessions as $session) {
+                    \App\Models\Attendance::updateOrCreate([
+                        'id_member' => $payment->id_user,
+                        'id_session' => $session->id_session,
+                    ], [
+                        'status' => \App\Models\Attendance::STATUS_PENDING,
+                    ]);
+                }
+            }
         }
 
         // Auto-enroll for event payments

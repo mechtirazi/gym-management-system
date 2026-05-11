@@ -321,7 +321,7 @@ class OwnerDashboardService
                 "protein" => $user->manual_protein,
                 "carbs" => $user->manual_carbs,
                 "fats" => $user->manual_fats,
-                "water" => $user->manual_water,
+                "water" => ($user->updated_at && \Carbon\Carbon::parse($user->updated_at)->isToday()) ? (float)$user->manual_water : 0,
                 "weight" => $user->manual_weight,
                 "height" => $user->manual_height,
                 "evolutionPoints" => $user->evolution_points

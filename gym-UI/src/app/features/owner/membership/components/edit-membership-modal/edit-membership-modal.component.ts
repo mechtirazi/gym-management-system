@@ -35,7 +35,7 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
           <div class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
               <label>Enrollment Date</label>
-              <input type="date" formControlName="enrollment_date" [min]="todayDate" style="width: 100%; padding: 0.9rem 1.1rem; border-radius: 14px; background: #f8fafc; border: 2px solid #e2e8f0; font-size: 0.95rem; font-weight: 700; color: #1e293b; transition: all 0.2s;">
+              <input type="date" formControlName="enrollment_date" [min]="todayDate" style="width: 100%; padding: 0.9rem 1.1rem; border-radius: 14px; background: var(--bg-input); border: 2px solid var(--border-color); font-size: 0.95rem; font-weight: 700; color: var(--text-main); transition: all 0.2s;">
               @if (editForm.get('enrollment_date')?.errors?.['pastDate']) {
                 <span class="error-text" style="color: #ef4444; font-size: 0.8rem; font-weight: 700; margin-top: 0.5rem; margin-left: 0.5rem; display: block;">Date cannot be in the past.</span>
               }
@@ -86,12 +86,12 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
     
     .modal-container {
       width: 100%; max-width: 520px; 
-      background: rgba(255, 255, 255, 0.9);
+      background: var(--bg-card);
       backdrop-filter: blur(20px);
       border-radius: 40px;
       overflow: hidden; 
       box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--border-color);
       animation: modalPop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -107,13 +107,13 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
         svg { width: 24px; height: 24px; }
       }
       .header-text {
-        h2 { font-size: 1.85rem; font-weight: 950; color: #0f172a; margin: 0 0 0.2rem 0; letter-spacing: -0.05em; }
-        p { font-size: 0.9rem; color: #64748b; font-weight: 600; }
+        h2 { font-size: 1.85rem; font-weight: 950; color: var(--text-main); margin: 0 0 0.2rem 0; letter-spacing: -0.05em; }
+        p { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
       }
       .close-btn {
         position: absolute; top: 2rem; right: 2rem;
-        background: #f1f5f9; border: none; width: 40px; height: 40px; 
-        border-radius: 12px; font-size: 1.6rem; color: #94a3b8;
+        background: var(--bg-hover); border: none; width: 40px; height: 40px; 
+        border-radius: 12px; font-size: 1.6rem; color: var(--text-muted);
         cursor: pointer; transition: all 0.3s;
         display: flex; align-items: center; justify-content: center;
         &:hover { background: #fee2e2; color: #ef4444; transform: rotate(90deg); }
@@ -123,9 +123,9 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
     .modal-body { padding: 0 2.5rem 2.5rem; }
 
     .error-alert {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 241, 242, 0.95));
-      border: 1px solid #fecdd3; border-left: 6px solid #e11d48;
-      color: #9f1239; padding: 1.25rem 1.5rem; border-radius: 20px;
+      background: rgba(225, 29, 72, 0.05);
+      border: 1px solid rgba(225, 29, 72, 0.15); border-left: 6px solid #e11d48;
+      color: #ef4444; padding: 1.25rem 1.5rem; border-radius: 20px;
       margin-bottom: 2rem; font-size: 0.95rem; font-weight: 700;
       display: flex; align-items: center; gap: 1rem;
       box-shadow: 0 12px 30px -10px rgba(225, 29, 72, 0.15);
@@ -136,13 +136,13 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
     
     .form-group {
       display: flex; flex-direction: column; gap: 0.8rem;
-      label { font-size: 0.75rem; font-weight: 850; color: #64748b; text-transform: uppercase; letter-spacing: 0.12em; margin-left: 0.5rem; }
+      label { font-size: 0.75rem; font-weight: 850; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-left: 0.5rem; }
       input, select {
         width: 100%; padding: 1.1rem 1.4rem; border-radius: 18px;
-        background: #f8fafc; border: 1.5px solid #e2e8f0;
-        font-size: 1rem; font-weight: 600; color: #1e293b;
+        background: var(--bg-input); border: 1.5px solid var(--border-color);
+        font-size: 1rem; font-weight: 600; color: var(--text-main);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        &:focus { outline: none; border-color: #0ea5e9; background: white; box-shadow: 0 0 0 5px rgba(14, 165, 233, 0.12); transform: translateY(-1px); }
+        &:focus { outline: none; border-color: #0ea5e9; background: var(--bg-card); box-shadow: 0 0 0 5px rgba(14, 165, 233, 0.12); transform: translateY(-1px); }
       }
       select {
         appearance: none;
@@ -156,7 +156,7 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
     .modal-footer {
       display: flex; gap: 1.5rem;
       button { flex: 1; padding: 1.25rem; border-radius: 20px; font-weight: 850; font-size: 1.05rem; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: none; }
-      .btn-secondary { background: #f1f5f9; color: #64748b; &:hover { background: #e2e8f0; color: #1e293b; transform: translateY(-2px); } }
+      .btn-secondary { background: var(--bg-hover); color: var(--text-muted); &:hover { background: var(--border-color); color: var(--text-main); transform: translateY(-2px); } }
       .btn-primary { 
         background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: white; 
         box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.3);

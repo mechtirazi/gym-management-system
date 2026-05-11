@@ -26,6 +26,7 @@
     overflow-y: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
+
     &::-webkit-scrollbar {
       display: none;
     }
@@ -140,6 +141,15 @@
         text-transform: uppercase;
         letter-spacing: 0.12em;
         margin-left: 0.5rem;
+      }
+
+      .field-error {
+        color: #ef4444;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: -0.25rem;
+        margin-left: 0.5rem;
+        animation: fadeIn 0.3s ease-out;
       }
 
       input,
@@ -451,37 +461,70 @@
     box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.6);
 
     .modal-header {
-      .title-text h2 { color: #f1f5f9; }
-      .title-text .subtitle { color: #94a3b8; }
+      .title-text h2 {
+        color: #f1f5f9;
+      }
+
+      .title-text .subtitle {
+        color: #94a3b8;
+      }
+
       .close-btn {
         background: rgba(255, 255, 255, 0.07);
         color: #64748b;
-        &:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.15);
+          color: #ef4444;
+        }
       }
     }
 
     .form-group {
-      label { color: #94a3b8; }
-      input, select, textarea {
+      label {
+        color: #94a3b8;
+      }
+
+      input,
+      select,
+      textarea {
         background: rgba(255, 255, 255, 0.05);
         border-color: rgba(255, 255, 255, 0.1);
         color: #f1f5f9;
-        &::placeholder { color: #475569; }
-        &:focus { background: rgba(255, 255, 255, 0.08); border-color: #f59e0b; }
+
+        &::placeholder {
+          color: #475569;
+        }
+
+        &:focus {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: #f59e0b;
+        }
       }
     }
 
     .image-upload-group .image-preview-container {
       background: rgba(255, 255, 255, 0.03);
       border-color: rgba(255, 255, 255, 0.1);
-      .upload-placeholder { color: #64748b; }
-      &:hover { background: rgba(245, 158, 11, 0.08); border-color: #f59e0b; }
+
+      .upload-placeholder {
+        color: #64748b;
+      }
+
+      &:hover {
+        background: rgba(245, 158, 11, 0.08);
+        border-color: #f59e0b;
+      }
     }
 
     .form-footer .cancel-btn {
       background: rgba(255, 255, 255, 0.07);
       color: #94a3b8;
-      &:hover { background: rgba(255, 255, 255, 0.1); color: #f1f5f9; }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+      }
     }
 
     .error-msg {

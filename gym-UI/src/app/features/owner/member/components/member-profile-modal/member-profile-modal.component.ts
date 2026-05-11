@@ -48,7 +48,7 @@ export class MemberProfileModalComponent implements OnInit {
       firstName: [firstName, Validators.required],
       lastName: [lastName, Validators.required],
       email: [this.member().email === 'N/A' || !this.member().email ? '' : this.member().email, [Validators.email]],
-      phone: [this.member().phone || ''],
+      phone: [this.member().phone || '', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
       status: [this.member().status || 'active', Validators.required],
       id_plan: [this.member()['id_plan'] || '']
     });

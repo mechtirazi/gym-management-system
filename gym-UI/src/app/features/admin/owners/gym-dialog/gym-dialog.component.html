@@ -1,148 +1,188 @@
 <div class="admin-dialog-container">
-  <div class="admin-dialog-header">
-    <div class="header-icon" style="color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
-      <mat-icon>domain_add</mat-icon>
-    </div>
-    <div class="header-title-wrap">
-      <h2>Add New Gym</h2>
-      <p>Assigning a new facility to owner: <strong>{{ data.ownerName }}</strong></p>
-    </div>
-  </div>
-
-  <form [formGroup]="gymForm" (ngSubmit)="onSubmit()" class="admin-form-group">
-    <!-- Premium Alert System -->
-    <div *ngIf="errorMessage()" class="admin-alert status-error mb-6">
-       <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
-          <mat-icon>terminal</mat-icon>
-       </div>
-       <div class="alert-content">
-          <span class="alert-tag" style="color: var(--admin-accent-rose);">System Error</span>
-          <h3>Creation Failed</h3>
-          <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ errorMessage() }}</p>
-       </div>
-    </div>
-
-    <div class="three-col-grid">
-      <div class="form-field">
-        <label><mat-icon>business</mat-icon> Gym Name</label>
-        <div class="input-glow-wrap">
-           <input formControlName="name" type="text" placeholder="e.g. Downtown Fitness" autocomplete="off" />
-        </div>
-        <span class="error-text" *ngIf="gymForm.get('name')?.touched && gymForm.get('name')?.errors?.['required']">Gym Name is required.</span>
-        <span class="error-text" *ngIf="gymForm.get('name')?.touched && gymForm.get('name')?.errors?.['minlength']">Gym Name must be at least 2 characters.</span>
+   <div class="admin-dialog-header">
+      <div class="header-icon"
+         style="color: var(--admin-accent-emerald); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
+         <mat-icon>domain_add</mat-icon>
       </div>
-      <div class="form-field">
-        <label><mat-icon>email</mat-icon> Business Email</label>
-        <div class="input-glow-wrap">
-           <input formControlName="email" type="email" placeholder="contact@gym.com" autocomplete="off" />
-        </div>
-        <span class="error-text" *ngIf="gymForm.get('email')?.touched && gymForm.get('email')?.errors?.['required']">Email is required.</span>
-        <span class="error-text" *ngIf="gymForm.get('email')?.touched && gymForm.get('email')?.errors?.['email']">Enter a valid email address.</span>
+      <div class="header-title-wrap">
+         <h2>Add New Gym</h2>
+         <p>Assigning a new facility to owner: <strong>{{ data.ownerName }}</strong></p>
       </div>
-      <div class="form-field">
-        <label><mat-icon>phone</mat-icon> Phone Number</label>
-        <div class="input-glow-wrap">
-           <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
-        </div>
-        <span class="error-text" *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.errors?.['required']">Phone Number is required.</span>
-        <span class="error-text" *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.errors?.['pattern']">Enter a valid phone number.</span>
-      </div>
-    </div>
+   </div>
 
-    <div class="form-field-row" style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-top: 0.75rem;">
-      <div class="form-field">
-        <label><mat-icon>location_on</mat-icon> Street Address</label>
-        <div class="input-glow-wrap">
-           <input formControlName="adress" type="text" placeholder="123 Example St, City" autocomplete="off" />
-        </div>
-        <span class="error-text" *ngIf="gymForm.get('adress')?.touched && gymForm.get('adress')?.errors?.['required']">Address is required.</span>
-        <span class="error-text" *ngIf="gymForm.get('adress')?.touched && gymForm.get('adress')?.errors?.['minlength']">Address must be at least 3 characters.</span>
+   <form [formGroup]="gymForm" (ngSubmit)="onSubmit()" class="admin-form-group">
+      <!-- Premium Alert System -->
+      <div *ngIf="errorMessage()" class="admin-alert status-error mb-6">
+         <div class="alert-icon-box"
+            style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
+            <mat-icon>terminal</mat-icon>
+         </div>
+         <div class="alert-content">
+            <span class="alert-tag" style="color: var(--admin-accent-rose);">System Error</span>
+            <h3>Creation Failed</h3>
+            <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{
+               errorMessage() }}</p>
+         </div>
       </div>
-      <div class="form-field">
-        <label><mat-icon>description</mat-icon> Description</label>
-        <div class="input-glow-wrap">
-           <textarea formControlName="description" placeholder="Brief description of the gym facilities..." rows="1" style="height: 42px; min-height: 42px;"></textarea>
-        </div>
-        <span class="error-text" *ngIf="gymForm.get('description')?.touched && gymForm.get('description')?.errors?.['required']">Description is required.</span>
-        <span class="error-text" *ngIf="gymForm.get('description')?.touched && gymForm.get('description')?.errors?.['minlength']">Description must be at least 10 characters.</span>
+
+      <div class="three-col-grid">
+         <div class="form-field">
+            <label><mat-icon>business</mat-icon> Gym Name</label>
+            <div class="input-glow-wrap">
+               <input formControlName="name" type="text" placeholder="e.g. Downtown Fitness" autocomplete="off" />
+            </div>
+            <span class="error-text"
+               *ngIf="gymForm.get('name')?.touched && gymForm.get('name')?.errors?.['required']">Gym Name is
+               required.</span>
+            <span class="error-text"
+               *ngIf="gymForm.get('name')?.touched && gymForm.get('name')?.errors?.['minlength']">Gym Name must be at
+               least 2 characters.</span>
+         </div>
+         <div class="form-field">
+            <label><mat-icon>email</mat-icon> Business Email</label>
+            <div class="input-glow-wrap">
+               <input formControlName="email" type="email" placeholder="contact@gym.com" autocomplete="off" />
+            </div>
+            <span class="error-text"
+               *ngIf="gymForm.get('email')?.touched && gymForm.get('email')?.errors?.['required']">Email is
+               required.</span>
+            <span class="error-text"
+               *ngIf="gymForm.get('email')?.touched && gymForm.get('email')?.errors?.['email']">Enter a valid email
+               address.</span>
+         </div>
+         <div class="form-field">
+            <label><mat-icon>phone</mat-icon> Phone Number</label>
+            <div class="input-glow-wrap phone-input-wrapper">
+               <div class="country-prefix">
+                  <img src="https://flagcdn.com/w20/tn.png" alt="Tunisia Flag" class="flag-icon">
+                  <span>+216</span>
+               </div>
+               <input formControlName="phone" type="tel" placeholder="12 345 678" maxlength="8" />
+            </div>
+            <span class="error-text"
+               *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.errors?.['required']">Phone Number is
+               required.</span>
+            <span class="error-text"
+               *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.errors?.['pattern']">Valid 8-digit Tunisian
+               number required.</span>
+         </div>
       </div>
-    </div>
 
-    <div class="four-col-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 0.75rem;">
-       <div class="form-field">
-          <label><mat-icon>groups</mat-icon> Max Capacity</label>
-          <div class="input-glow-wrap">
-             <input formControlName="capacity" type="number" placeholder="100" />
-          </div>
-          <span class="error-text" *ngIf="gymForm.get('capacity')?.touched && gymForm.get('capacity')?.errors?.['required']">Capacity is required.</span>
-          <span class="error-text" *ngIf="gymForm.get('capacity')?.touched && gymForm.get('capacity')?.errors?.['min']">Must be at least 1.</span>
-       </div>
-       <div class="form-field">
-          <label><mat-icon>schedule</mat-icon> Mon - Fri</label>
-          <div class="input-glow-wrap dual-time-wrap">
-             <input formControlName="open_mon_fri_start" type="time" />
-             <span class="separator">-</span>
-             <input formControlName="open_mon_fri_end" type="time" />
-          </div>
-       </div>
-       <div class="form-field">
-          <label><mat-icon>event</mat-icon> Saturday</label>
-          <div class="input-glow-wrap dual-time-wrap">
-             <input formControlName="open_sat_start" type="time" />
-             <span class="separator">-</span>
-             <input formControlName="open_sat_end" type="time" />
-          </div>
-       </div>
-       <div class="form-field">
-          <label><mat-icon>event_busy</mat-icon> Sunday</label>
-          <div class="input-glow-wrap dual-time-wrap">
-             <input formControlName="open_sun_start" type="time" />
-             <span class="separator">-</span>
-             <input formControlName="open_sun_end" type="time" />
-          </div>
-       </div>
-    </div>
+      <div class="form-field-row"
+         style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-top: 0.75rem;">
+         <div class="form-field">
+            <label><mat-icon>location_on</mat-icon> Street Address</label>
+            <div class="input-glow-wrap">
+               <input formControlName="adress" type="text" placeholder="123 Example St, City" autocomplete="off" />
+            </div>
+            <span class="error-text"
+               *ngIf="gymForm.get('adress')?.touched && gymForm.get('adress')?.errors?.['required']">Address is
+               required.</span>
+            <span class="error-text"
+               *ngIf="gymForm.get('adress')?.touched && gymForm.get('adress')?.errors?.['minlength']">Address must be at
+               least 3 characters.</span>
+         </div>
+         <div class="form-field">
+            <label><mat-icon>description</mat-icon> Description</label>
+            <div class="input-glow-wrap">
+               <textarea formControlName="description" placeholder="Brief description of the gym facilities..." rows="1"
+                  style="height: 42px; min-height: 42px;"></textarea>
+            </div>
+            <span class="error-text"
+               *ngIf="gymForm.get('description')?.touched && gymForm.get('description')?.errors?.['required']">Description
+               is required.</span>
+            <span class="error-text"
+               *ngIf="gymForm.get('description')?.touched && gymForm.get('description')?.errors?.['minlength']">Description
+               must be at least 10 characters.</span>
+         </div>
+      </div>
 
-    <!-- Professional Platform Subscription Selection -->
-    <div class="subscription-selector-wrap" style="margin-top: 1rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: end; background: rgba(16, 185, 129, 0.03); padding: 1rem; border-radius: 1.25rem; border: 1px solid rgba(16, 185, 129, 0.1);">
-       <div class="tiers-side">
-          <label style="margin-bottom: 0.75rem; display: block; font-weight: 800; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
-             Select Platform Activation Package
-          </label>
-          <div class="tier-cards-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-             <div *ngFor="let tier of subscriptionTiers" 
-                  (click)="selectTier(tier)"
-                  class="tier-card"
+      <div class="four-col-grid"
+         style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 0.75rem;">
+         <div class="form-field">
+            <label><mat-icon>groups</mat-icon> Max Capacity</label>
+            <div class="input-glow-wrap">
+               <input formControlName="capacity" type="number" placeholder="100" />
+            </div>
+            <span class="error-text"
+               *ngIf="gymForm.get('capacity')?.touched && gymForm.get('capacity')?.errors?.['required']">Capacity is
+               required.</span>
+            <span class="error-text"
+               *ngIf="gymForm.get('capacity')?.touched && gymForm.get('capacity')?.errors?.['min']">Must be at least
+               1.</span>
+         </div>
+         <div class="form-field">
+            <label><mat-icon>schedule</mat-icon> Mon - Fri</label>
+            <div class="input-glow-wrap dual-time-wrap">
+               <input formControlName="open_mon_fri_start" type="time" />
+               <span class="separator">-</span>
+               <input formControlName="open_mon_fri_end" type="time" />
+            </div>
+         </div>
+         <div class="form-field">
+            <label><mat-icon>event</mat-icon> Saturday</label>
+            <div class="input-glow-wrap dual-time-wrap">
+               <input formControlName="open_sat_start" type="time" />
+               <span class="separator">-</span>
+               <input formControlName="open_sat_end" type="time" />
+            </div>
+         </div>
+         <div class="form-field">
+            <label><mat-icon>event_busy</mat-icon> Sunday</label>
+            <div class="input-glow-wrap dual-time-wrap">
+               <input formControlName="open_sun_start" type="time" />
+               <span class="separator">-</span>
+               <input formControlName="open_sun_end" type="time" />
+            </div>
+         </div>
+      </div>
+
+      <!-- Professional Platform Subscription Selection -->
+      <div class="subscription-selector-wrap"
+         style="margin-top: 1rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: end; background: rgba(16, 185, 129, 0.03); padding: 1rem; border-radius: 1.25rem; border: 1px solid rgba(16, 185, 129, 0.1);">
+         <div class="tiers-side">
+            <label
+               style="margin-bottom: 0.75rem; display: block; font-weight: 800; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+               Select Platform Activation Package
+            </label>
+            <div class="tier-cards-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+               <div *ngFor="let tier of subscriptionTiers" (click)="selectTier(tier)" class="tier-card"
                   [class.active]="gymForm.get('platform_subscription_type')?.value === tier.id"
                   style="cursor: pointer; padding: 0.75rem; border-radius: 0.75rem; border: 2px solid #e2e8f0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-                
-                <span style="font-size: 0.5rem; font-weight: 900; opacity: 0.6; display: block;">{{ tier.duration }}</span>
-                <h4 style="margin: 0; font-size: 0.75rem; font-weight: 900; white-space: nowrap;">{{ tier.name }}</h4>
-                <div style="margin-top: 0.25rem; font-family: 'JetBrains Mono', monospace; font-weight: 900; font-size: 1rem; color: var(--admin-accent-emerald);">
-                   {{ tier.price | currency:'USD':'symbol':'1.0-0' }}
-                </div>
-             </div>
-          </div>
-       </div>
 
-       <!-- Custom Price Override -->
-       <div class="form-field" style="margin: 0;">
-          <label style="color: var(--admin-accent-emerald); font-size: 0.7rem;"><mat-icon style="font-size: 14px; width: 14px; height: 14px;">payments</mat-icon> Adjusted Fee</label>
-          <div class="input-glow-wrap">
-             <input formControlName="platform_subscription_price" type="number" style="font-weight: 800; color: var(--admin-accent-emerald); padding: 0.5rem;" />
-          </div>
-          <span class="error-text" *ngIf="gymForm.get('platform_subscription_price')?.touched && gymForm.get('platform_subscription_price')?.errors?.['required']">Fee is required.</span>
-       </div>
-    </div>
+                  <span style="font-size: 0.5rem; font-weight: 900; opacity: 0.6; display: block;">{{ tier.duration
+                     }}</span>
+                  <h4 style="margin: 0; font-size: 0.75rem; font-weight: 900; white-space: nowrap;">{{ tier.name }}</h4>
+                  <div
+                     style="margin-top: 0.25rem; font-family: 'JetBrains Mono', monospace; font-weight: 900; font-size: 1rem; color: var(--admin-accent-emerald);">
+                     {{ tier.price }} TND
+                  </div>
+               </div>
+            </div>
+         </div>
 
-    <div class="admin-dialog-footer">
-       <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
-          <mat-icon>close</mat-icon> Cancel
-       </button>
-       <button type="submit" [disabled]="gymForm.invalid || loading()" class="admin-btn btn-primary">
-          <mat-icon>{{ loading() ? 'sync' : 'add_location' }}</mat-icon>
-          {{ loading() ? 'Activating Node...' : 'Create & Activate Gym' }}
-       </button>
-    </div>
-  </form>
+         <!-- Custom Price Override -->
+         <div class="form-field" style="margin: 0;">
+            <label style="color: var(--admin-accent-emerald); font-size: 0.7rem;"><mat-icon
+                  style="font-size: 14px; width: 14px; height: 14px;">payments</mat-icon> Adjusted Fee</label>
+            <div class="input-glow-wrap">
+               <input formControlName="platform_subscription_price" type="number"
+                  style="font-weight: 800; color: var(--admin-accent-emerald); padding: 0.5rem;" />
+            </div>
+            <span class="error-text"
+               *ngIf="gymForm.get('platform_subscription_price')?.touched && gymForm.get('platform_subscription_price')?.errors?.['required']">Fee
+               is required.</span>
+         </div>
+      </div>
+
+      <div class="admin-dialog-footer">
+         <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
+            <mat-icon>close</mat-icon> Cancel
+         </button>
+         <button type="submit" [disabled]="gymForm.invalid || loading()" class="admin-btn btn-primary">
+            <mat-icon>{{ loading() ? 'sync' : 'add_location' }}</mat-icon>
+            {{ loading() ? 'Activating Node...' : 'Create & Activate Gym' }}
+         </button>
+      </div>
+   </form>
 </div>

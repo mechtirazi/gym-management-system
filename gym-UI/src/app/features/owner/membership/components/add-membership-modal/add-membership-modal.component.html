@@ -33,59 +33,97 @@
 
     <form [formGroup]="membershipForm" class="modal-form">
       <div class="form-header-row">
-        <h3>Member Details</h3>
+        <h3>Member Identification</h3>
         <button type="button" class="text-btn" (click)="toggleCreationMode()">
-          {{ isNewMember() ? '← Back to List' : '+ New Member Account' }}
+          {{ isNewMember() ? '← Back to Search' : '+ Quick Register Member' }}
         </button>
       </div>
 
       <div class="form-grid">
         @if (!isNewMember()) {
-        <!-- Member Selection (Subscribers) -->
-        <div class="form-group full-width">
-          <label for="id_user">Select Subscriber</label>
-          <select id="id_user" formControlName="id_user"
-            [class.invalid]="membershipForm.get('id_user')?.touched && membershipForm.get('id_user')?.invalid">
-            <option value="" disabled selected>{{ isLoadingData() ? 'Loading interest list...' : 'Choose a subscriber'
-              }}</option>
-            @for (member of members(); track member.id_user) {
-            <option [value]="member.id_user">{{ member.name }} {{ member.last_name }} ({{ member.email }})</option>
+          <!-- Member Search by Email -->
+          <div class="form-group full-width">
+            <label>Member Email Address</label>
+            <div class="search-input-wrapper">
+              <input type="email" formControlName="email" placeholder="Enter member's email address..."
+                [class.invalid]="membershipForm.get('email')?.touched && membershipForm.get('email')?.invalid">
+              @if (isSearching()) {
+              <div class="search-spinner"></div>
+              }
+            </div>
+            <small class="form-hint">Start typing to find any member registered on the platform.</small>
+            @if (membershipForm.get('email')?.touched && membershipForm.get('email')?.invalid) {
+            <span class="error-text">Please enter a valid email address.</span>
             }
-          </select>
-          @if (members().length === 0 && !isLoadingData()) {
-          <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; display: block;">No interested users
-            found for this gym.</small>
+          </div>
+
+          @if (foundUser()) {
+          <div class="form-group full-width user-found-preview animate-reveal">
+            <div class="found-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Member Account Identified
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ foundUser().name }} {{ foundUser().last_name }}</span>
+              <span class="user-email">{{ foundUser().email }}</span>
+            </div>
+          </div>
+          } @else if (membershipForm.get('email')?.valid && !isSearching() && !foundUser()) {
+          <div class="form-group full-width user-not-found animate-reveal">
+            <span class="warning-text">⚠️ This email is not associated with any member account. Please ensure the user has
+              registered on the platform first.</span>
+          </div>
           }
-          @if (membershipForm.get('id_user')?.touched && membershipForm.get('id_user')?.invalid) {
-          <span class="error-text">Please select a subscriber.</span>
-          }
-        </div>
         } @else {
-        <!-- Quick Create Fields -->
-        <div class="form-group">
-          <label>First Name</label>
-          <input type="text" formControlName="first_name" placeholder="John">
-        </div>
-        <div class="form-group">
-          <label>Last Name</label>
-          <input type="text" formControlName="last_name" placeholder="Doe">
-        </div>
-        <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" formControlName="email" placeholder="john@example.com">
-        </div>
-        <div class="form-group">
-          <label>Phone Number</label>
-          <input type="text" formControlName="phone" placeholder="+123 456 789">
-        </div>
-        <div class="form-group">
-          <label>Account Password</label>
-          <input type="password" formControlName="password" placeholder="••••••••">
-        </div>
+          <!-- Quick Register Fields -->
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" formControlName="first_name" placeholder="Enter first name"
+              [class.invalid]="membershipForm.get('first_name')?.touched && membershipForm.get('first_name')?.invalid">
+            @if (membershipForm.get('first_name')?.touched && membershipForm.get('first_name')?.invalid) {
+              <span class="error-text">First name is required.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" formControlName="last_name" placeholder="Enter last name"
+              [class.invalid]="membershipForm.get('last_name')?.touched && membershipForm.get('last_name')?.invalid">
+            @if (membershipForm.get('last_name')?.touched && membershipForm.get('last_name')?.invalid) {
+              <span class="error-text">Last name is required.</span>
+            }
+          </div>
+          <div class="form-group full-width">
+            <label>Email Address</label>
+            <input type="email" formControlName="email" placeholder="Enter email address"
+              [class.invalid]="membershipForm.get('email')?.touched && membershipForm.get('email')?.invalid">
+            @if (membershipForm.get('email')?.touched && membershipForm.get('email')?.invalid) {
+              <span class="error-text">Valid email is required.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div class="phone-input-wrapper" [class.invalid]="membershipForm.get('phone')?.touched && membershipForm.get('phone')?.invalid">
+              <div class="country-prefix">
+                <img src="https://flagcdn.com/w20/tn.png" alt="Tunisia Flag">
+                <span>+216</span>
+              </div>
+              <input type="tel" formControlName="phone" placeholder="12 345 678" maxlength="8">
+            </div>
+            @if (membershipForm.get('phone')?.touched && membershipForm.get('phone')?.invalid) {
+              <span class="error-text">Exactly 8 digits required.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Account Password</label>
+            <input type="password" formControlName="password" placeholder="Min. 6 characters"
+              [class.invalid]="membershipForm.get('password')?.touched && membershipForm.get('password')?.invalid">
+            @if (membershipForm.get('password')?.touched && membershipForm.get('password')?.invalid) {
+              <span class="error-text">Password (min. 6 chars) is required.</span>
+            }
+          </div>
         }
-
-
-        <!-- Tier Type -->
 
         <!-- Tier Type -->
         <div class="form-group">
@@ -102,6 +140,7 @@
         <div class="form-group">
           <label for="subscribe_date">Enrollment Date</label>
           <input type="date" id="subscribe_date" formControlName="subscribe_date" [min]="todayDate"
+            (click)="openPicker($event)"
             [class.invalid]="membershipForm.get('subscribe_date')?.touched && membershipForm.get('subscribe_date')?.invalid">
           @if (membershipForm.get('subscribe_date')?.errors?.['pastDate']) {
           <span class="error-text">Date cannot be in the past.</span>
@@ -120,15 +159,12 @@
 
       <div class="form-footer">
         <button type="button" class="cancel-btn" (click)="close.emit()">Cancel</button>
-        <button type="button" class="submit-btn" (click)="onSubmit()">
+        <button type="button" class="submit-btn" (click)="onSubmit()" [disabled]="(!isNewMember() && !foundUser()) || isSubmitting() || membershipForm.invalid">
           @if (isSubmitting()) {
           <div class="spinner-small"></div>
           Processing...
-          } @else if (isLoadingData()) {
-          <div class="spinner-small"></div>
-          Loading Data...
           } @else {
-          Create Subscription
+          Enroll Member
           }
         </button>
       </div>

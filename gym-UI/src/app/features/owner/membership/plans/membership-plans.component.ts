@@ -71,7 +71,11 @@ export class MembershipPlansComponent implements OnInit {
   }
 
   savePlan() {
-    if (!this.currentPlan.name || this.currentPlan.price == null || this.currentPlan.price < 0) return;
+    if (!this.currentPlan.name?.trim() || 
+        this.currentPlan.price == null || this.currentPlan.price < 0 || this.currentPlan.price > 99999 ||
+        this.currentPlan.duration_days == null || this.currentPlan.duration_days < 1 || this.currentPlan.duration_days > 3650) {
+      return;
+    }
 
     this.isSaving.set(true);
     if (this.editingPlan()) {

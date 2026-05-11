@@ -11,10 +11,10 @@
   align-items: center;
   gap: 1.25rem;
   padding: 1.75rem;
-  background: white;
+  background: var(--bg-card);
   border-radius: 28px;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 
@@ -79,7 +79,7 @@
 .stat-label {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
@@ -88,7 +88,7 @@
 .stat-value {
   font-size: 2.2rem;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--text-main);
   margin: 0;
   letter-spacing: -0.05em;
   line-height: 1.1;
@@ -133,7 +133,7 @@
 }
 
 .skeleton {
-  background: white;
+  background: var(--bg-card);
   min-height: 120px;
   animation: pulse 1.5s infinite ease-in-out;
 }

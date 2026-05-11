@@ -47,7 +47,8 @@
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                <select id="member" [ngModel]="idMember()" (ngModelChange)="idMember.set($event)" name="id_member" required>
+                <select id="member" [ngModel]="idMember()" (ngModelChange)="idMember.set($event)" name="id_member"
+                  required>
                   <option value="" disabled selected>Choose a member</option>
                   @for (member of members(); track member.id_user) {
                   <option [value]="member.id_user">{{ member.name }} {{ member.last_name }}</option>
@@ -60,8 +61,8 @@
             <div class="form-group">
               <label for="quantity">Quantity</label>
               <div class="input-wrapper">
-                <input type="number" id="quantity" [ngModel]="quantity()" (ngModelChange)="quantity.set($event)" name="quantity" min="1"
-                  [max]="product().stock" required>
+                <input type="number" id="quantity" [ngModel]="quantity()" (ngModelChange)="quantity.set($event)"
+                  name="quantity" min="1" [max]="product().stock" required>
               </div>
               <p class="help-text">{{ product().stock }} units available</p>
             </div>
@@ -70,7 +71,8 @@
             <div class="form-group">
               <label for="method">Payment Method</label>
               <div class="input-wrapper">
-                <select id="method" [ngModel]="paymentMethod()" (ngModelChange)="paymentMethod.set($event)" name="payment_method" required>
+                <select id="method" [ngModel]="paymentMethod()" (ngModelChange)="paymentMethod.set($event)"
+                  name="payment_method" required>
                   <option value="cash">Cash</option>
                   <option value="card">Card</option>
                   <option value="transfer">Transfer</option>
@@ -87,23 +89,23 @@
               <div class="summary-header">
                 <span>Order Summary</span>
                 <span class="unit-price">
-                  Unit Price: 
+                  Unit Price:
                   @if ((product().discount_percentage || 0) > 0) {
-                    ${{ product().discounted_price }}
+                  TND {{ product().discounted_price }}
                   } @else {
-                    ${{ product().price }}
+                  TND {{ product().price }}
                   }
                 </span>
               </div>
               <div class="summary-body">
                 <div class="summary-row">
                   <span class="label">Subtotal ({{ quantity() }} units)</span>
-                  <span class="value">${{ totalPrice().toFixed(2) }}</span>
+                  <span class="value">TND {{ totalPrice().toFixed(2) }}</span>
                 </div>
                 <div class="summary-divider"></div>
                 <div class="summary-row total">
                   <span class="label">Total Montant</span>
-                  <span class="value">${{ totalPrice().toFixed(2) }}</span>
+                  <span class="value">TND {{ totalPrice().toFixed(2) }}</span>
                 </div>
               </div>
             </div>
@@ -118,7 +120,7 @@
           @if (isSubmitting()) {
           <span class="spinner"></span> Processing...
           } @else {
-          Confirm Order (${{ totalPrice().toFixed(2) }})
+          Confirm Order (TND{{ totalPrice().toFixed(2) }})
           }
         </button>
       </div>

@@ -39,6 +39,7 @@ export class NutritionManagementComponent implements OnInit {
   modalMode = signal<'add' | 'edit'>('add');
   planForm = signal<NutritionPlan>({
     id_plan: '',
+    name: '',
     goal: '',
     start_date: '',
     end_date: '',
@@ -52,12 +53,14 @@ export class NutritionManagementComponent implements OnInit {
     score: 95
   });
 
-  filterOptions = ['All Plans', 'Active', 'Upcoming', 'Expired', 'By Nutritionist'];
+  filterOptions = ['All Plans', 'Active', 'Upcoming', 'Expired'];
 
   currentPage = signal(1);
   perPage = signal(10);
   totalPages = signal(1);
   totalItems = signal(0);
+  
+  todayDate = new Date().toISOString().split('T')[0];
 
   ngOnInit() {
     this.loadPlans();
@@ -126,6 +129,7 @@ export class NutritionManagementComponent implements OnInit {
     this.modalMode.set('add');
     this.planForm.set({
       id_plan: '',
+      name: '',
       goal: '',
       start_date: '',
       end_date: '',
@@ -165,8 +169,19 @@ export class NutritionManagementComponent implements OnInit {
       return;
     }
 
+    if (plan.start_date < this.todayDate && this.modalMode() === 'add') {
+      this.showNotification('error', 'Start date cannot be in the past.');
+      return;
+    }
+
+    if (plan.end_date < plan.start_date) {
+      this.showNotification('error', 'End date must be after start date.');
+      return;
+    }
+
     if (this.modalMode() === 'add') {
       const payload = {
+        name: plan.name,
         goal: plan.goal,
         start_date: plan.start_date,
         end_date: plan.end_date,
@@ -188,6 +203,7 @@ export class NutritionManagementComponent implements OnInit {
       });
     } else {
       const payload = {
+        name: plan.name,
         goal: plan.goal,
         start_date: plan.start_date,
         end_date: plan.end_date,
@@ -255,8 +271,6 @@ export class NutritionManagementComponent implements OnInit {
       list = list.filter(p => p.start_date > today);
     } else if (filter === 'Expired') {
       list = list.filter(p => p.end_date < today);
-    } else if (filter === 'By Nutritionist') {
-      list = list.filter(p => !!p.nutritionist?.name);
     }
 
     return list;

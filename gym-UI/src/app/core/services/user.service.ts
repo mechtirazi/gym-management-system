@@ -42,4 +42,8 @@ export class UserService {
   createUser(userData: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, userData);
   }
+
+  findUserByEmail(email: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/users/search-by-email?email=${email}`);
+  }
 }

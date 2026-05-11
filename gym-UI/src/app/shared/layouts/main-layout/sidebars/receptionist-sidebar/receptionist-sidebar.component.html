@@ -29,14 +29,54 @@
 
   <div class="sidebar-footer">
     <div class="support-card">
-      <div class="support-icon">🧾</div>
+      <div class="support-icon">📝</div>
       <div class="support-content">
-        <p class="support-title">Front desk</p>
-        <p class="support-desc">Check-ins, payments, and members</p>
+        <p class="support-title">Reclamations</p>
+        <p class="support-desc">Manage member feedback and issues</p>
       </div>
-      <button class="support-btn">
-        <span>Quick actions</span>
+      <button class="support-btn" (click)="openSupportModal()">
+        <span>Submit Ticket</span>
       </button>
     </div>
   </div>
 </aside>
+
+<!-- Support Modal Overlay -->
+<div class="support-modal-overlay" *ngIf="showSupportModal()" [class.active]="showSupportModal()">
+  <div class="support-modal">
+    <div class="modal-header">
+      <div class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <h3>Submit a Reclamation</h3>
+      <button class="btn-close" (click)="closeSupportModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p>Need help or want to submit a reclamation? Describe the issue below and the admin team will review it.</p>
+
+      <div class="form-group">
+        <textarea
+          placeholder="Type your message here... please include details."
+          [ngModel]="supportMessage()" (ngModelChange)="supportMessage.set($event)" rows="4">
+        </textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeSupportModal()">Cancel</button>
+      <button class="btn btn-primary" [disabled]="!supportMessage().trim() || isSubmittingSupport()"
+        (click)="submitSupportRequest()">
+        <span *ngIf="isSubmittingSupport()">Sending...</span>
+        <span *ngIf="!isSubmittingSupport()">Send Reclamation</span>
+      </button>
+    </div>
+  </div>
+</div>

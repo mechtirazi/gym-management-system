@@ -8,5 +8,8 @@ export interface GymMember {
   status?: string;
   avatar?: string;
   joinedAt?: string;
+  id_gym?: string | number;
+  enrollment_start?: string;
+  enrollment_end?: string;
   [key: string]: any;
 }

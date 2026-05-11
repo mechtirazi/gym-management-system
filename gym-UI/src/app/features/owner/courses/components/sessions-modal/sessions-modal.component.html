@@ -38,11 +38,14 @@
             }
 
             <div class="form-row">
-              <div class="form-group" [class.has-error]="getFieldError('date_session')">
+              <div class="form-group" [class.has-error]="getFieldError('date_session') || sessionForm.get('date_session')?.errors?.['pastDate']">
                 <label for="date_session">Date <span class="required">*</span></label>
-                <input id="date_session" type="date" formControlName="date_session">
+                <input id="date_session" type="date" formControlName="date_session" [min]="todayDate" (click)="openPicker($event)">
                 @if (getFieldError('date_session')) {
                   <span class="error-msg">{{ getFieldError('date_session') }}</span>
+                }
+                @if (sessionForm.get('date_session')?.touched && sessionForm.get('date_session')?.errors?.['pastDate']) {
+                  <span class="error-msg">Date cannot be in the past</span>
                 }
               </div>
 

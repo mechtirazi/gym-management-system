@@ -1,17 +1,26 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { NotificationService } from '../../../../../core/services/notification.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-receptionist-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './receptionist-sidebar.component.html',
   styleUrl: './receptionist-sidebar.component.scss'
 })
 export class ReceptionistSidebarComponent {
   private sanitizer = inject(DomSanitizer);
+  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
+
+  showSupportModal = signal(false);
+  supportMessage = signal('');
+  isSubmittingSupport = signal(false);
 
   navItems = [
     { label: 'Front Desk', isHeader: true },
@@ -44,6 +53,32 @@ export class ReceptionistSidebarComponent {
       receipt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"></path><path d="M16 8h-6"></path><path d="M16 12h-6"></path><path d="M16 16h-6"></path></svg>`
     };
     return this.sanitizer.bypassSecurityTrustHtml(icons[name] || '');
+  }
+
+  openSupportModal() {
+    this.supportMessage.set('');
+    this.showSupportModal.set(true);
+  }
+
+  closeSupportModal() {
+    this.showSupportModal.set(false);
+  }
+
+  submitSupportRequest() {
+    if (!this.supportMessage().trim()) return;
+
+    this.isSubmittingSupport.set(true);
+    this.notificationService.contactSupport(this.supportMessage()).subscribe({
+      next: (res: any) => {
+        this.isSubmittingSupport.set(false);
+        this.showSupportModal.set(false);
+        this.toastService.success(res.message || 'Reclamation sent successfully.');
+      },
+      error: (err: any) => {
+        this.isSubmittingSupport.set(false);
+        this.toastService.error(err.error?.message || 'Failed to send reclamation.');
+      }
+    });
   }
 }
 

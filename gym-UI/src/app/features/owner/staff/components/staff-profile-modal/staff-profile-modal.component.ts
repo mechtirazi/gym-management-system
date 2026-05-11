@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { StaffMember } from '../../../../../shared/models/staff-member.model';
 import { StaffService } from '../../services/staff.service';
 import { finalize } from 'rxjs';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-staff-profile-modal',
@@ -20,10 +21,12 @@ export class StaffProfileModalComponent implements OnInit {
 
   private fb = inject(FormBuilder);
   private staffService = inject(StaffService);
+  private toast = inject(ToastService);
 
   isEditing = signal(false);
   isSubmitting = signal(false);
   editError = signal<string | null>(null);
+  showSuccess = signal(false);
 
   editForm!: FormGroup;
 
@@ -48,7 +51,7 @@ export class StaffProfileModalComponent implements OnInit {
       firstName: [firstName, Validators.required],
       lastName: [lastName, Validators.required],
       email: [{ value: this.member().email || '', disabled: true }, [Validators.required, Validators.email]],
-      phone: [this.member().phone || ''],
+      phone: [this.member().phone || '', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
       role: [{ value: (this.member().role || 'staff').toLowerCase(), disabled: true }, Validators.required]
     });
   }
@@ -104,12 +107,18 @@ export class StaffProfileModalComponent implements OnInit {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
-          this.isEditing.set(false);
-          this.updated.emit();
+          this.toast.success('Staff profile updated successfully.');
+          this.showSuccess.set(true);
+          setTimeout(() => {
+            this.isEditing.set(false);
+            this.showSuccess.set(false);
+            this.updated.emit();
+          }, 1500);
         },
         error: (err: any) => {
           console.error('Update staff error:', err);
           this.editError.set(err.error?.message || err.message || 'Failed to update staff member.');
+          this.toast.error('Could not update staff profile.');
         }
       });
   }

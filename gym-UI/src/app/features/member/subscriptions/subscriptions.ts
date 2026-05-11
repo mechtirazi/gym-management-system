@@ -84,11 +84,20 @@ export class SubscriptionsComponent implements OnInit {
     return Math.max(0, Math.ceil(diff / (1000 * 3600 * 24)));
   }
 
-  getSubscriptionProgress(endDate: string, type: string = 'standard', status: string = 'active'): number {
-    if (!endDate || status?.toLowerCase() !== 'active') return 0;
-    const total = (type?.toLowerCase() === 'premium') ? 90 : 30;
-    const left = this.getDaysLeft(endDate, status);
-    return Math.min(100, Math.round((left / total) * 100));
+  getSubscriptionProgress(startDate: string, endDate: string, status: string = 'active'): number {
+    if (!startDate || !endDate || status?.toLowerCase() !== 'active') return 0;
+    
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    const now = new Date().getTime();
+    
+    if (now >= end) return 100;
+    if (now <= start) return 0;
+    
+    const total = end - start;
+    const elapsed = now - start;
+    
+    return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
   }
 
   isStandardPlan(planName: string): boolean {

@@ -33,11 +33,23 @@ export class AddMemberModalComponent implements OnInit {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.required],
+    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     id_plan: ['', Validators.required],
-    startDate: [new Date().toISOString().split('T')[0], Validators.required]
+    startDate: [new Date().toISOString().split('T')[0], [Validators.required, this.futureDateValidator]]
   });
+
+  todayDate = new Date().toISOString().split('T')[0];
+
+  private futureDateValidator(control: any) {
+    if (!control.value) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(control.value);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    return selectedDate >= today ? null : { pastDate: true };
+  }
 
   ngOnInit() {
     this.loadPlans();

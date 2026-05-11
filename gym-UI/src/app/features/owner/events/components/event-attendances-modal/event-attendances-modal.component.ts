@@ -42,21 +42,23 @@ export class EventAttendancesModalComponent implements OnInit {
 
   isEditMode = computed(() => !!this.eventModel());
 
+  todayDate = new Date().toISOString().split('T')[0];
+
   constructor() {
     this.eventForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.maxLength(1000)]],
-      start_date: ['', Validators.required],
-      start_time: [''],
+      start_date: ['', [Validators.required, this.futureDateValidator.bind(this)]],
+      start_time: ['', Validators.required],
       end_date: ['', Validators.required],
-      end_time: [''],
-      max_participants: [50, [Validators.required, Validators.min(1)]],
+      end_time: ['', Validators.required],
+      max_participants: [50, [Validators.required, Validators.min(1), Validators.max(1000)]],
       ignore_max_capacity: [false],
-      price: [0, [Validators.required, Validators.min(0)]],
+      price: [0, [Validators.required, Validators.min(0), Validators.max(10000)]],
       is_rewarded: [false],
-      reward_amount: [0, [Validators.min(0)]],
-      max_winners: [1, [Validators.min(1)]]
-    }, { validators: this.dateRangeValidator });
+      reward_amount: [0, [Validators.min(0), Validators.max(5000)]],
+      max_winners: [1, [Validators.min(1), Validators.max(1000)]]
+    }, { validators: [this.dateRangeValidator] });
 
     // Handle capacity toggle
     this.eventForm.get('ignore_max_capacity')?.valueChanges.subscribe(val => {
@@ -84,6 +86,18 @@ export class EventAttendancesModalComponent implements OnInit {
       }
     }
     return null;
+  }
+
+  private futureDateValidator(control: any) {
+    if (!control.value) return null;
+    if (this.isEditMode()) return null; // Allow old dates in edit mode if they already exist
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(control.value);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    return selectedDate >= today ? null : { pastDate: true };
   }
 
   ngOnInit() {
@@ -198,8 +212,7 @@ export class EventAttendancesModalComponent implements OnInit {
       .subscribe({
         next: () => {
           this.eventUpdated.emit();
-          if (!existing) this.close.emit();
-          else alert('Event updated successfully!');
+          this.close.emit();
         },
         error: (err) => {
           this.submitError.set(err.error?.message || 'Action failed.');
@@ -248,5 +261,13 @@ export class EventAttendancesModalComponent implements OnInit {
         });
       }
     });
+  }
+
+  openPicker(event: any) {
+    try {
+      event.target.showPicker();
+    } catch (e) {
+      console.log('showPicker not supported');
+    }
   }
 }

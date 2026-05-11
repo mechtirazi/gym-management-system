@@ -40,7 +40,7 @@ export class RegisterComponent {
       name: ['', [Validators.required]],
       last_name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.maxLength(20)]],
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       password_confirmation: ['', [Validators.required]],
       role: ['member', [Validators.required]]

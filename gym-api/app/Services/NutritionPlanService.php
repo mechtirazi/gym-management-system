@@ -62,13 +62,19 @@ class NutritionPlanService extends BaseService
         }
 
         if ($user->role === User::ROLE_MEMBER) {
-            // Members see only plans they are assigned to
-            $query = $query->whereHas('members', function ($q) use ($user) {
-                $q->where('users.id_user', $user->id_user);
+            // Fetch owned IDs directly to avoid complex relationship join issues
+            $ownedIds = \DB::table('nutrition_plan_member')
+                ->where('id_user', $user->id_user)
+                ->pluck('id_plan')
+                ->map(fn($id) => (string)$id)
+                ->toArray();
+
+            $query = $query->where(function($q) use ($user, $ownedIds) {
+                $q->whereIn('nutrition_plans.id_plan', $ownedIds)
+                  ->orWhere('nutrition_plans.id_member', $user->id_user);
             });
-            if ($activeGymId) {
-                $query = $query->where('id_gym', $activeGymId);
-            }
+
+            // For members, we don't filter by active gym so they can see all their purchased protocols
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
@@ -208,8 +214,13 @@ class NutritionPlanService extends BaseService
         $method = $data['method'] ?? 'zen_wallet';
         
         return \DB::transaction(function () use ($plan, $user, $method) {
-            // 1. Check if already owned
-            if ($plan->members()->where('users.id_user', $user->id_user)->exists()) {
+            // 1. Check if already owned (Direct DB check for maximum accuracy)
+            $isAlreadyOwned = \DB::table('nutrition_plan_member')
+                ->where('id_plan', $plan->id_plan)
+                ->where('id_user', $user->id_user)
+                ->exists() || ($plan->id_member == $user->id_user);
+
+            if ($isAlreadyOwned) {
                 throw new \Exception('You already have this metabolic protocol synchronized.');
             }
 
@@ -259,8 +270,17 @@ class NutritionPlanService extends BaseService
                 ]);
             }
 
-            // 6. Sync Member to Plan
-            $plan->members()->attach($user->id_user);
+            // 6. Sync Member to Plan (Direct DB Insert for absolute reliability)
+            \DB::table('nutrition_plan_member')->updateOrInsert(
+                ['id_plan' => $plan->id_plan, 'id_user' => $user->id_user],
+                ['updated_at' => now(), 'created_at' => now()]
+            );
+
+            // For hybrid compatibility, ensure legacy column is also set if empty
+            if (empty($plan->id_member)) {
+                $plan->id_member = $user->id_user;
+                $plan->save();
+            }
 
             return [
                 'success' => true,

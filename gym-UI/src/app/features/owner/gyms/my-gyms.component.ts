@@ -55,7 +55,7 @@ export class MyGymsComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Failed to synchronize network nodes.');
+        this.errorMessage.set('Failed to refresh your gym list.');
         this.isLoading.set(false);
       }
     });
@@ -80,6 +80,10 @@ export class MyGymsComponent implements OnInit {
   }
 
   openRenewal(gym: GymInfo): void {
+    if ((gym.days_remaining || 0) > 1) {
+      this.errorMessage.set(`You cannot renew ${gym.name} yet. You still have ${gym.days_remaining} days left on your current plan.`);
+      return;
+    }
     this.selectedGymForRenewal.set(gym);
     this.showRenewalModal.set(true);
   }
@@ -104,7 +108,7 @@ export class MyGymsComponent implements OnInit {
         this.processingRenewal.set(false);
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.message || 'Protocol Sync Error: Renewal failed.');
+        this.errorMessage.set(err.error?.message || 'Renewal failed. Please try again.');
         this.processingRenewal.set(false);
       }
     });

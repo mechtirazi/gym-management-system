@@ -1116,3 +1116,117 @@
     }
   }
 }
+
+/* ================================================ */
+/* LIGHT MODE OVERRIDES - FEED                      */
+/* ================================================ */
+:host-context(html:not(.dark)) {
+
+  .feed-card {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.07);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+
+    .card-footer {
+      background: #f8fafc;
+      border-top-color: #f1f5f9;
+
+      .social-btn {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        color: #475569;
+
+        &:hover {
+          background: #e2e8f0;
+          color: #1e293b;
+        }
+      }
+    }
+
+    .card-body .price-box {
+      background: #f8fafc;
+    }
+  }
+
+  /* Feed modal */
+  .feed-modal.intelligence-report {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.12);
+
+    .report-header {
+      border-bottom-color: #f1f5f9;
+      background: #f8fafc;
+    }
+
+    .report-sidebar {
+      background: #f8fafc;
+      border-right-color: #f1f5f9;
+
+      .meta-card {
+        .meta-label { color: #64748b; }
+        .meta-value { color: #0f172a; }
+      }
+    }
+
+    .report-main {
+      .report-hero .hero-gradient {
+        background: linear-gradient(to bottom, transparent, #ffffff);
+      }
+
+      .report-content {
+        .report-title { color: #0f172a; }
+        .report-description { color: #475569; }
+      }
+
+      .report-actions .action-btn.secondary {
+        background: #f1f5f9;
+        color: #334155;
+        border-color: #e2e8f0;
+      }
+
+      .report-feedback {
+        background: #f8fafc;
+        border-top-color: #f1f5f9;
+
+        .feedback-header h2 { color: #0f172a; }
+
+        .report-textarea {
+          background: #ffffff;
+          border-color: #e2e8f0;
+          color: #0f172a;
+          &::placeholder { color: #94a3b8; }
+        }
+
+        .stream-item {
+          background: #f8fafc;
+          border-color: #f1f5f9;
+          .stream-content {
+            .stream-user { color: #0f172a; }
+            .stream-text { color: #475569; }
+          }
+        }
+      }
+    }
+  }
+
+  /* Skeleton cards */
+  .skeleton-card {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    &::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); }
+  }
+
+  /* Toast */
+  .glass-toast {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    .toast-content p { color: #0f172a; }
+    .toast-content strong { color: #64748b; }
+  }
+}

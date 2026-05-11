@@ -37,7 +37,7 @@
       </div>
       <div class="m-content">
         <span class="m-label">Today's Income</span>
-        <span class="m-value">{{ (financialSummary()?.todays_intake) | number:'1.3-3' }} <small>TND</small></span>
+        <span class="m-value">{{ (financialSummary()?.todays_intake || 0) | number:'1.3-3' }} <small>TND</small></span>
       </div>
     </div>
     <div class="metric-card">
@@ -46,7 +46,7 @@
       </div>
       <div class="m-content">
         <span class="m-label">Total Revenue</span>
-        <span class="m-value">{{ (financialSummary()?.total_revenue) | number:'1.3-3' }} <small>TND</small></span>
+        <span class="m-value">{{ (financialSummary()?.total_revenue || 0) | number:'1.3-3' }} <small>TND</small></span>
       </div>
     </div>
   </div>
@@ -80,122 +80,255 @@
 
       <form [formGroup]="form" (ngSubmit)="save()" class="modern-form">
         <div class="form-stack">
-          <div class="field">
-            <label>Select Member</label>
-            <div class="search-mini mb-2">
-              <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">search</span>
-                <input type="text" placeholder="Filter members..." [value]="memberSearchTerm()"
-                  (input)="memberSearchTerm.set($any($event.target).value)" />
+          <!-- Member Selection Group -->
+          <div class="field-group card-style">
+            <label class="group-label">
+              <span class="material-symbols-rounded">badge</span>
+              Customer Details
+            </label>
+            <div class="field">
+              <div class="search-mini mb-3">
+                <div class="input-wrap shadow-sm">
+                  <span class="material-symbols-rounded prefix">search</span>
+                  <input type="text" placeholder="Start typing name or email..." [value]="memberSearchTerm()"
+                    (input)="memberSearchTerm.set($any($event.target).value)" />
+
+                  @if (memberSearchTerm().trim()) {
+                  <div class="search-suggestions">
+                    @for (m of filteredMembers(); track m.userId) {
+                    <div class="suggestion-item" (click)="selectMember(m)">
+                      <div class="m-avatar">
+                        {{ m.name?.charAt(0) }}
+                      </div>
+                      <div class="m-info">
+                        <span class="m-name">{{ m.name }}</span>
+                        <span class="m-email">{{ m.email }}</span>
+                      </div>
+                      <span class="material-symbols-rounded icon-s">add_circle</span>
+                    </div>
+                    } @empty {
+                    <div class="no-results">No members found matching "{{ memberSearchTerm() }}"</div>
+                    }
+                  </div>
+                  }
+                </div>
               </div>
-            </div>
-            <div class="input-wrap">
-              <span class="material-symbols-rounded prefix">group</span>
-              <select formControlName="id_user">
-                <option value="">-- Choose Member --</option>
-                @for (m of filteredMembers(); track m.userId) {
-                <option [value]="m.userId">{{ m.name }} ({{ m.email }})</option>
-                }
-              </select>
+
+              <!-- Selected Member Indicator -->
+              @if (form.get('id_user')?.value) {
+              @let selected = members().find(m => m.userId === form.get('id_user')?.value);
+              @if (selected) {
+              <div class="selected-member-badge animate-in">
+                <div class="m-avatar">
+                  <span class="material-symbols-rounded">person</span>
+                </div>
+                <div class="m-info">
+                  <span class="label">Target Customer</span>
+                  <span class="value">{{ selected.name }}</span>
+                </div>
+                <button type="button" class="clear-btn" (click)="form.get('id_user')?.setValue('')">
+                  <span class="material-symbols-rounded">close</span>
+                </button>
+              </div>
+              }
+              } @else {
+              <div class="selection-placeholder">
+                <span class="material-symbols-rounded">person_search</span>
+                <p>Search and select a member to proceed</p>
+              </div>
+              }
             </div>
           </div>
 
-          <div class="form-row-2">
-            <div class="field">
-              <label>Payment Method</label>
-              <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">payments</span>
-                <select formControlName="method">
-                  <option value="">Select Method</option>
-                  <option value="credit_card">Credit Card</option>
-                  <option value="cash">Cash</option>
-                  <option value="transfer">Bank Transfer</option>
-                  <option value="other">Other</option>
-                </select>
+          <!-- Transaction Context Group -->
+          <div class="field-group card-style">
+            <label class="group-label">
+              <span class="material-symbols-rounded">account_balance_wallet</span>
+              Transaction Context
+            </label>
+            <div class="form-row-2">
+              <div class="field">
+                <label>Method</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">payments</span>
+                  <select formControlName="method">
+                    <option value="">Select Method</option>
+                    <option value="credit_card">Credit Card</option>
+                    <option value="cash">Cash</option>
+                    <option value="transfer">Bank Transfer</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <div class="field">
-              <label>Payment Type</label>
-              <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">category</span>
-                <select formControlName="type">
-                  <option value="membership">Membership Fee</option>
-                  <option value="product">Retail Product</option>
-                  <option value="course">Training Course</option>
-                  <option value="event">Special Event</option>
-                  <option value="nutrition">Nutrition/Supplements</option>
-                </select>
+              <div class="field">
+                <label>Type</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">category</span>
+                  <select formControlName="type">
+                    <option value="membership">Membership</option>
+                    <option value="product">Product</option>
+                    <option value="course">Course</option>
+                    <option value="event">Event</option>
+                    <option value="nutrition">Nutrition</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
 
-          @if (form.get('type')?.value === 'membership') {
-          <div class="field">
-            <label>Select Membership Plan</label>
-            <div class="input-wrap">
-              <span class="material-symbols-rounded prefix">card_membership</span>
-              <select formControlName="id_plan" (change)="onPlanSelect($any($event.target).value)">
-                <option value="">-- Choose Plan --</option>
-                @for (p of plans(); track $index) {
-                <option [value]="p.id || $any(p).id_plan">{{ p.name }} ({{ p.price | currency:'TND':'code':'1.3-3'
-                  }})
-                </option>
-                }
-              </select>
-            </div>
-          </div>
-          }
+          <!-- Specifics Group -->
+          @if (form.get('type')?.value === 'membership' || form.get('type')?.value === 'product' ||
+          form.get('type')?.value === 'course' || form.get('type')?.value === 'event' || form.get('type')?.value ===
+          'nutrition') {
+          <div class="field-group card-style accent-glow">
+            <label class="group-label">
+              <span class="material-symbols-rounded">analytics</span>
+              Selection Details
+            </label>
 
-          @if (form.get('type')?.value === 'product') {
-          <div class="form-row-2">
+            @if (form.get('type')?.value === 'membership') {
+            <div class="form-row-2">
+              <div class="field flex-2">
+                <label>Plan</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">card_membership</span>
+                  <select formControlName="id_plan" (change)="onPlanSelect($any($event.target).value)">
+                    <option value="">-- Choose Plan --</option>
+                    @for (p of plans(); track $index) {
+                    <option [value]="p.id || $any(p).id_plan">{{ p.name }} ({{ p.price | currency:'TND':'code':'1.3-3'
+                      }})</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div class="field flex-1">
+                <label>Start Date</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">calendar_today</span>
+                  <input type="date" formControlName="start_date" [min]="todayDate" />
+                </div>
+              </div>
+            </div>
+            }
+
+            @if (form.get('type')?.value === 'product') {
+            <div class="form-row-2">
+              <div class="field flex-2">
+                <label>Product</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">inventory_2</span>
+                  <select formControlName="id_product" (change)="onProductSelect($any($event.target).value)">
+                    <option value="">-- Choose Product --</option>
+                    @for (p of products(); track p.id_product) {
+                    <option [value]="p.id_product">{{ p.name }} ({{ p.price | currency:'TND' }}) - {{ p.stock || 0 }} in
+                      stock</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div class="field flex-1">
+                <label>Qty</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">production_quantity_limits</span>
+                  <input type="number" formControlName="quantity" (input)="calculateProductTotal()" min="1" />
+                </div>
+              </div>
+            </div>
+            @if (form.get('id_product')?.value) {
+            @if (getSelectedProduct(); as p) {
+            <div class="stock-status-msg mt-2">
+              <span class="dot" [class.low]="(p.stock || 0) < 5"></span>
+              Currently in stock: <strong>{{ p.stock || 0 }} units</strong>
+            </div>
+            }
+            }
+            }
+
+            @if (form.get('type')?.value === 'course') {
+            <div class="form-stack">
+              <div class="field">
+                <label>Course</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">exercise</span>
+                  <select formControlName="id_course" (change)="onCourseSelect($any($event.target).value)">
+                    <option value="">-- Choose Course --</option>
+                    @for (c of courses(); track c.id_course) {
+                    <option [value]="c.id_course">{{ c.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              @if (getSelectedCourse(); as course) {
+              @if (course.recurrence_weeks || course.is_subscription_enabled) {
+              <div class="field">
+                <label>Purchase Option</label>
+                <div class="toggle-group" style="display: flex; gap: 1.5rem; padding: 0.5rem 0;">
+                  <label
+                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                    <input type="radio" formControlName="course_payment_type" value="session"
+                      (change)="onCoursePaymentTypeChange('session')">
+                    Single Session
+                  </label>
+                  <label
+                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                    <input type="radio" formControlName="course_payment_type" value="subscription"
+                      (change)="onCoursePaymentTypeChange('subscription')">
+                    Weekly Subscription
+                  </label>
+                </div>
+              </div>
+              }
+              }
+
+              @if (sessions().length > 0 && form.get('course_payment_type')?.value === 'session') {
+              <div class="field">
+                <label>Session</label>
+                <div class="input-wrap">
+                  <span class="material-symbols-rounded prefix">schedule</span>
+                  <select formControlName="id_session">
+                    <option value="">-- Choose Session --</option>
+                    @for (s of sessions(); track s.id_session) {
+                    <option [value]="s.id_session">{{ s.trainer?.name || 'Trainer' }} - {{ s.date }} ({{ s.start_time
+                      }})</option>
+                    }
+                  </select>
+                </div>
+              </div>
+              }
+            </div>
+            }
+
+            @if (form.get('type')?.value === 'event') {
             <div class="field">
-              <label>Select Product</label>
+              <label>Event</label>
               <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">inventory_2</span>
-                <select formControlName="id_product" (change)="onProductSelect($any($event.target).value)">
-                  <option value="">-- Choose Product --</option>
-                  @for (p of products(); track p.id_product) {
-                  <option [value]="p.id_product">{{ p.name }} ({{ p.price | currency:'TND' }})</option>
+                <span class="material-symbols-rounded prefix">event</span>
+                <select formControlName="id_event" (change)="onEventSelect($any($event.target).value)">
+                  <option value="">-- Choose Event --</option>
+                  @for (e of events(); track e.id_event || e.id) {
+                  <option [value]="e.id_event || e.id">{{ e.title }} - {{ e.start_date }}</option>
                   }
                 </select>
               </div>
             </div>
+            }
 
+            @if (form.get('type')?.value === 'nutrition') {
             <div class="field">
-              <label>Quantity</label>
+              <label>Nutrition Plan</label>
               <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">production_quantity_limits</span>
-                <input type="number" formControlName="quantity" (input)="calculateProductTotal()" min="1" />
-              </div>
-            </div>
-          </div>
-          }
-
-          @if (form.get('type')?.value === 'course') {
-          <div class="form-row-2">
-            <div class="field">
-              <label>Select Training Course</label>
-              <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">exercise</span>
-                <select formControlName="id_course" (change)="onCourseSelect($any($event.target).value)">
-                  <option value="">-- Choose Course --</option>
-                  @for (c of courses(); track c.id_course) {
-                  <option [value]="c.id_course">{{ c.name }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-
-            @if (sessions().length > 0) {
-            <div class="field">
-              <label>Available Session</label>
-              <div class="input-wrap">
-                <span class="material-symbols-rounded prefix">schedule</span>
-                <select formControlName="id_session">
-                  <option value="">-- Choose Session --</option>
-                  @for (s of sessions(); track s.id_session) {
-                  <option [value]="s.id_session">{{ s.trainer?.name || 'Trainer' }} - {{ s.date }} ({{ s.start_time }})
+                <span class="material-symbols-rounded prefix">restaurant</span>
+                <select formControlName="id_nutrition" (change)="onNutritionSelect($any($event.target).value)">
+                  <option value="">-- Choose Nutrition Plan --</option>
+                  @for (p of nutritionPlans(); track (p.id_plan || p.id)) {
+                  <option [value]="p.id_plan || p.id">
+                    {{ p.name || p.goal || 'Unnamed Protocol' }}
+                    {{ (p.name && p.goal && p.name !== p.goal) ? '[' + p.goal + ']' : '' }}
+                    ({{ p.price | currency:'TND' }})
                   </option>
                   }
                 </select>
@@ -205,45 +338,34 @@
           </div>
           }
 
-          @if (form.get('type')?.value === 'event') {
-          <div class="field">
-            <label>Select Special Event</label>
-            <div class="input-wrap">
-              <span class="material-symbols-rounded prefix">event</span>
-              <select formControlName="id_event" (change)="onEventSelect($any($event.target).value)">
-                <option value="">-- Choose Event --</option>
-                @for (e of events(); track e.id_event || e.id) {
-                <option [value]="e.id_event || e.id">
-                  {{ e.title }} - {{ e.start_date }} ({{ e.start_time }})
-                </option>
-                }
-              </select>
-            </div>
-          </div>
-          }
-
           <div class="total-summary-card">
             <div class="summary-content">
-              <span class="label">Total Payable</span>
+              <span class="label">Amount Due</span>
               <span class="value">{{ form.get('amount')?.value | currency:'TND':'code':'1.3-3' }}</span>
             </div>
-          </div>
-
-          <div class="field">
-            <label>External Reference ID (Optional)</label>
-            <div class="input-wrap">
-              <span class="material-symbols-rounded prefix">tag</span>
-              <input formControlName="id_transaction" placeholder="External receipt code" />
+            <div class="field mt-3">
+              <div class="input-wrap ghost-input">
+                <span class="material-symbols-rounded prefix">tag</span>
+                <input formControlName="id_transaction" placeholder="Reference ID (Optional)" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="form-actions">
-          <button class="submit-btn" type="submit" [disabled]="isLoading() || form.invalid">
-            <span class="material-symbols-rounded">check_circle</span>
-            Save Payment
-          </button>
-          <button class="cancel-btn" type="button" (click)="showNewPaymentForm.set(false)">Cancel</button>
+        <div class="form-actions" style="flex-direction: column;">
+          @if (isDuplicate()) {
+          <div class="error-banner" style="margin-bottom: 0;">
+            <span class="material-symbols-rounded">warning</span>
+            {{ duplicateMessage() }}
+          </div>
+          }
+          <div class="submit-btn-group" style="display: flex; gap: 1rem; width: 100%;">
+            <button class="submit-btn" type="submit" [disabled]="isLoading() || form.invalid || isDuplicate()">
+              <span class="material-symbols-rounded">check_circle</span>
+              Save Payment
+            </button>
+            <button class="cancel-btn" type="button" (click)="showNewPaymentForm.set(false)">Cancel</button>
+          </div>
         </div>
       </form>
       } @else if (selectedPayment()) {
@@ -253,7 +375,8 @@
           <div class="receipt-main">
             <!-- Amount & Status Hero -->
             <div class="receipt-hero">
-              <button type="button" class="close-panel-btn abs-top-right" (click)="selectedPayment.set(null)" title="Close Receipt">
+              <button type="button" class="close-panel-btn abs-top-right" (click)="selectedPayment.set(null)"
+                title="Close Receipt">
                 <span class="material-symbols-rounded">close</span>
               </button>
               <div class="status-row">

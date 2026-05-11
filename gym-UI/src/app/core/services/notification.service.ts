@@ -136,7 +136,7 @@ export class NotificationService {
             last_name: n.sender.last_name,
             email: n.sender.email,
             role: n.sender.role,
-            profile_picture: n.sender.profile_picture,
+            profile_picture: this.authService.getAvatarUrl(n.sender.profile_picture),
           }
         : undefined,
     };

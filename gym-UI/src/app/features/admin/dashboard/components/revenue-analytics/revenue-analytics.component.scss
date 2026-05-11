@@ -139,15 +139,29 @@
   &.card-emerald {
     background: linear-gradient(135deg, rgba(6, 78, 59, 0.6) 0%, rgba(30, 41, 59, 0.9) 100%);
     border: 1px solid rgba(16, 185, 129, 0.3);
-    .icon-wrap { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
-    .value { color: #d1fae5; }
+
+    .icon-wrap {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+    }
+
+    .value {
+      color: #d1fae5;
+    }
   }
 
   &.card-amber {
     background: linear-gradient(135deg, rgba(120, 53, 15, 0.5) 0%, rgba(30, 41, 59, 0.9) 100%);
     border: 1px solid rgba(245, 158, 11, 0.3);
-    .icon-wrap { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
-    .value { color: #fef3c7; }
+
+    .icon-wrap {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+    }
+
+    .value {
+      color: #fef3c7;
+    }
   }
 
   .stat-header {
@@ -235,53 +249,139 @@
 :host-context(html:not(.dark)) {
   .premium-stat-card {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    
+
     &.card-purple {
       background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%);
-      .value { color: #5b21b6; }
-      .label { color: #7c3aed; }
+
+      .value {
+        color: #5b21b6;
+      }
+
+      .label {
+        color: #7c3aed;
+      }
     }
+
     &.card-blue {
       background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
-      .value { color: #1e40af; }
-      .label { color: #3b82f6; }
+
+      .value {
+        color: #1e40af;
+      }
+
+      .label {
+        color: #3b82f6;
+      }
     }
+
     &.card-teal {
       background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%);
-      .value { color: #115e59; }
-      .label { color: #14b8a6; }
+
+      .value {
+        color: #115e59;
+      }
+
+      .label {
+        color: #14b8a6;
+      }
     }
+
     &.card-red {
       background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
-      .value { color: #991b1b; }
-      .label { color: #ef4444; }
+
+      .value {
+        color: #991b1b;
+      }
+
+      .label {
+        color: #ef4444;
+      }
     }
+
     &.card-emerald {
       background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
-      .value { color: #065f46; }
-      .label { color: #10b981; }
+
+      .value {
+        color: #065f46;
+      }
+
+      .label {
+        color: #10b981;
+      }
     }
+
     &.card-amber {
       background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
-      .value { color: #92400e; }
-      .label { color: #f59e0b; }
+
+      .value {
+        color: #92400e;
+      }
+
+      .label {
+        color: #f59e0b;
+      }
     }
   }
 
   .analytics-card {
     background: #ffffff;
     border-color: #e2e8f0;
-    .header-info h3 { color: #0f172a; }
-    .donut-footer span { color: #0f172a; }
+
+    .header-info h3 {
+      color: #0f172a;
+    }
+
+    .donut-footer span {
+      color: #0f172a;
+    }
+  }
+
+  .premium-glass-card, .premium-banner .insight-item {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    
+    .insight-text {
+      color: #0f172a;
+    }
+    
+    .premium-title {
+      color: #0f172a;
+    }
+  }
+
+  .analytics-card.churn-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+
+    .churn-info h4 {
+      color: #000000;
+      font-weight: 800;
+    }
+
+    .churn-info p {
+      color: #475569;
+    }
   }
 
   .rescue-card {
     background: #ffffff;
     border-color: #e2e8f0;
-    &:hover { background: #f8fafc; }
-    .rc-header .gym-identity .name { color: #0f172a; }
-    .rc-impact { background: #f1f5f9; }
-    .rc-impact .impact-metric .value { color: #0f172a; }
+
+    &:hover {
+      background: #f8fafc;
+    }
+
+    .rc-header .gym-identity .name {
+      color: #0f172a;
+    }
+
+    .rc-impact {
+      background: #f1f5f9;
+    }
+
+    .rc-impact .impact-metric .value {
+      color: #0f172a;
+    }
   }
 }
 

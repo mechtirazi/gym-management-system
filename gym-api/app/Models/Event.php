@@ -10,6 +10,7 @@ class Event extends Model
 {
     use HasFactory;
     use HasUuids;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     use \App\Traits\HasSocialInteractions;
 
     protected $primaryKey = 'id_event';

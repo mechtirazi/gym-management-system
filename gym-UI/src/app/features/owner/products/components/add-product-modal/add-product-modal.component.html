@@ -23,40 +23,66 @@
         <div class="form-left-col">
           <div class="form-group">
             <label>Product Name</label>
-            <input type="text" name="name" [(ngModel)]="product.name" placeholder="e.g. Whey Protein" required>
+            <input type="text" name="name" [(ngModel)]="product.name" #name="ngModel" placeholder="e.g. Whey Protein"
+              required>
+            @if (name.invalid && (name.dirty || name.touched)) {
+            <div class="field-error">* Product name is required</div>
+            }
           </div>
 
           <div class="form-group">
             <label>Category</label>
-            <select name="category" [(ngModel)]="product.category" required>
+            <select name="category" [(ngModel)]="product.category" #category="ngModel" required>
               @for (cat of categories; track cat) {
-                <option [value]="cat">{{ cat }}</option>
+              <option [value]="cat">{{ cat }}</option>
               }
             </select>
+            @if (category.invalid && (category.dirty || category.touched)) {
+            <div class="field-error">* Category is required</div>
+            }
           </div>
 
           <div class="form-group">
             <label>Description</label>
-            <textarea name="description" [(ngModel)]="product.description" placeholder="Provide details about the product..." rows="3"></textarea>
+            <textarea name="description" [(ngModel)]="product.description"
+              placeholder="Provide details about the product..." rows="3"></textarea>
           </div>
 
           <div class="form-row-grid">
             <div class="form-group">
-              <label>Price ($)</label>
-              <input type="number" name="price" [(ngModel)]="product.price" step="0.01" min="0" placeholder="0.00" required>
+              <label>Price (TND)</label>
+              <input type="number" name="price" [(ngModel)]="product.price" #price="ngModel" step="0.01" min="0"
+                max="99999" placeholder="0.00" required>
+              @if (price.invalid && (price.dirty || price.touched)) {
+              <div class="field-error">
+                @if (price.errors?.['required']) { <span>* Price is required</span> }
+                @if (price.errors?.['min']) { <span>* Minimum price is 0 TND</span> }
+                @if (price.errors?.['max']) { <span>* Maximum price is 99,999 TND</span> }
+              </div>
+              }
             </div>
 
             <div class="form-group">
               <label>Stock Quantity</label>
-              <input type="number" name="stock" [(ngModel)]="product.stock" min="0" placeholder="0" required>
+              <input type="number" name="stock" [(ngModel)]="product.stock" #stock="ngModel" min="0" max="99999"
+                placeholder="0" required>
+              @if (stock.invalid && (stock.dirty || stock.touched)) {
+              <div class="field-error">
+                @if (stock.errors?.['required']) { <span>* Stock is required</span> }
+                @if (stock.errors?.['min']) { <span>* Minimum stock is 0</span> }
+                @if (stock.errors?.['max']) { <span>* Maximum stock is 99,999</span> }
+              </div>
+              }
             </div>
           </div>
 
           <div class="form-group">
             <label>Discount Percentage (%)</label>
             <div class="discount-input-wrapper">
-               <input type="number" name="discount" [(ngModel)]="product.discount_percentage" min="0" max="100" placeholder="0">
-               <span class="discount-badge" *ngIf="(product.discount_percentage || 0) > 0">-{{ product.discount_percentage }}% OFF</span>
+              <input type="number" name="discount" [(ngModel)]="product.discount_percentage" min="0" max="100"
+                placeholder="0">
+              <span class="discount-badge" *ngIf="(product.discount_percentage || 0) > 0">-{{
+                product.discount_percentage }}% OFF</span>
             </div>
           </div>
         </div>
@@ -66,18 +92,18 @@
             <label>Product Visual</label>
             <div class="image-preview-container" [class.has-image]="imagePreview" (click)="fileInput.click()">
               @if (imagePreview) {
-                <img [src]="imagePreview" alt="Product preview">
-                <div class="change-overlay">
-                  <span class="material-symbols-rounded">edit</span>
-                  <span>Change Image</span>
-                </div>
+              <img [src]="imagePreview" alt="Product preview">
+              <div class="change-overlay">
+                <span class="material-symbols-rounded">edit</span>
+                <span>Change Image</span>
+              </div>
               } @else {
-                <div class="upload-placeholder">
-                  <span class="material-symbols-rounded">upload_file</span>
-                  <span>Upload Image</span>
-                  <p>JPG/PNG/WEBP</p>
-                  <p class="limit-text">Max 2MB</p>
-                </div>
+              <div class="upload-placeholder">
+                <span class="material-symbols-rounded">upload_file</span>
+                <span>Upload Image</span>
+                <p>JPG/PNG/WEBP</p>
+                <p class="limit-text">Max 2MB</p>
+              </div>
               }
             </div>
             <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
@@ -86,24 +112,24 @@
       </div>
 
       @if (error()) {
-        <div class="error-msg animate-fade-in">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          {{ error() }}
-        </div>
+      <div class="error-msg animate-fade-in">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        {{ error() }}
+      </div>
       }
 
       <div class="form-footer">
         <button type="button" class="cancel-btn" (click)="close.emit()">Cancel</button>
         <button type="submit" class="submit-btn" [disabled]="isSubmitting() || isFormInvalid">
           @if (isSubmitting()) {
-            <span class="spinner-small"></span>
-            Adding...
+          <span class="spinner-small"></span>
+          Adding...
           } @else {
-            Create Product
+          Create Product
           }
         </button>
       </div>

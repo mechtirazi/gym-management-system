@@ -75,7 +75,17 @@ export class MemberNutritionComponent implements OnInit {
   dailyMeals: any[] = [];
   supplementStack: any[] = [];
   showPlanDetails = false;
+  waterPulse = false;
   shoppingIngredients: any[] = [];
+
+  private readonly baseUrl = 'http://localhost:8000';
+
+  formatImageUrl(path: string | null): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.replace('public/', '');
+    return `${this.baseUrl}/storage/${cleanPath}`;
+  }
 
   get activeRecipientId(): string {
     return this.extractNutritionistId(this.activePlan) || String(this.nutritionistInsight.expertId || '').trim();
@@ -89,14 +99,16 @@ export class MemberNutritionComponent implements OnInit {
     console.log('Hydration Pulse: Adding', amount, 'ml. Current:', this.waterIntake);
     // Optimistic Update: Instant visual feedback before server sync
     const previousIntake = this.waterIntake;
-    this.waterIntake += amount;
+    this.waterIntake = Number(this.waterIntake) + amount;
+    this.waterPulse = true;
+    setTimeout(() => { this.waterPulse = false; this.cdr.detectChanges(); }, 200);
     this.cdr.detectChanges();
 
     this.memberService.logHydration(amount).subscribe({
       next: (res: any) => {
         console.log('Hydration Sync Success. Server Total:', res.total_today);
-        // Sync with absolute server value
-        this.waterIntake = res.total_today || this.waterIntake;
+        // Sync with absolute server value, ensuring it's a number
+        this.waterIntake = Number(res.total_today);
         this.cdr.detectChanges();
       },
       error: (err: any) => {
@@ -175,7 +187,7 @@ export class MemberNutritionComponent implements OnInit {
       : this.nutritionistInsight.expert;
     this.nutritionistInsight.expertId = expertId;
     this.nutritionistInsight.role = nutritionist ? 'Official Specialist' : 'Scientific Advisor';
-    this.nutritionistInsight.image = nutritionist?.profile_picture || this.nutritionistInsight.image;
+    this.nutritionistInsight.image = this.formatImageUrl(nutritionist?.profile_picture) || this.nutritionistInsight.image;
   }
 
   getAvatarUrl(path?: string): string {
@@ -268,11 +280,11 @@ export class MemberNutritionComponent implements OnInit {
     this.cdr.detectChanges();
 
     forkJoin({
-      allPlans: this.memberService.getMyNutritionPlansMarketplace(),
-      myPlans: this.memberService.getMyNutritionPlans(),
-      gyms: this.memberService.getAllGyms(),
-      subscriptions: this.memberService.getMySubscriptions(),
-      stats: this.memberService.getDashboardStats(),
+      allPlans: this.memberService.getMyNutritionPlansMarketplace().pipe(catchError(() => of({ success: true, data: [] }))),
+      myPlans: this.memberService.getMyNutritionPlans().pipe(catchError(() => of({ success: true, data: [] }))),
+      gyms: this.memberService.getAllGyms().pipe(catchError(() => of({ success: true, data: [] }))),
+      subscriptions: this.memberService.getMySubscriptions().pipe(catchError(() => of({ success: true, data: [] }))),
+      stats: this.memberService.getDashboardStats().pipe(catchError(() => of(null))),
       profile: of(this.authService.currentUser())
     }).subscribe({
       next: (res: any) => {
@@ -299,8 +311,8 @@ export class MemberNutritionComponent implements OnInit {
         // Extract IDs from myPlans (handling both direct and nested plan structures)
         const myIds = myPlansRaw.map((p: any) => String(p.id_plan || (p.plan?.id_plan || p.id)));
 
+        // 1. Build Marketplace Plans
         this.nutritionPlans = plansRaw.map((item: any) => {
-          // Normalize: check if the plan data is nested (common in some API responses)
           const plan = item.plan || item;
           const gym = this.gyms.find((g: any) => String(g.id_gym) === String(plan.id_gym || item.id_gym));
           const planId = String(plan.id_plan || plan.id || item.id);
@@ -311,7 +323,7 @@ export class MemberNutritionComponent implements OnInit {
             name: plan.name || plan.title || 'Nutrition Plan',
             description: plan.description || plan.goal || 'No description available.',
             image: plan.image ? this.getAvatarUrl(plan.image) : null,
-            isOwned: myIds.includes(planId),
+            isOwned: !!plan.is_owned || myIds.includes(planId),
             isActive: plan.is_active !== undefined ? !!plan.is_active : true,
             gymName: gym?.name || 'Global Hub',
             gymLogo: gym?.logo || (gym?.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(gym.name)}&background=1e293b&color=10b981&bold=true` : 'https://ui-avatars.com/api/?name=Hub&background=1e293b&color=10b981&bold=true'),
@@ -320,13 +332,32 @@ export class MemberNutritionComponent implements OnInit {
           };
         });
 
-        // Map owned plans specifically to handle nutritionist mapping
-        this.ownedPlans = this.nutritionPlans.filter(p => p.isOwned);
+        // 2. Build Owned Plans (Source of truth for "My Plans" / "Insights" tab)
+        this.ownedPlans = myPlansRaw.map((item: any) => {
+          const plan = item.plan || item;
+          const gym = this.gyms.find((g: any) => String(g.id_gym) === String(plan.id_gym || item.id_gym));
+          const planId = String(plan.id_plan || plan.id || item.id);
+
+          return {
+            ...plan,
+            id_plan: planId,
+            name: plan.name || plan.title || 'Nutrition Plan',
+            description: plan.description || plan.goal || 'No description available.',
+            image: plan.image ? this.getAvatarUrl(plan.image) : null,
+            isOwned: true,
+            isActive: plan.is_active !== undefined ? !!plan.is_active : true,
+            gymName: gym?.name || 'Global Hub',
+            macroStatus: this.calculateMacros(plan),
+            nutritionist: plan.nutritionist || item.nutritionist || null
+          };
+        });
 
         if (this.activePlan) {
-          const stillOwned = this.ownedPlans.find(p => (p.id_plan || p.id) === (this.activePlan.id_plan || this.activePlan.id));
+          const stillOwned = this.ownedPlans.find(p => String(p.id_plan) === String(this.activePlan.id_plan));
           if (!stillOwned) {
             this.activePlan = this.ownedPlans[0] || null;
+          } else {
+            this.activePlan = stillOwned; // Refresh with latest data
           }
         } else {
           this.activePlan = this.ownedPlans[0] || null;
@@ -340,8 +371,16 @@ export class MemberNutritionComponent implements OnInit {
         // Dynamic Bio-Insight Synchronization (from Member Dashboard Stats)
         if (res.stats) {
           this.analyzedBiometrics = res.stats.stats; // Current real progress
-          if (res.stats.stats?.water) {
-            this.waterIntake = res.stats.stats.water;
+          if (res.stats.stats && res.stats.stats.water !== undefined) {
+            this.waterIntake = Number(res.stats.stats.water);
+          }
+          
+          // Dynamic Water Goal: Weight (kg) * 35ml
+          if (res.stats.stats && res.stats.stats.weight) {
+            const weight = Number(res.stats.stats.weight);
+            this.waterGoal = Math.round(weight * 35);
+          } else {
+            this.waterGoal = 3500; // High-fidelity fallback
           }
           if (res.stats && res.stats.user) {
             const userAdvisory = res.stats.user.nutritionist_advisory;
@@ -370,7 +409,7 @@ export class MemberNutritionComponent implements OnInit {
           this.nutritionistInsight.expert = `${n.name} ${n.last_name || ''}`;
           this.nutritionistInsight.expertId = String(n.id_user || n.id || '').trim();
           this.nutritionistInsight.role = 'Specialist';
-          this.nutritionistInsight.image = n.profile_picture;
+          this.nutritionistInsight.image = this.formatImageUrl(n.profile_picture);
         }
 
         // Final deep-fallback: If still no expert ID, check all owned plans

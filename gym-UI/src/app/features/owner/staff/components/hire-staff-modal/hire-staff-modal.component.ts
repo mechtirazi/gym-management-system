@@ -21,8 +21,8 @@ export class HireStaffModalComponent {
   staffHired = output<void>();
 
   showPassword = signal<boolean>(false);
-  isAdding     = signal<boolean>(false);
-  addError     = signal<string | null>(null);
+  isAdding = signal<boolean>(false);
+  addError = signal<string | null>(null);
   isExistingUserMode = signal<boolean>(false);
 
   // Search state for existing users
@@ -33,19 +33,19 @@ export class HireStaffModalComponent {
   addForm: FormGroup;
 
   readonly staffRoles = [
-    { value: 'trainer',       label: 'Trainer'       },
-    { value: 'receptionist',  label: 'Receptionist'  },
-    { value: 'nutritionist',  label: 'Nutritionist'  },
+    { value: 'trainer', label: 'Trainer' },
+    { value: 'receptionist', label: 'Receptionist' },
+    { value: 'nutritionist', label: 'Nutritionist' },
   ];
 
   constructor() {
     this.addForm = this.fb.group({
-      name:      ['', Validators.required],
+      name: ['', Validators.required],
       last_name: ['', Validators.required],
-      email:     ['', [Validators.required, Validators.email]],
-      phone:     [''],
-      role:      ['trainer', Validators.required],
-      password:  ['TempPass123!', [Validators.required, Validators.minLength(8)]]
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
+      role: ['trainer', Validators.required],
+      password: ['TempPass123!', [Validators.required, Validators.minLength(8)]]
     });
 
     // Listen for email changes to search for existing users
@@ -68,29 +68,39 @@ export class HireStaffModalComponent {
   toggleMode() {
     this.isExistingUserMode.set(!this.isExistingUserMode());
     this.addError.set(null); // Clear errors when toggling modes
-    
+
     const nameCtrl = this.addForm.get('name');
     const lastNameCtrl = this.addForm.get('last_name');
     const passwordCtrl = this.addForm.get('password');
+    const phoneCtrl = this.addForm.get('phone');
 
     if (this.isExistingUserMode()) {
       nameCtrl?.clearValidators();
       lastNameCtrl?.clearValidators();
       passwordCtrl?.clearValidators();
+      phoneCtrl?.clearValidators();
     } else {
       nameCtrl?.setValidators([Validators.required]);
       lastNameCtrl?.setValidators([Validators.required]);
       passwordCtrl?.setValidators([Validators.required, Validators.minLength(8)]);
+      phoneCtrl?.setValidators([Validators.required, Validators.pattern(/^[0-9]{8}$/)]);
     }
-    
+
     nameCtrl?.updateValueAndValidity();
     lastNameCtrl?.updateValueAndValidity();
     passwordCtrl?.updateValueAndValidity();
+    phoneCtrl?.updateValueAndValidity();
 
     // If switching back to new hire, clear search results
     if (!this.isExistingUserMode()) {
       this.existingUser.set(null);
       this.searchError.set(null);
+      this.addForm.patchValue({
+        name: '',
+        last_name: '',
+        phone: '',
+        password: 'TempPass123!'
+      });
     } else if (this.addForm.get('email')?.valid) {
       this.lookupUser(this.addForm.get('email')?.value);
     }
@@ -107,15 +117,21 @@ export class HireStaffModalComponent {
       next: (res: any) => {
         this.isSearching.set(false);
         this.existingUser.set(res.data);
-        
-        // Auto-select their current role (or trainer if they are a member)
+
+        // Auto-populate fields if user found
         if (res.data) {
           const suggestedRole = res.data.role === 'member' ? 'trainer' : res.data.role;
-          this.addForm.get('role')?.setValue(suggestedRole);
+          this.addForm.patchValue({
+            name: res.data.name,
+            last_name: res.data.last_name,
+            phone: res.data.phone,
+            role: suggestedRole
+          });
         }
       },
       error: (err: any) => {
         this.isSearching.set(false);
+        this.existingUser.set(null);
         if (err.status === 404) {
           this.searchError.set('User not found in database. Please check the email or create a new profile.');
         } else {
@@ -135,34 +151,34 @@ export class HireStaffModalComponent {
 
     const form = this.addForm.value;
     const payload = {
-      name:      form.name?.trim(),
+      name: form.name?.trim(),
       last_name: form.last_name?.trim(),
-      email:     form.email.trim(),
-      phone:     form.phone?.trim() || '',
-      role:      form.role,
-      password:  form.password || 'TempPass123!'
+      email: form.email.trim(),
+      phone: form.phone?.trim() || '',
+      role: form.role,
+      password: form.password || 'TempPass123!'
     };
 
     this.isAdding.set(true);
     this.staffService.addStaff(payload, this.isExistingUserMode()).subscribe({
       next: (res: any) => {
         this.isAdding.set(false);
-        
+
         if (res && res.invitation) {
           this.snackBar.open(
-            'This user already exists! An invitation has been sent to their notification center.', 
-            'Understood', 
-            { 
-              duration: 5000, 
-              horizontalPosition: 'end', 
+            'This user already exists! An invitation has been sent to their notification center.',
+            'Understood',
+            {
+              duration: 5000,
+              horizontalPosition: 'end',
               verticalPosition: 'bottom',
               panelClass: ['premium-toast', 'toast-info']
             }
           );
         } else {
-          this.snackBar.open('New staff member hired successfully!', 'Close', { 
-            duration: 3000, 
-            horizontalPosition: 'end', 
+          this.snackBar.open('New staff member hired successfully!', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'end',
             verticalPosition: 'bottom',
             panelClass: ['premium-toast', 'toast-success']
           });
@@ -195,7 +211,7 @@ export class HireStaffModalComponent {
 
     const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
     let cleanPath = path.replace(/^\//, '');
-    
+
     // Ensure the path points to the Laravel storage directory if it's a relative path
     if (!cleanPath.startsWith('storage/')) {
       cleanPath = `storage/${cleanPath}`;

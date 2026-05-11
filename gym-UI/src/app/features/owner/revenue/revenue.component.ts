@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule, ChartComponent, ApexAxisChartSeries, ApexChart, ApexXAxis, ApexDataLabels, ApexStroke, ApexGrid, ApexPlotOptions, ApexYAxis, ApexLegend, ApexMarkers, ApexTooltip, ApexTitleSubtitle } from 'ng-apexcharts';
 import { OwnerRevenueService } from '../services/owner-revenue.service';
+import { ProductService } from '../products/services/product.service';
 import { finalize } from 'rxjs/operators';
 import { AdvancedRevenueStats } from '../../../shared/models/revenue.model';
 
@@ -31,12 +32,14 @@ export type ChartOptions = {
 })
 export class OwnerRevenueComponent implements OnInit {
   private revenueService = inject(OwnerRevenueService);
+  private productService = inject(ProductService);
 
   @ViewChild('chart') chart!: ChartComponent;
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
   stats = signal<AdvancedRevenueStats | null>(null);
   categoryStats = signal<any[]>([]);
+  lowStockProducts = signal<any[]>([]);
 
   // Sparkline Generic Options
   public sparklineOptions: Partial<ChartOptions> | any = {
@@ -111,6 +114,7 @@ export class OwnerRevenueComponent implements OnInit {
 
   ngOnInit() {
     this.fetchRevenueStats('this_year');
+    this.fetchLowStockProducts();
   }
 
   fetchRevenueStats(filter: string) {
@@ -131,6 +135,17 @@ export class OwnerRevenueComponent implements OnInit {
       });
   }
 
+  fetchLowStockProducts() {
+    this.productService.getProducts().subscribe({
+      next: (res: any) => {
+        const products = res.data || [];
+        const lowStock = products.filter((p: any) => p.stock < 10);
+        this.lowStockProducts.set(lowStock);
+      },
+      error: (err) => console.error('Failed to load products for stock alerts', err)
+    });
+  }
+
   initializeCharts(data: AdvancedRevenueStats) {
     // 1. Sparklines for KPIs
     const revenueTrend = data.chartData.map(d => d.amount);
@@ -141,8 +156,14 @@ export class OwnerRevenueComponent implements OnInit {
     const tableData: any[] = [];
 
     const revData = categories.map((cat, idx) => {
-      const source = data.sources.find(s => s.type.toLowerCase().includes(cat.toLowerCase()));
-      const revenue = source ? source.amount : [180, 160, 140, 180][idx]; 
+      const source = data.sources.find(s => {
+        const type = s.type.toLowerCase();
+        const search = cat.toLowerCase();
+        return type.includes(search) || 
+               (search === 'membership' && (type.includes('enroll') || type.includes('subscription')));
+      });
+      
+      const revenue = source ? source.amount : 0; 
       
       // Category-specific platform fees (%)
       const feeRates: { [key: string]: number } = {
@@ -156,7 +177,7 @@ export class OwnerRevenueComponent implements OnInit {
       const feeRate = feeRates[cat] || 0.10;
       const platformFee = revenue * feeRate;
       const profit = revenue - platformFee;
-      const margin = (profit / revenue) * 100;
+      const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
 
       tableData.push({
         name: cat,
@@ -170,7 +191,7 @@ export class OwnerRevenueComponent implements OnInit {
     });
 
     this.categoryStats.set(tableData);
-    const profitData = revData.map(val => val * 0.9);
+    const profitData = tableData.map(t => t.profit);
 
     this.breakdownOptions.series = [
       { name: "Revenue", data: revData },

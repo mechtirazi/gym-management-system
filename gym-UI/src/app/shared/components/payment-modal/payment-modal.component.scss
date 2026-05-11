@@ -1,33 +1,45 @@
 // --- THEME TOKENS ---
 :host {
     // Light Mode (Default)
-    --modal-bg: rgba(255, 255, 255, 0.95);
-    --modal-border: rgba(99, 102, 241, 0.15);
+    --modal-bg: var(--bg-card, #ffffff);
+    --modal-border: var(--border-color, rgba(99, 102, 241, 0.15));
     --modal-glow: rgba(59, 130, 246, 0.05);
     
-    --accent-primary: #3b82f6; // Blue 500
+    --accent-primary: #3b82f6;
     --accent-primary-glow: #60a5fa; // Blue 400
     --accent-secondary: #8b5cf6; // Purple accent
     --danger: #ef4444;
     
-    --text-primary: #0f172a;
-    --text-muted: #64748b;
+    --text-primary: var(--text-main, #0f172a);
+    --text-muted: var(--text-muted, #64748b);
     
-    --card-surface: rgba(241, 245, 249, 0.5);
-    --card-hover: rgba(241, 245, 249, 0.8);
+    --card-surface: var(--bg-hover, #f1f5f9);
+    --card-hover: var(--bg-input, #e2e8f0);
 }
 
-.dark :host {
-    // Dark Mode
-    --modal-bg: rgba(8, 12, 17, 0.85);
-    --modal-border: rgba(255, 255, 255, 0.08);
-    --modal-glow: rgba(59, 130, 246, 0.15);
+
+
+
+
+
     
-    --text-primary: #f8fafc;
-    --text-muted: #94a3b8;
+
+
     
-    --card-surface: rgba(255, 255, 255, 0.03);
-    --card-hover: rgba(255, 255, 255, 0.06);
+
+
+
+
+:host-context(.dark) {
+    --modal-bg: #05070a;
+    --modal-border: rgba(255, 255, 255, 0.1);
+    --modal-glow: rgba(59, 130, 246, 0.2);
+    
+    --text-primary: #ffffff;
+    --text-muted: #cbd5e1;
+    
+    --card-surface: rgba(255, 255, 255, 0.05);
+    --card-hover: rgba(255, 255, 255, 0.08);
 }
 
 // --- OVERLAY ---
@@ -54,10 +66,11 @@
         opacity: 1;
       }
     }
-}
 
-.dark .payment-modal-overlay {
-    background: rgba(4, 6, 12, 0.88); // Dark mode overlay
+
+    &:host-context(.dark) {
+        background: rgba(4, 6, 12, 0.8);
+    }
 }
 
 // --- MAIN CARD ---
@@ -85,8 +98,10 @@
         opacity: 0.6;
     }
 
-    .dark & {
-        background: linear-gradient(145deg, var(--modal-bg) 0%, rgba(5,6,10,0.95) 100%);
+    .dark &,
+    :host-context(.dark) & {
+        background: linear-gradient(145deg, var(--modal-bg) 0%, #000000 100%);
+        border-color: rgba(255, 255, 255, 0.1);
     }
 
     .btn-close-modal {
@@ -145,17 +160,17 @@
         color: var(--text-primary);
         margin: 0 0 0.8rem;
         letter-spacing: -0.5px;
-        background: linear-gradient(to right, #0f172a, #3b82f6);
+        background: linear-gradient(to right, var(--text-primary), var(--accent-primary));
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
 
-        .dark & {
-            background: linear-gradient(to right, #fff, #bfdbfe);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+
+
+
+
+
+
     }
 }
 
@@ -267,9 +282,9 @@
         .item-price-pill {
             margin-left: auto;
             padding: 0.4rem 0.8rem;
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: var(--accent-primary-glow);
+            background: var(--accent-primary);
+            border: 1px solid var(--accent-primary-glow);
+            color: #ffffff;
             border-radius: 1rem;
             font-size: 0.65rem;
             font-weight: 800;
@@ -293,7 +308,7 @@
         padding-left: 1.5rem;
         p {
             font-size: 0.85rem;
-            color: #64748b;
+            color: var(--text-muted);
             line-height: 1.5;
             margin: 0;
         }
@@ -711,11 +726,11 @@
 .plan-selection-hub {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid var(--modal-border);
 
     .hub-label {
         font-size: 0.8rem;
-        color: rgba(255,255,255,0.5);
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 2px;
         margin-bottom: 1.2rem;
@@ -859,13 +874,13 @@
         .pts {
             font-size: 1.5rem;
             font-weight: 900;
-            color: #fff;
+            color: var(--text-primary);
             text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
  
         .equals {
             font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--text-muted);
             font-weight: 300;
         }
  

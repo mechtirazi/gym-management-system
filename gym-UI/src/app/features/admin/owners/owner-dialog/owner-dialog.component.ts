@@ -44,25 +44,29 @@ import { OwnerCreatePayload, OwnerUpdatePayload, UserVm } from '../../../../core
            </div>
         
            <div class="two-col-grid">
-              <div class="form-field">
-                 <label><mat-icon>badge</mat-icon> First Name</label>
+              <div class="form-field" [class.has-error]="form.get('name')?.invalid && form.get('name')?.touched">
+                 <label><mat-icon>badge</mat-icon> First Name <span class="required">*</span></label>
                  <div class="input-glow-wrap">
                     <input formControlName="name" type="text" placeholder="John" />
                  </div>
+                 <p class="field-error" *ngIf="form.get('name')?.hasError('required') && form.get('name')?.touched">Required</p>
               </div>
-              <div class="form-field">
-                 <label><mat-icon>fingerprint</mat-icon> Last Name</label>
+              <div class="form-field" [class.has-error]="form.get('last_name')?.invalid && form.get('last_name')?.touched">
+                 <label><mat-icon>fingerprint</mat-icon> Last Name <span class="required">*</span></label>
                  <div class="input-glow-wrap">
                     <input formControlName="last_name" type="text" placeholder="Doe" />
                  </div>
+                 <p class="field-error" *ngIf="form.get('last_name')?.hasError('required') && form.get('last_name')?.touched">Required</p>
               </div>
            </div>
 
-           <div class="form-field">
-              <label><mat-icon>alternate_email</mat-icon> Email Address</label>
+           <div class="form-field" [class.has-error]="form.get('email')?.invalid && form.get('email')?.touched">
+              <label><mat-icon>alternate_email</mat-icon> Email Address <span class="required">*</span></label>
               <div class="input-glow-wrap">
                  <input formControlName="email" type="email" placeholder="owner@gym-nexus.com" />
               </div>
+              <p class="field-error" *ngIf="form.get('email')?.hasError('required') && form.get('email')?.touched">Required</p>
+              <p class="field-error" *ngIf="form.get('email')?.hasError('email') && form.get('email')?.touched">Invalid email format</p>
            </div>
 
            <div class="form-field" *ngIf="!data.user">
@@ -73,11 +77,19 @@ import { OwnerCreatePayload, OwnerUpdatePayload, UserVm } from '../../../../core
               <p class="field-hint">Secure: Min 8 characters required</p>
            </div>
 
-           <div class="form-field">
-              <label><mat-icon>contact_phone</mat-icon> Phone Number (Optional)</label>
-              <div class="input-glow-wrap">
-                 <input formControlName="phone" type="tel" placeholder="+1 234 567 890" />
+           <div class="form-field" [class.has-error]="form.get('phone')?.invalid && form.get('phone')?.touched">
+              <label><mat-icon>contact_phone</mat-icon> Phone Number <span class="required">*</span></label>
+              <div class="input-glow-wrap phone-input-wrap">
+                 <div class="country-prefix">
+                    <img src="https://flagcdn.com/w20/tn.png" alt="TN" class="flag-icon">
+                    <span class="country-code-label">TUN</span>
+                    <mat-icon class="dropdown-arrow">expand_more</mat-icon>
+                 </div>
+                 <input formControlName="phone" type="tel" placeholder="22 123 456" maxlength="8" />
               </div>
+              <p class="field-hint" *ngIf="!form.get('phone')?.errors">Exactly 8 digits</p>
+              <p class="field-error" *ngIf="form.get('phone')?.hasError('required') && form.get('phone')?.touched">Phone is required</p>
+              <p class="field-error" *ngIf="form.get('phone')?.hasError('pattern') && form.get('phone')?.touched">Exactly 8 digits required</p>
            </div>
 
            <div class="admin-dialog-footer">
@@ -106,7 +118,7 @@ export class OwnerDialogComponent {
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: [''], // dynamically validated
-    phone: ['']
+    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]]
   });
 
   constructor(
@@ -130,7 +142,10 @@ export class OwnerDialogComponent {
   }
 
   onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.loading.set(true);
     this.errorMessage.set(null);

@@ -20,7 +20,8 @@
   .member-avatar {
     width: 64px;
     height: 64px;
-    background: var(--border-color);
+    background: var(--bg-hover);
+    border: 1.5px solid var(--border-color);
     border-radius: 18px;
     display: flex;
     align-items: center;
@@ -40,7 +41,7 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      border: 3px solid white;
+      border: 3px solid var(--bg-card);
 
       &.active {
         background: #10b981;
@@ -83,7 +84,7 @@
 
     &.active { background: #dcfce7; color: #15803d; }
     &.pending { background: #fef3c7; color: #b45309; }
-    &.expired { background: #f1f5f9; color: #475569; }
+    &.expired { background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border-color); }
     &.cancelled { background: #fee2e2; color: #b91c1c; }
   }
 }
@@ -150,11 +151,11 @@
 }
 
 .error-btn {
-  background: #fff1f2;
+  background: rgba(225, 29, 72, 0.08);
   color: #e11d48;
 
   &:hover {
-    background: #ffe4e6;
+    background: rgba(225, 29, 72, 0.15);
   }
 }
 

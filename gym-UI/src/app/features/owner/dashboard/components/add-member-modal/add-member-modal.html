@@ -67,10 +67,16 @@
           <div class="form-grid">
             <div class="form-group hover-glow">
               <label>Phone Number</label>
-              <div class="input-wrap">
-                <span class="material-symbols-rounded">call</span>
-                <input type="tel" formControlName="phone" placeholder="1234567890" />
+              <div class="input-wrap phone-input-wrapper">
+                <div class="country-prefix">
+                  <img src="https://flagcdn.com/w20/tn.png" alt="Tunisia Flag" class="flag-icon">
+                  <span>+216</span>
+                </div>
+                <input type="tel" formControlName="phone" placeholder="12 345 678" maxlength="8" />
               </div>
+              @if (memberForm.get('phone')?.touched && memberForm.get('phone')?.errors?.['pattern']) {
+                <span class="error-msg">Valid 8-digit number required.</span>
+              }
             </div>
 
             <div class="form-group hover-glow">
@@ -100,8 +106,11 @@
               <label>Start Date</label>
               <div class="input-wrap">
                 <span class="material-symbols-rounded">calendar_month</span>
-                <input type="date" formControlName="startDate" />
+                <input type="date" formControlName="startDate" [min]="todayDate" />
               </div>
+              @if (memberForm.get('startDate')?.touched && memberForm.get('startDate')?.errors?.['pastDate']) {
+                <span class="error-msg">Start date cannot be in the past.</span>
+              }
             </div>
           </div>
           

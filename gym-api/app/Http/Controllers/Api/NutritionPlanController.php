@@ -41,9 +41,32 @@ class NutritionPlanController extends BaseApiController
                 $query->whereIn('id_gym', $gymIds);
             }
 
+            $plans = $query->get();
+            $user = auth()->user();
+
+            // Inject ownership status for members
+            if ($user && $user->role === \App\Models\User::ROLE_MEMBER) {
+                $ownedIds = \DB::table('nutrition_plan_member')
+                    ->where('id_user', $user->id_user)
+                    ->pluck('id_plan')
+                    ->map(fn($id) => (string)$id)
+                    ->toArray();
+                
+                $legacyOwnedIds = NutritionPlan::where('id_member', $user->id_user)
+                    ->pluck('id_plan')
+                    ->map(fn($id) => (string)$id)
+                    ->toArray();
+                    
+                $allOwnedIds = array_unique(array_merge($ownedIds, $legacyOwnedIds));
+
+                $plans->each(function ($plan) use ($allOwnedIds) {
+                    $plan->is_owned = in_array((string)$plan->id_plan, $allOwnedIds);
+                });
+            }
+
             return response()->json([
                 'success' => true,
-                'data' => $query->get(),
+                'data' => $plans,
                 'diagnostic' => 'Bio-Sync Active'
             ]);
         } catch (\Exception $e) {
@@ -106,16 +129,24 @@ class NutritionPlanController extends BaseApiController
      */
     public function logWater(Request $request)
     {
-        $amount = $request->input('amount_ml', 0);
-        $user = auth()->user();
+        $amount = (float) $request->input('amount_ml', 0);
+        $user = \App\Models\User::find(auth()->id());
         
-        // Update user's manual water stat
-        $user->manual_water += $amount;
+        // Detect if it's a new day to reset the daily counter
+        $isNewDay = !$user->updated_at || !\Carbon\Carbon::parse($user->updated_at)->isToday();
+        
+        if ($isNewDay) {
+            $user->manual_water = $amount;
+        } else {
+            $user->manual_water = ($user->manual_water ?? 0) + $amount;
+        }
+        
         $user->save();
+        $user->refresh();
         
         return response()->json([
             'success' => true,
-            'total_today' => $user->manual_water,
+            'total_today' => (float) $user->manual_water,
             'added' => $amount
         ]);
     }

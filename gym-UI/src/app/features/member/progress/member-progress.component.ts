@@ -417,9 +417,15 @@ export class MemberProgressComponent implements OnInit {
 
     if (data.length === 0) return null;
 
-    const last = data[data.length - 1]?.volume || 0;
-    const prev = data[data.length - 2]?.volume || 0;
-    const change = prev > 0 ? ((last - prev) / prev) * 100 : 0;
+    const lastSession = data[data.length - 1]?.volume || 0;
+    
+    // Calculate average of previous sessions to show true evolution baseline
+    const previousSessions = data.slice(0, data.length - 1);
+    const avgPrevious = previousSessions.length > 0 
+      ? previousSessions.reduce((sum, d) => sum + d.volume, 0) / previousSessions.length 
+      : lastSession;
+
+    const change = avgPrevious > 0 ? ((lastSession - avgPrevious) / avgPrevious) * 100 : 0;
     const maxVal = Math.max(...data.map(d => d.volume));
     const total = data.reduce((acc, curr) => acc + curr.volume, 0);
 

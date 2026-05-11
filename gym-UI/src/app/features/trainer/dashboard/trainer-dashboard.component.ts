@@ -202,6 +202,18 @@ export class TrainerDashboardComponent implements OnInit, OnDestroy {
     return this.authService.getAvatarUrl(user?.profile_picture);
   }
 
+  getInitials(): string {
+    const user = this.authService.currentUser();
+    if (!user) return 'TR';
+    const first = user.name?.charAt(0) || '';
+    const last = user.last_name?.charAt(0) || '';
+    return (first + last).toUpperCase() || 'TR';
+  }
+
+  hasProfilePicture(): boolean {
+    return !!this.authService.currentUser()?.profile_picture;
+  }
+
   hasField(field: string): boolean {
     const user = this.authService.currentUser();
     if (!user) return false;

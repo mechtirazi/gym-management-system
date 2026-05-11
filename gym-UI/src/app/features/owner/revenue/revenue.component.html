@@ -187,9 +187,19 @@
               <p class="sub">Based on current MoM velocity, target is {{ (stats()?.growth?.forecast || 0) * 15 | number:'1.0-0' }} DT</p>
             </div>
 
-            <div class="alert-box">
+            <div class="alert-box" *ngIf="lowStockProducts().length > 0">
               <h4>STOCK ALERTS</h4>
               <p>Critical items low on stock. Action required.</p>
+              <ul class="low-stock-list">
+                <li *ngFor="let prod of lowStockProducts()">
+                  <span class="prod-name">{{ prod.name }}</span>
+                  <span class="prod-stock">{{ prod.stock }} units</span>
+                </li>
+              </ul>
+            </div>
+            <div class="alert-box healthy" *ngIf="lowStockProducts().length === 0">
+              <h4>STOCK ALERTS</h4>
+              <p>Inventory stabilized. All critical nodes healthy.</p>
             </div>
           </div>
         </div>

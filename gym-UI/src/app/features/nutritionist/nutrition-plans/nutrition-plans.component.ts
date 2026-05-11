@@ -59,6 +59,77 @@ export class NutritionistNutritionPlansComponent implements OnInit {
   modalMode = signal<'add' | 'edit'>('add');
   selectedGymId: number | null = null;
   pendingDeleteId = signal<string | null>(null);
+  formTouched = signal(false);
+  touchedFields = signal<Set<string>>(new Set());
+
+  markTouched(field: string) {
+    this.touchedFields.update(s => {
+      const newSet = new Set(s);
+      newSet.add(field);
+      return newSet;
+    });
+  }
+
+  onNumberInput(event: any, field: keyof NutritionPlan | 'price', max: number) {
+    const input = event.target as HTMLInputElement;
+    let value = parseFloat(input.value);
+
+    if (isNaN(value) || value < 0) value = 0;
+    if (value > max) value = max;
+
+    input.value = value.toString();
+    
+    this.planForm.update(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }
+
+  errors = computed(() => {
+    const plan = this.planForm();
+    const memberIds = (plan as any).id_members || [];
+    const errs: Record<string, string> = {};
+
+    if (!plan.name?.trim()) errs['name'] = 'Protocol name required.';
+    if (!plan.goal?.trim()) errs['goal'] = 'Metabolic goal required.';
+    if (!this.selectedGymId) errs['id_gym'] = 'Gym context required.';
+    
+    if (plan.price === undefined || plan.price === null || plan.price < 0) errs['price'] = 'Invalid valuation.';
+    if (plan.price > 1000000) errs['price'] = 'Limit: 1M.';
+
+    if (!plan.start_date) errs['start_date'] = 'Start date required.';
+    if (!plan.end_date) errs['end_date'] = 'End date required.';
+    
+    if (plan.start_date && plan.end_date && plan.end_date < plan.start_date) {
+      errs['end_date'] = 'Check schedule logic.';
+    }
+
+    if (this.modalMode() === 'add' && plan.start_date && plan.start_date < this.todayDate) {
+      errs['start_date'] = 'Cannot be in past.';
+    }
+
+    if (!Array.isArray(memberIds) || memberIds.length === 0) {
+      errs['id_members'] = 'Assign at least 1 client.';
+    }
+
+    // Macro Validation
+    if ((plan.protein || 0) > 5000) errs['protein'] = 'Limit: 5k g';
+    if ((plan.carbs || 0) > 5000) errs['carbs'] = 'Limit: 5k g';
+    if ((plan.fats || 0) > 5000) errs['fats'] = 'Limit: 5k g';
+    if ((plan.calories || 0) > 20000) errs['calories'] = 'Limit: 20k kcal';
+
+    // Nested items validation
+    plan.meals?.forEach((m, i) => {
+      if (!m.name?.trim()) errs[`meal_name_${i}`] = 'Identity required.';
+    });
+    plan.supplements?.forEach((s, i) => {
+      if (!s.name?.trim()) errs[`supp_name_${i}`] = 'Identity required.';
+    });
+
+    return errs;
+  });
+
+  todayDate = new Date().toISOString().split('T')[0];
 
   planForm = signal<NutritionPlan>({
     id_plan: '',
@@ -286,7 +357,7 @@ export class NutritionistNutritionPlansComponent implements OnInit {
 
   onMessagePlan(plan: NutritionPlan): void {
     let members = plan.members || [];
-    
+
     if (members.length === 0 && (plan as any).id_members?.length > 0) {
       const ids = (plan as any).id_members;
       members = this.members().filter(m => ids.includes(m.id_user));
@@ -304,14 +375,14 @@ export class NutritionistNutritionPlansComponent implements OnInit {
       this.selectedMemberForPlanChat.set(null);
       return;
     }
-    
+
     this.initiateBioLink(members[0]);
   }
 
   initiateBioLink(member: any): void {
     this.selectedMemberForPlanChat.set(null);
     this.showMemberSelector.set(null);
-    
+
     setTimeout(() => {
       this.selectedMemberForPlanChat.set({
         id_user: member.id_user,
@@ -328,6 +399,7 @@ export class NutritionistNutritionPlansComponent implements OnInit {
 
   closeModal(): void {
     this.showModal.set(false);
+    this.formTouched.set(false);
   }
 
   submitPlan(): void {
@@ -336,16 +408,15 @@ export class NutritionistNutritionPlansComponent implements OnInit {
     const memberIds = (plan as any).id_members || [];
     const gymId = this.selectedGymId;
 
+    this.formTouched.set(true);
+
     if (!me) {
-      this.showToast('error', 'You must be logged in.');
+      this.showToast('error', 'Authentication required.');
       return;
     }
-    if (!gymId) {
-      this.showToast('error', 'Please select a gym.');
-      return;
-    }
-    if (!plan.goal || !plan.start_date || !plan.end_date || !Array.isArray(memberIds) || memberIds.length === 0) {
-      this.showToast('error', 'Please fill required fields and select at least one client.');
+
+    if (Object.keys(this.errors()).length > 0) {
+      this.showToast('error', 'Please correct the highlighted errors in the architect.');
       return;
     }
 

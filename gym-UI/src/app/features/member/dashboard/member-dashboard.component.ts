@@ -129,7 +129,7 @@ export class MemberDashboardComponent implements OnInit {
         return {
           ...data,
           mappedStats: {
-            activeWorkouts: backendStats?.enrollments || 0,
+            activeWorkouts: (data.enrollments?.data || []).filter((e: any) => e.id_plan && (e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending')).length,
             completedSessions: backendStats?.totalAttendance || 0,
             caloriesBurned: backendStats?.calories || 0,
             attendanceStreak: backendStats?.activeSubscriptions || 0,
@@ -153,7 +153,7 @@ export class MemberDashboardComponent implements OnInit {
         this.activeSubscription = subs.find((s: any) => s.status?.toLowerCase() === 'active') || subs[0] || null;
 
         const enrs = data.enrollments?.data || [];
-        this.activeEnrollment = enrs.find((e: any) => (e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending') && !e.id_course) || enrs[0] || null;
+        this.activeEnrollment = enrs.find((e: any) => (e.status?.toLowerCase() === 'active' || e.status?.toLowerCase() === 'pending') && e.id_plan) || null;
 
         this.stats = data.mappedStats;
 
@@ -270,11 +270,20 @@ export class MemberDashboardComponent implements OnInit {
     return Math.max(0, Math.ceil(diff / (1000 * 3600 * 24)));
   }
 
-  getSubscriptionProgress(endDate: string, type: string = 'standard'): number {
-    if (!endDate) return 0;
-    const total = (type?.toLowerCase() === 'premium') ? 90 : 30;
-    const left = this.getDaysLeft(endDate);
-    return Math.min(100, Math.round((left / total) * 100));
+  getSubscriptionProgress(startDate: string, endDate: string): number {
+    if (!startDate || !endDate) return 0;
+    
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    const now = new Date().getTime();
+    
+    if (now >= end) return 100;
+    if (now <= start) return 0;
+    
+    const total = end - start;
+    const elapsed = now - start;
+    
+    return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
   }
 
   getTargetCalories(): number {

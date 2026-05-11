@@ -32,14 +32,26 @@
         <div class="architect-section">
           <h3 class="section-title"><span class="material-symbols-rounded">fingerprint</span> Identity & Schedule</h3>
           <div class="form-grid">
-            <div class="form-group span-2">
-              <label>Protocol Name</label>
-              <input [(ngModel)]="planForm().name" name="name" placeholder="e.g. Phase 1: Metabolic Priming" required />
+            <div class="form-group span-2" [class.has-error]="(formTouched() || touchedFields().has('name')) && errors()['name']">
+              <label>Protocol Name <span class="required">*</span></label>
+              <input [(ngModel)]="planForm().name" name="name" (blur)="markTouched('name')" placeholder="e.g. Phase 1: Metabolic Priming" required />
+              @if ((formTouched() || touchedFields().has('name')) && errors()['name']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['name'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group span-2">
-              <label>Target Goal / Directive</label>
-              <input [(ngModel)]="planForm().goal" name="goal" placeholder="e.g. Hypertrophy, Metabolic Reset..."
+            <div class="form-group span-2" [class.has-error]="(formTouched() || touchedFields().has('goal')) && errors()['goal']">
+              <label>Target Goal / Directive <span class="required">*</span></label>
+              <input [(ngModel)]="planForm().goal" name="goal" (blur)="markTouched('goal')" placeholder="e.g. Hypertrophy, Metabolic Reset..."
                 required />
+              @if ((formTouched() || touchedFields().has('goal')) && errors()['goal']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['goal'] }}
+                </span> 
+              }
             </div>
             <div class="form-group span-2">
               <label>Protocol Visualization (Image)</label>
@@ -57,34 +69,65 @@
                 <input #fileInput type="file" (change)="onImageSelected($event)" accept="image/*" hidden />
               </div>
             </div>
-            <div class="form-group">
-              <label>Assigned Gym</label>
-              <select [(ngModel)]="selectedGymId" name="id_gym" required>
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('id_gym')) && errors()['id_gym']">
+              <label>Assigned Gym <span class="required">*</span></label>
+              <select [(ngModel)]="selectedGymId" name="id_gym" (blur)="markTouched('id_gym')" required>
                 <option [ngValue]="null" disabled>Select context...</option>
                 @for (g of gyms(); track g.id_gym) {
                 <option [ngValue]="g.id_gym">{{ g.name }}</option>
                 }
               </select>
+              @if ((formTouched() || touchedFields().has('id_gym')) && errors()['id_gym']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['id_gym'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group">
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('price')) && errors()['price']">
               <label>Base Valuation ($)</label>
-              <input type="number" [(ngModel)]="planForm().price" name="price" min="0" required />
+              <input type="number" [ngModel]="planForm().price" (input)="onNumberInput($event, 'price', 1000000)" (blur)="markTouched('price')" (keypress)="$event.key === 'e' || $event.key === '-' || $event.key === '+' ? $event.preventDefault() : null" min="0" required />
+              @if ((formTouched() || touchedFields().has('price')) && errors()['price']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['price'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group">
-              <label>Initiation</label>
-              <input type="date" [(ngModel)]="planForm().start_date" name="start_date" required />
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('start_date')) && errors()['start_date']">
+              <label>Initiation <span class="required">*</span></label>
+              <input type="date" [(ngModel)]="planForm().start_date" name="start_date" (blur)="markTouched('start_date')" [min]="todayDate" required />
+              @if ((formTouched() || touchedFields().has('start_date')) && errors()['start_date']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['start_date'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group">
-              <label>Termination</label>
-              <input type="date" [(ngModel)]="planForm().end_date" name="end_date" required />
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('end_date')) && errors()['end_date']">
+              <label>Termination <span class="required">*</span></label>
+              <input type="date" [(ngModel)]="planForm().end_date" name="end_date" (blur)="markTouched('end_date')"
+                [min]="planForm().start_date || todayDate" required />
+              @if ((formTouched() || touchedFields().has('end_date')) && errors()['end_date']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['end_date'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group span-2">
-              <label>Target Clients</label>
-              <select [(ngModel)]="planForm().id_members" name="id_members" multiple required class="multi-select">
+            <div class="form-group span-2" [class.has-error]="(formTouched() || touchedFields().has('id_members')) && errors()['id_members']">
+              <label>Target Clients <span class="required">*</span></label>
+              <select [(ngModel)]="planForm().id_members" name="id_members" (blur)="markTouched('id_members')" multiple required class="multi-select">
                 @for (m of members(); track m.id_user) {
                 <option [value]="m.id_user">{{ m.name }} {{ m.last_name }}</option>
                 }
               </select>
+              @if ((formTouched() || touchedFields().has('id_members')) && errors()['id_members']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['id_members'] }}
+                </span> 
+              }
             </div>
           </div>
         </div>
@@ -93,21 +136,45 @@
         <div class="architect-section">
           <h3 class="section-title"><span class="material-symbols-rounded">biotech</span> Metabolic Targets</h3>
           <div class="form-grid macro-grid">
-            <div class="form-group">
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('protein')) && errors()['protein']">
               <label>Protein (g)</label>
-              <input type="number" [(ngModel)]="planForm().protein" name="protein" />
+              <input type="number" [ngModel]="planForm().protein" (input)="onNumberInput($event, 'protein', 5000)" (blur)="markTouched('protein')" (keypress)="$event.key === 'e' || $event.key === '-' || $event.key === '+' ? $event.preventDefault() : null" />
+              @if ((formTouched() || touchedFields().has('protein')) && errors()['protein']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['protein'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group">
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('carbs')) && errors()['carbs']">
               <label>Carbs (g)</label>
-              <input type="number" [(ngModel)]="planForm().carbs" name="carbs" />
+              <input type="number" [ngModel]="planForm().carbs" (input)="onNumberInput($event, 'carbs', 5000)" (blur)="markTouched('carbs')" (keypress)="$event.key === 'e' || $event.key === '-' || $event.key === '+' ? $event.preventDefault() : null" />
+              @if ((formTouched() || touchedFields().has('carbs')) && errors()['carbs']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['carbs'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group">
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('fats')) && errors()['fats']">
               <label>Fats (g)</label>
-              <input type="number" [(ngModel)]="planForm().fats" name="fats" />
+              <input type="number" [ngModel]="planForm().fats" (input)="onNumberInput($event, 'fats', 5000)" (blur)="markTouched('fats')" (keypress)="$event.key === 'e' || $event.key === '-' || $event.key === '+' ? $event.preventDefault() : null" />
+              @if ((formTouched() || touchedFields().has('fats')) && errors()['fats']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['fats'] }}
+                </span> 
+              }
             </div>
-            <div class="form-group">
+            <div class="form-group" [class.has-error]="(formTouched() || touchedFields().has('calories')) && errors()['calories']">
               <label>Calories (kcal)</label>
-              <input type="number" [(ngModel)]="planForm().calories" name="calories" />
+              <input type="number" [ngModel]="planForm().calories" (input)="onNumberInput($event, 'calories', 20000)" (blur)="markTouched('calories')" (keypress)="$event.key === 'e' || $event.key === '-' || $event.key === '+' ? $event.preventDefault() : null" />
+              @if ((formTouched() || touchedFields().has('calories')) && errors()['calories']) { 
+                <span class="error-badge animate-shake">
+                  <span class="material-symbols-rounded">warning</span>
+                  {{ errors()['calories'] }}
+                </span> 
+              }
             </div>
           </div>
         </div>

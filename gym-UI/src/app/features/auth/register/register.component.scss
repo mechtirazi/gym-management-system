@@ -127,6 +127,37 @@ label {
     }
 }
 
+.phone-input-wrapper {
+    display: flex;
+    align-items: stretch;
+
+    .country-prefix {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-right: 1px solid var(--text-main);
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 700;
+        border-radius: 0.5rem 0 0 0.5rem;
+        user-select: none;
+
+        .flag-icon {
+            width: 18px;
+            height: 14px;
+            object-fit: cover;
+            border-radius: 2px;
+        }
+    }
+
+    input {
+        border-radius: 0 0.5rem 0.5rem 0;
+        padding-left: 1rem;
+    }
+}
+
 input {
     width: 100%;
     padding: 0.6rem 0.8rem 0.6rem 2.5rem;

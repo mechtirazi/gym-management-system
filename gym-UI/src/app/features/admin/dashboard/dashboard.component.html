@@ -33,7 +33,7 @@
         <div class="metric-info">
           <p class="label">Total MRR</p>
           <div *ngIf="!loadingMetrics(); else loadingState">
-            <h2 class="value">{{ mrr() | currency:'TND':'symbol':'1.0-0' }}</h2>
+            <h2 class="value">{{ mrr() | number:'1.0-0' }} TND</h2>
           </div>
           <div class="sub-meta">
             <span class="trend-tag">

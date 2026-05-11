@@ -135,6 +135,17 @@ export class MemberCoursesComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  formatDays(days: any): string {
+    if (!days) return '';
+    try {
+      const daysArr = typeof days === 'string' ? JSON.parse(days) : days;
+      if (Array.isArray(daysArr)) {
+        return daysArr.map(d => d.substring(0, 3)).join(', ');
+      }
+    } catch(e) {}
+    return '';
+  }
+
   ngOnInit(): void {
     this.loadData();
   }

@@ -20,9 +20,9 @@
       <div class="badges-row">
         <span class="badge gym-badge">{{ course().gym?.name || 'Main Gym' }}</span>
         @if (course().price > 0) {
-          <span class="badge price-badge">💰 {{ course().price }} DZD</span>
+        <span class="badge price-badge">💰 {{ course().price }} TND</span>
         } @else {
-          <span class="badge free-badge">Free</span>
+        <span class="badge free-badge">Free</span>
         }
       </div>
     </div>
@@ -53,7 +53,8 @@
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         </svg>
       </button>
-      <button class="icon-btn edit-btn" (click)="editClick.emit(course())" title="Update Course" aria-label="Edit course">
+      <button class="icon-btn edit-btn" (click)="editClick.emit(course())" title="Update Course"
+        aria-label="Edit course">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
           stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />

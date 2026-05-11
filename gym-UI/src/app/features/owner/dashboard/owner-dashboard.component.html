@@ -46,7 +46,7 @@
           <h2 class="kpi-title">Revenue Goals</h2>
           <div class="kpi-circle-wrap" style="background: conic-gradient(#10b981 0% 91%, #d946ef 91% 100%);">
             <div class="kpi-circle-inner text-white" style="padding: 0 10px;">
-              <span class="kpi-value text-2xl">{{ stats()?.totalRevenue || 0 | currency:'DT':'symbol':'1.0-0' }}</span>
+              <span class="kpi-value text-2xl">{{ stats()?.totalRevenue || 0 | number:'1.0-0' }} TND</span>
               <span class="kpi-label">Month<br>Revenue</span>
             </div>
             <div class="kpi-glow glow-emerald"></div>

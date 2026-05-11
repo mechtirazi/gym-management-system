@@ -40,7 +40,11 @@
         <circle class="fg" cx="50" cy="50" r="45" [style.stroke-dashoffset]="283 - (283 * profileCompletion().percentage / 100)"></circle>
       </svg>
       <div class="avatar-wrap">
-        <img [src]="getAvatarUrl()" (error)="$any($event.target).src = 'assets/images/default-avatar.png'" alt="Profile">
+        @if (hasProfilePicture()) {
+          <img [src]="getAvatarUrl()" (error)="$any($event.target).style.display = 'none'" alt="Profile">
+        } @else {
+          <div class="initials-avatar">{{ getInitials() }}</div>
+        }
       </div>
       <div class="percentage-badge">{{ profileCompletion().percentage }}%</div>
     </div>

@@ -44,7 +44,7 @@ class Order extends Model
             'order_product',
             'id_order',
             'id_product'
-        )->using(OrderProduct::class)->withPivot('quantity', 'price')->withTimestamps();
+        )->using(OrderProduct::class)->withPivot('quantity', 'price')->withTimestamps()->withTrashed();
     }
 
     public function member()

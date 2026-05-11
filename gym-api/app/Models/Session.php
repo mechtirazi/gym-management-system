@@ -36,9 +36,14 @@ class Session extends Model
         'start_time',
         'end_time',
         'id_course',
+        'is_weekly',
         'status',
         'id_trainer',
         'coaching_notes',
+    ];
+
+    protected $casts = [
+        'is_weekly' => 'boolean',
     ];
 
     // Relationships

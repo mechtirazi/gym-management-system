@@ -35,10 +35,48 @@
     
     .form-field {
       label { font-size: 0.625rem; margin-bottom: 2px; }
+      .phone-input-wrapper {
+        display: flex;
+        align-items: stretch;
+        padding: 0 !important;
+        overflow: hidden;
+
+        .country-prefix {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0 0.75rem;
+          background: rgba(255, 255, 255, 0.05);
+          border-right: 1px solid var(--admin-item-border);
+          color: #94a3b8;
+          font-size: 0.75rem;
+          font-weight: 800;
+          user-select: none;
+
+          .flag-icon {
+            width: 16px;
+            height: 12px;
+            object-fit: cover;
+            border-radius: 2px;
+          }
+        }
+
+        input {
+          flex: 1;
+          border: none !important;
+          border-radius: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0.75rem 1rem !important;
+        }
+      }
+
       input, textarea { 
         padding: 0.75rem 0.875rem; 
         font-size: 0.8rem;
-        background: rgba(255, 255, 255, 0.02);
+        background: var(--admin-item-bg);
+        border: 1px solid var(--admin-item-border);
+        color: var(--admin-text-primary);
       }
       textarea { min-height: 60px; }
       .error-text { font-size: 0.65rem; margin-top: 4px; color: var(--admin-accent-rose); font-weight: 600; display: block; }
@@ -47,7 +85,7 @@
         display: flex;
         align-items: center;
         padding: 0;
-        background: rgba(255, 255, 255, 0.02);
+        background: var(--admin-item-bg);
         border: 1px solid var(--admin-item-border);
         border-radius: 1rem;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -73,10 +111,10 @@
           border: none !important;
           box-shadow: none !important;
           font-family: 'JetBrains Mono', monospace;
-          color: #f8fafc;
+          color: var(--admin-text-primary);
           
           &::-webkit-calendar-picker-indicator {
-             filter: invert(1);
+             filter: var(--admin-icon-filter, invert(1));
              opacity: 0.6;
              cursor: pointer;
              transition: opacity 0.2s;
@@ -85,7 +123,7 @@
         }
         
         .separator {
-          color: #64748b;
+          color: var(--admin-text-secondary);
           font-weight: 800;
           font-size: 0.8rem;
           user-select: none;
@@ -97,11 +135,11 @@
   .subscription-selector-wrap {
     .tier-cards-grid {
       .tier-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: var(--admin-item-bg);
+        border: 1px solid var(--admin-item-border) !important;
         
-        h4 { color: #f8fafc; }
-        span { color: #94a3b8; }
+        h4 { color: var(--admin-text-primary); }
+        span { color: var(--admin-text-secondary); }
         
         &.active {
           background: rgba(16, 185, 129, 0.1);
@@ -112,34 +150,11 @@
         }
         
         &:hover:not(.active) {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2) !important;
+          background: var(--admin-item-bg-hover);
+          border-color: var(--admin-accent-indigo) !important;
         }
       }
     }
-  }
-
-  /* Light mode overrides if needed via global body class */
-  :host-context(html:not(.dark)) {
-     .tier-card {
-        background: #ffffff;
-        border: 2px solid #e2e8f0 !important;
-        h4 { color: #1e293b; }
-        &.active {
-           background: rgba(16, 185, 129, 0.05);
-           border-color: var(--admin-accent-emerald) !important;
-        }
-     }
-
-     .dual-time-wrap {
-        background: #ffffff !important;
-        input[type="time"] {
-           color: #1e293b;
-           &::-webkit-calendar-picker-indicator {
-              filter: none;
-           }
-        }
-     }
   }
 
 .admin-dialog-footer {

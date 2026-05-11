@@ -39,9 +39,8 @@ class UserController extends BaseApiController
         $user = User::whereRaw('LOWER(email) = ?', [strtolower($email)])
             ->whereIn('role', [
                 User::ROLE_TRAINER,
-                User::ROLE_RECEPTIONIST,
                 User::ROLE_NUTRITIONIST,
-
+                User::ROLE_MEMBER,
             ])
             ->first();
 

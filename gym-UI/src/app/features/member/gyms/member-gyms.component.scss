@@ -807,6 +807,36 @@
       background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
     }
   }
+
+  /* Filter dropdown menu */
+  .x-filter-menu {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+
+    .menu-section {
+      .section-label { color: #64748b; }
+
+      .menu-chip {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        color: #334155;
+
+        &:hover {
+          background: #e2e8f0;
+          border-color: var(--admin-accent-indigo);
+        }
+
+        &.active {
+          background: var(--admin-accent-indigo);
+          border-color: var(--admin-accent-indigo);
+          color: #ffffff;
+        }
+      }
+    }
+
+    .menu-divider { background: #f1f5f9; }
+  }
 }
 
 /* ================================================ */

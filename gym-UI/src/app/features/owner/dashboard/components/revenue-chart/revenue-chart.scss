@@ -14,7 +14,7 @@
   h2 {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #1e293b;
+    color: var(--text-main);
     margin: 0;
   }
 }
@@ -22,9 +22,9 @@
 .chart-filter {
   padding: 0.5rem 1rem;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: #64748b;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.85rem;
   outline: none;
@@ -32,8 +32,8 @@
   transition: all 0.2s;
 
   &:hover {
-    border-color: #cbd5e1;
-    background: #f8fafc;
+    border-color: var(--border-color);
+    background: var(--bg-hover);
   }
 }
 
@@ -63,10 +63,10 @@
 
 .main-chart {
   padding: 1.5rem;
-  background: white;
+  background: var(--bg-card);
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
 }
 
 .donuts-grid {
@@ -77,10 +77,10 @@
 
 .donut-card {
   padding: 1.5rem;
-  background: white;
+  background: var(--bg-card);
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;

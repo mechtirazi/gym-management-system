@@ -139,6 +139,11 @@
                     <span class="amount">{{ course.subscriptionPrice || course.subscription_price }}</span>
                     <span class="currency">DT</span>
                   </div>
+                  @if (course.recurring_days || course.recurrence_weeks) {
+                    <div class="sub-details" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; font-weight: 500;">
+                      {{ formatDays(course.recurring_days) }} • {{ course.recurrence_weeks || 4 }} Weeks
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -240,8 +245,8 @@
     [itemTitle]="selectedCourse?.name || 'Program'" 
     [itemImage]="selectedCourse?.imageUrl"
     [headerTitle]="isSubscriptionMode ? 'Get Full Pass' : 'Book Class'"
-    [itemSubtitle]="isSubscriptionMode ? 'Monthly Course Pass' : (selectedCourse?.category || 'Class')"
-    [purchaseTerms]="isSubscriptionMode ? 'Get access to every class session for the next 30 days.' : 'This secures your spot for one class session.'"
+    [itemSubtitle]="isSubscriptionMode ? 'Course Abonnement' : (selectedCourse?.category || 'Class')"
+    [purchaseTerms]="isSubscriptionMode ? 'Get access to ' + formatDays(selectedCourse?.recurring_days) + ' sessions for ' + (selectedCourse?.recurrence_weeks || 4) + ' weeks.' : 'This secures your spot for one class session.'"
     (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">
   </app-payment-modal>
 

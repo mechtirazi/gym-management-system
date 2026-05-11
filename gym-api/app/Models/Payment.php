@@ -85,17 +85,17 @@ class Payment extends Model
 
     public function course()
     {
-        return $this->belongsTo(Course::class, 'id_course', 'id_course');
+        return $this->belongsTo(Course::class, 'id_course', 'id_course')->withTrashed();
     }
 
     public function event()
     {
-        return $this->belongsTo(Event::class, 'id_event', 'id_event');
+        return $this->belongsTo(Event::class, 'id_event', 'id_event')->withTrashed();
     }
 
     public function nutritionPlan()
     {
-        return $this->belongsTo(NutritionPlan::class, 'id_nutrition', 'id_nutrition_plan');
+        return $this->belongsTo(NutritionPlan::class, 'id_nutrition', 'id_nutrition_plan')->withTrashed();
     }
 
     public function createdBy()
@@ -106,5 +106,10 @@ class Payment extends Model
     public function finalizedBy()
     {
         return $this->belongsTo(User::class, 'finalized_by', 'id_user');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'id_product', 'id_product')->withTrashed();
     }
 }

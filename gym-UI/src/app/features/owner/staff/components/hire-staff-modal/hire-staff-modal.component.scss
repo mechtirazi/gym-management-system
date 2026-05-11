@@ -110,13 +110,61 @@
           letter-spacing: 0.025em;
         }
 
+        .phone-input-group {
+          display: flex;
+          align-items: stretch;
+          border: 1.5px solid var(--border-color);
+          border-radius: 12px;
+          overflow: hidden;
+          background: var(--bg-input);
+          transition: all 0.2s;
+
+          &:focus-within {
+            border-color: #0ea5e9;
+            background: var(--bg-card);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+          }
+
+          .country-prefix {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 0.75rem;
+            background: var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-right: 1px solid var(--border-color);
+            user-select: none;
+
+            .flag-icon {
+              width: 18px;
+              height: 14px;
+              object-fit: cover;
+              border-radius: 2px;
+            }
+          }
+
+          input {
+            flex: 1;
+            border: none;
+            border-radius: 0;
+            padding: 0.75rem 1rem;
+            background: transparent;
+
+            &:focus {
+              box-shadow: none;
+            }
+          }
+        }
+
         input, select {
           padding: 0.75rem 1rem;
           border: 1.5px solid var(--border-color);
           border-radius: 12px;
           font-size: 0.95rem;
           transition: all 0.2s;
-          background: var(--bg-main);
+          background: var(--bg-input);
           color: var(--text-main);
 
           &:focus {
@@ -265,9 +313,8 @@
   justify-content: center;
   gap: 1rem;
   padding: 1.5rem;
-  background: var(--bg-main);
-  border: 1px dashed var(--border-color);
-  border-radius: 16px;
+  background: var(--bg-hover);
+  border-radius: 8px;
   color: var(--text-muted);
   font-weight: 600;
   font-size: 0.9rem;

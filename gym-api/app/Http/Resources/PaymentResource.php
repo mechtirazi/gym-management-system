@@ -41,10 +41,13 @@ class PaymentResource extends JsonResource
             ],
             'date' => $this->created_at->format('M d, Y, g:i A'),
             'is_editable' => !$this->is_locked,
-            'product' => ($this->order && $this->order->products->count() > 0) ? [
+            'product' => $this->product ? [
+                'name' => $this->product->name,
+                'id' => $this->product->id_product
+            ] : (($this->order && $this->order->products->count() > 0) ? [
                 'name' => $this->order->products->first()->name,
                 'id' => $this->order->products->first()->id_product
-            ] : null,
+            ] : null),
             'course' => $this->course ? [
                 'name' => $this->course->name,
                 'id' => $this->course->id_course

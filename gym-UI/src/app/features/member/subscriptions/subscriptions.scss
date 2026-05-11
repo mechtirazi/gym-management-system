@@ -256,15 +256,38 @@
       padding: 3rem; border-top: 1px solid var(--admin-item-border); display: flex; justify-content: space-between; align-items: center;
       background: rgba(255, 255, 255, 0.01);
       .status-pill {
-          padding: 0.5rem 1.5rem; border-radius: 100px; font-size: 0.8rem; font-weight: 900; text-transform: uppercase;
-          &.active { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
-          &.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-          &.expired { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+          padding: 0.5rem 1.5rem; border-radius: 100px; font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+          &.status-active { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); box-shadow: 0 0 15px rgba(34, 197, 94, 0.1); }
+          &.status-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 0 15px rgba(245, 158, 11, 0.1); }
+          &.status-expired { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
+      }
+      .price-and-action {
+        display: flex; align-items: center; gap: 1.5rem;
+      }
+      .btn-glass-primary-sm {
+          padding: 0.8rem 1.5rem;
+          border-radius: 1rem;
+          background: rgba(139, 92, 246, 0.1);
+          border: 1px solid rgba(139, 92, 246, 0.3);
+          color: #8b5cf6;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          
+          &:hover {
+            background: #8b5cf6;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
+          }
       }
       .price-node {
           display: flex; align-items: baseline; gap: 4px;
-          .currency { font-size: 1rem; font-weight: 900; color: #8b5cf6; }
-          .amount { font-size: 2rem; font-weight: 950; color: var(--text-main); }
+          .currency { font-size: 1.2rem; font-weight: 900; color: #8b5cf6; }
+          .amount { font-size: 2.5rem; font-weight: 950; color: var(--text-main); letter-spacing: -1px; }
       }
   }
 }

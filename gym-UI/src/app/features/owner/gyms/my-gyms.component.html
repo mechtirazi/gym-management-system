@@ -7,17 +7,17 @@
     <div class="header-content">
       <div class="protocol-badge">
         <mat-icon>security</mat-icon>
-        ZENITH SECURE CORE
+        SECURE MANAGEMENT
       </div>
-      <h1>My Facility Network</h1>
-      <p class="subtitle">Advanced node management for your fitness infrastructure. Monitor real-time status and maintain protocol synchronization.</p>
+      <h1>Facility Management</h1>
+      <p class="subtitle">Manage your gym locations and track your subscription status.</p>
     </div>
     <div class="header-actions">
       <button class="btn-refresh" (click)="loadGyms()" [disabled]="isLoading()">
         <svg [class.spinning]="isLoading()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
         </svg>
-        <span>SYNC MATRIX</span>
+        <span>REFRESH LIST</span>
       </button>
     </div>
   </header>
@@ -27,7 +27,7 @@
     <div class="message success animate-reveal" *ngIf="successMessage()">
       <div class="msg-icon"><mat-icon>check_circle</mat-icon></div>
       <div class="msg-body">
-        <strong>PROTOCOL UPDATED</strong>
+        <strong>SUCCESS</strong>
         <span>{{ successMessage() }}</span>
       </div>
       <button class="close-btn" (click)="successMessage.set(null)">×</button>
@@ -36,7 +36,7 @@
     <div class="message error animate-reveal" *ngIf="errorMessage()">
       <div class="msg-icon"><mat-icon>report_problem</mat-icon></div>
       <div class="msg-body">
-        <strong>SYNC ANOMALY</strong>
+        <strong>ERROR</strong>
         <span>{{ errorMessage() }}</span>
       </div>
       <button class="close-btn" (click)="errorMessage.set(null)">×</button>
@@ -78,22 +78,22 @@
           <div class="p-header">
             <div class="p-title-group">
               <mat-icon>hub</mat-icon>
-              <span class="p-title">Platform Protocol</span>
+              <span class="p-title">Subscription</span>
             </div>
             <span class="p-tier">{{ (gym.platform_subscription_type || 'Monthly') | uppercase }}</span>
           </div>
           
           <div class="p-meta">
             <div class="meta-item">
-              <span class="m-label">Contract Expiry</span>
+              <span class="m-label">Expires On</span>
               <span class="m-value" [class.expired-text]="(gym.days_remaining || 0) <= 0">
                 {{ gym.subscription_expires_at | date:'MMM d, yyyy' }}
               </span>
             </div>
             <div class="meta-item text-right">
-              <span class="m-label">Integrity Status</span>
+              <span class="m-label">Status</span>
               <span class="m-value" [class.warning]="(gym.days_remaining || 0) < 7" [class.expired-text]="(gym.days_remaining || 0) <= 0">
-                {{ (gym.days_remaining || 0) > 0 ? gym.days_remaining + ' Days' : 'Expired' }}
+                {{ (gym.days_remaining || 0) > 0 ? gym.days_remaining + ' Days Left' : 'Expired' }}
               </span>
             </div>
           </div>
@@ -110,16 +110,17 @@
         </div>
 
         <div class="suspension-info animate-reveal" *ngIf="gym.status === 'suspended'">
-          <div class="reason-label"><mat-icon>warning</mat-icon> SUSPENSION PROTOCOL ACTIVE</div>
-          <p class="reason-text">{{ gym.suspension_reason || 'Administrative Review Required: Please contact Zenith Support.' }}</p>
+          <div class="reason-label"><mat-icon>warning</mat-icon> GYM SUSPENDED</div>
+          <p class="reason-text">{{ gym.suspension_reason || 'This gym has been suspended. Please contact support for more information.' }}</p>
         </div>
       </div>
 
       <div class="card-footer">
         <div class="action-buttons">
-          <button class="btn-renew" (click)="openRenewal(gym)">
+          <button *ngIf="(gym.days_remaining || 0) <= 1" class="btn-renew" (click)="openRenewal(gym)" 
+            [title]="'Renew Subscription'">
             <mat-icon>autorenew</mat-icon>
-            <span>Extend Node</span>
+            <span>Renew Now</span>
           </button>
 
           <button class="btn-manage" [routerLink]="['/owner/gym-profile']" [queryParams]="{id: gym.id_gym}">
@@ -132,9 +133,9 @@
   </div>
 
   <!-- Platform Renewal Checkout -->
-  <app-payment-modal [showModal]="showRenewalModal()" [itemTitle]="selectedGymForRenewal()?.name || 'Platform Protocol'"
-    [itemSubtitle]="'Infrastructure Synchronization'"
-    [purchaseTerms]="'Renewing your gym protocol ensures continued access to platform services, biometric synchronization, and operational tools. This action is processed via secure Zenith Checkout.'"
+  <app-payment-modal [showModal]="showRenewalModal()" [itemTitle]="selectedGymForRenewal()?.name || 'Subscription'"
+    [itemSubtitle]="'Membership Renewal'"
+    [purchaseTerms]="'Renewing your subscription keeps your gym active and gives you access to all management tools, member tracking, and operational features.'"
     [processingPayment]="processingRenewal()" [paymentError]="errorMessage()" [stripePublicKey]="'pk_test_...'"
     [plans]="platformPlans" (cancelPayment)="closeRenewal()" (confirmPayment)="completeRenewal($event)">
   </app-payment-modal>
@@ -142,11 +143,11 @@
   <!-- Empty State -->
   <div class="empty-state glass animate-reveal" *ngIf="!isLoading() && gyms().length === 0">
     <div class="empty-icon">🏢</div>
-    <h2>No Infrastructure Nodes Found</h2>
-    <p>Your facility network is currently empty. Initialize your first gym through the command center to begin platform operations.</p>
+    <h2>No Gyms Found</h2>
+    <p>You haven't added any gyms yet. Go to the dashboard to create your first gym.</p>
     <button class="btn-primary-zenith" routerLink="/owner/dashboard">
       <mat-icon>add_business</mat-icon>
-      Create Facility
+      Add Gym
     </button>
   </div>
 

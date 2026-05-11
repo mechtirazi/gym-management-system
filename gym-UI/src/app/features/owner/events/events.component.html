@@ -70,7 +70,7 @@
     <div class="events-grid">
       @for (event of filteredEvents(); track event.id_event || $index) {
       <app-event-card [eventModel]="event" (deleteClick)="onDeleteEvent($event)"
-        (manageClick)="openManagementModal(event)">
+        (editClick)="openManagementModal(event)" (manageClick)="openManagementModal(event)">
       </app-event-card>
       }
     </div>

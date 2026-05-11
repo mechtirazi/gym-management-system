@@ -514,17 +514,17 @@
       border: 1.5px solid var(--border-color);
       border-radius: 12px;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      
+
       &:hover {
         border-color: var(--color-primary-400);
       }
-      
+
       &:focus-within {
         border-color: var(--color-primary-500);
         box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
         transform: translateY(-2px);
       }
-      
+
       input[type="time"] {
         flex: 1;
         min-width: 0;
@@ -535,16 +535,19 @@
         box-shadow: none !important;
         font-family: 'JetBrains Mono', monospace;
         color: var(--text-main);
-        
+
         &::-webkit-calendar-picker-indicator {
-           filter: invert(1);
-           opacity: 0.6;
-           cursor: pointer;
-           transition: opacity 0.2s;
-           &:hover { opacity: 1; }
+          filter: invert(1);
+          opacity: 0.6;
+          cursor: pointer;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 1;
+          }
         }
       }
-      
+
       .separator {
         color: var(--text-muted);
         font-weight: 800;

@@ -6,7 +6,7 @@
 
 .nested-gyms-wrap {
   padding: 2.5rem;
-  background: rgba(10, 15, 30, 0.4);
+  background: transparent;
   
   .nested-header {
     display: flex;
@@ -18,7 +18,7 @@
       margin: 0;
       font-size: 1rem;
       font-weight: 900;
-      color: #fff;
+      color: var(--admin-text-primary);
       text-transform: uppercase;
       letter-spacing: 0.1em;
       display: flex;
@@ -46,8 +46,8 @@
 
   &:hover {
     transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--admin-accent-indigo);
+    background: var(--admin-item-bg-hover);
   }
 
   .card-image {
@@ -55,7 +55,7 @@
     height: 120px;
     margin: -1.5rem -1.5rem 1.5rem -1.5rem;
     overflow: hidden;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--admin-item-border);
 
     img {
       width: 100%;
@@ -102,7 +102,7 @@
       margin: 0;
       font-size: 1.125rem;
       font-weight: 900;
-      color: #fff;
+      color: var(--admin-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -121,7 +121,7 @@
       gap: 0.4rem;
       font-size: 0.7rem;
       font-weight: 800;
-      color: #64748b;
+      color: var(--admin-text-secondary);
       text-transform: uppercase;
       
       mat-icon { font-size: 14px; width: 14px; height: 14px; }
@@ -132,7 +132,7 @@
     display: flex;
     justify-content: flex-end;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--admin-item-border);
     opacity: 1;
     transition: all 0.3s ease;
   }
@@ -141,12 +141,12 @@
 .empty-nested {
   text-align: center;
   padding: 4rem 0;
-  border: 1px dashed rgba(255, 255, 255, 0.05);
+  border: 1px dashed var(--admin-item-border);
   border-radius: 1.5rem;
   
-  mat-icon { font-size: 32px; width: 32px; height: 32px; color: #334155; margin-bottom: 1rem; }
-  p { font-size: 0.875rem; font-weight: 700; color: #475569; margin: 0; }
-  .sub { font-size: 0.7rem; color: #334155; margin-top: 0.25rem; }
+  mat-icon { font-size: 32px; width: 32px; height: 32px; color: var(--admin-text-secondary); margin-bottom: 1rem; }
+  p { font-size: 0.875rem; font-weight: 700; color: var(--admin-text-secondary); margin: 0; }
+  .sub { font-size: 0.7rem; color: var(--admin-text-secondary); margin-top: 0.25rem; }
 }
 
 .mini-badge {
@@ -156,8 +156,9 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.05);
-  color: #64748b;
+  background: var(--admin-item-bg);
+  border: 1px solid var(--admin-item-border);
+  color: var(--admin-text-secondary);
 
   &.active { background: rgba(16, 185, 129, 0.1); color: var(--admin-accent-emerald); }
   &.suspended { background: rgba(244, 63, 94, 0.1); color: var(--admin-accent-rose); }

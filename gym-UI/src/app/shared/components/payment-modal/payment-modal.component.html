@@ -32,10 +32,10 @@
                         </div>
                         <div class="item-price-pill" *ngIf="!selectedPlan && !totalPrice">VERIFIED</div>
                         <div class="item-price-pill price-dynamic" *ngIf="totalPrice && !selectedPlan">
-                            ${{ totalPrice | number:'1.2-2' }}
+                            {{ totalPrice | number:'1.2-2' }} TND
                         </div>
                         <div class="item-price-pill price-dynamic" *ngIf="selectedPlan">
-                            ${{ selectedPlan.price }}
+                            {{ selectedPlan.price }} TND
                         </div>
                     </div>
 
@@ -45,14 +45,15 @@
                         <div class="plans-grid">
                             <ng-container *ngFor="let plan of plans">
                                 <div class="plan-tier-card" *ngIf="plan"
-                                    [class.active]="(selectedPlan?.id_plan || selectedPlan?.id) === (plan?.id_plan || plan?.id)" 
+                                    [class.active]="(selectedPlan?.id_plan || selectedPlan?.id) === (plan?.id_plan || plan?.id)"
                                     (click)="selectPlan(plan)">
                                     <div class="tier-header">
                                         <span class="tier-name">{{ plan?.name }}</span>
-                                        <span class="tier-price">${{ plan?.price }}</span>
+                                        <span class="tier-price">{{ plan?.price }} TND</span>
                                     </div>
                                     <p class="tier-desc">{{ plan?.description }}</p>
-                                    <div class="tier-check" *ngIf="(selectedPlan?.id_plan || selectedPlan?.id) === (plan?.id_plan || plan?.id)">
+                                    <div class="tier-check"
+                                        *ngIf="(selectedPlan?.id_plan || selectedPlan?.id) === (plan?.id_plan || plan?.id)">
                                         <span class="material-symbols-rounded">check</span>
                                     </div>
                                 </div>
@@ -97,9 +98,12 @@
                         <div class="card-header-row">
                             <div class="card-chip"></div>
                             <div class="card-brand-logo">
-                                <img *ngIf="cardBrand === 'visa'" src="https://cdn.simpleicons.org/visa/white" alt="Visa">
-                                <img *ngIf="cardBrand === 'mastercard'" src="https://cdn.simpleicons.org/mastercard" alt="Mastercard">
-                                <span *ngIf="!['visa', 'mastercard'].includes(cardBrand)" class="material-symbols-rounded default-icon">credit_score</span>
+                                <img *ngIf="cardBrand === 'visa'" src="https://cdn.simpleicons.org/visa/white"
+                                    alt="Visa">
+                                <img *ngIf="cardBrand === 'mastercard'" src="https://cdn.simpleicons.org/mastercard"
+                                    alt="Mastercard">
+                                <span *ngIf="!['visa', 'mastercard'].includes(cardBrand)"
+                                    class="material-symbols-rounded default-icon">credit_score</span>
                             </div>
                         </div>
                         <div class="card-body-row">
@@ -107,7 +111,7 @@
                                 <label>CARD NUMBER</label>
                                 <div id="card-number" class="holo-input stripe-element"></div>
                             </div>
-                            
+
                             <div class="card-extra-info">
                                 <div class="form-row">
                                     <label>VALID THRU</label>
@@ -123,18 +127,20 @@
                     </div>
                 </div>
 
-                    <div id="card-errors" role="alert" class="error-message">{{ cardError }}</div>
+                <div id="card-errors" role="alert" class="error-message">{{ cardError }}</div>
 
                 <div class="conversion-rate-banner" *ngIf="selectedMethod === 'zen_wallet'">
                     <div class="rate-info">
                         <span class="pts">{{ getRequiredPoints() | number:'1.0-0' }} pts</span>
                         <span class="equals">=</span>
-                        <span class="currency">${{ (selectedPlan ? selectedPlan.price : (totalPrice || 0)) | number:'1.2-2' }}</span>
+                        <span class="currency">{{ (selectedPlan ? selectedPlan.price : (totalPrice || 0)) |
+                            number:'1.2-2' }} TND</span>
                     </div>
-                    <p class="rate-note">Conversion Protocol: 50 Points = $5.00</p>
+                    <p class="rate-note">Conversion Protocol: 50 Points = 5.00 TND</p>
                 </div>
 
-                <div class="insufficient-balance-warning" *ngIf="selectedMethod === 'zen_wallet' && !hasSufficientBalance()">
+                <div class="insufficient-balance-warning"
+                    *ngIf="selectedMethod === 'zen_wallet' && !hasSufficientBalance()">
                     <span class="material-symbols-rounded">warning</span>
                     Insufficient Zenith Points for this synchronization.
                 </div>

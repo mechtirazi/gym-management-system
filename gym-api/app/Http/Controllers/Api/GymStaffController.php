@@ -75,7 +75,7 @@ class GymStaffController extends BaseApiController
 
         // 2. User Does Not Exist -> Direct Link Flow
         if (!$userId) {
-             return response()->json(['success' => false, 'message' => 'User not found. Register them first or provide an existing email.'], 404);
+            return response()->json(['success' => false, 'message' => 'User not found. Register them first or provide an existing email.'], 404);
         }
 
         try {
@@ -108,9 +108,9 @@ class GymStaffController extends BaseApiController
                 $parts = explode(':', $notif->type);
                 $gymId = $parts[1] ?? null;
                 $role = $parts[2] ?? 'trainer';
-                
+
                 $gym = Gym::find($gymId);
-                
+
                 return [
                     'id_notification' => $notif->id_notification,
                     'id_gym' => $gymId,

@@ -71,11 +71,11 @@
         <div class="product-meta">
           <div class="price-box" [class.has-discount]="product.discount_percentage > 0">
             <div class="price-container">
-              <span class="currency">$</span>
+              <span class="currency">TND</span>
               <span class="amount">{{ (product.discount_percentage > 0 ? product.discounted_price : product.price) |
                 number:'1.2-2' }}</span>
               @if (product.discount_percentage > 0) {
-              <span class="original-price">${{ product.price | number:'1.2-2' }}</span>
+              <span class="original-price">TND {{ product.price | number:'1.2-2' }}</span>
               }
             </div>
           </div>

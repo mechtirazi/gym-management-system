@@ -29,6 +29,8 @@ class StorePaymentRequest extends FormRequest
             'id_product' => 'nullable|exists:products,id_product',
             'id_course' => 'nullable|exists:courses,id_course',
             'id_event' => 'nullable|exists:events,id_event',
+            'id_plan' => 'nullable|exists:membership_plans,id_plan',
+            'id_nutrition' => 'nullable|exists:nutrition_plans,id_plan',
 
             // Explicitly Rejected System Fields
             'status' => 'prohibited',

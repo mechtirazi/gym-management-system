@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class NutritionPlan extends Model
 {
     use HasFactory, HasUuids;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     use \App\Traits\HasSocialInteractions;
 
     protected $appends = ['is_liked', 'likes_count', 'comments_count'];

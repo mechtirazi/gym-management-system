@@ -130,7 +130,8 @@
                                 <div class="liquid-container circular">
                                     <div class="liquid" [style.height.%]="waterPercentage"></div>
                                     <div class="content">
-                                        <span class="val"><!-- DEBUG: {{ waterIntake }} -->{{ waterIntake |
+                                        <span class="val" [class.pulse]="waterPulse"><!-- DEBUG: {{ waterIntake }} -->{{
+                                            waterIntake |
                                             number:'1.2-2' }}<small>ml</small></span>
                                         <label>WATER INTAKE</label>
                                     </div>
@@ -331,7 +332,8 @@
             <header class="modal-top">
                 <div class="expert-info">
                     <img [src]="nutritionistInsight.image || activePlan?.expertImage || 'https://ui-avatars.com/api/?name=Expert&background=8b5cf6&color=fff&bold=true'"
-                        alt="Expert">
+                        alt="Expert"
+                        onerror="this.src='https://ui-avatars.com/api/?name=Expert&background=8b5cf6&color=fff&bold=true'">
                     <div class="text">
                         <span class="name">{{ nutritionistInsight.expert }}</span>
                         <span class="role">{{ nutritionistInsight.role }}</span>
@@ -375,7 +377,7 @@
 
                 <div class="biometric-pulse">
                     <div class="pulse-ring"></div>
-                    <span>SYNCED</span>
+
                 </div>
             </main>
 

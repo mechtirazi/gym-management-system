@@ -152,15 +152,15 @@
   background: var(--bg-card);
   border-radius: 1.25rem;
   padding: 1.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    box-shadow: 0 15px 50px -10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 15px 50px -10px rgba(15, 23, 42, 0.12);
   }
 }
 
@@ -330,14 +330,14 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--text-muted);
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
   }
 
   td {
     padding: 0.75rem 0;
     font-weight: 600;
     color: var(--text-main);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border-color);
   }
 
   tr:last-child td {
@@ -346,8 +346,8 @@
 }
 
 .quick-action-btn {
-  background: white;
-  border: 1px solid #f1f5f9;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
   border-radius: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -358,12 +358,12 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+  box-shadow: var(--shadow-sm);
 
   &:hover {
-    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 15px -3px rgba(15, 23, 42, 0.1);
     transform: translateY(-2px);
-    border-color: rgba(0, 0, 0, 0.05);
+    border-color: #0ea5e9;
   }
 
   .qa-title {

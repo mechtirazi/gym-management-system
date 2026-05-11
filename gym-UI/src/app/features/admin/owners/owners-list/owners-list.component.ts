@@ -406,15 +406,7 @@ export class OwnersListComponent implements OnInit {
     return initials || '??';
   }
 
-  getProfileImageUrl(path: string | null | undefined): string | null {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-    const cleanPath = path.replace(/^\//, '');
-
-    if (cleanPath.startsWith('storage/')) {
-      return `${baseUrl}/${cleanPath}`;
-    }
-    return `${baseUrl}/storage/${cleanPath}`;
+  getProfileImageUrl(path: string | null | undefined): string {
+    return this.authService.getAvatarUrl(path);
   }
 }

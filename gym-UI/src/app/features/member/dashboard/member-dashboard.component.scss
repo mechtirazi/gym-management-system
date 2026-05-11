@@ -880,16 +880,49 @@
 
 :host-context(html:not(.dark)) {
   .dashboard-hero {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+
     h1 .text-gradient {
       background: linear-gradient(135deg, #1e293b 0%, #6366f1 100%);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+
+    .subtitle {
+      color: #475569;
+      opacity: 1;
+    }
   }
 
-  .stat-pill .stat-data .value {
-    color: #1e293b;
+  .stat-pill {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    .stat-icon {
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+    }
+
+    .stat-data {
+      .label { color: #64748b; }
+      .value { color: #1e293b; }
+    }
+  }
+
+  .training-hub-v3 {
+    background: #ffffff;
+    border-color: #e2e8f0;
+
+    .module-header {
+      .header-text {
+        h2 { color: #0f172a; }
+        p { color: #64748b; }
+      }
+    }
   }
 
   .timeline-node .node-content {
@@ -903,10 +936,48 @@
     }
 
     .node-details h4 { color: #0f172a; }
+    .node-details p { color: #64748b; }
+  }
+
+  .wallet-vault-v2 {
+    .module-header-mini {
+      h2 { color: #334155; }
+
+      .wallet-gym-selector {
+        background: #ffffff;
+        border-color: rgba(139, 92, 246, 0.3);
+        color: #1e293b;
+
+        &:hover, &:focus {
+          background: #f8fafc;
+          border-color: #8b5cf6;
+        }
+
+        option {
+          background: #ffffff;
+          color: #1e293b;
+        }
+      }
+    }
+
+    .vault-display-compact .balance-readout {
+      .num { color: #0f172a; }
+      .tag { color: #64748b; }
+    }
   }
 
   .membership-widget-v3 {
+    .module-header-mini h2 { color: #334155; }
     .membership-content-v3 h3 { color: #0f172a; }
+    .m-status-progress {
+      .p-labels { color: #475569; }
+      .p-bar-base { background: #f1f5f9; }
+    }
+  }
+
+  .glass-module {
+    background: #ffffff;
+    border-color: #e2e8f0;
   }
 }
 
@@ -1019,28 +1090,29 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
   z-index: 1500;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
 
-  .dark & {
-    background: rgba(2, 6, 23, 0.85);
+  &:host-context(.dark) {
+    background: rgba(2, 6, 23, 0.6);
   }
 }
 
 .payment-modal {
   width: 100%;
-  max-width: 600px;
-  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  max-width: 950px;
+  background: var(--bg-card);
+  border: 1px solid var(--admin-glass-border);
   border-radius: 3rem;
   overflow: hidden;
+  box-shadow: var(--admin-glass-shadow);
 
-  .dark & {
+  &:host-context(.dark) {
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     border: 1px solid rgba(139, 92, 246, 0.3);
   }
@@ -1049,7 +1121,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 2.5rem 3rem 1.5rem;
+    padding: 1.5rem 2.5rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
     .title-group {
@@ -1089,12 +1161,16 @@
   }
 
   .modal-body {
-    padding: 2.5rem 3rem;
+    padding: 1.5rem 2.5rem 2.5rem;
 
     &.benefits-body {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+
+      @media (max-width: 850px) {
+        grid-template-columns: 1fr;
+      }
     }
   }
 }
@@ -1103,26 +1179,16 @@
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 1.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: 0.3s;
+  padding: 1.5rem;
+  background: var(--admin-item-bg);
+  border-radius: 2rem;
+  border: 1px solid var(--admin-item-border);
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 
   &:hover {
-    background: rgba(99, 102, 241, 0.05);
-    border-color: rgba(99, 102, 241, 0.2);
-    transform: translateX(5px);
-  }
-
-  .dark & {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-
-    &:hover {
-      background: rgba(139, 92, 246, 0.05);
-      border-color: rgba(139, 92, 246, 0.2);
-    }
+    background: var(--admin-item-bg-hover);
+    border-color: var(--admin-accent-indigo);
+    transform: translateX(8px);
   }
 
   .material-icons {
@@ -1152,6 +1218,7 @@
 }
 
 .full-width {
+  grid-column: 1 / -1;
   width: 100%;
   justify-content: center;
   margin-top: 1rem;

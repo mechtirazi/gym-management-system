@@ -70,7 +70,7 @@ class Enrollment extends Model
 
     public function plan()
     {
-        return $this->belongsTo(MembershipPlan::class, 'id_plan');
+        return $this->belongsTo(MembershipPlan::class, 'id_plan')->withTrashed();
     }
 
     public function getStartDateAttribute()
@@ -91,7 +91,7 @@ class Enrollment extends Model
 
     public function course()
     {
-        return $this->belongsTo(Course::class, 'id_course', 'id_course');
+        return $this->belongsTo(Course::class, 'id_course', 'id_course')->withTrashed();
     }
 
     /**

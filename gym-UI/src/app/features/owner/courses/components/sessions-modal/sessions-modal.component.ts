@@ -37,14 +37,28 @@ export class SessionsModalComponent implements OnInit {
 
   sessionForm: FormGroup;
 
+  todayDate = new Date().toISOString().split('T')[0];
+
   constructor() {
     this.sessionForm = this.fb.group({
-      date_session: [new Date().toISOString().split('T')[0], Validators.required],
-      start_time: ['10:00:00', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)]],
-      end_time: ['11:00:00', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)]],
+      date_session: [new Date().toISOString().split('T')[0], [Validators.required, this.futureDateValidator]],
+      start_time: ['10:00:00', [Validators.required, Validators.pattern(/^([0-2]?[0-9]):[0-5][0-9](:[0-5][0-9])?$/)]],
+      end_time: ['11:00:00', [Validators.required, Validators.pattern(/^([0-2]?[0-9]):[0-5][0-9](:[0-5][0-9])?$/)]],
       id_trainer: ['', Validators.required],
       status: ['upcoming', Validators.required]
-    }, { validators: this.timeRangeValidator });
+    }, { validators: [this.timeRangeValidator] });
+  }
+
+  private futureDateValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(value);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    return selectedDate >= today ? null : { pastDate: true };
   }
 
   // Custom validator to ensure start_time < end_time
@@ -140,7 +154,20 @@ export class SessionsModalComponent implements OnInit {
       return;
     }
 
-    const value = this.sessionForm.value;
+    const value = { ...this.sessionForm.value };
+    
+    // Ensure HH:MM:SS format for backend date_format:H:i:s
+    const formatTime = (time: string) => {
+      if (!time) return time;
+      const parts = time.split(':');
+      if (parts.length === 2) return `${time}:00`;
+      if (parts[0].length === 1) parts[0] = `0${parts[0]}`;
+      return parts.join(':');
+    };
+
+    value.start_time = formatTime(value.start_time);
+    value.end_time = formatTime(value.end_time);
+
     const payload = {
       ...value,
       id_course: this.course().id_course || this.course().id
@@ -191,5 +218,13 @@ export class SessionsModalComponent implements OnInit {
       next: () => this.fetchAttendances(attendance.id_session),
       error: () => this.submitError.set('Failed to update attendance.')
     });
+  }
+
+  openPicker(event: any) {
+    try {
+      event.target.showPicker();
+    } catch (e) {
+      console.log('showPicker not supported');
+    }
   }
 }

@@ -54,7 +54,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--bg-main);
+        background: var(--bg-hover);
 
         svg {
           width: 28px;
@@ -252,7 +252,7 @@
 
       .gym-badge {
         padding: 0.35rem 0.75rem;
-        background: var(--bg-main);
+        background: var(--bg-hover);
         border: 1px solid var(--border-color);
         border-radius: 8px;
         font-size: 0.8rem;
@@ -318,7 +318,7 @@
 
           &.view {
             border: 1px solid var(--border-color);
-            background: var(--bg-main);
+            background: var(--bg-hover);
             color: var(--text-muted);
 
             &:hover {
@@ -348,7 +348,7 @@
     .empty-icon {
       width: 64px;
       height: 64px;
-      background: var(--bg-main);
+      background: var(--bg-hover);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -647,7 +647,7 @@
             align-items: center;
             padding: 1rem;
             border-bottom: 1px dashed var(--border-color);
-            background: var(--bg-main);
+            background: var(--bg-hover);
             border-radius: 8px;
 
             .label {
@@ -690,7 +690,7 @@
 
             &:hover {
               border-color: #cbd5e0;
-              background: var(--bg-main);
+              background: var(--bg-hover);
             }
           }
         }

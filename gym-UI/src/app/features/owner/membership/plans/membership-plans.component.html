@@ -104,24 +104,41 @@
               <label>Tier Name</label>
               <div class="input-wrapper">
                 <span class="material-symbols-rounded input-icon">badge</span>
-                <input type="text" [(ngModel)]="currentPlan.name" placeholder="e.g. Discovery Pass">
+                <input type="text" name="name" [(ngModel)]="currentPlan.name" #name="ngModel" placeholder="e.g. Discovery Pass" required>
               </div>
+              @if (name.invalid && (name.dirty || name.touched)) {
+                <div class="field-error">* Tier name is required</div>
+              }
             </div>
             
             <div class="form-group">
               <label>Amount ($)</label>
               <div class="input-wrapper">
                 <span class="material-symbols-rounded input-icon">attach_money</span>
-                <input type="number" [(ngModel)]="currentPlan.price" placeholder="0.00">
+                <input type="number" name="price" [(ngModel)]="currentPlan.price" #price="ngModel" min="0" max="99999" placeholder="0.00" required>
               </div>
+              @if (price.invalid && (price.dirty || price.touched)) {
+                <div class="field-error">
+                  @if (price.errors?.['required']) { <span>* Amount is required</span> }
+                  @if (price.errors?.['min']) { <span>* Minimum is $0</span> }
+                  @if (price.errors?.['max']) { <span>* Maximum is $99,999</span> }
+                </div>
+              }
             </div>
             
             <div class="form-group">
               <label>Duration (Days)</label>
               <div class="input-wrapper">
                 <span class="material-symbols-rounded input-icon">event</span>
-                <input type="number" [(ngModel)]="currentPlan.duration_days" placeholder="30">
+                <input type="number" name="duration" [(ngModel)]="currentPlan.duration_days" #duration="ngModel" min="1" max="3650" placeholder="30" required>
               </div>
+              @if (duration.invalid && (duration.dirty || duration.touched)) {
+                <div class="field-error">
+                  @if (duration.errors?.['required']) { <span>* Duration is required</span> }
+                  @if (duration.errors?.['min']) { <span>* Minimum is 1 day</span> }
+                  @if (duration.errors?.['max']) { <span>* Maximum is 3650 days</span> }
+                </div>
+              }
             </div>
 
             <div class="form-group full-width">

@@ -28,7 +28,7 @@ export class TrainerCoursesComponent implements OnInit {
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
   selectedCourse = signal<any | null>(null);
-  
+
   broadcastCourse = signal<any | null>(null);
   broadcastMessage = signal<string | null>(null);
 
@@ -193,9 +193,7 @@ export class TrainerCoursesComponent implements OnInit {
     this.router.navigate(['/trainer/sessions'], { queryParams: { q: course.name } });
   }
 
-  viewMembers(course: any) {
-    this.router.navigate(['/trainer/members'], { queryParams: { q: course.name } });
-  }
+
 
   openBroadcast(course: any) {
     this.broadcastCourse.set(course);

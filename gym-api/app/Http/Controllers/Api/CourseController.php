@@ -82,6 +82,7 @@ class CourseController extends BaseApiController
                     'end_time' => $endTime,
                     'status' => 'upcoming',
                     'max_capacity' => $course->max_capacity,
+                    'is_weekly' => true,
                 ]);
 
                 // BIO-SYNC: Automatically reserve all members who have an active "Full Pass" for this course

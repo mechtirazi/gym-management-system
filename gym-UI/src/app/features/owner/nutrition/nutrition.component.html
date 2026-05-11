@@ -15,14 +15,6 @@
           <p class="subtitle">Manage dietary and nutrition plans for members.</p>
         </div>
       </div>
-      <button class="add-plan-btn" (click)="onAddPlan()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        Create Plan
-      </button>
     </div>
 
     <div class="nutrition-controls">
@@ -49,43 +41,47 @@
   @if (showModal()) {
     <div class="modal-backdrop" (click)="closeModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
-        <h3>{{ modalMode() === 'add' ? 'Create Nutrition Plan' : 'Edit Dietary Plan' }}</h3>
+        <h3>Dietary Plan Details</h3>
         
-        <form (ngSubmit)="submitPlan()" class="modal-form">
+        <form class="modal-form">
           <div class="form-grid">
             <label>
+              Protocol Name
+              <input [(ngModel)]="planForm().name" name="name" readonly />
+            </label>
+
+            <label>
               Plan Goal
-              <input [(ngModel)]="planForm().goal" name="goal" placeholder="e.g., Weight Loss, Muscle Gain" required />
+              <input [(ngModel)]="planForm().goal" name="goal" readonly />
             </label>
 
             <label>
               Price ($)
-              <input type="number" [(ngModel)]="planForm().price" name="price" min="0" required />
+              <input type="number" [(ngModel)]="planForm().price" name="price" readonly />
             </label>
             
             <label>
               Start Date
-              <input type="date" [(ngModel)]="planForm().start_date" name="start_date" required />
+              <input type="date" [(ngModel)]="planForm().start_date" name="start_date" readonly />
             </label>
             
             <label>
               End Date
-              <input type="date" [(ngModel)]="planForm().end_date" name="end_date" required />
+              <input type="date" [(ngModel)]="planForm().end_date" name="end_date" readonly />
             </label>
             
             <label>
               Assign Members
-              <select [(ngModel)]="planForm().id_members" name="id_members" multiple required class="multi-select">
+              <select [(ngModel)]="planForm().id_members" name="id_members" multiple disabled class="multi-select">
                 @for (member of members(); track member.id_user) {
                   <option [value]="member.id_user">{{ member.name }} {{ member.last_name }}</option>
                 }
               </select>
-              <small>Hold Ctrl (Cmd) to select multiple members</small>
             </label>
             
             <label>
               Assign Nutritionist
-              <select [(ngModel)]="planForm().id_nutritionist" name="id_nutritionist" required>
+              <select [(ngModel)]="planForm().id_nutritionist" name="id_nutritionist" disabled>
                 <option value="" disabled>Select a nutritionist</option>
                 @for (nutri of nutritionists(); track nutri.id_user) {
                   <option [value]="nutri.id_user">{{ nutri.name }} {{ nutri.last_name }}</option>
@@ -95,8 +91,7 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" (click)="closeModal()">Cancel</button>
-            <button type="submit" class="submit-btn">{{ modalMode() === 'add' ? 'Create Plan' : 'Update Plan' }}</button>
+            <button type="button" (click)="closeModal()" style="width: 100%;">Close Details</button>
           </div>
         </form>
       </div>

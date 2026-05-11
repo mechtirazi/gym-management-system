@@ -20,10 +20,10 @@
           placeholder="Search for events or workshops..." />
       </div>
       <select [(ngModel)]="selectedGymId" (ngModelChange)="onFilterChange()" class="gym-node-selector">
-          <option value="all">Global Hub (All Gyms)</option>
-          @for (gym of gyms; track gym.id_gym) {
-              <option [value]="gym.id_gym">{{ gym.name }}</option>
-          }
+        <option value="all">Global Hub (All Gyms)</option>
+        @for (gym of gyms; track gym.id_gym) {
+        <option [value]="gym.id_gym">{{ gym.name }}</option>
+        }
       </select>
     </div>
   </header>
@@ -39,21 +39,19 @@
     <div class="event-card glass-card animate-slide-up" [style.animation-delay]="$index * 0.1 + 's'"
       [class.is-reserved]="isEventReserved(event)">
       <div class="event-poster">
-        <img
-          [src]="event.imageUrl"
-          [alt]="event.title"
+        <img [src]="event.imageUrl" [alt]="event.title"
           (error)="event.imageUrl = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800'">
-        
+
         <div class="date-overlay">
           <span class="day">{{ event.start_date | date:'dd' }}</span>
           <span class="month">{{ event.start_date | date:'MMM' }}</span>
         </div>
-        
+
         @if (event.isRewarded) {
-          <div class="reward-badge">
-            <span class="material-symbols-rounded">stars</span>
-            <span>REWARDED</span>
-          </div>
+        <div class="reward-badge">
+          <span class="material-symbols-rounded">stars</span>
+          <span>REWARDED</span>
+        </div>
         }
       </div>
 
@@ -64,7 +62,7 @@
             <span>{{ event.gymName }}</span>
           </div>
           <div class="status-badge" [class.live]="isEventReserved(event)">
-             {{ isEventReserved(event) ? 'ENROLLED' : 'AVAILABLE' }}
+            {{ isEventReserved(event) ? 'ENROLLED' : 'AVAILABLE' }}
           </div>
         </div>
 
@@ -76,46 +74,44 @@
             <span class="material-symbols-rounded info-icon">schedule</span>
             <div class="meta-stack">
               <span class="meta-label">TIME</span>
-              <span class="meta-value text-glow">{{ event.start_time?.substring(0, 5) || '--:--' }} - {{ event.end_time?.substring(0, 5) || '--:--' }}</span>
+              <span class="meta-value text-glow">{{ event.start_time?.substring(0, 5) || '--:--' }} - {{
+                event.end_time?.substring(0, 5) || '--:--' }}</span>
             </div>
           </div>
-          
+
           @if (event.isRewarded) {
-            <div class="meta-node highlight">
-              <span class="material-symbols-rounded info-icon">military_tech</span>
-              <div class="meta-stack">
-                <span class="meta-label">REWARD</span>
-                <span class="meta-value reward-text">{{ event.rewardAmount }} Points</span>
-              </div>
+          <div class="meta-node highlight">
+            <span class="material-symbols-rounded info-icon">military_tech</span>
+            <div class="meta-stack">
+              <span class="meta-label">REWARD</span>
+              <span class="meta-value reward-text">{{ event.rewardAmount }} Points</span>
             </div>
+          </div>
           } @else {
-            <div class="meta-node">
-              <span class="material-symbols-rounded info-icon">groups</span>
-              <div class="meta-stack">
-                <span class="meta-label">SLOTS LEFT</span>
-                <span class="meta-value" [class.danger-text]="(event.max_participants - event.participantsCount) <= 3">
-                  {{ event.max_participants - event.participantsCount }} Available
-                </span>
-              </div>
+          <div class="meta-node">
+            <span class="material-symbols-rounded info-icon">groups</span>
+            <div class="meta-stack">
+              <span class="meta-label">SLOTS LEFT</span>
+              <span class="meta-value" [class.danger-text]="event.max_participants < 999999 && (event.max_participants - event.participantsCount) <= 3">
+                {{ event.max_participants >= 999999 ? 'Unlimited' : (event.max_participants - event.participantsCount) + ' Available' }}
+              </span>
             </div>
+          </div>
           }
         </div>
 
         <div class="card-footer">
           <div class="price-tag">
             @if (event.price > 0) {
-              <span class="currency">$</span>
-              <span class="amount">{{ event.price }}</span>
+            <span class="currency">TND </span>
+            <span class="amount">{{ event.price }}</span>
             } @else {
-              <span class="amount free-text">FREE</span>
+            <span class="amount free-text">FREE</span>
             }
           </div>
           <div class="actions-group">
-            <button class="reserve-btn" 
-              [class.reserved]="isEventReserved(event)"
-              [disabled]="isEventReserved(event)"
-              (click)="onReserve(event)" 
-              [title]="isEventReserved(event) ? 'Already secured' : 'Secure your spot'">
+            <button class="reserve-btn" [class.reserved]="isEventReserved(event)" [disabled]="isEventReserved(event)"
+              (click)="onReserve(event)" [title]="isEventReserved(event) ? 'Already secured' : 'Secure your spot'">
               <span class="material-symbols-rounded">{{ isEventReserved(event) ? 'verified' : 'stadium' }}</span>
               {{ isEventReserved(event) ? 'Secured' : (event.price > 0 ? 'Get Access' : 'Enroll Free') }}
             </button>
@@ -134,10 +130,9 @@
 
     <div class="page-indicators">
       @for (p of [].constructor(totalPages); track $index) {
-          <button class="page-pill"
-            [class.active]="currentPage === $index + 1" (click)="changePage($index + 1)">
-            {{ $index + 1 }}
-          </button>
+      <button class="page-pill" [class.active]="currentPage === $index + 1" (click)="changePage($index + 1)">
+        {{ $index + 1 }}
+      </button>
       }
     </div>
 
@@ -169,10 +164,8 @@
   }
 
   <app-payment-modal [showModal]="showPaymentModal" [processingPayment]="processingPayment"
-    [paymentError]="paymentError"
-    [stripePublicKey]="stripePublicKey"
-    [headerTitle]="'Secure Event Node'" [itemTitle]="selectedEvent?.title || 'Event Access'"
-    [itemSubtitle]="selectedEvent?.gymName || 'Elite Facility'"
+    [paymentError]="paymentError" [stripePublicKey]="stripePublicKey" [headerTitle]="'Secure Event Node'"
+    [itemTitle]="selectedEvent?.title || 'Event Access'" [itemSubtitle]="selectedEvent?.gymName || 'Elite Facility'"
     [itemImage]="selectedEvent?.imageUrl"
     [purchaseTerms]="'Securing this node grants you full access to the event and all associated rewards mentioned in the description.'"
     (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">

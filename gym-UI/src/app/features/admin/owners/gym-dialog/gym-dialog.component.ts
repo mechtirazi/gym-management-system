@@ -43,7 +43,7 @@ export class GymDialogComponent {
     email: ['', [Validators.required, Validators.email]],
     description: ['', [Validators.required, Validators.minLength(10)]],
     adress: ['', [Validators.required, Validators.minLength(3)]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-]{8,20}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
     capacity: [100, [Validators.required, Validators.min(1)]],
     open_mon_fri_start: ['08:00', [Validators.required]],
     open_mon_fri_end: ['22:00', [Validators.required]],

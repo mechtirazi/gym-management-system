@@ -50,22 +50,22 @@
 .empty-activity {
   text-align: center;
   padding: 5rem 0;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed rgba(255, 255, 255, 0.05);
+  background: var(--admin-item-bg);
+  border: 1px dashed var(--admin-item-border);
   border-radius: var(--admin-radius-lg);
 
   mat-icon {
     font-size: 48px;
     width: 48px;
     height: 48px;
-    color: #334155;
+    color: var(--admin-text-secondary);
     margin-bottom: 1rem;
   }
 
   p {
     font-size: 0.75rem;
     font-weight: 800;
-    color: #64748b;
+    color: var(--admin-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }

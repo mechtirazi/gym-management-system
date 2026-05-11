@@ -82,6 +82,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'manual_fats',
         'manual_water',
         'manual_weight',
+        'manual_body_fat',
         'manual_height',
         'target_weight',
         'evolution_points',

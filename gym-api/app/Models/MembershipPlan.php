@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class MembershipPlan extends Model
 {
     use HasFactory, HasUuids;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'id_gym',

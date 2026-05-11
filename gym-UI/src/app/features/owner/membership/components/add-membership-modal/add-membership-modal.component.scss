@@ -19,9 +19,9 @@
     -webkit-backdrop-filter: blur(25px) saturate(200%);
     border-radius: 40px;
     width: 100%;
-    max-width: 950px;
+    max-width: 1100px;
     margin: auto;
-    padding: 2rem;
+    padding: 2.5rem 3.5rem;
     position: relative;
     box-shadow:
       0 10px 25px -5px rgba(0, 0, 0, 0.1),
@@ -214,6 +214,26 @@
         padding-right: 3.5rem;
       }
 
+      input[type="date"] {
+        position: relative;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1.25rem center;
+        background-size: 18px;
+        padding-right: 3.5rem;
+
+        &::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: 3.5rem;
+          opacity: 0;
+          z-index: 2;
+        }
+      }
+
       .error-text {
         font-size: 0.8rem;
         font-weight: 700;
@@ -376,8 +396,142 @@
 }
 
 @keyframes reveal {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Phone Input Wrapper ─── */
+.phone-input-wrapper {
+  display: flex;
+  align-items: stretch;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:focus-within {
+    border-color: #0ea5e9;
+    background: white;
+    box-shadow: 0 0 0 5px rgba(14, 165, 233, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .country-prefix {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0 1.1rem;
+    background: #f1f5f9;
+    border-right: 1.5px solid #e2e8f0;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 850;
+    user-select: none;
+
+    img {
+      width: 22px;
+      height: 16px;
+      object-fit: cover;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+  }
+
+  input {
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    padding: 1.1rem 1.4rem;
+  }
+}
+
+/* ─── Search Lookup UI ─── */
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    width: 100%;
+    padding-right: 40px !important;
+  }
+
+  .search-spinner {
+    position: absolute;
+    right: 12px;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(14, 165, 233, 0.1);
+    border-top-color: #0ea5e9;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+.user-found-preview {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .found-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #10b981;
+    font-weight: 850;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+
+    .user-name {
+      color: var(--admin-text-primary);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .user-email {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.user-not-found {
+  padding: 1rem;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px dashed rgba(245, 158, 11, 0.3);
+  border-radius: 16px;
+
+  .warning-text {
+    color: #d97706;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    font-weight: 500;
+  }
 }
 
 /* ─── Dark Mode Overrides ─── */
@@ -387,31 +541,81 @@
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.6);
     scrollbar-color: #334155 transparent;
-    &::-webkit-scrollbar-thumb { background: #334155; }
+
+    &::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
 
     .modal-header {
-      .title-text h2 { color: #f1f5f9; }
-      .title-text .subtitle { color: #94a3b8; }
+      .title-text h2 {
+        color: #f1f5f9;
+      }
+
+      .title-text .subtitle {
+        color: #94a3b8;
+      }
+
       .close-btn {
         background: rgba(255, 255, 255, 0.07);
         color: #64748b;
-        &:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.15);
+          color: #ef4444;
+        }
       }
     }
 
     .form-header-row {
-      h3 { color: #f1f5f9; }
-      .text-btn { background: rgba(14, 165, 233, 0.1); }
+      h3 {
+        color: #f1f5f9;
+      }
+
+      .text-btn {
+        background: rgba(14, 165, 233, 0.1);
+      }
     }
 
     .form-group {
-      label { color: #94a3b8; }
-      input, select {
+      label {
+        color: #94a3b8;
+      }
+
+      input,
+      select {
         background: rgba(255, 255, 255, 0.05);
         border-color: rgba(255, 255, 255, 0.1);
         color: #f1f5f9;
-        &:focus { background: rgba(255, 255, 255, 0.08); border-color: #0ea5e9; }
-        &.invalid { background: rgba(252, 165, 165, 0.08); border-color: rgba(252, 165, 165, 0.3); }
+
+        &:focus {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: #0ea5e9;
+        }
+
+        &.invalid {
+          background: rgba(252, 165, 165, 0.08);
+          border-color: rgba(252, 165, 165, 0.3);
+        }
+      }
+    }
+
+    .phone-input-wrapper {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+
+      &:focus-within {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #0ea5e9;
+      }
+
+      .country-prefix {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+      }
+
+      input {
+        color: #f1f5f9;
       }
     }
 
@@ -424,11 +628,17 @@
     .form-footer .cancel-btn {
       background: rgba(255, 255, 255, 0.07);
       color: #94a3b8;
-      &:hover { background: rgba(255, 255, 255, 0.1); color: #f1f5f9; }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+      }
     }
 
     .preview-box {
-      .preview-item .p-value { color: #f1f5f9; }
+      .preview-item .p-value {
+        color: #f1f5f9;
+      }
     }
   }
 }

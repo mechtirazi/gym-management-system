@@ -18,7 +18,7 @@
 
     input {
       width: 100%;
-      background: var(--bg-main);
+      background: var(--bg-input);
       border: 1.5px solid var(--border-color);
       border-radius: 16px;
       padding: 0.9rem 1.2rem 0.9rem 3.5rem;
@@ -54,7 +54,7 @@
   margin-right: 0.5rem;
 
   &:hover {
-    background: var(--bg-main);
+    background: var(--bg-hover);
     color: #0ea5e9;
     border-color: #bae6fd;
   }

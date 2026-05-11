@@ -109,7 +109,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   padding: 1.25rem;
-  background: var(--bg-input);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
   border-radius: 18px;
 
   .detail-item {
@@ -150,7 +151,7 @@
   align-items: center;
   gap: 1.5rem;
   margin-top: auto;
-  border-top: 1px solid var(--border-glass);
+  border-top: 1px solid var(--border-color);
   padding-top: 1.25rem;
 
   .contact-strip {
@@ -217,11 +218,11 @@
   right: 0;
   width: 180px;
   background: var(--bg-card);
-  border: 1px solid var(--border-glass);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 0.5rem;
   z-index: 100;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   margin-top: 0.5rem;
 
   .dropdown-item {
@@ -266,7 +267,7 @@
 
   .divider {
     height: 1px;
-    background: var(--border-glass);
+    background: var(--border-color);
     margin: 0.4rem 0.25rem;
   }
 }

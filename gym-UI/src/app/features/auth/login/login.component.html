@@ -28,6 +28,10 @@
           <input id="login-email" type="email" formControlName="email" placeholder="name@example.com"
             autocomplete="email" required>
         </div>
+        <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid" class="error-text">
+          <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required.</span>
+          <span *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email address.</span>
+        </div>
       </div>
 
       <!-- PASSWORD -->
@@ -47,6 +51,10 @@
 
           <input id="login-password" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
             placeholder="Enter your password" autocomplete="current-password" required>
+        </div>
+        <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="error-text">
+          <span *ngIf="loginForm.get('password')?.errors?.['required']">Password is required.</span>
+          <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters.</span>
         </div>
       </div>
 

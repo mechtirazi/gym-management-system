@@ -123,7 +123,7 @@
       }
 
       .form-section {
-        background: var(--bg-main);
+        background: var(--bg-card);
         border-radius: 24px;
         padding: 2rem;
         border: 1px solid var(--border-color);
@@ -173,16 +173,40 @@
 
             input, select {
               padding: 0.9rem 1.25rem;
-              border: 1.5px solid var(--text-muted);
-              border-radius: 14px;
+              background: #f8fafc;
+              border: 1.5px solid #e2e8f0;
+              border-radius: 12px;
               font-size: 0.95rem;
-              background: var(--bg-card);
-              transition: all 0.2s;
+              font-weight: 600;
+              color: #1e293b;
+              transition: 0.3s;
+              width: 100%;
 
               &:focus {
                 outline: none;
-                border-color: #0ea5e9;
-                box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+                border-color: #6366f1;
+                background: #fff;
+                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+              }
+            }
+
+            input[type="date"] {
+              position: relative;
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+              background-repeat: no-repeat;
+              background-position: right 1.25rem center;
+              background-size: 18px;
+              padding-right: 3.5rem;
+
+              &::-webkit-calendar-picker-indicator {
+                cursor: pointer;
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 3.5rem;
+                opacity: 0;
+                z-index: 2;
               }
             }
           }
@@ -229,7 +253,7 @@
 
           .attendance-header {
             padding: 1.25rem;
-            background: var(--bg-main);
+            background: var(--bg-hover);
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -282,7 +306,7 @@
               border-radius: 12px;
               transition: background 0.2s;
 
-              &:hover { background: var(--bg-main); }
+              &:hover { background: var(--bg-hover); }
 
               .member-meta {
                 display: flex;
@@ -379,7 +403,7 @@
 
               &.upcoming { background: #e0f2fe; color: #0369a1; }
               &.ongoing { background: #dcfce7; color: #166534; }
-              &.completed { background: var(--bg-main); color: var(--text-muted); border: 1px solid var(--border-color); }
+              &.completed { background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border-color); }
               &.cancelled { background: #fee2e2; color: #991b1b; }
             }
           }
@@ -388,7 +412,7 @@
             padding: 10px;
             color: var(--text-muted);
             border-radius: 12px;
-            background: var(--bg-main);
+            background: var(--bg-hover);
             svg { width: 18px; height: 18px; }
             &:hover { background: #fee2e2; color: #ef4444; }
           }

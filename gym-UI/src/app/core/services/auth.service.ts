@@ -240,10 +240,16 @@ export class AuthService {
     }
   }
 
-  getAvatarUrl(path?: string): string {
+  getAvatarUrl(path?: string | null): string {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    const baseUrl = this.API_URL.replace('/api', '');
-    return `${baseUrl}/storage/${path}`;
+    
+    const baseUrl = this.API_URL.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '');
+
+    if (cleanPath.startsWith('storage/')) {
+      return `${baseUrl}/${cleanPath}`;
+    }
+    return `${baseUrl}/storage/${cleanPath}`;
   }
 }

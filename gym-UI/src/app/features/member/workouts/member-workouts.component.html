@@ -12,42 +12,49 @@
 
   <!-- KATALOG VIEW -->
   <section class="catalog-grid-view animate-fade-in" *ngIf="showCatalog">
-    <div class="catalog-instructions glass-container mb-4">
-      <span class="material-icons">info</span>
-      <p>Browse all available exercises. Click one to add it to your workout.</p>
-    </div>
-
-    <div class="catalog-toolbar glass-container mb-4">
-      <input type="text" [(ngModel)]="exSearch" placeholder="Search Catalog..." class="glass-search">
-      
-      <div class="category-filters main-catalog-filters">
-        <button class="filter-chip" [class.active]="activeCategory === 'all'" (click)="activeCategory = 'all'">All</button>
-        <button class="filter-chip" [class.active]="activeCategory === 'chest'" (click)="activeCategory = 'chest'">Chest</button>
-        <button class="filter-chip" [class.active]="activeCategory === 'back'" (click)="activeCategory = 'back'">Back</button>
-        <button class="filter-chip" [class.active]="activeCategory === 'legs'" (click)="activeCategory = 'legs'">Legs</button>
-        <button class="filter-chip" [class.active]="activeCategory === 'shoulders'" (click)="activeCategory = 'shoulders'">Shoulders</button>
+    <!-- Header/Toolbar Area (Static) -->
+    <div class="catalog-fixed-header">
+      <div class="catalog-instructions glass-container mb-4">
+        <span class="material-icons">info</span>
+        <p>Browse all available exercises. Click one to add it to your workout.</p>
       </div>
 
-      <div class="zoom-slider-container ml-auto">
-        <span class="material-icons">zoom_in</span>
-        <input type="range" min="0.5" max="1.5" step="0.1" [(ngModel)]="catalogScale" class="zoom-slider">
+      <div class="catalog-toolbar glass-container mb-4">
+        <input type="text" [(ngModel)]="exSearch" placeholder="Search Catalog..." class="glass-search">
+        
+        <div class="category-filters main-catalog-filters">
+          <button class="filter-chip" [class.active]="activeCategory === 'all'" (click)="activeCategory = 'all'">All</button>
+          <button class="filter-chip" [class.active]="activeCategory === 'chest'" (click)="activeCategory = 'chest'">Chest</button>
+          <button class="filter-chip" [class.active]="activeCategory === 'back'" (click)="activeCategory = 'back'">Back</button>
+          <button class="filter-chip" [class.active]="activeCategory === 'legs'" (click)="activeCategory = 'legs'">Legs</button>
+          <button class="filter-chip" [class.active]="activeCategory === 'shoulders'" (click)="activeCategory = 'shoulders'">Shoulders</button>
+        </div>
+
+        <div class="zoom-slider-container ml-auto">
+          <span class="material-icons">zoom_in</span>
+          <input type="range" min="0.5" max="1.5" step="0.1" [(ngModel)]="catalogScale" class="zoom-slider">
+        </div>
       </div>
     </div>
-    <div class="pro-catalog-grid" [ngStyle]="gridScaleStyle">
-      <div class="cat-card glass-item animate-slide-up" [class.is-synced]="isInCatalog(ex.name)" 
-        *ngFor="let ex of filteredExercises; trackBy: trackByLibraryItem"
-        (click)="addPresetExercise(ex.name)">
-        <div class="card-visual">
-          <img [src]="ex.image" alt="exercise">
-          <div class="visual-overlay"></div>
-        </div>
-        <div class="card-info-pane">
-          <span class="ex-name">{{ ex.name }}</span>
-          <span class="ex-cat badge">{{ ex.category }}</span>
-        </div>
-        <div class="sync-indicator">
-          <span class="material-icons">{{ isInCatalog(ex.name) ? 'bookmark_added' : 'sync' }}</span>
-          {{ isInCatalog(ex.name) ? 'SAVED' : 'ADD TO LIST' }}
+
+    <!-- Scrollable Grid Area -->
+    <div class="catalog-scroll-body custom-scrollbar">
+      <div class="pro-catalog-grid" [ngStyle]="gridScaleStyle">
+        <div class="cat-card glass-item animate-slide-up" [class.is-synced]="isInCatalog(ex.name)" 
+          *ngFor="let ex of filteredExercises; trackBy: trackByLibraryItem"
+          (click)="addPresetExercise(ex.name)">
+          <div class="card-visual">
+            <img [src]="ex.image" alt="exercise">
+            <div class="visual-overlay"></div>
+          </div>
+          <div class="card-info-pane">
+            <span class="ex-name">{{ ex.name }}</span>
+            <span class="ex-cat badge">{{ ex.category }}</span>
+          </div>
+          <div class="sync-indicator">
+            <span class="material-icons">{{ isInCatalog(ex.name) ? 'bookmark_added' : 'sync' }}</span>
+            {{ isInCatalog(ex.name) ? 'SAVED' : 'ADD TO LIST' }}
+          </div>
         </div>
       </div>
     </div>

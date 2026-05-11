@@ -183,6 +183,20 @@
         height: 100%;
         object-fit: cover;
       }
+
+      .initials-avatar {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--admin-accent-indigo, #6366f1), var(--admin-accent-fuchsia, #d946ef));
+        color: white;
+        font-weight: 900;
+        font-size: 1.4rem;
+        letter-spacing: -0.5px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
     }
   }
 
