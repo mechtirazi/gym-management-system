@@ -22,6 +22,10 @@ services:
       bash -c "composer install &&
       php artisan key:generate &&
       php artisan migrate --force &&
+      if [ ! -f storage/oauth-public.key ]; then php artisan passport:keys; fi &&
+      chmod 600 storage/oauth-*.key &&
+      chown www-data:www-data storage/oauth-*.key &&
+      php artisan passport:client --personal --name='Gym Personal Access Client' --no-interaction || true &&
       apache2-foreground"
 
   ui:
