@@ -1,0 +1,79 @@
+services:
+  api:
+    build:
+      context: ./gym-api
+      dockerfile: Dockerfile
+    container_name: gym_api_dev
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./gym-api:/var/www/html
+    env_file:
+      - ./gym-api/.env
+    environment:
+      - DB_HOST=mysql
+      - REDIS_HOST=redis
+    depends_on:
+      - mysql
+      - redis
+    # Override command to run setup and start apache
+    command: >
+      bash -c "composer install &&
+      php artisan key:generate &&
+      php artisan migrate --force &&
+      apache2-foreground"
+
+  ui:
+    image: node:20
+    container_name: gym_ui_dev
+    working_dir: /app
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./gym-UI:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    command: >
+      bash -c "npm install --force && 
+      npm run start -- --host 0.0.0.0 --poll 2000"
+
+  mysql:
+    image: mysql:8.0
+    container_name: gym_mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: gym_db
+      MYSQL_ROOT_PASSWORD: mechtirazi52295730
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:alpine
+    container_name: gym_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: gym_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8888:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: mechtirazi52295730
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+  redis_data:
