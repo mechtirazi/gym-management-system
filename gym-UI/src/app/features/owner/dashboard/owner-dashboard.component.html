@@ -231,7 +231,7 @@
                 </div>
               </div>
               <span class="metric-chip">{{ item.total_sold }}</span>
-              <span class="text-right metric-revenue">${{ item.revenue | number:'1.2-2' }}</span>
+              <span class="text-right metric-revenue">{{ item.revenue | number:'1.2-2' }} TND</span>
             </div>
             } @empty {
             <div class="empty-state-mini">No product sales analytics yet</div>
@@ -305,6 +305,41 @@
             <span class="qa-desc">Manage your profile and dashboard preferences</span>
           </button>
         </div>
+      </div>
+
+      <!-- Top Membership Plans -->
+      <div class="dashboard-card premium-card membership-sidebar-card">
+        <div class="flex-between" style="margin-bottom: 1.25rem;">
+          <h2 class="kpi-title" style="margin: 0; text-align: left;">Top Membership Plans</h2>
+          <span class="material-symbols-rounded text-emerald-500">workspace_premium</span>
+        </div>
+
+        @if (topMembershipPlans().length > 0) {
+        <div class="membership-pie-wrap">
+          <div class="membership-pie-chart" [style.background]="membershipPieGradient()">
+            <div class="membership-pie-center">
+              <span class="membership-total">{{ membershipPlanSoldTotal() }}</span>
+              <span class="membership-total-label">Sold Plans</span>
+            </div>
+          </div>
+
+          <div class="membership-legend-list">
+            @for (plan of topMembershipPlans(); track plan.id ?? plan.name; let i = $index) {
+            <div class="membership-legend-item">
+              <span class="legend-dot" [style.background]="membershipPlanColor(plan, i)"></span>
+              <div class="legend-copy">
+                <span class="legend-name">{{ plan.name }}</span>
+                <span class="legend-subtext">{{ plan.total_sold }} sold ({{ membershipPlanShare(plan) | number:'1.0-0'
+                  }}%)</span>
+              </div>
+              <span class="legend-value">{{ plan.estimated_revenue | number:'1.2-2' }} TND</span>
+            </div>
+            }
+          </div>
+        </div>
+        } @else {
+        <div class="empty-state-mini">No membership plan sales yet</div>
+        }
       </div>
 
     </div>

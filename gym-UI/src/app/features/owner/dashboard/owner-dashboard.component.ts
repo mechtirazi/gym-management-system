@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,7 +10,7 @@ import { AddMemberModalComponent } from './components/add-member-modal/add-membe
 import { NutritionMessagesComponent } from '../../nutritionist/utils/nutrition-messages.component';
 import { finalize } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
-import { DashboardData, UpcomingSession, InventoryAlert, ExpiringMembership, Checkin, StaffSnapshotMember, TopProduct, TopCourse } from '../../../shared/models/dashboard.model';
+import { DashboardData, UpcomingSession, InventoryAlert, ExpiringMembership, Checkin, StaffSnapshotMember, TopProduct, TopCourse, TopMembershipPlan } from '../../../shared/models/dashboard.model';
 
 type DashboardTopProduct = TopProduct & {
   imageUrl: string;
@@ -20,6 +20,10 @@ type DashboardTopProduct = TopProduct & {
 type DashboardTopCourse = TopCourse & {
   imageUrl: string;
   fallbackImage: string;
+};
+
+type DashboardTopMembershipPlan = TopMembershipPlan & {
+  typeLabel: string;
 };
 
 @Component({
@@ -41,6 +45,7 @@ export class OwnerDashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private dashboardService = inject(OwnerDashboardService);
   private readonly mediaBaseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+  private readonly planColorPalette = ['#10b981', '#0ea5e9', '#f59e0b', '#a855f7', '#f43f5e'];
 
   ownerName = (this.authService.currentUser() as any)?.name || 'Owner';
   currentDate = new Date();
@@ -57,7 +62,11 @@ export class OwnerDashboardComponent implements OnInit {
   staffSnapshot = signal<StaffSnapshotMember[]>([]);
   topProducts = signal<DashboardTopProduct[]>([]);
   topCourses = signal<DashboardTopCourse[]>([]);
+  topMembershipPlans = signal<DashboardTopMembershipPlan[]>([]);
   selectedStaffForChat = signal<StaffSnapshotMember | null>(null);
+  membershipPlanSoldTotal = computed(() =>
+    this.topMembershipPlans().reduce((sum, plan) => sum + this.toSafeNumber(plan.total_sold), 0)
+  );
 
   openStaffChat(staff: StaffSnapshotMember) {
     this.selectedStaffForChat.set(staff);
@@ -95,6 +104,7 @@ export class OwnerDashboardComponent implements OnInit {
           this.staffSnapshot.set(data.staffSnapshot || []);
           this.topProducts.set((data.topProducts || []).map((item) => this.normalizeTopProduct(item)));
           this.topCourses.set((data.topCourses || []).map((course) => this.normalizeTopCourse(course)));
+          this.topMembershipPlans.set((data.topMembershipPlans || []).map((plan) => this.normalizeTopMembershipPlan(plan)));
 
         }
       });
@@ -137,6 +147,64 @@ export class OwnerDashboardComponent implements OnInit {
       imageUrl: this.resolveMediaUrl(course.image, fallbackImage),
       fallbackImage
     };
+  }
+
+  private normalizeTopMembershipPlan(plan: Partial<TopMembershipPlan>): DashboardTopMembershipPlan {
+    const type = (plan.type || 'standard').trim().toLowerCase();
+
+    return {
+      id: plan.id,
+      name: (plan.name || 'Membership Plan').trim() || 'Membership Plan',
+      type,
+      typeLabel: type.charAt(0).toUpperCase() + type.slice(1),
+      price: this.toSafeNumber(plan.price),
+      total_sold: Math.max(0, Math.round(this.toSafeNumber(plan.total_sold))),
+      active_members: Math.max(0, Math.round(this.toSafeNumber(plan.active_members))),
+      estimated_revenue: this.toSafeNumber(plan.estimated_revenue)
+    };
+  }
+
+  membershipPlanColor(plan: DashboardTopMembershipPlan, index: number): string {
+    const typeColorMap: Record<string, string> = {
+      standard: '#10b981',
+      premium: '#0ea5e9',
+      trial: '#f59e0b'
+    };
+
+    return typeColorMap[plan.type] || this.planColorPalette[index % this.planColorPalette.length];
+  }
+
+  membershipPlanShare(plan: DashboardTopMembershipPlan): number {
+    const total = this.membershipPlanSoldTotal();
+    if (total <= 0) {
+      return 0;
+    }
+    return (this.toSafeNumber(plan.total_sold) / total) * 100;
+  }
+
+  membershipPieGradient(): string {
+    const plans = this.topMembershipPlans();
+    const total = this.membershipPlanSoldTotal();
+
+    if (plans.length === 0 || total <= 0) {
+      return 'conic-gradient(#e2e8f0 0% 100%)';
+    }
+
+    let start = 0;
+    const segments: string[] = plans.map((plan, index) => {
+      const share = (this.toSafeNumber(plan.total_sold) / total) * 100;
+      const end = start + share;
+      const color = this.membershipPlanColor(plan, index);
+      const segment = `${color} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+      start = end;
+      return segment;
+    });
+
+    if (start < 100) {
+      segments.push(`#e2e8f0 ${start.toFixed(2)}% 100%`);
+    }
+
+    return `conic-gradient(${segments.join(', ')})`;
   }
 
   private resolveMediaUrl(path: string | null | undefined, fallbackUrl: string): string {

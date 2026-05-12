@@ -28,6 +28,7 @@ export interface DashboardData {
   staffSnapshot: StaffSnapshotMember[];
   topProducts: TopProduct[];
   topCourses: TopCourse[];
+  topMembershipPlans: TopMembershipPlan[];
 }
 
 export interface ActivityTrend {
@@ -99,4 +100,14 @@ export interface TopCourse {
   capacity: number;
   occupancy: number;
   image?: string | null;
+}
+
+export interface TopMembershipPlan {
+  id?: string;
+  name: string;
+  type: string;
+  price: number;
+  total_sold: number;
+  active_members: number;
+  estimated_revenue: number;
 }

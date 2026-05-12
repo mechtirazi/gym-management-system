@@ -17,6 +17,32 @@ use Illuminate\Support\Facades\DB;
 
 class OwnerDashboardService
 {
+    private function normalizeRevenueCategory(string $type): string
+    {
+        $value = strtolower(trim($type));
+
+        if (str_contains($value, 'platform')) {
+            return 'Platform';
+        }
+        if (str_contains($value, 'membership') || str_contains($value, 'enroll') || str_contains($value, 'subscription')) {
+            return 'Membership';
+        }
+        if (str_contains($value, 'course')) {
+            return 'Course';
+        }
+        if (str_contains($value, 'event')) {
+            return 'Event';
+        }
+        if (str_contains($value, 'product') || str_contains($value, 'order')) {
+            return 'Product';
+        }
+        if (str_contains($value, 'nutrition')) {
+            return 'Nutrition';
+        }
+
+        return ucfirst(str_replace(['_', '-'], ' ', $value ?: 'other'));
+    }
+
     private function calculateTrend($current, $previous): int
     {
         if ((float) $previous == 0.0) {
@@ -387,6 +413,26 @@ class OwnerDashboardService
             ->take(3)
             ->get();
 
+        // 9. Top Membership Plans by Sales
+        $topMembershipPlans = DB::table('enrollments')
+            ->join('membership_plans', 'enrollments.id_plan', '=', 'membership_plans.id')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->whereNull('membership_plans.deleted_at')
+            ->select(
+                'membership_plans.id',
+                'membership_plans.name',
+                'membership_plans.type',
+                'membership_plans.price',
+                DB::raw('COUNT(enrollments.id) as total_sold'),
+                DB::raw("SUM(CASE WHEN enrollments.status = 'active' THEN 1 ELSE 0 END) as active_members"),
+                DB::raw('SUM(membership_plans.price) as estimated_revenue')
+            )
+            ->groupBy('membership_plans.id', 'membership_plans.name', 'membership_plans.type', 'membership_plans.price')
+            ->orderByDesc('total_sold')
+            ->orderByDesc('estimated_revenue')
+            ->take(3)
+            ->get();
+
         return [
             "stats" => [
                 "totalRevenue" => (float) $currRevenue,
@@ -421,7 +467,8 @@ class OwnerDashboardService
             "staffSnapshot" => $staffMembers,
             "revenueSources" => $sources,
             "topProducts" => $topProducts,
-            "topCourses" => $topCourses
+            "topCourses" => $topCourses,
+            "topMembershipPlans" => $topMembershipPlans
         ];
     }
 
@@ -638,6 +685,7 @@ class OwnerDashboardService
         $methods = [];
 
         $memberGrowth = [];
+        $monthKeys = [];
 
         if ($filter === 'this_year') {
             $monthsToFetch = $now->month;
@@ -661,6 +709,7 @@ class OwnerDashboardService
                 'month' => $monthDate->format('M'),
                 'amount' => (int) $amount
             ];
+            $monthKeys[] = $monthDate->format('Y-m');
 
             // Member Growth calculation
             $activeCount = Enrollment::whereIn('id_gym', $gymIdsArray)
@@ -705,6 +754,34 @@ class OwnerDashboardService
                 'amount' => (float) $stat->total,
                 'percentage' => $totalPeriodAmount > 0 ? round(($stat->total / $totalPeriodAmount) * 100, 2) : 0
             ];
+        }
+
+        // 3.5 Monthly category trend (real data for "Trend" sparklines)
+        $monthIndexByKey = array_flip($monthKeys);
+        $categoryTrends = [];
+
+        $categoryTrendRows = Payment::whereIn('id_gym', $gymIdsArray)
+            ->where('created_at', '>=', $startPeriod)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, type, SUM(amount) as total")
+            ->groupBy('month_key', 'type')
+            ->get();
+
+        foreach ($categoryTrendRows as $row) {
+            $monthKey = (string) $row->month_key;
+            if (!array_key_exists($monthKey, $monthIndexByKey)) {
+                continue;
+            }
+
+            $category = $this->normalizeRevenueCategory((string) $row->type);
+            if ($category === 'Platform') {
+                continue;
+            }
+
+            if (!isset($categoryTrends[$category])) {
+                $categoryTrends[$category] = array_fill(0, $monthsToFetch, 0.0);
+            }
+
+            $categoryTrends[$category][$monthIndexByKey[$monthKey]] += (float) $row->total;
         }
 
         // 4. Growth Calculations
@@ -781,6 +858,7 @@ class OwnerDashboardService
             'memberGrowth' => $memberGrowth,
             'sources' => $sources,
             'methods' => $methods,
+            'categoryTrends' => $categoryTrends,
             'topProducts' => $topProducts,
             'topCourses' => $topCourses,
             'topEvents' => $topEvents,

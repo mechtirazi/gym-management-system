@@ -102,13 +102,9 @@
 
     <!-- Meta Progress Metrics -->
     <div class="meta-metrics">
-      <div class="meta-item margin">
-        <span class="label">Net Margin: 90%</span>
-        <div class="track"><div class="fill" style="width: 90%"></div></div>
-      </div>
       <div class="meta-item goal">
-        <span class="label">Monthly Goal</span>
-        <div class="track"><div class="fill" style="width: 65%"></div></div>
+        <span class="label">Monthly Goal: {{ monthlyGoalPercent() | number:'1.1-1' }}%</span>
+        <div class="track"><div class="fill" [style.width.%]="monthlyGoalPercent()"></div></div>
       </div>
     </div>
 
@@ -118,7 +114,7 @@
         <!-- Profit Margin Table -->
         <div class="section-card">
           <div class="section-header">
-            <h2>Profit Margin Analysis by Category</h2>
+            <h2>Revenue Analysis by Category</h2>
             <button class="action-btn">View Breakdown Details</button>
           </div>
           <div class="category-table-container">
@@ -127,17 +123,24 @@
                 <tr>
                   <th>Category</th>
                   <th>Total Revenue</th>
-                  <th>Platform Fee</th>
-                  <th>Net Profit</th>
+                  <th>Net Revenue</th>
+                  <th>Share</th>
                   <th>Trend</th>
                 </tr>
               </thead>
               <tbody>
+                @if (categoryStats().length === 0) {
+                <tr>
+                  <td colspan="5">
+                    <div class="cat-label">No revenue categories found for this period</div>
+                  </td>
+                </tr>
+                }
                 <tr *ngFor="let stat of categoryStats(); let i = index">
                   <td><div class="cat-label">{{ stat.name }}</div></td>
                   <td>Revenue: {{ stat.revenue | number:'1.0-0' }} DT</td>
-                  <td>Fee: {{ stat.platformFee | number:'1.0-0' }} DT</td>
-                  <td>Net Profit: {{ stat.profit | number:'1.0-0' }} DT ({{ stat.margin }}% Margin)</td>
+                  <td>Net: {{ stat.netRevenue | number:'1.0-0' }} DT</td>
+                  <td>{{ stat.share }}% of total</td>
                   <td class="spark-cell">
                     <apx-chart *ngIf="rowSparklineOptions[i]" 
                       [series]="rowSparklineOptions[i].series" 

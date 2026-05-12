@@ -60,6 +60,7 @@ export interface AdvancedRevenueStats {
   memberGrowth: any[];
   sources: RevenueSource[];
   methods: RevenueMethod[];
+  categoryTrends?: Record<string, number[]>;
   topProducts?: TopProduct[];
   topCourses?: TopCourse[];
   topEvents?: TopEvent[];

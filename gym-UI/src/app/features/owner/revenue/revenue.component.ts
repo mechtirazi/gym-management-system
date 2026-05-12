@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule, ChartComponent, ApexAxisChartSeries, ApexChart, ApexXAxis, ApexDataLabels, ApexStroke, ApexGrid, ApexPlotOptions, ApexYAxis, ApexLegend, ApexMarkers, ApexTooltip, ApexTitleSubtitle } from 'ng-apexcharts';
 import { OwnerRevenueService } from '../services/owner-revenue.service';
@@ -40,6 +40,38 @@ export class OwnerRevenueComponent implements OnInit {
   stats = signal<AdvancedRevenueStats | null>(null);
   categoryStats = signal<any[]>([]);
   lowStockProducts = signal<any[]>([]);
+  netMarginPercent = computed(() => {
+    const currentStats = this.stats();
+    if (!currentStats) {
+      return 0;
+    }
+
+    const totalRevenue = this.toNumber(currentStats.totalRevenue);
+    if (totalRevenue <= 0) {
+      return 0;
+    }
+
+    const platformRevenue = (currentStats.sources || [])
+      .filter((source) => this.normalizeRevenueCategory(source.type) === 'Platform')
+      .reduce((sum, source) => sum + this.toNumber(source.amount), 0);
+
+    const netRevenue = Math.max(totalRevenue - platformRevenue, 0);
+    return this.clamp((netRevenue / totalRevenue) * 100, 0, 100);
+  });
+  monthlyGoalPercent = computed(() => {
+    const currentStats = this.stats();
+    if (!currentStats) {
+      return 0;
+    }
+
+    const currentRevenue = this.toNumber(currentStats.totalRevenue);
+    const monthlyGoalTarget = this.toNumber(currentStats.growth?.forecast);
+    if (monthlyGoalTarget <= 0) {
+      return 0;
+    }
+
+    return this.clamp((currentRevenue / monthlyGoalTarget) * 100, 0, 100);
+  });
 
   // Sparkline Generic Options
   public sparklineOptions: Partial<ChartOptions> | any = {
@@ -52,10 +84,7 @@ export class OwnerRevenueComponent implements OnInit {
 
   // Breakdown Chart with gradients
   public breakdownOptions: Partial<ChartOptions> | any = {
-    series: [
-      { name: "Revenue", data: [] },
-      { name: "Profit", data: [] }
-    ],
+    series: [{ name: "Revenue", data: [] }],
     chart: { type: "bar", height: 350, toolbar: { show: false }, fontFamily: 'Outfit, sans-serif' },
     plotOptions: { bar: { horizontal: false, columnWidth: "45%", borderRadius: 10 } },
     dataLabels: { enabled: false },
@@ -68,14 +97,14 @@ export class OwnerRevenueComponent implements OnInit {
         shade: 'light',
         type: "vertical",
         shadeIntensity: 0.5,
-        gradientToColors: ['#8b5cf6', '#ec4899'],
+        gradientToColors: ['#8b5cf6'],
         inverseColors: true,
         opacityFrom: 1,
         opacityTo: 1,
         stops: [0, 100]
       }
     },
-    colors: ["#6366f1", "#4f46e5"],
+    colors: ["#6366f1"],
     legend: { position: "top", horizontalAlign: "right", fontWeight: 800 },
     grid: { borderColor: "#f1f5f9", strokeDashArray: 4 }
   };
@@ -151,60 +180,54 @@ export class OwnerRevenueComponent implements OnInit {
     const revenueTrend = data.chartData.map(d => d.amount);
     this.sparklineOptions.series = [{ data: revenueTrend }];
 
-    // 2. Breakdown Chart & Table Data
-    const categories = ["Membership", "Course", "Event", "Product", "Nutrition"];
-    const tableData: any[] = [];
+    // 2. Breakdown Chart & Table Data (only categories with real revenue)
+    const categoryRevenueMap = new Map<string, number>();
+    const totalRevenue = this.toNumber(data.totalRevenue);
+    for (const source of data.sources || []) {
+      const category = this.normalizeRevenueCategory(source.type);
+      if (category === 'Platform') {
+        continue;
+      }
 
-    const revData = categories.map((cat, idx) => {
-      const source = data.sources.find(s => {
-        const type = s.type.toLowerCase();
-        const search = cat.toLowerCase();
-        return type.includes(search) || 
-               (search === 'membership' && (type.includes('enroll') || type.includes('subscription')));
-      });
-      
-      const revenue = source ? source.amount : 0; 
-      
-      // Category-specific platform fees (%)
-      const feeRates: { [key: string]: number } = {
-        'Membership': 0.10, // 10%
-        'Course': 0.12,     // 12%
-        'Event': 0.08,      // 8%
-        'Product': 0.15,    // 15%
-        'Nutrition': 0.10   // 10%
-      };
+      const amount = this.toNumber(source.amount);
+      if (amount <= 0) {
+        continue;
+      }
 
-      const feeRate = feeRates[cat] || 0.10;
-      const platformFee = revenue * feeRate;
-      const profit = revenue - platformFee;
-      const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+      categoryRevenueMap.set(category, (categoryRevenueMap.get(category) || 0) + amount);
+    }
 
-      tableData.push({
-        name: cat,
+    const categories = Array.from(categoryRevenueMap.keys());
+    const tableData: any[] = categories.map((name) => {
+      const revenue = this.toNumber(categoryRevenueMap.get(name));
+      const share = totalRevenue > 0 ? (revenue / totalRevenue) * 100 : 0;
+
+      return {
+        name,
         revenue,
-        platformFee,
-        profit,
-        margin: Math.round(margin)
-      });
-
-      return revenue;
+        netRevenue: revenue,
+        share: Math.round(share)
+      };
     });
+    const revData = tableData.map((row) => row.revenue);
 
     this.categoryStats.set(tableData);
-    const profitData = tableData.map(t => t.profit);
 
-    this.breakdownOptions.series = [
-      { name: "Revenue", data: revData },
-      { name: "Profit", data: profitData }
-    ];
-    this.breakdownOptions.xaxis = { ...this.breakdownOptions.xaxis, categories };
+    if (revData.length > 0) {
+      this.breakdownOptions.series = [{ name: "Revenue", data: revData }];
+      this.breakdownOptions.xaxis = { ...this.breakdownOptions.xaxis, categories };
+    } else {
+      this.breakdownOptions.series = [{ name: "Revenue", data: [0] }];
+      this.breakdownOptions.xaxis = { ...this.breakdownOptions.xaxis, categories: ['No Revenue'] };
+    }
 
     // Initialize Row Sparklines
-    this.rowSparklineOptions = categories.map((_, i) => ({
-      series: [{ data: Array.from({ length: 10 }, () => Math.floor(Math.random() * 50) + 50) }],
+    const sparklinePalette = ['#6366f1', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'];
+    this.rowSparklineOptions = tableData.map((row, i) => ({
+      series: [{ data: this.buildRealTrendSeries(data.categoryTrends?.[row.name], row.revenue) }],
       chart: { type: 'line', width: 80, height: 35, sparkline: { enabled: true } },
       stroke: { curve: 'smooth', width: 2 },
-      colors: [['#6366f1', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'][i]],
+      colors: [sparklinePalette[i % sparklinePalette.length]],
       tooltip: { enabled: false }
     }));
 
@@ -214,9 +237,23 @@ export class OwnerRevenueComponent implements OnInit {
     this.opBarOptions.xaxis.categories = last7Months.map(d => d.month);
 
     // 4. Source Donut
-    const filteredSources = data.sources.filter(s => s.type.toLowerCase() !== 'platform');
-    this.sourceDonutOptions.series = filteredSources.map(s => s.amount);
-    this.sourceDonutOptions.labels = filteredSources.map(s => s.type.charAt(0).toUpperCase() + s.type.slice(1));
+    const donutMap = new Map<string, number>();
+    for (const source of data.sources || []) {
+      const category = this.normalizeRevenueCategory(source.type);
+      if (category === 'Platform') {
+        continue;
+      }
+
+      const amount = this.toNumber(source.amount);
+      if (amount <= 0) {
+        continue;
+      }
+
+      donutMap.set(category, (donutMap.get(category) || 0) + amount);
+    }
+
+    this.sourceDonutOptions.series = Array.from(donutMap.values());
+    this.sourceDonutOptions.labels = Array.from(donutMap.keys());
 
     // 5. Heatmap (Generating a realistic pattern based on revenue intensity)
     this.heatmapOptions.series = this.generateHeatmapData(data);
@@ -242,5 +279,47 @@ export class OwnerRevenueComponent implements OnInit {
 
   onFilterChange(event: any) {
     this.fetchRevenueStats(event.target.value);
+  }
+
+  private normalizeRevenueCategory(type: string): string {
+    const value = (type || '').toLowerCase().trim();
+
+    if (value.includes('platform')) return 'Platform';
+    if (value.includes('membership') || value.includes('enroll') || value.includes('subscription')) return 'Membership';
+    if (value.includes('course')) return 'Course';
+    if (value.includes('event')) return 'Event';
+    if (value.includes('product') || value.includes('order')) return 'Product';
+    if (value.includes('nutrition')) return 'Nutrition';
+
+    return value
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase()) || 'Other';
+  }
+
+  private buildRealTrendSeries(series: unknown, fallbackValue: number): number[] {
+    if (Array.isArray(series)) {
+      const values = series
+        .map((point) => this.toNumber(point))
+        .filter((point) => point >= 0);
+
+      if (values.length > 0) {
+        const hasNonZero = values.some((point) => point > 0);
+        if (hasNonZero) {
+          return values;
+        }
+      }
+    }
+
+    const fallback = this.toNumber(fallbackValue);
+    return [Math.max(fallback, 0)];
+  }
+
+  private toNumber(value: unknown): number {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
   }
 }
