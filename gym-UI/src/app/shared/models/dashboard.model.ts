@@ -85,14 +85,18 @@ export interface RevenueData {
 }
 
 export interface TopProduct {
+  id_product?: string;
   name: string;
   total_sold: number;
   revenue: number;
+  image?: string | null;
 }
 
 export interface TopCourse {
+  id_course?: string;
   name: string;
   enrolled: number;
   capacity: number;
   occupancy: number;
+  image?: string | null;
 }

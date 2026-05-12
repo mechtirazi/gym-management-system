@@ -214,20 +214,27 @@
             <h2 class="kpi-title" style="margin: 0; text-align: left;">Top Products</h2>
             <span class="material-symbols-rounded text-amber-500">shopping_bag</span>
           </div>
-          <div class="simple-table">
-            <div class="table-header">
+          <div class="performance-table">
+            <div class="performance-header">
               <span>Product</span>
               <span>Sold</span>
               <span class="text-right">Revenue</span>
             </div>
-            @for (item of topProducts(); track item.name) {
-            <div class="table-row">
-              <span class="font-medium">{{ item.name }}</span>
-              <span class="text-muted">{{ item.total_sold }}</span>
-              <span class="text-right font-bold text-emerald-500">${{ item.revenue | number:'1.2-2' }}</span>
+            @for (item of topProducts(); track item.id_product ?? item.name) {
+            <div class="performance-row product-grid">
+              <div class="entity-cell">
+                <img class="entity-thumb" [src]="item.imageUrl" [alt]="item.name"
+                  (error)="onCardImageError($event, item.fallbackImage)">
+                <div class="entity-copy">
+                  <span class="entity-name">{{ item.name }}</span>
+                  <span class="entity-subtext">{{ item.total_sold }} sold this month</span>
+                </div>
+              </div>
+              <span class="metric-chip">{{ item.total_sold }}</span>
+              <span class="text-right metric-revenue">${{ item.revenue | number:'1.2-2' }}</span>
             </div>
             } @empty {
-            <div class="empty-state-mini">No sales data yet</div>
+            <div class="empty-state-mini">No product sales analytics yet</div>
             }
           </div>
         </div>
@@ -236,18 +243,29 @@
         <div class="dashboard-card premium-card flex-1">
           <div class="flex-between" style="margin-bottom: 1.25rem;">
             <h2 class="kpi-title" style="margin: 0; text-align: left;">Top Courses</h2>
-            <span class="material-symbols-rounded text-indigo-500">fitness_center</span>
+            <span class="material-symbols-rounded text-cyan-500">fitness_center</span>
           </div>
-          <div class="course-performance-list">
-            @for (course of topCourses(); track course.name) {
-            <div class="performance-item">
-              <div class="flex-between">
-                <span class="item-name">{{ course.name }}</span>
-                <span class="item-value">{{ course.enrolled }}/{{ course.capacity }}</span>
+          <div class="course-performance-list premium-list">
+            @for (course of topCourses(); track course.id_course ?? course.name) {
+            <div class="course-performance-item">
+              <div class="course-row-head">
+                <div class="entity-cell">
+                  <img class="entity-thumb" [src]="course.imageUrl" [alt]="course.name"
+                    (error)="onCardImageError($event, course.fallbackImage)">
+                  <div class="entity-copy">
+                    <span class="entity-name">{{ course.name }}</span>
+                    <span class="entity-subtext">{{ course.occupancy | number:'1.0-0' }}% occupancy</span>
+                  </div>
+                </div>
+                <span class="item-value">{{ course.enrolled }}/{{ course.capacity || 0 }}</span>
               </div>
               <div class="progress-track">
                 <div class="progress-fill" [style.width.%]="course.occupancy"
-                  [ngClass]="{'bg-emerald-500': course.occupancy > 70, 'bg-amber-500': course.occupancy <= 70}"></div>
+                  [ngClass]="{
+                    'bg-emerald-500': course.occupancy >= 80,
+                    'bg-cyan-500': course.occupancy >= 50 && course.occupancy < 80,
+                    'bg-amber-500': course.occupancy < 50
+                  }"></div>
               </div>
             </div>
             } @empty {

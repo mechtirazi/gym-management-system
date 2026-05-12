@@ -351,9 +351,39 @@ class OwnerDashboardService
         $topProducts = DB::table('order_product')
             ->join('products', 'order_product.id_product', '=', 'products.id_product')
             ->whereIn('products.id_gym', $gymIdsArray)
-            ->select('products.name', DB::raw('SUM(order_product.quantity) as total_sold'), DB::raw('SUM(order_product.quantity * order_product.price) as revenue'))
-            ->groupBy('products.id_product', 'products.name')
+            ->whereNull('products.deleted_at')
+            ->select(
+                'products.id_product',
+                'products.name',
+                'products.image',
+                DB::raw('SUM(order_product.quantity) as total_sold'),
+                DB::raw('SUM(order_product.quantity * order_product.price) as revenue')
+            )
+            ->groupBy('products.id_product', 'products.name', 'products.image')
             ->orderByDesc('total_sold')
+            ->orderByDesc('revenue')
+            ->take(3)
+            ->get();
+
+        // 8. Top Courses by Active Enrollments
+        $topCourses = DB::table('courses')
+            ->leftJoin('enrollments', function ($join) {
+                $join->on('courses.id_course', '=', 'enrollments.id_course')
+                    ->where('enrollments.status', '=', 'active');
+            })
+            ->whereIn('courses.id_gym', $gymIdsArray)
+            ->whereNull('courses.deleted_at')
+            ->select(
+                'courses.id_course',
+                'courses.name',
+                'courses.image',
+                DB::raw('MAX(courses.max_capacity) as capacity'),
+                DB::raw('COUNT(DISTINCT enrollments.id_member) as enrolled'),
+                DB::raw('CASE WHEN MAX(courses.max_capacity) > 0 THEN ROUND((COUNT(DISTINCT enrollments.id_member) / MAX(courses.max_capacity)) * 100, 1) ELSE 0 END as occupancy')
+            )
+            ->groupBy('courses.id_course', 'courses.name', 'courses.image')
+            ->orderByDesc('enrolled')
+            ->orderBy('courses.name')
             ->take(3)
             ->get();
 
@@ -390,7 +420,8 @@ class OwnerDashboardService
             "activityTrends" => $this->getActivityTrendsData($gymIdsArray),
             "staffSnapshot" => $staffMembers,
             "revenueSources" => $sources,
-            "topProducts" => $topProducts
+            "topProducts" => $topProducts,
+            "topCourses" => $topCourses
         ];
     }
 
