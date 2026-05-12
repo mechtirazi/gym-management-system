@@ -1,10 +1,27 @@
-import { Component, computed, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NgApexchartsModule, ChartComponent, ApexAxisChartSeries, ApexChart, ApexXAxis, ApexDataLabels, ApexStroke, ApexGrid, ApexPlotOptions, ApexYAxis, ApexLegend, ApexMarkers, ApexTooltip, ApexTitleSubtitle } from 'ng-apexcharts';
+import {
+  NgApexchartsModule,
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexXAxis,
+  ApexDataLabels,
+  ApexStroke,
+  ApexGrid,
+  ApexPlotOptions,
+  ApexYAxis,
+  ApexLegend,
+  ApexMarkers,
+  ApexTooltip,
+  ApexTitleSubtitle
+} from 'ng-apexcharts';
+import { finalize } from 'rxjs/operators';
 import { OwnerRevenueService } from '../services/owner-revenue.service';
 import { ProductService } from '../products/services/product.service';
-import { finalize } from 'rxjs/operators';
+import { ThemeService } from '../../../core/services/theme.service';
 import { AdvancedRevenueStats } from '../../../shared/models/revenue.model';
+
+type RevenueFilter = 'this_year' | 'last_6_months';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries | any;
@@ -33,13 +50,18 @@ export type ChartOptions = {
 export class OwnerRevenueComponent implements OnInit {
   private revenueService = inject(OwnerRevenueService);
   private productService = inject(ProductService);
+  private themeService = inject(ThemeService);
 
-  @ViewChild('chart') chart!: ChartComponent;
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
   stats = signal<AdvancedRevenueStats | null>(null);
   categoryStats = signal<any[]>([]);
   lowStockProducts = signal<any[]>([]);
+  selectedFilter = signal<RevenueFilter>('this_year');
+  isDarkMode = this.themeService.darkMode;
+
+  private latestRevenueData: AdvancedRevenueStats | null = null;
+
   netMarginPercent = computed(() => {
     const currentStats = this.stats();
     if (!currentStats) {
@@ -58,6 +80,7 @@ export class OwnerRevenueComponent implements OnInit {
     const netRevenue = Math.max(totalRevenue - platformRevenue, 0);
     return this.clamp((netRevenue / totalRevenue) * 100, 0, 100);
   });
+
   monthlyGoalPercent = computed(() => {
     const currentStats = this.stats();
     if (!currentStats) {
@@ -73,80 +96,29 @@ export class OwnerRevenueComponent implements OnInit {
     return this.clamp((currentRevenue / monthlyGoalTarget) * 100, 0, 100);
   });
 
-  // Sparkline Generic Options
-  public sparklineOptions: Partial<ChartOptions> | any = {
-    series: [{ data: [] }],
-    chart: { type: "line", height: 40, sparkline: { enabled: true }, animations: { enabled: true } },
-    stroke: { curve: "smooth", width: 3 },
-    tooltip: { enabled: false },
-    colors: ["#6366f1"]
-  };
-
-  // Breakdown Chart with gradients
-  public breakdownOptions: Partial<ChartOptions> | any = {
-    series: [{ name: "Revenue", data: [] }],
-    chart: { type: "bar", height: 350, toolbar: { show: false }, fontFamily: 'Outfit, sans-serif' },
-    plotOptions: { bar: { horizontal: false, columnWidth: "45%", borderRadius: 10 } },
-    dataLabels: { enabled: false },
-    stroke: { show: true, width: 3, colors: ["transparent"] },
-    xaxis: { categories: ["Membership", "Course", "Event", "Product"], axisBorder: { show: false }, axisTicks: { show: false } },
-    yaxis: { labels: { formatter: (val: number) => `${val} DT` } },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shade: 'light',
-        type: "vertical",
-        shadeIntensity: 0.5,
-        gradientToColors: ['#8b5cf6'],
-        inverseColors: true,
-        opacityFrom: 1,
-        opacityTo: 1,
-        stops: [0, 100]
-      }
-    },
-    colors: ["#6366f1"],
-    legend: { position: "top", horizontalAlign: "right", fontWeight: 800 },
-    grid: { borderColor: "#f1f5f9", strokeDashArray: 4 }
-  };
-
-  // Operational Bar Chart
-  public opBarOptions: Partial<ChartOptions> | any = {
-    series: [{ name: "Performance", data: [] }],
-    chart: { type: "bar", height: 200, toolbar: { show: false }, sparkline: { enabled: false } },
-    plotOptions: { bar: { borderRadius: 6, columnWidth: "60%" } },
-    colors: ["#818cf8"],
-    xaxis: { categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"], labels: { style: { fontSize: '10px' } } },
-    grid: { show: false }
-  };
-
-  // Source Donut
-  public sourceDonutOptions: Partial<ChartOptions> | any = {
-    series: [],
-    chart: { type: "donut", height: 350, fontFamily: 'Outfit, sans-serif' },
-    labels: [],
-    colors: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#6366f1'],
-    plotOptions: { pie: { donut: { size: '75%', labels: { show: true, total: { show: true, label: 'Sources', formatter: () => '' } } } } },
-    dataLabels: { enabled: false },
-    legend: { position: 'bottom', fontSize: '13px' }
-  };
-
-  // Heatmap
-  public heatmapOptions: Partial<ChartOptions> | any = {
-    series: [],
-    chart: { height: 350, type: "heatmap", toolbar: { show: false } },
-    dataLabels: { enabled: false },
-    colors: ["#1e3a8a"],
-    xaxis: { type: "category", categories: ["6am", "8am", "10am", "12pm", "2pm", "4pm", "6pm", "8pm", "10pm"] }
-  };
-
+  public sparklineOptions: Partial<ChartOptions> | any = {};
+  public breakdownOptions: Partial<ChartOptions> | any = {};
+  public opBarOptions: Partial<ChartOptions> | any = {};
+  public sourceDonutOptions: Partial<ChartOptions> | any = {};
+  public heatmapOptions: Partial<ChartOptions> | any = {};
   public rowSparklineOptions: any[] = [];
 
+  constructor() {
+    this.initializeChartOptions();
+
+    effect(() => {
+      this.themeService.darkMode();
+      this.applyThemeToCharts();
+    });
+  }
+
   ngOnInit() {
-    this.fetchRevenueStats('this_year');
+    this.fetchRevenueStats(this.selectedFilter());
     this.fetchLowStockProducts();
   }
 
-  fetchRevenueStats(filter: string) {
+  fetchRevenueStats(filter: RevenueFilter) {
+    this.selectedFilter.set(filter);
     this.isLoading.set(true);
     this.error.set(null);
 
@@ -154,6 +126,7 @@ export class OwnerRevenueComponent implements OnInit {
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (data: AdvancedRevenueStats) => {
+          this.latestRevenueData = data;
           this.stats.set(data);
           this.initializeCharts(data);
         },
@@ -168,21 +141,216 @@ export class OwnerRevenueComponent implements OnInit {
     this.productService.getProducts().subscribe({
       next: (res: any) => {
         const products = res.data || [];
-        const lowStock = products.filter((p: any) => p.stock < 10);
+        const lowStock = products.filter((product: any) => this.toNumber(product.stock) < 10);
         this.lowStockProducts.set(lowStock);
       },
       error: (err) => console.error('Failed to load products for stock alerts', err)
     });
   }
 
-  initializeCharts(data: AdvancedRevenueStats) {
-    // 1. Sparklines for KPIs
-    const revenueTrend = data.chartData.map(d => d.amount);
-    this.sparklineOptions.series = [{ data: revenueTrend }];
+  toggleTheme() {
+    this.themeService.toggleDarkMode();
+  }
 
-    // 2. Breakdown Chart & Table Data (only categories with real revenue)
+  onFilterChange(event: Event) {
+    const value = (event.target as HTMLSelectElement).value as RevenueFilter;
+    this.fetchRevenueStats(value);
+  }
+
+  private initializeChartOptions() {
+    this.sparklineOptions = {
+      series: [{ data: [] }],
+      chart: {
+        type: 'line',
+        height: 52,
+        sparkline: { enabled: true },
+        toolbar: { show: false },
+        animations: { enabled: true, speed: 650, easing: 'easeinout' }
+      },
+      stroke: { curve: 'smooth', width: 3 },
+      tooltip: { enabled: false },
+      colors: ['#0ea5e9']
+    };
+
+    this.breakdownOptions = {
+      series: [{ name: 'Revenue', data: [] }],
+      chart: {
+        type: 'bar',
+        height: 340,
+        toolbar: { show: false },
+        fontFamily: 'Sora, Inter, sans-serif',
+        background: 'transparent'
+      },
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          borderRadius: 12,
+          columnWidth: '52%'
+        }
+      },
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 2, colors: ['transparent'] },
+      xaxis: {
+        categories: [],
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { style: { fontSize: '11px', fontWeight: 600 } }
+      },
+      yaxis: {
+        labels: {
+          style: { fontSize: '11px', fontWeight: 600 },
+          formatter: (value: number) => `${value.toLocaleString()} DT`
+        }
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'light',
+          type: 'vertical',
+          shadeIntensity: 0.35,
+          gradientToColors: ['#0f766e'],
+          inverseColors: false,
+          opacityFrom: 1,
+          opacityTo: 0.88,
+          stops: [0, 100]
+        }
+      },
+      colors: ['#0891b2'],
+      grid: { borderColor: '#e2e8f0', strokeDashArray: 4 },
+      legend: { show: false },
+      tooltip: { theme: 'light' }
+    };
+
+    this.opBarOptions = {
+      series: [{ name: 'Performance', data: [] }],
+      chart: {
+        type: 'bar',
+        height: 210,
+        toolbar: { show: false },
+        fontFamily: 'Sora, Inter, sans-serif',
+        background: 'transparent'
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 8,
+          columnWidth: '56%'
+        }
+      },
+      dataLabels: { enabled: false },
+      colors: ['#06b6d4'],
+      xaxis: {
+        categories: [],
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { style: { fontSize: '10px', fontWeight: 600 } }
+      },
+      yaxis: {
+        labels: {
+          style: { fontSize: '10px', fontWeight: 600 },
+          formatter: (value: number) => `${Math.round(value / 1000)}k`
+        }
+      },
+      grid: {
+        borderColor: '#e2e8f0',
+        strokeDashArray: 3
+      },
+      tooltip: { theme: 'light' }
+    };
+
+    this.sourceDonutOptions = {
+      series: [],
+      chart: {
+        type: 'donut',
+        height: 340,
+        fontFamily: 'Sora, Inter, sans-serif',
+        background: 'transparent'
+      },
+      labels: [],
+      colors: ['#06b6d4', '#f59e0b', '#10b981', '#f97316', '#6366f1'],
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '72%',
+            labels: {
+              show: true,
+              name: {
+                show: true,
+                offsetY: -6,
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#64748b'
+              },
+              value: {
+                show: true,
+                offsetY: 8,
+                fontSize: '20px',
+                fontWeight: 800,
+                color: '#0f172a'
+              },
+              total: {
+                show: true,
+                label: 'Total',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#64748b',
+                formatter: (w: any) => {
+                  const total = w.globals.seriesTotals.reduce((sum: number, value: number) => sum + value, 0);
+                  return `${Math.round(total).toLocaleString()} DT`;
+                }
+              }
+            }
+          }
+        }
+      },
+      dataLabels: { enabled: false },
+      legend: {
+        position: 'bottom',
+        fontSize: '12px',
+        fontWeight: 600
+      },
+      tooltip: { theme: 'light' }
+    };
+
+    this.heatmapOptions = {
+      series: [],
+      chart: {
+        type: 'heatmap',
+        height: 320,
+        toolbar: { show: false },
+        fontFamily: 'Inter, sans-serif',
+        background: 'transparent'
+      },
+      dataLabels: { enabled: false },
+      colors: ['#0ea5e9'],
+      xaxis: {
+        type: 'category',
+        categories: ['6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm', '10pm'],
+        labels: { style: { fontSize: '11px', fontWeight: 600 } }
+      },
+      yaxis: {
+        labels: { style: { fontSize: '11px', fontWeight: 600 } }
+      },
+      tooltip: {
+        theme: 'light',
+        y: {
+          formatter: (val: number) => `${val} transaction${val !== 1 ? 's' : ''}`
+        }
+      }
+    };
+
+    this.applyThemeToCharts();
+  }
+
+  initializeCharts(data: AdvancedRevenueStats) {
+    const revenueTrend = data.chartData.map((point) => this.toNumber(point.amount));
+    this.sparklineOptions = {
+      ...this.sparklineOptions,
+      series: [{ data: revenueTrend }]
+    };
+
     const categoryRevenueMap = new Map<string, number>();
     const totalRevenue = this.toNumber(data.totalRevenue);
+
     for (const source of data.sources || []) {
       const category = this.normalizeRevenueCategory(source.type);
       if (category === 'Platform') {
@@ -209,34 +377,44 @@ export class OwnerRevenueComponent implements OnInit {
         share: Math.round(share)
       };
     });
-    const revData = tableData.map((row) => row.revenue);
 
     this.categoryStats.set(tableData);
 
-    if (revData.length > 0) {
-      this.breakdownOptions.series = [{ name: "Revenue", data: revData }];
-      this.breakdownOptions.xaxis = { ...this.breakdownOptions.xaxis, categories };
-    } else {
-      this.breakdownOptions.series = [{ name: "Revenue", data: [0] }];
-      this.breakdownOptions.xaxis = { ...this.breakdownOptions.xaxis, categories: ['No Revenue'] };
-    }
+    const revenuePerCategory = tableData.map((row) => row.revenue);
+    this.breakdownOptions = {
+      ...this.breakdownOptions,
+      series: [{ name: 'Revenue', data: revenuePerCategory.length > 0 ? revenuePerCategory : [0] }],
+      xaxis: {
+        ...this.breakdownOptions.xaxis,
+        categories: revenuePerCategory.length > 0 ? categories : ['No revenue']
+      }
+    };
 
-    // Initialize Row Sparklines
-    const sparklinePalette = ['#6366f1', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6'];
-    this.rowSparklineOptions = tableData.map((row, i) => ({
+    const sparklinePalette = this.getSparklinePalette();
+    this.rowSparklineOptions = tableData.map((row, index) => ({
       series: [{ data: this.buildRealTrendSeries(data.categoryTrends?.[row.name], row.revenue) }],
-      chart: { type: 'line', width: 80, height: 35, sparkline: { enabled: true } },
-      stroke: { curve: 'smooth', width: 2 },
-      colors: [sparklinePalette[i % sparklinePalette.length]],
+      chart: {
+        type: 'line',
+        width: 94,
+        height: 36,
+        sparkline: { enabled: true },
+        animations: { enabled: true, speed: 600 }
+      },
+      stroke: { curve: 'smooth', width: 2.4 },
+      colors: [sparklinePalette[index % sparklinePalette.length]],
       tooltip: { enabled: false }
     }));
 
-    // 3. Operational Bar Chart (Last 7 months of chartData)
     const last7Months = data.chartData.slice(-7);
-    this.opBarOptions.series = [{ name: "Performance", data: last7Months.map(d => d.amount) }];
-    this.opBarOptions.xaxis.categories = last7Months.map(d => d.month);
+    this.opBarOptions = {
+      ...this.opBarOptions,
+      series: [{ name: 'Performance', data: last7Months.map((point) => this.toNumber(point.amount)) }],
+      xaxis: {
+        ...this.opBarOptions.xaxis,
+        categories: last7Months.map((point) => point.month)
+      }
+    };
 
-    // 4. Source Donut
     const donutMap = new Map<string, number>();
     for (const source of data.sources || []) {
       const category = this.normalizeRevenueCategory(source.type);
@@ -252,33 +430,209 @@ export class OwnerRevenueComponent implements OnInit {
       donutMap.set(category, (donutMap.get(category) || 0) + amount);
     }
 
-    this.sourceDonutOptions.series = Array.from(donutMap.values());
-    this.sourceDonutOptions.labels = Array.from(donutMap.keys());
+    this.sourceDonutOptions = {
+      ...this.sourceDonutOptions,
+      series: Array.from(donutMap.values()),
+      labels: Array.from(donutMap.keys())
+    };
 
-    // 5. Heatmap (Generating a realistic pattern based on revenue intensity)
-    this.heatmapOptions.series = this.generateHeatmapData(data);
+    this.heatmapOptions = {
+      ...this.heatmapOptions,
+      series: this.buildHeatmapFromApi(data)
+    };
+
+    this.applyThemeToCharts();
   }
 
-  private generateHeatmapData(data: AdvancedRevenueStats) {
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const hours = ["6am", "8am", "10am", "12pm", "2pm", "4pm", "6pm", "8pm", "10pm"];
+  private applyThemeToCharts() {
+    const isDark = this.isDarkMode();
+    const axisLabelColor = isDark ? '#94a3b8' : '#475569';
+    const valueLabelColor = isDark ? '#f8fafc' : '#0f172a';
+    const gridColor = isDark ? 'rgba(148, 163, 184, 0.24)' : 'rgba(148, 163, 184, 0.32)';
+    const tooltipTheme = isDark ? 'dark' : 'light';
 
-    return days.map(day => ({
-      name: day,
-      data: hours.map(hour => {
-        // Create a bell curve pattern (peak at 12pm-6pm)
-        const hourIdx = hours.indexOf(hour);
-        const intensity = Math.exp(-Math.pow(hourIdx - 4, 2) / 8);
-        return {
-          x: hour,
-          y: Math.floor(intensity * 100 * (day === "Sat" || day === "Sun" ? 0.6 : 1))
-        };
-      })
+    this.sparklineOptions = {
+      ...this.sparklineOptions,
+      colors: [isDark ? '#22d3ee' : '#0284c7']
+    };
+
+    this.breakdownOptions = {
+      ...this.breakdownOptions,
+      colors: [isDark ? '#22d3ee' : '#0891b2'],
+      fill: {
+        ...this.breakdownOptions.fill,
+        gradient: {
+          ...this.breakdownOptions.fill?.gradient,
+          shade: isDark ? 'dark' : 'light',
+          gradientToColors: [isDark ? '#0e7490' : '#0f766e']
+        }
+      },
+      grid: {
+        ...this.breakdownOptions.grid,
+        borderColor: gridColor
+      },
+      xaxis: {
+        ...this.breakdownOptions.xaxis,
+        labels: {
+          ...this.breakdownOptions.xaxis?.labels,
+          style: {
+            ...this.breakdownOptions.xaxis?.labels?.style,
+            colors: axisLabelColor
+          }
+        }
+      },
+      yaxis: {
+        ...this.breakdownOptions.yaxis,
+        labels: {
+          ...this.breakdownOptions.yaxis?.labels,
+          style: {
+            ...this.breakdownOptions.yaxis?.labels?.style,
+            colors: axisLabelColor
+          }
+        }
+      },
+      tooltip: {
+        ...this.breakdownOptions.tooltip,
+        theme: tooltipTheme
+      }
+    };
+
+    this.opBarOptions = {
+      ...this.opBarOptions,
+      colors: [isDark ? '#22d3ee' : '#06b6d4'],
+      grid: {
+        ...this.opBarOptions.grid,
+        borderColor: gridColor
+      },
+      xaxis: {
+        ...this.opBarOptions.xaxis,
+        labels: {
+          ...this.opBarOptions.xaxis?.labels,
+          style: {
+            ...this.opBarOptions.xaxis?.labels?.style,
+            colors: axisLabelColor
+          }
+        }
+      },
+      yaxis: {
+        ...this.opBarOptions.yaxis,
+        labels: {
+          ...this.opBarOptions.yaxis?.labels,
+          style: {
+            ...this.opBarOptions.yaxis?.labels?.style,
+            colors: axisLabelColor
+          }
+        }
+      },
+      tooltip: {
+        ...this.opBarOptions.tooltip,
+        theme: tooltipTheme
+      }
+    };
+
+    this.sourceDonutOptions = {
+      ...this.sourceDonutOptions,
+      legend: {
+        ...this.sourceDonutOptions.legend,
+        labels: {
+          colors: axisLabelColor
+        }
+      },
+      plotOptions: {
+        ...this.sourceDonutOptions.plotOptions,
+        pie: {
+          ...this.sourceDonutOptions.plotOptions?.pie,
+          donut: {
+            ...this.sourceDonutOptions.plotOptions?.pie?.donut,
+            labels: {
+              ...this.sourceDonutOptions.plotOptions?.pie?.donut?.labels,
+              name: {
+                ...this.sourceDonutOptions.plotOptions?.pie?.donut?.labels?.name,
+                color: axisLabelColor
+              },
+              value: {
+                ...this.sourceDonutOptions.plotOptions?.pie?.donut?.labels?.value,
+                color: valueLabelColor
+              },
+              total: {
+                ...this.sourceDonutOptions.plotOptions?.pie?.donut?.labels?.total,
+                color: axisLabelColor
+              }
+            }
+          }
+        }
+      },
+      tooltip: {
+        ...this.sourceDonutOptions.tooltip,
+        theme: tooltipTheme
+      }
+    };
+
+    this.heatmapOptions = {
+      ...this.heatmapOptions,
+      colors: [isDark ? '#22d3ee' : '#0891b2'],
+      xaxis: {
+        ...this.heatmapOptions.xaxis,
+        labels: {
+          ...this.heatmapOptions.xaxis?.labels,
+          style: {
+            ...this.heatmapOptions.xaxis?.labels?.style,
+            colors: axisLabelColor
+          }
+        }
+      },
+      yaxis: {
+        ...this.heatmapOptions.yaxis,
+        labels: {
+          ...this.heatmapOptions.yaxis?.labels,
+          style: {
+            ...this.heatmapOptions.yaxis?.labels?.style,
+            colors: axisLabelColor
+          }
+        }
+      },
+      tooltip: {
+        ...this.heatmapOptions.tooltip,
+        theme: tooltipTheme
+      }
+    };
+
+    if (this.rowSparklineOptions.length > 0) {
+      const palette = this.getSparklinePalette();
+      this.rowSparklineOptions = this.rowSparklineOptions.map((row, index) => ({
+        ...row,
+        colors: [palette[index % palette.length]]
+      }));
+    }
+
+    if (this.latestRevenueData) {
+      const last7Months = this.latestRevenueData.chartData.slice(-7);
+      this.opBarOptions = {
+        ...this.opBarOptions,
+        xaxis: {
+          ...this.opBarOptions.xaxis,
+          categories: last7Months.map((point) => point.month)
+        }
+      };
+    }
+  }
+
+  /**
+   * Converts the raw paymentHeatmap payload from the API into ApexCharts
+   * heatmap series format.  Falls back to an empty array if the API returns
+   * no data so the chart renders without crashing.
+   */
+  private buildHeatmapFromApi(data: AdvancedRevenueStats): any[] {
+    const raw = data.paymentHeatmap;
+    if (!raw || raw.length === 0) {
+      return [];
+    }
+    // The backend already returns the correct shape:
+    // [{ name: 'Mon', data: [{ x: '6am', y: 3 }, ...] }, ...]
+    return raw.map(series => ({
+      name: series.name,
+      data: series.data.map(slot => ({ x: slot.x, y: slot.y }))
     }));
-  }
-
-  onFilterChange(event: any) {
-    this.fetchRevenueStats(event.target.value);
   }
 
   private normalizeRevenueCategory(type: string): string {
@@ -302,16 +656,19 @@ export class OwnerRevenueComponent implements OnInit {
         .map((point) => this.toNumber(point))
         .filter((point) => point >= 0);
 
-      if (values.length > 0) {
-        const hasNonZero = values.some((point) => point > 0);
-        if (hasNonZero) {
-          return values;
-        }
+      if (values.length > 0 && values.some((point) => point > 0)) {
+        return values;
       }
     }
 
     const fallback = this.toNumber(fallbackValue);
     return [Math.max(fallback, 0)];
+  }
+
+  private getSparklinePalette(): string[] {
+    return this.isDarkMode()
+      ? ['#22d3ee', '#38bdf8', '#f59e0b', '#10b981', '#f97316']
+      : ['#0284c7', '#0ea5e9', '#f59e0b', '#0f766e', '#f97316'];
   }
 
   private toNumber(value: unknown): number {

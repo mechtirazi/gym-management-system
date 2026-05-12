@@ -1,238 +1,253 @@
-<div class="revenue-container">
-  <header class="revenue-header">
-    <div class="header-info">
-      <h1>GMS Financial Intelligence</h1>
-      <p>Analyze revenue streams, growth patterns, and performance metrics.</p>
+<div class="revenue-shell">
+  <section class="hero-card glass-card">
+    <div class="hero-copy">
+      <span class="hero-eyebrow">
+        <span class="material-symbols-rounded" style="font-size:0.9rem">trending_up</span>
+        Revenue Command Center
+      </span>
+      <div class="hero-title-row">
+        <div class="icon-bubble">
+          <span class="material-symbols-rounded">payments</span>
+        </div>
+        <div>
+          <h1>Revenue Intelligence</h1>
+          <p class="subtitle">Track growth, source distribution, and operational risk in one control panel.</p>
+        </div>
+      </div>
+      <div class="hero-badges">
+        <span class="badge"><span class="dot"></span> Live</span>
+      </div>
     </div>
 
-    <div class="header-actions">
-      <div class="brand-logo">GMS</div>
-      <select class="filter-select" (change)="onFilterChange($event)">
-        <option value="this_year">Current Year Analysis</option>
-        <option value="last_6_months">Last 6 Months Snapshot</option>
-      </select>
+    <div class="hero-controls">
+      <label class="filter-field">
+        <span>Analysis window</span>
+        <select class="filter-select" [value]="selectedFilter()" (change)="onFilterChange($event)">
+          <option value="this_year">Current year</option>
+          <option value="last_6_months">Last 6 months</option>
+        </select>
+      </label>
     </div>
-  </header>
+  </section>
 
   @if (isLoading()) {
-    <div class="loading-overlay">
-      <div class="spinner"></div>
-      <h2>Syncing Financial Engine...</h2>
-    </div>
+  <section class="loading-state">
+    <div class="loader-ring"></div>
+    <h2>Syncing revenue engine...</h2>
+    <p>Pulling the latest transactions and activity signals.</p>
+  </section>
   } @else if (error()) {
-    <div class="flex flex-col items-center justify-center p-20 text-red-500 min-h-[500px]">
-      <p class="text-lg font-semibold">{{ error() }}</p>
-      <button class="mt-4 px-8 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition"
-        (click)="fetchRevenueStats('this_year')">Retry Analytics</button>
-    </div>
+  <section class="error-state">
+    <span class="material-symbols-rounded">warning</span>
+    <h2>{{ error() }}</h2>
+    <button type="button" class="retry-btn" (click)="fetchRevenueStats(selectedFilter())">Retry analytics</button>
+  </section>
   } @else {
-    <!-- Top Row KPIs -->
-    <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="card-top">
-          <div class="icon-box gold">💰</div>
-          <div class="sparkline-container">
-            <apx-chart [series]="sparklineOptions.series" [chart]="sparklineOptions.chart" [stroke]="sparklineOptions.stroke" [colors]="['#f59e0b']"></apx-chart>
-          </div>
-        </div>
-        <span class="kpi-label">Total Revenue</span>
-        <div class="value-row">
-          <span class="value">{{ stats()?.totalRevenue | number:'1.0-0' }}</span>
-          <span class="unit">DT</span>
-        </div>
-        <div class="card-footer">
-          <span class="trend-text up">+{{ stats()?.growth?.momGrowth | number:'1.1-1' }}% vs prev. month</span>
-          Net Profit: {{ (stats()?.totalRevenue || 0) * 0.9 | number:'1.0-0' }} DT
-        </div>
+  <section class="kpi-grid">
+    <article class="kpi-card">
+      <div class="card-head">
+        <span class="material-symbols-rounded">payments</span>
+        <apx-chart class="sparkline" [series]="sparklineOptions.series" [chart]="sparklineOptions.chart"
+          [stroke]="sparklineOptions.stroke" [colors]="sparklineOptions.colors">
+        </apx-chart>
       </div>
+      <p>Total Revenue</p>
+      <h3>{{ stats()?.totalRevenue || 0 | number:'1.0-0' }} <small>DT</small></h3>
+      <div class="trend-pill" [class.down]="(stats()?.growth?.momGrowth || 0) < 0">
+        {{ (stats()?.growth?.momGrowth || 0) >= 0 ? '+' : '' }}{{ stats()?.growth?.momGrowth || 0 | number:'1.1-1' }}%
+        vs previous month
+      </div>
+    </article>
 
-      <div class="kpi-card">
-        <div class="card-top">
-          <div class="icon-box blue">📉</div>
-        </div>
-        <span class="kpi-label">Monthly Growth</span>
-        <div class="value-row">
-          <span class="value">{{ stats()?.growth?.momGrowth | number:'1.1-1' }}</span>
-          <span class="unit">%</span>
-        </div>
-        <div class="card-footer">
-          Context: {{ stats()?.growth?.momGrowth! >= 0 ? 'Steady growth detected' : 'Action required to boost performance' }}
-        </div>
+    <article class="kpi-card">
+      <div class="card-head">
+        <span class="material-symbols-rounded">finance_mode</span>
       </div>
+      <p>Net Margin</p>
+      <h3>{{ netMarginPercent() | number:'1.0-1' }} <small>%</small></h3>
+      <div class="caption">After excluding platform share</div>
+    </article>
 
-      <div class="kpi-card">
-        <div class="card-top">
-          <div class="icon-box purple">🔮</div>
-          <div class="sparkline-container">
-            <apx-chart [series]="sparklineOptions.series" [chart]="sparklineOptions.chart" [stroke]="sparklineOptions.stroke" [colors]="['#8b5cf6']"></apx-chart>
-          </div>
-        </div>
-        <span class="kpi-label">AI Forecast</span>
-        <div class="value-row">
-          <span class="value">{{ stats()?.growth?.forecast | number:'1.0-0' }}</span>
-          <span class="unit">DT</span>
-        </div>
-        <div class="card-footer">Projected for next month</div>
+    <article class="kpi-card">
+      <div class="card-head">
+        <span class="material-symbols-rounded">rocket_launch</span>
       </div>
+      <p>Forecast (next month)</p>
+      <h3>{{ stats()?.growth?.forecast || 0 | number:'1.0-0' }} <small>DT</small></h3>
+      <div class="caption">Projected with current trajectory</div>
+    </article>
 
-      <div class="kpi-card">
-        <div class="card-top">
-          <div class="icon-box blue">👥</div>
-        </div>
-        <span class="kpi-label">Avg. Member LTV</span>
-        <div class="value-row">
-          <span class="value">{{ (stats()?.totalRevenue || 0) / (stats()?.enrollmentStats?.total || 1) * 12 | number:'1.0-0' }}</span>
-          <span class="unit">DT</span>
-        </div>
-        <div class="card-footer">Based on 12 months average</div>
+    <article class="kpi-card">
+      <div class="card-head">
+        <span class="material-symbols-rounded">groups</span>
       </div>
+      <p>Average Member LTV</p>
+      <h3>{{ ((stats()?.totalRevenue || 0) / (stats()?.enrollmentStats?.total || 1) * 12) | number:'1.0-0' }}
+        <small>DT</small>
+      </h3>
+      <div class="caption">Estimated over a 12-month cycle</div>
+    </article>
 
-      <div class="kpi-card risk-card">
-        <div class="card-top">
-          <div class="icon-box rose">⚠️</div>
-        </div>
-        <span class="kpi-label">Risk Zone</span>
-        <div class="value-row">
-          <span class="value">{{ stats()?.enrollmentStats?.expiringSoon || 0 }}</span>
-          <span class="unit">Members</span>
-        </div>
-        <div class="card-footer">Low engagement, proactive outreach recommended</div>
+    <article class="kpi-card risk">
+      <div class="card-head">
+        <span class="material-symbols-rounded">crisis_alert</span>
       </div>
+      <p>Risk Members</p>
+      <h3>{{ stats()?.enrollmentStats?.expiringSoon || 0 }} <small>soon</small></h3>
+      <div class="caption">Members close to expiration</div>
+    </article>
+
+    <article class="kpi-card goal">
+      <div class="card-head">
+        <span class="material-symbols-rounded">flag</span>
+      </div>
+      <p>Monthly Goal</p>
+      <h3>{{ monthlyGoalPercent() | number:'1.0-1' }} <small>%</small></h3>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="monthlyGoalPercent()"></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-grid">
+    <div class="main-column">
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Revenue Analysis by Category</h2>
+          <span class="panel-note">Net and share per source</span>
+        </header>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Total Revenue</th>
+                <th>Net Revenue</th>
+                <th>Share</th>
+                <th>Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (categoryStats().length === 0) {
+              <tr>
+                <td colspan="5" class="empty-row">No revenue categories found for this period.</td>
+              </tr>
+              }
+              <tr *ngFor="let stat of categoryStats(); let i = index">
+                <td class="name-cell">{{ stat.name }}</td>
+                <td>{{ stat.revenue | number:'1.0-0' }} DT</td>
+                <td>{{ stat.netRevenue | number:'1.0-0' }} DT</td>
+                <td>
+                  <div class="share-cell">
+                    <span>{{ stat.share }}%</span>
+                    <div class="mini-track">
+                      <div class="mini-fill" [style.width.%]="stat.share"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="spark-cell">
+                  <apx-chart *ngIf="rowSparklineOptions[i]" [series]="rowSparklineOptions[i].series"
+                    [chart]="rowSparklineOptions[i].chart" [stroke]="rowSparklineOptions[i].stroke"
+                    [colors]="rowSparklineOptions[i].colors" [tooltip]="rowSparklineOptions[i].tooltip">
+                  </apx-chart>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Revenue Breakdown</h2>
+          <span class="panel-note">Attribution across active channels</span>
+        </header>
+        <apx-chart [series]="breakdownOptions.series" [chart]="breakdownOptions.chart"
+          [plotOptions]="breakdownOptions.plotOptions" [xaxis]="breakdownOptions.xaxis" [yaxis]="breakdownOptions.yaxis"
+          [colors]="breakdownOptions.colors" [grid]="breakdownOptions.grid" [tooltip]="breakdownOptions.tooltip">
+        </apx-chart>
+      </article>
     </div>
 
-    <!-- Meta Progress Metrics -->
-    <div class="meta-metrics">
-      <div class="meta-item goal">
-        <span class="label">Monthly Goal: {{ monthlyGoalPercent() | number:'1.1-1' }}%</span>
-        <div class="track"><div class="fill" [style.width.%]="monthlyGoalPercent()"></div></div>
-      </div>
-    </div>
+    <aside class="side-column">
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Operational Overview</h2>
+          <span class="panel-note">Recent velocity and yearly trajectory</span>
+        </header>
 
-    <!-- Main Content Grid -->
-    <div class="dashboard-grid">
-      <div class="main-section">
-        <!-- Profit Margin Table -->
-        <div class="section-card">
-          <div class="section-header">
-            <h2>Revenue Analysis by Category</h2>
-            <button class="action-btn">View Breakdown Details</button>
-          </div>
-          <div class="category-table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Category</th>
-                  <th>Total Revenue</th>
-                  <th>Net Revenue</th>
-                  <th>Share</th>
-                  <th>Trend</th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (categoryStats().length === 0) {
-                <tr>
-                  <td colspan="5">
-                    <div class="cat-label">No revenue categories found for this period</div>
-                  </td>
-                </tr>
-                }
-                <tr *ngFor="let stat of categoryStats(); let i = index">
-                  <td><div class="cat-label">{{ stat.name }}</div></td>
-                  <td>Revenue: {{ stat.revenue | number:'1.0-0' }} DT</td>
-                  <td>Net: {{ stat.netRevenue | number:'1.0-0' }} DT</td>
-                  <td>{{ stat.share }}% of total</td>
-                  <td class="spark-cell">
-                    <apx-chart *ngIf="rowSparklineOptions[i]" 
-                      [series]="rowSparklineOptions[i].series" 
-                      [chart]="rowSparklineOptions[i].chart" 
-                      [stroke]="rowSparklineOptions[i].stroke" 
-                      [colors]="rowSparklineOptions[i].colors" 
-                      [tooltip]="rowSparklineOptions[i].tooltip">
-                    </apx-chart>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="ytd-block">
+          <p>Year-to-date revenue</p>
+          <h3>{{ stats()?.growth?.ytdRevenue || 0 | number:'1.0-0' }} DT</h3>
         </div>
 
-        <!-- Revenue Breakdown Bar -->
-        <div class="section-card">
-          <div class="section-header">
-            <h2>Revenue Breakdown & Attribution</h2>
-          </div>
-          <div class="breakdown-chart-container">
-            <apx-chart [series]="breakdownOptions.series" [chart]="breakdownOptions.chart" [plotOptions]="breakdownOptions.plotOptions"
-              [xaxis]="breakdownOptions.xaxis" [yaxis]="breakdownOptions.yaxis" [colors]="breakdownOptions.colors"
-              [legend]="breakdownOptions.legend" [grid]="breakdownOptions.grid"></apx-chart>
-          </div>
-        </div>
-      </div>
+        <apx-chart [series]="opBarOptions.series" [chart]="opBarOptions.chart" [plotOptions]="opBarOptions.plotOptions"
+          [xaxis]="opBarOptions.xaxis" [yaxis]="opBarOptions.yaxis" [grid]="opBarOptions.grid"
+          [colors]="opBarOptions.colors" [tooltip]="opBarOptions.tooltip">
+        </apx-chart>
 
-      <div class="operational-sidebar">
-        <!-- Operational Overview -->
-        <div class="section-card">
-          <div class="section-header">
-            <h2>Operational Overview</h2>
-          </div>
-          <div class="op-stats">
-            <p class="text-slate-400 font-bold text-sm mb-2">Yearly Performance (YTD)</p>
-            <div class="ytd-value">{{ stats()?.growth?.ytdRevenue | number:'1.0-0' }} DT</div>
-            
-            <div class="op-chart">
-              <apx-chart [series]="opBarOptions.series" [chart]="opBarOptions.chart" [plotOptions]="opBarOptions.plotOptions"
-                [colors]="opBarOptions.colors" [xaxis]="opBarOptions.xaxis" [grid]="opBarOptions.grid"></apx-chart>
-            </div>
+        <div class="projection-box">
+          <h4>Projected Year-End</h4>
+          <p>{{ (stats()?.growth?.forecast || 0) * 12 | number:'1.0-0' }} DT</p>
+          <span>Target stretch: {{ (stats()?.growth?.forecast || 0) * 15 | number:'1.0-0' }} DT</span>
+        </div>
+      </article>
 
-            <div class="projected-size">
-              <h4>Projected Year-End Size</h4>
-              <div class="val">{{ (stats()?.growth?.forecast || 0) * 12 | number:'1.0-0' }} DT</div>
-              <p class="sub">Based on current MoM velocity, target is {{ (stats()?.growth?.forecast || 0) * 15 | number:'1.0-0' }} DT</p>
-            </div>
+      <article class="panel stock-panel">
+        <header class="panel-head">
+          <h2>Inventory Alerts</h2>
+          <span class="panel-note">Products running low</span>
+        </header>
 
-            <div class="alert-box" *ngIf="lowStockProducts().length > 0">
-              <h4>STOCK ALERTS</h4>
-              <p>Critical items low on stock. Action required.</p>
-              <ul class="low-stock-list">
-                <li *ngFor="let prod of lowStockProducts()">
-                  <span class="prod-name">{{ prod.name }}</span>
-                  <span class="prod-stock">{{ prod.stock }} units</span>
-                </li>
-              </ul>
-            </div>
-            <div class="alert-box healthy" *ngIf="lowStockProducts().length === 0">
-              <h4>STOCK ALERTS</h4>
-              <p>Inventory stabilized. All critical nodes healthy.</p>
-            </div>
-          </div>
+        @if (lowStockProducts().length > 0) {
+        <ul class="stock-list">
+          <li *ngFor="let product of lowStockProducts()">
+            <span class="product-name">{{ product.name }}</span>
+            <span class="product-stock">{{ product.stock }} left</span>
+          </li>
+        </ul>
+        } @else {
+        <div class="healthy-stock">
+          <span class="material-symbols-rounded">verified</span>
+          <p>Inventory is currently healthy.</p>
         </div>
-      </div>
-    </div>
+        }
+      </article>
+    </aside>
+  </section>
 
-    <!-- Bottom Hub -->
-    <div class="bottom-grid">
-      <div class="section-card">
-        <div class="section-header">
-          <h2>Revenue Distribution by Source</h2>
-          <button class="action-btn">View Details</button>
-        </div>
-        <apx-chart [series]="sourceDonutOptions.series" [chart]="sourceDonutOptions.chart" [labels]="sourceDonutOptions.labels"
-          [colors]="sourceDonutOptions.colors" [plotOptions]="sourceDonutOptions.plotOptions" [legend]="sourceDonutOptions.legend"></apx-chart>
-      </div>
+  <section class="bottom-grid">
+    <article class="panel">
+      <header class="panel-head">
+        <h2>Revenue Distribution by Source</h2>
+        <span class="panel-note">Channel contribution mix</span>
+      </header>
+      <apx-chart [series]="sourceDonutOptions.series" [chart]="sourceDonutOptions.chart"
+        [labels]="sourceDonutOptions.labels" [colors]="sourceDonutOptions.colors"
+        [plotOptions]="sourceDonutOptions.plotOptions" [legend]="sourceDonutOptions.legend"
+        [tooltip]="sourceDonutOptions.tooltip">
+      </apx-chart>
+    </article>
 
-      <div class="section-card">
-        <div class="section-header">
-          <h2>Revenue Heatmap (Days/Hours)</h2>
-          <div class="legend-header live"><span class="dot"></span> Live Data</div>
+    <article class="panel">
+      <header class="panel-head">
+        <h2>Engagement Heatmap</h2>
+        <span class="panel-note">Transaction frequency across days and hours</span>
+      </header>
+      
+      @if (heatmapOptions.series && heatmapOptions.series.length > 0) {
+        <apx-chart [series]="heatmapOptions.series" [chart]="heatmapOptions.chart"
+          [dataLabels]="heatmapOptions.dataLabels" [colors]="heatmapOptions.colors" [xaxis]="heatmapOptions.xaxis"
+          [yaxis]="heatmapOptions.yaxis" [tooltip]="heatmapOptions.tooltip">
+        </apx-chart>
+      } @else {
+        <div class="healthy-stock" style="min-height: 250px;">
+          <span class="material-symbols-rounded">query_stats</span>
+          <p>No transaction data available for this period.</p>
         </div>
-        <div class="heatmap-container">
-          <apx-chart [series]="heatmapOptions.series" [chart]="heatmapOptions.chart" [dataLabels]="heatmapOptions.dataLabels"
-            [colors]="heatmapOptions.colors" [xaxis]="heatmapOptions.xaxis"></apx-chart>
-        </div>
-        <div class="flex justify-end mt-4">
-          <button class="action-btn">Export PDF Summary</button>
-        </div>
-      </div>
-    </div>
+      }
+    </article>
+  </section>
   }
 </div>

@@ -54,6 +54,16 @@ export interface TopEvent {
   participants: number;
 }
 
+export interface HeatmapSlot {
+  x: string;
+  y: number;
+}
+
+export interface HeatmapSeries {
+  name: string;
+  data: HeatmapSlot[];
+}
+
 export interface AdvancedRevenueStats {
   totalRevenue: number;
   chartData: RevenueData[];
@@ -64,6 +74,7 @@ export interface AdvancedRevenueStats {
   topProducts?: TopProduct[];
   topCourses?: TopCourse[];
   topEvents?: TopEvent[];
+  paymentHeatmap?: HeatmapSeries[];
   enrollmentStats?: EnrollmentStats;
   growth: GrowthStats;
 }

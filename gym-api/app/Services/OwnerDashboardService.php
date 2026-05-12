@@ -862,6 +862,7 @@ class OwnerDashboardService
             'topProducts' => $topProducts,
             'topCourses' => $topCourses,
             'topEvents' => $topEvents,
+            'paymentHeatmap' => $this->getPaymentHeatmap($gymIdsArray, $startPeriod),
             'enrollmentStats' => [
                 'active' => $activeEnrollments,
                 'total' => $totalEnrollments,
@@ -878,6 +879,64 @@ class OwnerDashboardService
                 'arpu' => round($arpu, 2)
             ]
         ];
+    }
+
+    /**
+     * Build a payment-activity heatmap grouped by day-of-week and time-of-day buckets.
+     * Returns array of { name: 'Mon', data: [ { x: '6am', y: count }, ... ] }
+     */
+    private function getPaymentHeatmap(array $gymIdsArray, Carbon $startPeriod): array
+    {
+        // Time-slot buckets: label => [from_hour, to_hour]
+        $slots = [
+            '6am'  => [6,  7],
+            '8am'  => [8,  9],
+            '10am' => [10, 11],
+            '12pm' => [12, 13],
+            '2pm'  => [14, 15],
+            '4pm'  => [16, 17],
+            '6pm'  => [18, 19],
+            '8pm'  => [20, 21],
+            '10pm' => [22, 23],
+        ];
+
+        // DAYOFWEEK: 1=Sunday … 7=Saturday in MySQL
+        $days = [
+            2 => 'Mon',
+            3 => 'Tue',
+            4 => 'Wed',
+            5 => 'Thu',
+            6 => 'Fri',
+            7 => 'Sat',
+            1 => 'Sun',
+        ];
+
+        // Query raw counts grouped by day-of-week and hour
+        $rows = Payment::whereIn('id_gym', $gymIdsArray)
+            ->where('created_at', '>=', $startPeriod)
+            ->selectRaw('DAYOFWEEK(created_at) as dow, HOUR(created_at) as hr, COUNT(*) as cnt')
+            ->groupBy('dow', 'hr')
+            ->get();
+
+        // Build a lookup: dow => hr => cnt
+        $lookup = [];
+        foreach ($rows as $row) {
+            $lookup[(int) $row->dow][(int) $row->hr] = (int) $row->cnt;
+        }
+
+        // Assemble series
+        $series = [];
+        foreach ($days as $dow => $dayName) {
+            $data = [];
+            foreach ($slots as $label => [$from, $to]) {
+                // Sum counts across the 2-hour window
+                $count = ($lookup[$dow][$from] ?? 0) + ($lookup[$dow][$to] ?? 0);
+                $data[] = ['x' => $label, 'y' => $count];
+            }
+            $series[] = ['name' => $dayName, 'data' => $data];
+        }
+
+        return $series;
     }
 
     /**
