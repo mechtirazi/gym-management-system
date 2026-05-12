@@ -59,9 +59,19 @@ class OwnerDashboardService
             ->distinct('enrollments.id_member')
             ->count('enrollments.id_member');
 
+        $pendingMembers = Enrollment::whereIn('id_gym', $gymIdsArray)
+            ->where('status', 'pending')
+            ->count();
+
+        $expiredMembers = Enrollment::whereIn('id_gym', $gymIdsArray)
+            ->where('status', 'expired')
+            ->count();
+
         return [
             'activeMembers' => $currActiveMembers,
-            'membersTrend' => $this->calculateTrend($currActiveMembers, $prevActiveMembers)
+            'membersTrend' => $this->calculateTrend($currActiveMembers, $prevActiveMembers),
+            'pendingMemberships' => $pendingMembers,
+            'expiredMemberships' => $expiredMembers
         ];
     }
 
@@ -161,8 +171,8 @@ class OwnerDashboardService
                 ->whereDate('created_at', $date)
                 ->count();
 
-            $cancellations = Subscribe::whereIn('id_gym', $gymIdsArray)
-                ->where('status', Subscribe::STATUS_CANCELLED)
+            $expired = Enrollment::whereIn('id_gym', $gymIdsArray)
+                ->where('status', 'expired')
                 ->whereDate('updated_at', $date)
                 ->count();
 
@@ -170,7 +180,7 @@ class OwnerDashboardService
                 'date' => $dayLabel,
                 'attendance' => $attendanceCount,
                 'signups' => $newSignups,
-                'cancellations' => $cancellations
+                'expired' => $expired
             ];
         }
         return $activityTrends;
@@ -209,10 +219,10 @@ class OwnerDashboardService
             ->count('id_session');
         $staffEfficiency = $totalSessionsToday > 0 ? round(($attendedSessionsToday / $totalSessionsToday) * 100) : 0;
         return [
-            ['label' => 'Retention Campaigns', 'value' => (int)$retentionRate, 'color' => 'bg-cyan-500'],
-            ['label' => 'New Member Onboarding', 'value' => (int)$onboardingRate, 'color' => 'bg-teal-500'],
-            ['label' => 'Equipment Upgrades', 'value' => (int)$equipmentHealth, 'color' => 'bg-amber-500'],
-            ['label' => 'Staff Efficiency', 'value' => (int)$staffEfficiency, 'color' => 'bg-purple-500'],
+            ['label' => 'Retention Campaigns', 'value' => (int) $retentionRate, 'color' => 'bg-cyan-500'],
+            ['label' => 'New Member Onboarding', 'value' => (int) $onboardingRate, 'color' => 'bg-teal-500'],
+            ['label' => 'Equipment Upgrades', 'value' => (int) $equipmentHealth, 'color' => 'bg-amber-500'],
+            ['label' => 'Staff Efficiency', 'value' => (int) $staffEfficiency, 'color' => 'bg-purple-500'],
         ];
     }
 
@@ -249,40 +259,138 @@ class OwnerDashboardService
         $prevMonthStart = $now->copy()->subMonthNoOverflow()->startOfMonth();
         $prevMonthEnd = $now->copy()->startOfMonth()->subSecond();
 
-        $revenue = $this->getRevenueStats($gymIdsArray, $now, $prevMonthStart, $prevMonthEnd);
-        $members = $this->getMemberStatsData($gymIdsArray, $currMonthStart);
-        $memberships = $this->getMembershipsStats($gymIdsArray, $currMonthStart, $prevMonthStart, $prevMonthEnd);
-        $trainers = $this->getTrainerStats($gymIdsArray, $currMonthStart);
+        // 1. Revenue (Raw)
+        $currRevenue = Payment::whereIn('id_gym', $gymIdsArray)
+            ->whereMonth('created_at', $now->month)
+            ->whereYear('created_at', $now->year)
+            ->sum('amount');
 
-        // 11. Staff Snapshot (Dynamic)
-        $totalStaff = GymStaff::whereIn('id_gym', $gymIdsArray)->distinct('id_user')->count();
+        $prevRevenue = Payment::whereIn('id_gym', $gymIdsArray)
+            ->whereBetween('created_at', [$prevMonthStart, $prevMonthEnd])
+            ->sum('amount');
 
+        // 2. Members (Raw)
+        $currActiveMembers = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->where('enrollments.status', 'active')
+            ->where('users.role', User::ROLE_MEMBER)
+            ->distinct('enrollments.id_member')
+            ->count('enrollments.id_member');
+
+        $prevActiveMembers = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->where('enrollments.status', 'active')
+            ->where('users.role', User::ROLE_MEMBER)
+            ->where('enrollments.created_at', '<', $currMonthStart)
+            ->distinct('enrollments.id_member')
+            ->count('enrollments.id_member');
+
+        $pendingMembers = Enrollment::whereIn('id_gym', $gymIdsArray)
+            ->where('status', 'pending')
+            ->count();
+
+        $expiredMembers = Enrollment::whereIn('id_gym', $gymIdsArray)
+            ->where('status', 'expired')
+            ->count();
+
+        // 3. New Memberships (Raw)
+        $currNewMem = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->where('enrollments.created_at', '>=', $currMonthStart)
+            ->where('users.role', User::ROLE_MEMBER)
+            ->count();
+
+        $prevNewMem = Enrollment::join('users', 'enrollments.id_member', '=', 'users.id_user')
+            ->whereIn('enrollments.id_gym', $gymIdsArray)
+            ->whereBetween('enrollments.created_at', [$prevMonthStart, $prevMonthEnd])
+            ->where('users.role', User::ROLE_MEMBER)
+            ->count();
+
+        // 4. Trainers
+        $currTrainers = User::where('role', User::ROLE_TRAINER)->whereHas('gymStaff', function ($q) use ($gymIdsArray) {
+            $q->whereIn('id_gym', $gymIdsArray);
+        })->count();
+
+        // 5. Staff Snapshot (Raw)
         $staffMembers = User::whereIn('role', [User::ROLE_RECEPTIONIST, User::ROLE_TRAINER, User::ROLE_NUTRITIONIST, User::ROLE_OWNER])
             ->whereHas('gymStaff', function ($q) use ($gymIdsArray) {
                 $q->whereIn('id_gym', $gymIdsArray);
             })
-            ->take(2)
+            ->take(4)
+            ->get(['id_user', 'name', 'last_name', 'role', 'email', 'phone', 'profile_picture'])
+            ->map(function ($user) {
+                return [
+                    'id_user' => $user->id_user,
+                    'name' => $user->name . ' ' . $user->last_name,
+                    'role' => $user->role,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'avatar' => $user->profile_picture ? (str_starts_with($user->profile_picture, 'http') ? $user->profile_picture : asset('storage/' . $user->profile_picture)) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0ea5e9&color=fff',
+                ];
+            });
+
+        // 6. Revenue Sources (New)
+        $totalPeriodAmount = Payment::whereIn('id_gym', $gymIdsArray)
+            ->where('created_at', '>=', $now->copy()->startOfMonth())
+            ->sum('amount');
+
+        $sources = Payment::whereIn('id_gym', $gymIdsArray)
+            ->where('created_at', '>=', $now->copy()->startOfMonth())
+            ->selectRaw('type, sum(amount) as total')
+            ->groupBy('type')
+            ->get()
+            ->map(function ($stat) use ($totalPeriodAmount) {
+                return [
+                    'type' => ucfirst(str_replace('_', ' ', $stat->type)),
+                    'amount' => (float) $stat->total,
+                    'percentage' => $totalPeriodAmount > 0 ? round(($stat->total / $totalPeriodAmount) * 100) : 0
+                ];
+            });
+
+        // 7. Top Selling Products (New)
+        $topProducts = DB::table('order_product')
+            ->join('products', 'order_product.id_product', '=', 'products.id_product')
+            ->whereIn('products.id_gym', $gymIdsArray)
+            ->select('products.name', DB::raw('SUM(order_product.quantity) as total_sold'), DB::raw('SUM(order_product.quantity * order_product.price) as revenue'))
+            ->groupBy('products.id_product', 'products.name')
+            ->orderByDesc('total_sold')
+            ->take(3)
             ->get();
 
-        $staffSnapshot = $staffMembers->map(function ($staff) use ($trainers, $totalStaff) {
-            return [
-                'name' => $staff->name . ' ' . $staff->last_name,
-                'role' => ucfirst($staff->role),
-                'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($staff->name . '+' . $staff->last_name) . '&background=random&size=40',
-                'metric' => rand(75, 98), // Realistic dynamic metric
-                'shift' => '70', // Placeholder shift
-                'coaches' => ($trainers['activeTrainers'] ?? 0) . '/' . $totalStaff
-            ];
-        });
-
         return [
-            "stats" => array_merge($revenue, $members, $memberships, $trainers),
+            "stats" => [
+                "totalRevenue" => (float) $currRevenue,
+                "revenueTrend" => $prevRevenue > 0 ? round((($currRevenue - $prevRevenue) / $prevRevenue) * 100, 1) : ($currRevenue > 0 ? 100.0 : 0.0),
+
+                "activeMembers" => (int) $currActiveMembers,
+                "membersTrend" => $prevActiveMembers > 0 ? round((($currActiveMembers - $prevActiveMembers) / $prevActiveMembers) * 100, 1) : ($currActiveMembers > 0 ? 100.0 : 0.0),
+
+                "newMemberships" => (int) $currNewMem,
+                "membershipsTrend" => $prevNewMem > 0 ? round((($currNewMem - $prevNewMem) / $prevNewMem) * 100, 1) : ($currNewMem > 0 ? 100.0 : 0.0),
+
+                "activeTrainers" => (int) $currTrainers,
+                "trainersTrend" => 0.0, // Static for now as we don't track prev trainers easily here
+
+                "pendingMemberships" => (int) $pendingMembers,
+                "expiredMemberships" => (int) $expiredMembers,
+                "totalMembers" => (int) Enrollment::whereIn('id_gym', $gymIdsArray)->count(),
+                "onboardedCount" => (int) Enrollment::whereIn('id_gym', $gymIdsArray)
+                    ->where('created_at', '>=', $now->copy()->subDays(30))
+                    ->whereHas('member.attendances')
+                    ->count(),
+                "newMembersLast30" => (int) Enrollment::whereIn('id_gym', $gymIdsArray)
+                    ->where('created_at', '>=', $now->copy()->subDays(30))
+                    ->count(),
+                "lowStockCount" => (int) Product::whereIn('id_gym', $gymIdsArray)->where('stock', '<', 5)->count(),
+                "totalProducts" => (int) Product::whereIn('id_gym', $gymIdsArray)->count(),
+            ],
             "upcomingSessions" => $this->getUpcomingSessionsData($gymIdsArray, $now),
             "inventoryAlerts" => $this->getInventoryAlertsData($gymIdsArray),
             "expiringMemberships" => $this->getExpiringMembershipsData($gymIdsArray, $now),
             "activityTrends" => $this->getActivityTrendsData($gymIdsArray),
-            "focusAreas" => $this->getFocusAreasData($gymIdsArray, $members['activeMembers'], $now),
-            "staffSnapshot" => $staffSnapshot,
+            "staffSnapshot" => $staffMembers,
+            "revenueSources" => $sources,
+            "topProducts" => $topProducts
         ];
     }
 
@@ -298,7 +406,7 @@ class OwnerDashboardService
             ->join('gyms', 'wallets.id_gym', '=', 'gyms.id_gym')
             ->select('wallets.id_gym', 'wallets.balance', 'gyms.name as gym_name')
             ->get();
-            
+
         // Calculate total balance across all wallets for backward compatibility or global view
         $walletBalance = $wallets->sum('balance');
 
@@ -321,7 +429,7 @@ class OwnerDashboardService
                 "protein" => $user->manual_protein,
                 "carbs" => $user->manual_carbs,
                 "fats" => $user->manual_fats,
-                "water" => ($user->updated_at && \Carbon\Carbon::parse($user->updated_at)->isToday()) ? (float)$user->manual_water : 0,
+                "water" => ($user->updated_at && \Carbon\Carbon::parse($user->updated_at)->isToday()) ? (float) $user->manual_water : 0,
                 "weight" => $user->manual_weight,
                 "height" => $user->manual_height,
                 "evolutionPoints" => $user->evolution_points
@@ -360,7 +468,7 @@ class OwnerDashboardService
             ->map(function ($pr) {
                 return [
                     'exercise' => $pr->exercise_name,
-                    'weight' => (float)$pr->max_weight,
+                    'weight' => (float) $pr->max_weight,
                     'date' => Carbon::parse($pr->date)->format('Y-m-d'),
                     'trend' => 'Calculated'
                 ];
@@ -384,11 +492,11 @@ class OwnerDashboardService
     {
         $advice = [];
         $weight = $user->manual_weight ?: 70;
-        
+
         if ($user->manual_protein < ($weight * 1.5)) {
             $advice[] = "Protein intake is below the optimal threshold for muscle repair. Aim for " . round($weight * 1.8) . "g.";
         }
-        
+
         if ($user->manual_water < 2.5) {
             $advice[] = "Hydration alert: Your metabolic efficiency is dropping. Sync 1L of water in the next 2 hours.";
         }
@@ -405,11 +513,12 @@ class OwnerDashboardService
         $current = $user->manual_weight ?: 70;
         $target = $user->target_weight ?: $current;
         $diff = $target - $current;
-        
+
         // Simple linear projection (e.g. 0.5kg per month)
         $rate = 0.5;
-        if ($diff < 0) $rate = -0.5; // Losing weight
-        
+        if ($diff < 0)
+            $rate = -0.5; // Losing weight
+
         return [
             'month1' => round($current + ($rate * 1), 1),
             'month3' => round($current + ($rate * 3), 1),
@@ -440,8 +549,8 @@ class OwnerDashboardService
                 ->whereDate('created_at', $date)
                 ->count();
 
-            $cancellations = Subscribe::whereIn('id_gym', $gymIdsArray)
-                ->where('status', Subscribe::STATUS_CANCELLED)
+            $expired = Enrollment::whereIn('id_gym', $gymIdsArray)
+                ->where('status', 'expired')
                 ->whereDate('updated_at', $date)
                 ->count();
 
@@ -449,7 +558,7 @@ class OwnerDashboardService
                 'date' => $dayLabel,
                 'attendance' => $attendance,
                 'signups' => $signups,
-                'cancellations' => $cancellations
+                'expired' => $expired
             ];
         }
 

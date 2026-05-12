@@ -217,24 +217,15 @@ class AdminController extends Controller
             })->count();
         $standardMembersCount = max(0, $totalMembers - $eliteMembersCount);
 
-        // Calculate Network/Ecosystem MRR (Total revenue from all members in all gyms)
-        // Normalized to monthly value: (price * 30 / duration_days)
-        $ecosystemMrr = MembershipPlan::whereHas('enrollments', function ($q) {
-            $q->where('status', 'active');
-        })->withCount([
-                    'enrollments' => function ($q) {
-                        $q->where('status', 'active');
-                    }
-                ])->get()->sum(function ($plan) {
-                    $duration = $plan->duration_days > 0 ? $plan->duration_days : 30;
-                    return ($plan->price * 30 / $duration) * $plan->enrollments_count;
-                });
+        // Calculate Platform Upgrade Revenue (Elite Protocol MRR)
+        // Normalized to monthly value (99.99 / 12 months)
+        $platformUpgradeMrr = $eliteMembersCount * (99.99 / 12);
 
         return response()->json([
             'success' => true,
             'data' => [
                 'mrr' => (float) $mrr,
-                'ecosystem_mrr' => (float) $ecosystemMrr,
+                'platform_upgrade_revenue' => (float) $platformUpgradeMrr,
                 'basic_gyms_count' => $basicGymsCount,
                 'pro_gyms_count' => $proGymsCount,
                 'revenue_trend' => $revenueTrend,

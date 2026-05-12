@@ -65,7 +65,7 @@ export class RevenueAnalyticsComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   mrr = signal(0);
-  ecosystemMrr = signal(0);
+  eliteRevenue = signal(0);
   activeSubscriptions = signal(0);
   arpu = signal(0);
   mrrGrowth = signal(0);
@@ -274,7 +274,7 @@ export class RevenueAnalyticsComponent implements OnInit {
 
       // KPI Updates
       this.mrr.set(analytics.mrr || 0);
-      this.ecosystemMrr.set(analytics.ecosystem_mrr || 0);
+      this.eliteRevenue.set(analytics.platform_upgrade_revenue || 0);
       const activeSub = gyms.length;
       this.activeSubscriptions.set(activeSub);
       this.arpu.set(activeSub > 0 ? (analytics.mrr || 0) / activeSub : 0);

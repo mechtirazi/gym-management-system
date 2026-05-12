@@ -8,6 +8,8 @@ export interface DashboardStats {
   membershipsTrend: number;
   activeTrainers: number;
   trainersTrend: number;
+  pendingMemberships?: number;
+  expiredMemberships?: number;
 
   // Member stats
   totalAttendance?: number;
@@ -24,13 +26,15 @@ export interface DashboardData {
   activityTrends: ActivityTrend[];
   focusAreas: FocusArea[];
   staffSnapshot: StaffSnapshotMember[];
+  topProducts: TopProduct[];
+  topCourses: TopCourse[];
 }
 
 export interface ActivityTrend {
   date: string;
   attendance: number;
   signups: number;
-  cancellations: number;
+  expired: number;
 }
 
 export interface FocusArea {
@@ -60,12 +64,12 @@ export interface ExpiringMembership {
 }
 
 export interface StaffSnapshotMember {
+  id_user: string;
   name: string;
   role: string;
   avatar: string;
-  metric: number;
-  shift: string;
-  coaches: string;
+  email: string;
+  phone: string;
 }
 
 export interface Checkin {
@@ -78,4 +82,17 @@ export interface Checkin {
 export interface RevenueData {
   month: string;
   amount: number;
+}
+
+export interface TopProduct {
+  name: string;
+  total_sold: number;
+  revenue: number;
+}
+
+export interface TopCourse {
+  name: string;
+  enrolled: number;
+  capacity: number;
+  occupancy: number;
 }

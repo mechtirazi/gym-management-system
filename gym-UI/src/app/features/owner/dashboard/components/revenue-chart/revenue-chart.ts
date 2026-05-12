@@ -34,7 +34,7 @@ export class RevenueChartComponent implements OnInit {
     series: [
       { name: "Attendance", data: [] },
       { name: "New Sign-ups", data: [] },
-      { name: "Cancellations", data: [] }
+      { name: "Expired", data: [] }
     ],
     chart: { type: "area", height: 320, toolbar: { show: false }, fontFamily: 'inherit', animations: { enabled: true }, sparkline: { enabled: false } },
     plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
@@ -60,7 +60,7 @@ export class RevenueChartComponent implements OnInit {
           this.chartOptions.series = [
             { name: 'Attendance', data: data.map(d => d.attendance) },
             { name: 'New Sign-ups', data: data.map(d => d.signups) },
-            { name: 'Cancellations', data: data.map(d => d.cancellations) }
+            { name: 'Expired', data: data.map(d => d.expired) }
           ];
           this.chartOptions.xaxis = { ...this.chartOptions.xaxis, categories: data.map(d => d.date) };
         },

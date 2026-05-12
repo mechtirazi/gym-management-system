@@ -7,9 +7,9 @@ import { DashboardStatsComponent } from './components/dashboard-stats/dashboard-
 import { RevenueChartComponent } from './components/revenue-chart/revenue-chart';
 import { RecentCheckinsComponent } from './components/recent-checkins/recent-checkins';
 import { AddMemberModalComponent } from './components/add-member-modal/add-member-modal';
+import { NutritionMessagesComponent } from '../../nutritionist/utils/nutrition-messages.component';
 import { finalize } from 'rxjs/operators';
-
-import { DashboardData, UpcomingSession, InventoryAlert, ExpiringMembership, Checkin, FocusArea, StaffSnapshotMember } from '../../../shared/models/dashboard.model';
+import { DashboardData, UpcomingSession, InventoryAlert, ExpiringMembership, Checkin, FocusArea, StaffSnapshotMember, TopProduct, TopCourse } from '../../../shared/models/dashboard.model';
 
 @Component({
   selector: 'app-owner-dashboard',
@@ -20,7 +20,8 @@ import { DashboardData, UpcomingSession, InventoryAlert, ExpiringMembership, Che
     DashboardStatsComponent,
     RevenueChartComponent,
     RecentCheckinsComponent,
-    AddMemberModalComponent
+    AddMemberModalComponent,
+    NutritionMessagesComponent
   ],
   templateUrl: './owner-dashboard.component.html',
   styleUrl: './owner-dashboard.component.scss'
@@ -42,6 +43,17 @@ export class OwnerDashboardComponent implements OnInit {
   expiringMemberships = signal<ExpiringMembership[]>([]);
 
   staffSnapshot = signal<StaffSnapshotMember[]>([]);
+  topProducts = signal<TopProduct[]>([]);
+  topCourses = signal<TopCourse[]>([]);
+  selectedStaffForChat = signal<StaffSnapshotMember | null>(null);
+
+  openStaffChat(staff: StaffSnapshotMember) {
+    this.selectedStaffForChat.set(staff);
+  }
+
+  closeStaffChat() {
+    this.selectedStaffForChat.set(null);
+  }
 
 
   ngOnInit() {
@@ -55,13 +67,15 @@ export class OwnerDashboardComponent implements OnInit {
     this.dashboardService.getDashboardData()
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
-        next: (data) => {
+        next: (data: DashboardData) => {
           this.stats.set(data.stats);
           this.upcomingSessions.set(data.upcomingSessions || []);
           this.inventoryAlerts.set(data.inventoryAlerts || []);
           this.expiringMemberships.set(data.expiringMemberships || []);
 
           this.staffSnapshot.set(data.staffSnapshot || []);
+          this.topProducts.set(data.topProducts || []);
+          this.topCourses.set(data.topCourses || []);
 
         }
       });

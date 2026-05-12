@@ -21,33 +21,35 @@
           <h2 class="kpi-title">Membership Health</h2>
           <div class="kpi-circle-wrap"
             [style.background]="'conic-gradient(#0ea5e9 0% ' + (stats()?.activeMembers > 0 ? 88 : 0) + '%, #d946ef ' + (stats()?.activeMembers > 0 ? 88 : 0) + '% 100%)'">
-            <div class="kpi-circle-inner text-white">
-              <span class="kpi-value text-4xl">{{ stats()?.activeMembers || 0 }}</span>
-              <span class="kpi-label">Active<br>Members</span>
+            <div class="kpi-circle-inner">
+              <span class="kpi-value">{{ stats()?.activeMembers || 0 }}</span>
+              <span class="kpi-label">Active Members</span>
             </div>
             <div class="kpi-glow glow-cyan"></div>
           </div>
           <div class="kpi-stats">
             <div class="kpi-stat-item">
               <span class="kpi-stat-val text-cyan-500">{{ stats()?.newMemberships || 0 }}</span>
-              <span class="kpi-stat-lbl">New This Month</span>
+              <span class="kpi-stat-lbl">New Members</span>
             </div>
             <div class="kpi-stat-item">
-              <span class="kpi-stat-val text-fuchsia-500">{{ stats()?.membersTrend > 0 ? '+' : '' }}{{
-                stats()?.membersTrend || 0 }}%</span>
-              <span class="kpi-stat-lbl">Trend</span>
+              <span class="kpi-stat-val text-amber-500">⏳ {{ stats()?.pendingMemberships || 0 }}</span>
+              <span class="kpi-stat-lbl">Pending</span>
+            </div>
+            <div class="kpi-stat-item">
+              <span class="kpi-stat-val text-rose-500">🚫 {{ stats()?.expiredMemberships || 0 }}</span>
+              <span class="kpi-stat-lbl">Expired</span>
             </div>
           </div>
         </div>
 
-
         <!-- REVENUE GOALS -->
         <div class="dashboard-card kpi-card">
           <h2 class="kpi-title">Revenue Goals</h2>
-          <div class="kpi-circle-wrap" style="background: conic-gradient(#10b981 0% 91%, #d946ef 91% 100%);">
-            <div class="kpi-circle-inner text-white" style="padding: 0 10px;">
-              <span class="kpi-value text-2xl">{{ stats()?.totalRevenue || 0 | number:'1.0-0' }} TND</span>
-              <span class="kpi-label">Month<br>Revenue</span>
+          <div class="kpi-circle-wrap" style="background: conic-gradient(#10b981 0% 91%, #f43f5e 91% 100%);">
+            <div class="kpi-circle-inner">
+              <span class="kpi-value" style="font-size: 2rem;">{{ stats()?.totalRevenue || 0 | number:'1.0-0' }}</span>
+              <span class="kpi-label">Month Revenue</span>
             </div>
             <div class="kpi-glow glow-emerald"></div>
           </div>
@@ -76,7 +78,7 @@
           <div class="chart-legend">
             <span class="legend-item"><span class="dot bg-cyan-500"></span> Daily Attendance</span>
             <span class="legend-item"><span class="dot bg-amber-500"></span> New Sign-ups</span>
-            <span class="legend-item"><span class="dot bg-rose-500"></span> Cancelations</span>
+            <span class="legend-item"><span class="dot bg-rose-500"></span> Expired</span>
           </div>
           <!-- Now using light-theme-chart -->
           <div class="light-theme-chart flex-1" style="margin: 0 -12px;">
@@ -86,78 +88,116 @@
 
         <div class="flex-col-gap">
           <!-- Staff Snapshot -->
-          <div class="dashboard-card staff-card">
-            <h2 class="kpi-title" style="text-align: left; margin-bottom: 1rem;">Staff Snapshot</h2>
-            <table class="staff-table">
-              <thead>
-                <tr>
-                  <th>Current Shift Supervisors</th>
-                  <th style="text-align: center;">Metric</th>
-                  <th style="text-align: center;">Shift</th>
-                  <th style="text-align: right;">Coaches</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (staff of staffSnapshot(); track staff.name) {
-                <tr>
-                  <td>
-                    <div class="flex-align-gap" style="gap: 0.75rem;">
-                      <img [src]="staff.avatar" class="avatar-sm" [alt]="staff.name">
-                      <div class="flex flex-col">
-                        <span class="fw-bold">{{ staff.name }}</span>
-                        <span class="text-xs text-muted">{{ staff.role }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td style="text-align: center;">{{ staff.metric }}</td>
-                  <td style="text-align: center;">{{ staff.shift }}</td>
-                  <td style="text-align: right; color: #0ea5e9; font-weight: 800;">{{ staff.coaches }}</td>
-                </tr>
-                } @empty {
-                <tr>
-                  <td colspan="4" style="text-align: center; padding: 1.5rem 0;" class="text-muted font-medium">No staff
-                    data available.</td>
-                </tr>
-                }
-              </tbody>
-            </table>
+          <div class="dashboard-card staff-card premium-card">
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+              <h2 class="kpi-title" style="margin: 0; text-align: left;">Staff Intelligence</h2>
+              <div class="status-badge-group">
+                <span class="dot-live"></span>
+                <span class="text-xs font-bold text-emerald-500 uppercase tracking-widest">Active Ops</span>
+              </div>
+            </div>
+
+            <div class="staff-list-container">
+              @for (staff of staffSnapshot(); track staff.email) {
+              <div class="staff-row-card">
+                <div class="staff-main-info">
+                  <div class="avatar-container">
+                    <img [src]="staff.avatar" class="staff-avatar-large" [alt]="staff.name">
+                    <div class="status-indicator online"></div>
+                  </div>
+                  <div class="staff-identity">
+                    <span class="staff-name">{{ staff.name }}</span>
+                    <span class="staff-role-badge" [ngClass]="staff.role.toLowerCase()">{{ staff.role }}</span>
+                  </div>
+                </div>
+
+                <div class="staff-contact-info">
+                  <div class="contact-item">
+                    <span class="material-symbols-rounded">mail</span>
+                    <span class="contact-text">{{ staff.email }}</span>
+                  </div>
+                  <div class="contact-item">
+                    <span class="material-symbols-rounded">call</span>
+                    <span class="contact-text phone-highlight">{{ staff.phone }}</span>
+                  </div>
+                </div>
+
+                <div class="staff-actions">
+                  <button class="icon-action-btn" title="Send Message" (click)="openStaffChat(staff)">
+                    <span class="material-symbols-rounded">chat_bubble</span>
+                  </button>
+                </div>
+              </div>
+              } @empty {
+              <div class="empty-staff-state">
+                <span class="material-symbols-rounded">group_off</span>
+                <p>No operational staff detected in current sector.</p>
+              </div>
+              }
+            </div>
           </div>
 
           <!-- Recent Alerts -->
-          <div class="dashboard-card">
-            <div class="flex-between" style="margin-bottom: 1.25rem;">
-              <h2 class="kpi-title" style="margin: 0; text-align: left;">Recent Alerts</h2>
-              <span class="material-symbols-rounded" style="color: #f43f5e; font-size: 16px;">warning</span>
+          <!-- Easy & Better Inventory Alerts -->
+          <div class="dashboard-card stock-alerts-card premium-card">
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+              <div class="flex-align-gap" style="gap: 0.75rem;">
+                <div class="alert-icon-box">
+                  <span class="material-symbols-rounded">inventory_2</span>
+                </div>
+                <h2 class="kpi-title" style="margin: 0; text-align: left;">Low Stock Alerts</h2>
+              </div>
+              <div class="alert-count-badge" *ngIf="inventoryAlerts().length > 0">
+                {{ inventoryAlerts().length }} items
+              </div>
             </div>
-            <div class="flex-col-gap" style="gap: 0.75rem;">
 
-              <!-- Inventory Alerts -->
+            <div class="stock-list">
               @for (alert of inventoryAlerts(); track alert.name) {
-              <div class="alert-item">
-                <span class="material-symbols-rounded"
-                  style="color: #fef3c7; font-size: 16px; background: #d97706; border-radius: 9999px; padding: 2px;">inventory_2</span>
-                <div style="line-height: 1.3;">
-                  <span style="font-weight: 800; color: #b45309;">Low Stock: {{ alert.name }}</span> <span
-                    style="color: #64748b;">Only {{ alert.stock }} left!</span>
+              <div class="simple-stock-card">
+                <div class="stock-info-row">
+                  <div class="name-status">
+                    <span class="product-name">{{ alert.name }}</span>
+                    <span class="status-text" [ngClass]="{
+                      'danger': alert.stock <= 1,
+                      'critical': alert.stock === 2,
+                      'warning': alert.stock === 3,
+                      'low': alert.stock >= 4
+                    }">
+                      {{ alert.stock <= 1 ? 'Out of stock soon!' : alert.stock===2 ? 'Very low stock' : alert.stock===3
+                        ? 'Low stock' : 'Getting low' }} </span>
+                  </div>
+                  <div class="unit-pill">
+                    <strong>{{ alert.stock }}</strong> left
+                  </div>
+                </div>
+
+                <div class="battery-meter">
+                  <div class="battery-bar" *ngFor="let i of [1,2,3,4,5]" [class.filled]="alert.stock >= (6-i)"
+                    [ngClass]="{
+                         'danger': alert.stock <= 1,
+                         'critical': alert.stock === 2,
+                         'warning': alert.stock === 3,
+                         'low': alert.stock >= 4
+                       }"></div>
+                </div>
+
+                <div class="card-footer">
+                  <button class="easy-restock-btn" routerLink="/owner/products">
+                    Order More
+                    <span class="material-symbols-rounded">add_shopping_cart</span>
+                  </button>
                 </div>
               </div>
               }
 
-              <!-- Expiring Memberships -->
-              @for (sub of expiringMemberships(); track sub.memberName) {
-              <div class="alert-item">
-                <span class="material-symbols-rounded"
-                  style="color: #fce7f3; font-size: 16px; background: #be123c; border-radius: 9999px; padding: 2px;">warning</span>
-                <div style="line-height: 1.3;">
-                  <span style="font-weight: 800; color: #9f1239;">{{ sub.memberName }}</span> <span
-                    style="color: #64748b;">Expires in {{ sub.daysLeft }} days!</span>
+              @if (inventoryAlerts().length === 0) {
+              <div class="stock-all-good">
+                <div class="happy-icon">
+                  <span class="material-symbols-rounded">sentiment_very_satisfied</span>
                 </div>
-              </div>
-              }
-
-              @if (inventoryAlerts().length === 0 && expiringMemberships().length === 0) {
-              <div class="text-center py-4 text-muted font-medium" style="font-size: 0.75rem;">
-                No alerts at this time.
+                <h3>Stock is Good!</h3>
+                <p>Everything is currently in stock.</p>
               </div>
               }
             </div>
@@ -165,6 +205,58 @@
         </div>
 
       </div>
+
+      <!-- Top Performance Section -->
+      <div class="bottom-row" style="margin-top: 1.5rem;">
+        <!-- Top Products -->
+        <div class="dashboard-card premium-card flex-1">
+          <div class="flex-between" style="margin-bottom: 1.25rem;">
+            <h2 class="kpi-title" style="margin: 0; text-align: left;">Top Products</h2>
+            <span class="material-symbols-rounded text-amber-500">shopping_bag</span>
+          </div>
+          <div class="simple-table">
+            <div class="table-header">
+              <span>Product</span>
+              <span>Sold</span>
+              <span class="text-right">Revenue</span>
+            </div>
+            @for (item of topProducts(); track item.name) {
+            <div class="table-row">
+              <span class="font-medium">{{ item.name }}</span>
+              <span class="text-muted">{{ item.total_sold }}</span>
+              <span class="text-right font-bold text-emerald-500">${{ item.revenue | number:'1.2-2' }}</span>
+            </div>
+            } @empty {
+            <div class="empty-state-mini">No sales data yet</div>
+            }
+          </div>
+        </div>
+
+        <!-- Top Courses -->
+        <div class="dashboard-card premium-card flex-1">
+          <div class="flex-between" style="margin-bottom: 1.25rem;">
+            <h2 class="kpi-title" style="margin: 0; text-align: left;">Top Courses</h2>
+            <span class="material-symbols-rounded text-indigo-500">fitness_center</span>
+          </div>
+          <div class="course-performance-list">
+            @for (course of topCourses(); track course.name) {
+            <div class="performance-item">
+              <div class="flex-between">
+                <span class="item-name">{{ course.name }}</span>
+                <span class="item-value">{{ course.enrolled }}/{{ course.capacity }}</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="course.occupancy"
+                  [ngClass]="{'bg-emerald-500': course.occupancy > 70, 'bg-amber-500': course.occupancy <= 70}"></div>
+              </div>
+            </div>
+            } @empty {
+            <div class="empty-state-mini">No course analytics yet</div>
+            }
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Right Sidebar -->
@@ -197,52 +289,6 @@
         </div>
       </div>
 
-      <!-- Check-in Feed -->
-      <div class="dashboard-card live-feed-card">
-        <div class="flex-between"
-          style="border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
-          <h2 class="kpi-title" style="margin: 0; text-align: left;">Check-in Feed</h2>
-          <div class="live-badge">
-            <span class="pulse-dot"></span> Live
-          </div>
-        </div>
-        <div class="feed-scrollable list-scrollbar">
-          <table class="checkin-table">
-            <thead>
-              <tr>
-                <th style="width: 30px;">Menu</th>
-                <th>Name</th>
-                <th>Status</th>
-                <th style="text-align: right;">Last Visit</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (checkin of recentCheckins(); track checkin.id) {
-              <tr>
-                <td>
-                  <div
-                    class="flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-600 font-bold"
-                    style="font-size: 9px;">
-                    {{ checkin.initials || '??' }}
-                  </div>
-                </td>
-                <td class="fw-bold">{{ checkin.memberName }}</td>
-                <td style="color: #10b981; font-weight: 800;">Online</td>
-                <td style="text-align: right;" class="text-muted">{{ checkin.timeAgo }}</td>
-              </tr>
-              } @empty {
-              <tr>
-                <td colspan="4" style="text-align: center; padding: 1.5rem 0;" class="text-muted font-medium">No recent
-                  check-ins found.</td>
-              </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-
-
     </div>
   </div>
 
@@ -250,5 +296,14 @@
   @if (showMemberModal()) {
   <app-add-member-modal (close)="showMemberModal.set(false)" (memberAdded)="fetchDashboardData()">
   </app-add-member-modal>
+  }
+
+  <!-- Messaging Overlay -->
+  @if (selectedStaffForChat()) {
+  <div class="floating-chat-container">
+    <app-nutrition-messages [recipientId]="selectedStaffForChat()!.id_user"
+      [recipientName]="selectedStaffForChat()!.name" (close)="closeStaffChat()">
+    </app-nutrition-messages>
+  </div>
   }
 </div>

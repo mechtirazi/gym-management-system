@@ -30,7 +30,7 @@ export interface RevenueAnalytics {
     standard: number;
     elite: number;
   };
-  ecosystem_mrr?: number;
+  platform_upgrade_revenue?: number;
 }
 
 @Injectable({ providedIn: 'root' })

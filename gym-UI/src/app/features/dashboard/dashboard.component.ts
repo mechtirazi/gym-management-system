@@ -30,7 +30,7 @@ export class DashboardComponent implements OnInit {
         next: (data) => {
           const userRole = this.authService.userRole();
           if (userRole === 'owner') {
-             this.stats.set([
+            this.stats.set([
               { label: 'Total Revenue', value: `${data.stats.totalRevenue.toLocaleString()} DT`, trend: `${data.stats.revenueTrend > 0 ? '+' : ''}${data.stats.revenueTrend}%`, isPositive: data.stats.revenueTrend >= 0, color: 'indigo' },
               { label: 'Active Members', value: data.stats.activeMembers.toLocaleString(), trend: `${data.stats.membersTrend > 0 ? '+' : ''}${data.stats.membersTrend}%`, isPositive: data.stats.membersTrend >= 0, color: 'blue' },
               { label: 'New Memberships', value: data.stats.newMemberships.toString(), trend: `${data.stats.membershipsTrend > 0 ? '+' : ''}${data.stats.membershipsTrend}%`, isPositive: data.stats.membershipsTrend >= 0, color: 'emerald' },
