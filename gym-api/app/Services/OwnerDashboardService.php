@@ -883,14 +883,17 @@ class OwnerDashboardService
 
     /**
      * Build a payment-activity heatmap grouped by day-of-week and time-of-day buckets.
-     * Returns array of { name: 'Mon', data: [ { x: '6am', y: count }, ... ] }
+     * Returns array of { name: 'Mon', data: [ { x: '12am', y: count }, ... ] }
      */
     private function getPaymentHeatmap(array $gymIdsArray, Carbon $startPeriod): array
     {
         // Time-slot buckets: label => [from_hour, to_hour]
         $slots = [
-            '6am'  => [6,  7],
-            '8am'  => [8,  9],
+            '12am' => [0, 1],
+            '2am'  => [2, 3],
+            '4am'  => [4, 5],
+            '6am'  => [6, 7],
+            '8am'  => [8, 9],
             '10am' => [10, 11],
             '12pm' => [12, 13],
             '2pm'  => [14, 15],

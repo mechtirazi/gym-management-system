@@ -61,6 +61,7 @@ export class OwnerRevenueComponent implements OnInit {
   isDarkMode = this.themeService.darkMode;
 
   private latestRevenueData: AdvancedRevenueStats | null = null;
+  private readonly heatmapTimeSlots = ['12am', '2am', '4am', '6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm', '10pm'];
 
   netMarginPercent = computed(() => {
     const currentStats = this.stats();
@@ -324,7 +325,7 @@ export class OwnerRevenueComponent implements OnInit {
       colors: ['#0ea5e9'],
       xaxis: {
         type: 'category',
-        categories: ['6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm', '10pm'],
+        categories: this.heatmapTimeSlots,
         labels: { style: { fontSize: '11px', fontWeight: 600 } }
       },
       yaxis: {
