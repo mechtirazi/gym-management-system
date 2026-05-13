@@ -94,7 +94,21 @@ export class ReceptionistPaymentsService {
     return this.http.get<any>(`${environment.apiUrl}/receptionist/dashboard-stats`);
   }
 
-  create(payload: { member_id: string; id_gym: string; amount: number; gateway: string; category?: string | null; id_product?: string | null; external_reference?: string | null }) {
+  create(payload: {
+    member_id: string;
+    id_gym: string;
+    amount: number;
+    gateway: string;
+    category?: string | null;
+    id_product?: string | null;
+    id_plan?: string | null;
+    id_course?: string | null;
+    id_session?: string | null;
+    id_event?: string | null;
+    id_nutrition?: string | null;
+    start_date?: string | null;
+    external_reference?: string | null;
+  }) {
     return this.http.post<ApiResponse<PaymentDto>>(this.baseUrl, payload);
   }
 

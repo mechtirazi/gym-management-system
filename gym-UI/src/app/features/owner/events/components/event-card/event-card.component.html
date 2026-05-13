@@ -12,7 +12,7 @@
       </svg>
     </div>
     }
-    <div class="card-status active">Upcoming</div>
+    <div class="card-status" [class]="eventStatus.class">{{ eventStatus.label }}</div>
   </div>
 
   <div class="card-header">

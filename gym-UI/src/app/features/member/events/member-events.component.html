@@ -61,8 +61,8 @@
             <span class="material-symbols-rounded">location_on</span>
             <span>{{ event.gymName }}</span>
           </div>
-          <div class="status-badge" [class.live]="isEventReserved(event)">
-            {{ isEventReserved(event) ? 'ENROLLED' : 'AVAILABLE' }}
+          <div class="status-badge" [class.live]="isEventReserved(event)" [class.expired]="event.isExpired" [class.full]="event.isFull">
+            {{ isEventReserved(event) ? 'ENROLLED' : (event.isExpired ? 'EXPIRED' : (event.isFull ? 'FULL' : 'AVAILABLE')) }}
           </div>
         </div>
 
@@ -70,6 +70,19 @@
         <p class="event-desc">{{ (event.description | slice:0:120) + '...' }}</p>
 
         <div class="event-meta-modern">
+          <div class="meta-node">
+            <span class="material-symbols-rounded info-icon">calendar_today</span>
+            <div class="meta-stack">
+              <span class="meta-label">DATE</span>
+              <span class="meta-value text-glow">
+                {{ event.start_date | date:'mediumDate' }}
+                @if (event.end_date && event.end_date !== event.start_date) {
+                  - {{ event.end_date | date:'mediumDate' }}
+                }
+              </span>
+            </div>
+          </div>
+
           <div class="meta-node">
             <span class="material-symbols-rounded info-icon">schedule</span>
             <div class="meta-stack">
@@ -110,10 +123,16 @@
             }
           </div>
           <div class="actions-group">
-            <button class="reserve-btn" [class.reserved]="isEventReserved(event)" [disabled]="isEventReserved(event)"
-              (click)="onReserve(event)" [title]="isEventReserved(event) ? 'Already secured' : 'Secure your spot'">
-              <span class="material-symbols-rounded">{{ isEventReserved(event) ? 'verified' : 'stadium' }}</span>
-              {{ isEventReserved(event) ? 'Secured' : (event.price > 0 ? 'Get Access' : 'Enroll Free') }}
+            <button class="reserve-btn" 
+              [class.reserved]="isEventReserved(event)" 
+              [class.blocked]="event.isExpired || event.isFull"
+              [disabled]="isEventReserved(event) || event.isExpired || event.isFull"
+              (click)="onReserve(event)" 
+              [title]="isEventReserved(event) ? 'Already secured' : (event.isExpired ? 'Event expired' : (event.isFull ? 'Event full' : 'Secure your spot'))">
+              <span class="material-symbols-rounded">
+                {{ isEventReserved(event) ? 'verified' : (event.isExpired ? 'event_busy' : (event.isFull ? 'block' : 'stadium')) }}
+              </span>
+              {{ isEventReserved(event) ? 'Secured' : (event.isExpired ? 'Expired' : (event.isFull ? 'Full' : (event.price > 0 ? 'Get Access' : 'Enroll Free'))) }}
             </button>
           </div>
         </div>

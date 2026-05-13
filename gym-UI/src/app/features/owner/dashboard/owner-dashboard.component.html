@@ -260,8 +260,7 @@
                 <span class="item-value">{{ course.enrolled }}/{{ course.capacity || 0 }}</span>
               </div>
               <div class="progress-track">
-                <div class="progress-fill" [style.width.%]="course.occupancy"
-                  [ngClass]="{
+                <div class="progress-fill" [style.width.%]="course.occupancy" [ngClass]="{
                     'bg-emerald-500': course.occupancy >= 80,
                     'bg-cyan-500': course.occupancy >= 50 && course.occupancy < 80,
                     'bg-amber-500': course.occupancy < 50

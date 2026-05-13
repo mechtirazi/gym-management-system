@@ -1,107 +1,199 @@
 <div class="receptionist-dashboard">
-  <!-- Dynamic Header -->
-  <header class="dashboard-header">
-    <div class="header-left">
-      <h1>Receptionist Command Center</h1>
-      <p class="subtitle">{{ today() | date:'EEEE, MMMM d' }} · {{ selectedGymName() }}</p>
-    </div>
-    <div class="header-actions">
-      <button class="refresh-btn" (click)="load()" [disabled]="isLoading()">
-        <span class="material-symbols-rounded">refresh</span>
-        Real-time Refresh
-      </button>
+
+  <!-- Hero Header -->
+  <header class="dash-hero">
+    <div class="hero-bg-layer"></div>
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="hero-icon-wrap">
+          <span class="material-symbols-rounded hero-icon">local_activity</span>
+        </div>
+        <div class="hero-text">
+          <h1>Command Center</h1>
+          <p class="hero-sub">
+            <span class="material-symbols-rounded">calendar_today</span>
+            {{ today() | date:'EEEE, MMMM d, yyyy' }} &nbsp;·&nbsp;
+            <span class="material-symbols-rounded">location_on</span>
+            {{ selectedGymName() }}
+          </p>
+        </div>
+      </div>
+      <div class="hero-right">
+        <button class="refresh-btn" (click)="load()" [disabled]="isLoading()">
+          <span class="material-symbols-rounded" [class.spin]="isLoading()">refresh</span>
+          Sync Live Data
+        </button>
+      </div>
     </div>
   </header>
 
   @if (error()) {
-    <div class="error-card">
-      <span class="material-symbols-rounded">warning</span>
-      {{ error() }}
+    <div class="error-banner">
+      <span class="material-symbols-rounded">error</span>
+      <span>{{ error() }}</span>
     </div>
   }
 
   @if (isLoading()) {
-    <div class="loading-box">
-      <div class="spinner"></div>
-      <p>Synchronizing dashboard data...</p>
+    <div class="skeleton-grid">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="skeleton-card"><div class="sk-shine"></div></div>
+      }
     </div>
   } @else if (stats()) {
-    <div class="dashboard-grid">
-      <!-- Main Column -->
-      <div class="main-content">
-        
-        <!-- Key Pulse Gauges -->
-        <div class="kpi-row">
-          <div class="dashboard-card gauge-card">
-            <h2 class="card-title"><span class="material-symbols-rounded">verified_user</span> Membership Health</h2>
-            <div class="gauge-wrap blue" [style.background]="'conic-gradient(var(--admin-accent-blue) 0% ' + membershipHealth() + '%, var(--admin-item-border) ' + membershipHealth() + '% 100%)'">
-              <div class="gauge-inner">
-                <span class="val">{{ stats()!.kpis.activeEnrollments }}</span>
-                <span class="lbl">Active<br>Subscribers</span>
+
+    <!-- Top KPI Strip -->
+    <div class="kpi-strip">
+      <div class="kpi-tile blue">
+        <div class="kpi-tile-icon"><span class="material-symbols-rounded">how_to_reg</span></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-val">{{ stats()!.kpis.checkinsToday }}</span>
+          <span class="kpi-tile-label">Check-ins Today</span>
+        </div>
+        <div class="kpi-tile-bg-icon"><span class="material-symbols-rounded">how_to_reg</span></div>
+      </div>
+      <div class="kpi-tile emerald">
+        <div class="kpi-tile-icon"><span class="material-symbols-rounded">payments</span></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-val">{{ stats()!.kpis.revenueToday | number:'1.0-0' }}</span>
+          <span class="kpi-tile-label">Revenue Today (TND)</span>
+        </div>
+        <div class="kpi-tile-bg-icon"><span class="material-symbols-rounded">payments</span></div>
+      </div>
+      <div class="kpi-tile violet">
+        <div class="kpi-tile-icon"><span class="material-symbols-rounded">fitness_center</span></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-val">{{ stats()!.kpis.sessionsToday }}</span>
+          <span class="kpi-tile-label">Sessions Today</span>
+        </div>
+        <div class="kpi-tile-bg-icon"><span class="material-symbols-rounded">fitness_center</span></div>
+      </div>
+      <div class="kpi-tile amber">
+        <div class="kpi-tile-icon"><span class="material-symbols-rounded">event_busy</span></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-val">{{ stats()!.kpis.expiringEnrollmentsSoon }}</span>
+          <span class="kpi-tile-label">Expiring Soon</span>
+        </div>
+        <div class="kpi-tile-bg-icon"><span class="material-symbols-rounded">event_busy</span></div>
+      </div>
+      <div class="kpi-tile indigo">
+        <div class="kpi-tile-icon"><span class="material-symbols-rounded">group</span></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-val">{{ stats()!.kpis.activeEnrollments }}</span>
+          <span class="kpi-tile-label">Active Members</span>
+        </div>
+        <div class="kpi-tile-bg-icon"><span class="material-symbols-rounded">group</span></div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Body -->
+    <div class="dash-body">
+
+      <!-- Left Column: Gauges + Sessions -->
+      <div class="dash-main">
+
+        <!-- Gauge Row -->
+        <div class="gauge-row">
+          <!-- Health Gauge -->
+          <div class="glass-card gauge-card">
+            <div class="gc-header">
+              <div class="gc-icon-wrap blue"><span class="material-symbols-rounded">verified_user</span></div>
+              <div>
+                <div class="gc-title">Membership Health</div>
+                <div class="gc-sub">Active vs Total Base</div>
               </div>
-              <div class="glow"></div>
             </div>
-            <div class="subtitle" style="text-align: center;">{{ membershipHealth() | number:'1.0-0' }}% of total base active</div>
+            <div class="gauge-ring-wrap">
+              <div class="gauge-ring"
+                [style.background]="'conic-gradient(#0ea5e9 0% ' + membershipHealth() + '%, rgba(14,165,233,0.1) ' + membershipHealth() + '% 100%)'">
+                <div class="gauge-ring-inner">
+                  <span class="gauge-val">{{ membershipHealth() | number:'1.0-0' }}<span class="gauge-pct">%</span></span>
+                  <span class="gauge-desc">Health Score</span>
+                </div>
+              </div>
+              <div class="gauge-legend">
+                <div class="gl-item">
+                  <span class="gl-dot blue"></span>
+                  <span>Active: {{ stats()!.kpis.activeEnrollments }}</span>
+                </div>
+                <div class="gl-item">
+                  <span class="gl-dot muted"></span>
+                  <span>Total: {{ stats()!.kpis.membersTotal }}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="dashboard-card gauge-card">
-            <h2 class="card-title"><span class="material-symbols-rounded">trending_up</span> Monthly Revenue Target</h2>
-            <div class="gauge-wrap emerald" [style.background]="'conic-gradient(var(--admin-accent-emerald) 0% ' + revenueProgress() + '%, var(--admin-item-border) ' + revenueProgress() + '% 100%)'">
-              <div class="gauge-inner">
-                <span class="val">{{ stats()!.kpis.revenueThisMonth | number:'1.0-0' }} TND</span>
-                <span class="lbl">Monthly<br>Collected</span>
+          <!-- Revenue Gauge -->
+          <div class="glass-card gauge-card">
+            <div class="gc-header">
+              <div class="gc-icon-wrap emerald"><span class="material-symbols-rounded">trending_up</span></div>
+              <div>
+                <div class="gc-title">Monthly Revenue</div>
+                <div class="gc-sub">Progress toward 10K TND</div>
               </div>
-              <div class="glow"></div>
             </div>
-            <div class="subtitle" style="text-align: center;">10,000 TND baseline milestone</div>
+            <div class="gauge-ring-wrap">
+              <div class="gauge-ring emerald"
+                [style.background]="'conic-gradient(#10b981 0% ' + revenueProgress() + '%, rgba(16,185,129,0.1) ' + revenueProgress() + '% 100%)'">
+                <div class="gauge-ring-inner">
+                  <span class="gauge-val">{{ stats()!.kpis.revenueThisMonth | number:'1.0-0' }}</span>
+                  <span class="gauge-desc">TND Collected</span>
+                </div>
+              </div>
+              <div class="gauge-legend">
+                <div class="gl-item">
+                  <span class="gl-dot emerald"></span>
+                  <span>This Month: {{ stats()!.kpis.revenueThisMonth | number:'1.0-0' }} TND</span>
+                </div>
+                <div class="gl-item">
+                  <span class="gl-dot muted"></span>
+                  <span>Today: {{ stats()!.kpis.revenueToday | number:'1.0-0' }} TND</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Quick Metrics Grid -->
-        <div class="quick-stats-grid">
-          <div class="dashboard-card mini-stat">
-            <span class="mini-icon material-symbols-rounded">login</span>
-            <span class="mini-label">Check-ins Today</span>
-            <span class="mini-value">{{ stats()!.kpis.checkinsToday }}</span>
+        <!-- Upcoming Sessions -->
+        <div class="glass-card sessions-card">
+          <div class="sc-header">
+            <div class="sc-title-wrap">
+              <div class="sc-icon"><span class="material-symbols-rounded">calendar_month</span></div>
+              <div>
+                <div class="sc-title">Upcoming Sessions</div>
+                <div class="sc-sub">Today & Future Classes</div>
+              </div>
+            </div>
+            <div class="sc-count">{{ stats()!.upcomingSessions.length }} Scheduled</div>
           </div>
-          <div class="dashboard-card mini-stat">
-            <span class="mini-icon material-symbols-rounded">event_busy</span>
-            <span class="mini-label">Expiring (7d)</span>
-            <span class="mini-value">{{ stats()!.kpis.expiringEnrollmentsSoon }}</span>
-          </div>
-          <div class="dashboard-card mini-stat">
-            <span class="mini-icon material-symbols-rounded">fitness_center</span>
-            <span class="mini-label">Sessions Today</span>
-            <span class="mini-value">{{ stats()!.kpis.sessionsToday }}</span>
-          </div>
-          <div class="dashboard-card mini-stat">
-            <span class="mini-icon material-symbols-rounded">payments</span>
-            <span class="mini-label">Revenue Today</span>
-            <span class="mini-value">{{ stats()!.kpis.revenueToday | number:'1.0-0' }} TND</span>
-          </div>
-        </div>
-
-        <!-- Main Lists Area -->
-        <div class="dashboard-card main-list-panel">
-          <div class="panel-header">
-            <h3><span class="material-symbols-rounded">calendar_month</span> Upcoming Sessions & Classes</h3>
-          </div>
-          <div class="panel-body">
+          <div class="sessions-timeline">
             @if (!stats()!.upcomingSessions.length) {
-              <div class="empty-state">No sessions scheduled for today.</div>
+              <div class="empty-state">
+                <span class="material-symbols-rounded">event_busy</span>
+                <p>No sessions scheduled</p>
+              </div>
             } @else {
               @for (s of stats()!.upcomingSessions; track s.id_session) {
-                <div class="session-item">
-                  <div class="sess-main">
-                    <span class="material-symbols-rounded sess-icon">sports_gymnastics</span>
-                    <div class="sess-details">
-                      <div class="sess-title">{{ s.course?.name || 'Class Session' }}</div>
-                      <div class="sess-meta">
-                        {{ s.start_time }} - {{ s.end_time }} · {{ s.trainer?.name || 'Assigned Trainer' }}
-                      </div>
+                <div class="session-row">
+                  <div class="sr-time">
+                    <span class="sr-start">{{ s.start_time || '--:--' }}</span>
+                    <span class="sr-end">{{ s.end_time || '' }}</span>
+                  </div>
+                  <div class="sr-line">
+                    <div class="sr-dot"></div>
+                    <div class="sr-connector"></div>
+                  </div>
+                  <div class="sr-content">
+                    <div class="sr-course">{{ s.course?.name || 'Class Session' }}</div>
+                    <div class="sr-meta">
+                      <span class="material-symbols-rounded">person</span>
+                      {{ s.trainer?.name || 'Assigned Trainer' }}
                     </div>
                   </div>
-                  <div class="sess-badge">{{ s.status || 'Planned' }}</div>
+                  <div class="sr-badge" [class]="'badge-' + (s.status || 'planned').toLowerCase()">
+                    {{ s.status || 'Planned' }}
+                  </div>
                 </div>
               }
             }
@@ -109,59 +201,98 @@
         </div>
       </div>
 
-      <!-- Sidebar Column -->
-      <div class="sidebar-content">
-        
+      <!-- Right Sidebar -->
+      <div class="dash-sidebar">
+
         <!-- Quick Actions -->
-        <div class="dashboard-card sidebar-panel">
-          <div class="panel-header">
-            <h3>Quick Actions</h3>
-          </div>
-          <div class="action-stack">
-            <button class="action-card" (click)="navigateTo('/receptionist/members')">
-              <div class="action-icon"><span class="material-symbols-rounded">person_add</span></div>
-              <div class="action-info">
-                <div class="action-title">New Enrollment</div>
-                <div class="action-desc">Register a new client</div>
-              </div>
+        <div class="glass-card actions-card">
+          <div class="ac-title">Quick Actions</div>
+          <div class="ac-grid">
+            <button class="ac-btn blue" (click)="navigateTo('/receptionist/payments')">
+              <span class="material-symbols-rounded">credit_card</span>
+              <span>Process Payment</span>
             </button>
-            <button class="action-card" (click)="navigateTo('/receptionist/payments')">
-              <div class="action-icon"><span class="material-symbols-rounded">credit_card</span></div>
-              <div class="action-info">
-                <div class="action-title">Process Payment</div>
-                <div class="action-desc">Collect fees or products</div>
-              </div>
+            <button class="ac-btn teal" (click)="navigateTo('/receptionist/attendance')">
+              <span class="material-symbols-rounded">how_to_reg</span>
+              <span>Check-in</span>
             </button>
-            <button class="action-card" (click)="navigateTo('/receptionist/attendance')">
-              <div class="action-icon"><span class="material-symbols-rounded">how_to_reg</span></div>
-              <div class="action-info">
-                <div class="action-title">Check-in Member</div>
-                <div class="action-desc">Record session entrance</div>
-              </div>
+            <button class="ac-btn violet" (click)="navigateTo('/receptionist/products')">
+              <span class="material-symbols-rounded">inventory_2</span>
+              <span>View Products</span>
+            </button>
+            <button class="ac-btn amber" (click)="navigateTo('/receptionist/events')">
+              <span class="material-symbols-rounded">event</span>
+              <span>View Events</span>
             </button>
           </div>
         </div>
 
-        <!-- Live Feed -->
-        <div class="dashboard-card sidebar-panel">
-          <div class="panel-header">
-            <h3>Activity Feed</h3>
-            <div class="live-badge">
-              <span class="pulse"></span> LIVE
+        <!-- Recent Revenue -->
+        <div class="glass-card feed-card">
+          <div class="fc-header">
+            <div class="fc-title">Recent Revenue</div>
+            <div class="live-pill">
+              <span class="live-dot"></span>
+              LIVE
             </div>
           </div>
-          <div class="feed-list">
-            @if (!stats()!.recentCheckins.length) {
-              <div class="empty-state">Waiting for activity...</div>
+          <div class="tx-list">
+            @if (!stats()!.recentTransactions.length) {
+              <div class="empty-state small">
+                <span class="material-symbols-rounded">receipt_long</span>
+                <p>No transactions yet</p>
+              </div>
             } @else {
-              @for (c of stats()!.recentCheckins; track c.id_attendance) {
-                <div class="feed-item">
-                  <div class="feed-avatar">{{ c.memberName[0] }}</div>
-                  <div class="feed-info">
-                    <div class="member-name">{{ c.memberName }}</div>
-                    <div class="session-info">Entered {{ c.session?.courseName || 'Gym Area' }}</div>
+              @for (t of stats()!.recentTransactions; track t.id_payment) {
+                <div class="tx-row">
+                  <div class="tx-avatar secondary">
+                    @if (t.avatar) {
+                      <img [src]="t.avatar" [alt]="t.memberName" (error)="t.avatar = null">
+                    } @else {
+                      {{ t.memberName[0] }}
+                    }
                   </div>
-                  <div class="feed-time">{{ c.created_at | date:'HH:mm' }}</div>
+                  <div class="tx-info">
+                    <div class="tx-name">{{ t.memberName }}</div>
+                    <div class="tx-type">{{ t.type | titlecase }}</div>
+                  </div>
+                  <div class="tx-amount">+{{ t.amount | number:'1.0-0' }}<span class="tx-cur"> TND</span></div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Expiring Members -->
+        <div class="glass-card feed-card warn-card">
+          <div class="fc-header">
+            <div class="fc-title">Expiring Soon</div>
+            <div class="warn-pill">
+              <span class="material-symbols-rounded">schedule</span>
+              7 Days
+            </div>
+          </div>
+          <div class="exp-list">
+            @if (!stats()!.expiringMembers.length) {
+              <div class="empty-state small">
+                <span class="material-symbols-rounded">check_circle</span>
+                <p>All memberships healthy</p>
+              </div>
+            } @else {
+              @for (m of stats()!.expiringMembers; track m.memberName) {
+                <div class="exp-row">
+                  <div class="tx-avatar small">
+                    @if (m.avatar) {
+                      <img [src]="m.avatar" [alt]="m.memberName" (error)="m.avatar = null">
+                    } @else {
+                      <span class="material-symbols-rounded exp-icon">warning</span>
+                    }
+                  </div>
+                  <div class="exp-info">
+                    <div class="exp-name">{{ m.memberName }}</div>
+                    <div class="exp-type">{{ m.type | titlecase }} Plan</div>
+                  </div>
+                  <div class="exp-action">Renew</div>
                 </div>
               }
             }
@@ -172,4 +303,3 @@
     </div>
   }
 </div>
-

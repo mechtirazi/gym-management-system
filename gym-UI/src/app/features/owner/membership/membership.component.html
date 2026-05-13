@@ -62,7 +62,8 @@
     <div class="membership-grid">
       @for (item of memberships(); track item.id_subscribe || item.id_enrollment || item.id || $index) {
       <app-membership-card [membership]="item" (cancelClick)="onCancelMembership($event)"
-        (viewClick)="onViewDetails($event)" (editClick)="onEditMember($event)">
+        (viewClick)="onViewDetails($event)" (editClick)="onEditMember($event)"
+        (reactivateClick)="onReactivateMembership($event)">
       </app-membership-card>
       }
     </div>
@@ -109,5 +110,13 @@
   <app-edit-membership-modal [membership]="editingMembership()" (close)="closeEditModal()"
     (updated)="onMembershipUpdated()">
   </app-edit-membership-modal>
+  }
+
+  @if (reactivatingMembership()) {
+    <app-reactivate-membership-modal 
+      [membership]="reactivatingMembership()" 
+      (close)="closeReactivateModal()" 
+      (reactivated)="refreshSubscriptions()">
+    </app-reactivate-membership-modal>
   }
 </div>

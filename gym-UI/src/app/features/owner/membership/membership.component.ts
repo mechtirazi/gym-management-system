@@ -7,6 +7,7 @@ import { MembershipCardComponent } from './components/membership-card/membership
 import { AddMembershipModalComponent } from './components/add-membership-modal/add-membership-modal.component';
 import { ViewMembershipModalComponent } from './components/view-membership-modal/view-membership-modal.component';
 import { EditMembershipModalComponent } from './components/edit-membership-modal/edit-membership-modal.component';
+import { ReactivateMembershipModalComponent } from './components/reactivate-membership-modal/reactivate-membership-modal.component';
 import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { MemberStatsComponent } from '../member/components/member-stats/member-stats.component';
@@ -22,6 +23,7 @@ import { MemberStatsComponent } from '../member/components/member-stats/member-s
     AddMembershipModalComponent,
     ViewMembershipModalComponent,
     EditMembershipModalComponent,
+    ReactivateMembershipModalComponent,
     MemberStatsComponent
   ],
   templateUrl: './membership.component.html',
@@ -43,6 +45,7 @@ export class MembershipManagementComponent implements OnInit, OnDestroy {
   isAddModalOpen = signal<boolean>(false);
   viewedMembership = signal<any | null>(null);
   editingMembership = signal<any | null>(null);
+  reactivatingMembership = signal<any | null>(null);
 
   // Pagination states
   currentPage = signal<number>(1);
@@ -213,5 +216,13 @@ export class MembershipManagementComponent implements OnInit, OnDestroy {
   onMembershipUpdated() {
     console.log('Membership updated, refreshing list...');
     this.refreshSubscriptions();
+  }
+
+  onReactivateMembership(membership: any) {
+    this.reactivatingMembership.set(membership);
+  }
+
+  closeReactivateModal() {
+    this.reactivatingMembership.set(null);
   }
 }

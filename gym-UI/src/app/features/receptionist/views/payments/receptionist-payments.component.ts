@@ -51,19 +51,19 @@ export class ReceptionistPaymentsComponent implements OnInit {
     const term = this.memberSearchTerm().toLowerCase().trim();
     const selectedId = this.form.get('id_user')?.value;
     const allMembers = this.members();
-    
+
     if (!term) return allMembers;
-    
+
     const searchWords = term.split(/\s+/);
-    
+
     return allMembers.filter(m => {
       const fullName = (m.name || '').toLowerCase();
       const email = (m.email || '').toLowerCase();
-      
-      const matchesSearch = searchWords.every(word => 
+
+      const matchesSearch = searchWords.every(word =>
         fullName.includes(word) || email.includes(word)
       );
-      
+
       const isSelected = m.userId === selectedId;
       return matchesSearch || isSelected;
     });
@@ -82,6 +82,7 @@ export class ReceptionistPaymentsComponent implements OnInit {
   gatewayFilter = signal<string>('');
   searchQuery = signal<string>('');
   private searchSubject = new Subject<string>();
+  private memberSearchSubject = new Subject<string>();
 
   // Metrics State
   financialSummary = signal<any>(null);
@@ -122,6 +123,13 @@ export class ReceptionistPaymentsComponent implements OnInit {
       this.refresh(true);
     });
 
+    this.memberSearchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(val => {
+      this.loadMembers(val);
+    });
+
     effect(() => {
       if (this.currentGymId()) {
         this.refresh();
@@ -157,34 +165,27 @@ export class ReceptionistPaymentsComponent implements OnInit {
     // Focus or other UX improvements can go here
   }
 
-  loadMembers() {
-    this.memberService.getMembers(1, 1000).subscribe({
+  loadMembers(search?: string) {
+    this.memberService.getUsers(1, 100, 'member', search).subscribe({
       next: (res: any) => {
         const raw = res.data || [];
-        const uniqueMembers = new Map<string, GymMember>();
+        const membersList = raw.map((u: any) => {
+          // Find the latest enrollment to keep the enrollment data if available
+          const latestEnrollment = (u.enrollments || []).sort((a: any, b: any) => {
+            return new Date(b.end_date || 0).getTime() - new Date(a.end_date || 0).getTime();
+          })[0];
 
-        raw.forEach((item: any) => {
-          const u = item.member;
-          if (!u) return;
-
-          const email = (u.email || '').toLowerCase().trim();
-          const fullName = `${u.name || ''} ${u.last_name || ''}`.toLowerCase().trim();
-          const compositeKey = `${fullName}-${email}`;
-
-          if (email && !uniqueMembers.has(compositeKey)) {
-            uniqueMembers.set(compositeKey, {
-              userId: u.id_user || u.id,
-              name: (u.name && u.last_name) ? `${u.name} ${u.last_name}` : (u.name || 'Unknown'),
-              email: u.email || '',
-              // Store enrollment dates and gym id for overlap checks
-              id_gym: item.id_gym,
-              enrollment_start: item.start_date,
-              enrollment_end: item.end_date
-            } as GymMember);
-          }
+          return {
+            userId: (u.id_user || u.id).toString(),
+            name: (u.name && u.last_name) ? `${u.name} ${u.last_name}` : (u.name || 'Unknown'),
+            email: u.email || '',
+            id_gym: latestEnrollment?.id_gym || u.id_gym,
+            enrollment_start: latestEnrollment?.start_date || latestEnrollment?.enrollment_date,
+            enrollment_end: latestEnrollment?.end_date
+          } as GymMember;
         });
 
-        this.members.set(Array.from(uniqueMembers.values()));
+        this.members.set(membersList);
       }
     });
   }
@@ -194,13 +195,37 @@ export class ReceptionistPaymentsComponent implements OnInit {
     const memberId = raw.id_user;
     const type = raw.type;
     const sessionId = raw.id_session;
+    const courseId = raw.id_course;
     const eventId = raw.id_event;
     const startDate = raw.start_date;
     const currentGymId = this.currentGymId();
 
+    // 1. Independent Checks (e.g. Stock)
+    if (type === 'product') {
+      const productId = raw.id_product;
+      const quantity = raw.quantity || 1;
+      const product = this.products().find(p => p.id_product === productId);
+
+      if (product) {
+        const stock = product.stock || 0;
+        if (quantity > stock) {
+          this.isDuplicate.set(true);
+          this.duplicateMessage.set(`Insufficient stock. Only ${stock} units available.`);
+          return;
+        } else {
+          this.isDuplicate.set(false);
+          this.duplicateMessage.set('');
+        }
+      }
+    }
+
+    // 2. Member-dependent Checks
     if (!memberId || !currentGymId) {
-      this.isDuplicate.set(false);
-      this.duplicateMessage.set('');
+      // Only clear if we aren't already in a product error state
+      if (type !== 'product') {
+        this.isDuplicate.set(false);
+        this.duplicateMessage.set('');
+      }
       return;
     }
 
@@ -213,22 +238,7 @@ export class ReceptionistPaymentsComponent implements OnInit {
 
         if (selectedStart <= end) {
           this.isDuplicate.set(true);
-          this.duplicateMessage.set(`Member has an active membership in THIS gym from ${member.enrollment_start} until ${member.enrollment_end}.`);
-          return;
-        }
-      }
-    }
-
-    if (type === 'product') {
-      const productId = raw.id_product;
-      const quantity = raw.quantity || 1;
-      const product = this.products().find(p => p.id_product === productId);
-
-      if (product) {
-        const stock = product.stock || 0;
-        if (quantity > stock) {
-          this.isDuplicate.set(true);
-          this.duplicateMessage.set(`Insufficient stock. Only ${stock} units available.`);
+          this.duplicateMessage.set(`Member has an active membership in THIS gym until ${member.enrollment_end}.`);
           return;
         }
       }
@@ -242,6 +252,15 @@ export class ReceptionistPaymentsComponent implements OnInit {
           this.duplicateMessage.set(exists ? 'Member is already enrolled in this session.' : '');
         }
       });
+    } else if (type === 'course' && courseId && !sessionId) {
+      // Check for course-level enrollment (Abonnement/Weekly)
+      this.memberService.getMembers(1, 1, { search: memberId, id_course: courseId }).subscribe({
+        next: (res: any) => {
+          const exists = res.data && res.data.length > 0;
+          this.isDuplicate.set(exists);
+          this.duplicateMessage.set(exists ? 'Member is already enrolled in this course (Weekly Sessions).' : '');
+        }
+      });
     } else if (type === 'event' && eventId) {
       this.eventService.getEventAttendances(eventId).subscribe({
         next: (atts: any[]) => {
@@ -250,7 +269,7 @@ export class ReceptionistPaymentsComponent implements OnInit {
           this.duplicateMessage.set(exists ? 'Member is already registered for this event.' : '');
         }
       });
-    } else {
+    } else if (type !== 'product') {
       this.isDuplicate.set(false);
       this.duplicateMessage.set('');
     }
@@ -259,7 +278,25 @@ export class ReceptionistPaymentsComponent implements OnInit {
   loadAllEvents() {
     this.eventService.getEvents(1, 100).subscribe({
       next: (res: any) => {
-        this.events.set(res.data || []);
+        const rawEvents = res.data || [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const availableEvents = rawEvents.filter((e: any) => {
+          // 1. Date check (ensure event hasn't ended)
+          const eventEndDate = new Date(e.end_date || e.start_date);
+          eventEndDate.setHours(23, 59, 59, 999);
+          if (eventEndDate < today) return false;
+
+          // 2. Capacity check
+          if (e.max_participants > 0 && (e.attendances_count || 0) >= e.max_participants) {
+            return false;
+          }
+
+          return true;
+        });
+
+        this.events.set(availableEvents);
       }
     });
   }
@@ -399,8 +436,12 @@ export class ReceptionistPaymentsComponent implements OnInit {
     const product = this.products().find(p => p.id_product === productId);
 
     if (product) {
+      const basePrice = product.price || 0;
+      const discount = product.discount_percentage || 0;
+      const discountedPrice = basePrice * (1 - (discount / 100));
+
       this.form.patchValue({
-        amount: product.price * quantity
+        amount: discountedPrice * quantity
       });
     }
   }
@@ -456,6 +497,11 @@ export class ReceptionistPaymentsComponent implements OnInit {
 
   onSearch(query: string) {
     this.searchSubject.next(query);
+  }
+
+  onMemberSearch(query: string) {
+    this.memberSearchTerm.set(query);
+    this.memberSearchSubject.next(query);
   }
 
   onFilterChange() {

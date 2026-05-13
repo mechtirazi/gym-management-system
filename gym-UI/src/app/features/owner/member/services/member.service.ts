@@ -29,7 +29,7 @@ export class MemberService {
    */
   getMembers(page: number = 1, perPage: number = 100, filters: any = {}): Observable<any> {
     let url = `${this.apiUrl}/enrollments?page=${page}&per_page=${perPage}`;
-    
+
     if (filters.status && filters.status !== 'All') {
       url += `&status=${filters.status}`;
     }
@@ -40,6 +40,20 @@ export class MemberService {
       url += `&id_course=${filters.id_course}`;
     }
 
+    return this.http.get<any>(url, { headers: this.authHeaders });
+  }
+
+  /**
+   * Fetches users from the backend with server-side pagination and role filtering.
+   */
+  getUsers(page: number = 1, perPage: number = 100, role?: string, search?: string): Observable<any> {
+    let url = `${this.apiUrl}/users?page=${page}&per_page=${perPage}`;
+    if (role) {
+      url += `&role=${role}`;
+    }
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
     return this.http.get<any>(url, { headers: this.authHeaders });
   }
 

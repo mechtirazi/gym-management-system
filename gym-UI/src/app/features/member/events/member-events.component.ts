@@ -102,6 +102,9 @@ export class MemberEventsComponent implements OnInit {
           }
         });
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         this.events = eventsRaw.map((event: any) => {
           // Resolve correct image URL
           let imageUrl = event.image;
@@ -111,11 +114,18 @@ export class MemberEventsComponent implements OnInit {
             imageUrl = `${baseUrl}/${cleanPath}`;
           }
 
+          const eventEndDate = new Date(event.end_date || event.start_date);
+          eventEndDate.setHours(23, 59, 59, 999);
+          const isExpired = eventEndDate < today;
+          const isFull = event.max_participants > 0 && (event.attendances_count || 0) >= event.max_participants;
+
           return {
             ...event,
             id_event: event.id_event || event.id,
             imageUrl: imageUrl || 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800',
             isReserved: this.reservedEventIds.includes(event.id_event || event.id),
+            isExpired,
+            isFull,
             gymName: event.gym?.name || 'Local Hub',
             participantsCount: event.attendances_count || 0,
             price: event.price || 0,

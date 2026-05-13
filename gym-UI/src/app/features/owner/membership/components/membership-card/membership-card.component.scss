@@ -163,28 +163,59 @@
     font-weight: 600;
   }
 
-  .delete-icon-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    border: none;
-    background: rgba(239, 68, 68, 0.08);
-    color: #ef4444;
+  .footer-actions {
     display: flex;
+    gap: 0.5rem;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    &:hover {
-      background: #ef4444;
+    .btn-reactivate {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #10b981, #059669);
       color: white;
-      transform: rotate(8deg) scale(1.1);
-      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+      border: none;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+        filter: brightness(1.1);
+      }
+
+      svg {
+        transition: transform 0.5s ease;
+      }
+
+      &:hover svg {
+        transform: rotate(360deg);
+      }
     }
-    
-    &:active {
-      transform: scale(0.95);
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-hover);
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: var(--border-glass);
+        &.edit-btn { color: #0ea5e9; }
+        &.remove-btn { color: #ef4444; }
+      }
     }
   }
 }

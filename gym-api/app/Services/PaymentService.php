@@ -149,6 +149,7 @@ class PaymentService extends BaseService
             'id_course' => $data['id_course'] ?? null,
             'id_session' => $data['id_session'] ?? null,
             'id_event' => $data['id_event'] ?? null,
+            'id_nutrition' => $data['id_nutrition'] ?? null,
 
 
             // System overrides (strict enforcement)
@@ -166,7 +167,7 @@ class PaymentService extends BaseService
         $isMemberBuyingProduct = ($data['category'] === 'product' && $user?->role === \App\Models\User::ROLE_MEMBER);
 
         if (!$isMemberBuyingProduct) {
-            return $this->finalizePayment($payment, $user?->id_user);
+            return $this->finalizePayment($payment, $user?->id_user, $data);
         }
 
         return $payment;
@@ -175,67 +176,126 @@ class PaymentService extends BaseService
     /**
      * Finalize a payment transaction
      */
-    public function finalizePayment(Payment $payment, $userId = null)
+    public function finalizePayment(Payment $payment, $userId = null, array $context = [])
     {
-        if ($payment->is_locked) {
-            throw new \Exception('Transaction is locked and cannot be modified.');
-        }
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($payment, $userId, $context) {
+            if ($payment->is_locked) {
+                throw new \Exception('Transaction is locked and cannot be modified.');
+            }
 
-        $finalizedBy = $userId ?? auth()->id();
+            $finalizedBy = $userId ?? auth()->id();
 
-        // Update the record
-        $payment->update([
-            'status' => \App\Enums\PaymentStatus::Finalized,
-            'is_locked' => true,
-            'finalized_by' => $finalizedBy,
-        ]);
+            // Update the record
+            $payment->update([
+                'status' => \App\Enums\PaymentStatus::Finalized,
+                'is_locked' => true,
+                'finalized_by' => $finalizedBy,
+            ]);
 
-        // Course payments handling
-        if ($payment->type === \App\Models\Payment::TYPE_COURSE) {
-            if (!empty($payment->id_session)) {
-                // Auto-create attendance for single session
-                \App\Models\Attendance::updateOrCreate([
-                    'id_member' => $payment->id_user,
-                    'id_session' => $payment->id_session,
-                ], [
-                    'status' => \App\Models\Attendance::STATUS_PENDING,
-                ]);
-            } else if (!empty($payment->id_course)) {
-                // Auto-enroll for weekly course subscriptions
-                \App\Models\Enrollment::updateOrCreate([
-                    'id_member' => $payment->id_user,
-                    'id_course' => $payment->id_course,
-                ], [
-                    'id_gym' => $payment->id_gym,
-                    'status' => 'active',
-                    'enrollment_date' => now()->toDateString(),
-                ]);
-
-                // Also add the member to ALL weekly sessions of this course as 'pending'
-                $sessions = \App\Models\Session::where('id_course', $payment->id_course)
-                    ->where('is_weekly', true)
-                    ->get();
-                foreach ($sessions as $session) {
+            // Course payments handling
+            if ($payment->type === \App\Models\Payment::TYPE_COURSE) {
+                if (!empty($payment->id_session)) {
+                    // Auto-create attendance for single session
                     \App\Models\Attendance::updateOrCreate([
                         'id_member' => $payment->id_user,
-                        'id_session' => $session->id_session,
+                        'id_session' => $payment->id_session,
                     ], [
                         'status' => \App\Models\Attendance::STATUS_PENDING,
                     ]);
+                } else if (!empty($payment->id_course)) {
+                    // Auto-enroll for weekly course subscriptions
+                    $enrollmentDate = !empty($context['start_date'])
+                        ? \Illuminate\Support\Carbon::parse($context['start_date'])->toDateString()
+                        : now()->toDateString();
+
+                    $status = \Illuminate\Support\Carbon::parse($enrollmentDate)->startOfDay()->gt(now()->startOfDay()) 
+                        ? 'pending' 
+                        : 'active';
+
+                    \App\Models\Enrollment::updateOrCreate([
+                        'id_member' => $payment->id_user,
+                        'id_course' => $payment->id_course,
+                    ], [
+                        'id_gym' => $payment->id_gym,
+                        'status' => $status,
+                        'enrollment_date' => $enrollmentDate,
+                    ]);
+
+                    // Also add the member to ALL weekly sessions of this course as 'pending'
+                    $sessions = \App\Models\Session::where('id_course', $payment->id_course)
+                        ->where('is_weekly', true)
+                        ->get();
+                    foreach ($sessions as $session) {
+                        \App\Models\Attendance::updateOrCreate([
+                            'id_member' => $payment->id_user,
+                            'id_session' => $session->id_session,
+                        ], [
+                            'status' => \App\Models\Attendance::STATUS_PENDING,
+                        ]);
+                    }
                 }
             }
-        }
 
-        // Auto-enroll for event payments
-        if ($payment->type === \App\Models\Payment::TYPE_EVENT && !empty($payment->id_event)) {
-            \App\Models\AttendanceEvent::updateOrCreate([
-                'id_member' => $payment->id_user,
-                'id_event' => $payment->id_event,
-            ], [
-                'status' => \App\Models\AttendanceEvent::STATUS_UPCOMING,
-            ]);
-        }
+            // Auto-enroll for event payments
+            if ($payment->type === \App\Models\Payment::TYPE_EVENT && !empty($payment->id_event)) {
+                \App\Models\AttendanceEvent::updateOrCreate([
+                    'id_member' => $payment->id_user,
+                    'id_event' => $payment->id_event,
+                ], [
+                    'status' => \App\Models\AttendanceEvent::STATUS_UPCOMING,
+                ]);
+            }
 
-        return $payment->fresh();
+            // Membership payments handling
+            if ($payment->type === \App\Models\Payment::TYPE_MEMBERSHIP) {
+                $planId = $context['id_plan'] ?? null;
+                if (empty($planId)) {
+                    throw new \Exception('Membership payment requires a valid plan.');
+                }
+
+                $plan = \App\Models\MembershipPlan::query()
+                    ->where('id', $planId)
+                    ->where('id_gym', $payment->id_gym)
+                    ->first();
+
+                if (!$plan) {
+                    throw new \Exception('Selected membership plan is invalid for this gym.');
+                }
+
+                $enrollmentDate = !empty($context['start_date'])
+                    ? \Illuminate\Support\Carbon::parse($context['start_date'])->toDateString()
+                    : now()->toDateString();
+
+                // Check for existing active membership overlap
+                $activeMembership = \App\Models\Enrollment::where('id_member', $payment->id_user)
+                    ->where('id_gym', $payment->id_gym)
+                    ->whereNull('id_course')
+                    ->where('status', 'active')
+                    ->first();
+
+                if ($activeMembership) {
+                    $currentEndDate = $activeMembership->end_date;
+                    if (\Illuminate\Support\Carbon::parse($enrollmentDate)->lt(\Illuminate\Support\Carbon::parse($currentEndDate))) {
+                        throw new \Exception("The member already has an active membership ending on {$currentEndDate}. The new membership must start after that date.");
+                    }
+                }
+
+                $status = \Illuminate\Support\Carbon::parse($enrollmentDate)->startOfDay()->gt(now()->startOfDay()) 
+                    ? 'pending' 
+                    : 'active';
+
+                \App\Models\Enrollment::create([
+                    'id_member' => $payment->id_user,
+                    'id_gym' => $payment->id_gym,
+                    'id_course' => null,
+                    'id_plan' => $plan->id,
+                    'enrollment_date' => $enrollmentDate,
+                    'status' => $status,
+                    'type' => $plan->type ?? 'standard',
+                ]);
+            }
+
+            return $payment->fresh();
+        });
     }
 }

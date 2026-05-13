@@ -17,7 +17,7 @@ class UserService extends BaseService
     public function __construct()
     {
         $this->setModel(new User());
-        $this->setRelations([]);
+        $this->setRelations(['enrollments']);
     }
 
     /**
@@ -130,13 +130,43 @@ class UserService extends BaseService
 
     /**
      * Get all users, filtered by the authenticated user's role and gym access, optionally paginated.
-     * 
-     * @param int|null $perPage
-     * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function getAll(?int $perPage = null)
     {
         $query = $this->applyRoleFilters($this->query());
+        return $perPage ? $query->paginate($perPage) : $query->get();
+    }
+
+    /**
+     * Get all users filtered by the requesting user's access (scoped), optionally paginated.
+     */
+    public function getAllScoped($user, ?int $perPage = null)
+    {
+        $search = request('search');
+        $role = request('role');
+
+        // Global member search: allow Owners and Receptionists to find any member by email/name
+        // even if they don't have an enrollment in their gyms yet.
+        if ($search && $role === User::ROLE_MEMBER && in_array($user->role, [User::ROLE_OWNER, User::ROLE_RECEPTIONIST])) {
+            $query = $this->query();
+        } else {
+            $query = $this->applyRoleFilters($this->query());
+        }
+
+        // Apply role filter if requested
+        if ($role && $role) {
+            $query->where('role', $role);
+        }
+
+        // Apply search filter if requested
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
 

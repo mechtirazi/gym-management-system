@@ -91,7 +91,7 @@
                 <div class="input-wrap shadow-sm">
                   <span class="material-symbols-rounded prefix">search</span>
                   <input type="text" placeholder="Start typing name or email..." [value]="memberSearchTerm()"
-                    (input)="memberSearchTerm.set($any($event.target).value)" />
+                    (input)="onMemberSearch($any($event.target).value)" />
 
                   @if (memberSearchTerm().trim()) {
                   <div class="search-suggestions">
@@ -222,8 +222,16 @@
                   <select formControlName="id_product" (change)="onProductSelect($any($event.target).value)">
                     <option value="">-- Choose Product --</option>
                     @for (p of products(); track p.id_product) {
-                    <option [value]="p.id_product">{{ p.name }} ({{ p.price | currency:'TND' }}) - {{ p.stock || 0 }} in
-                      stock</option>
+                    <option [value]="p.id_product">
+                      {{ p.name }}
+                      @if (p.discount_percentage > 0) {
+                      ({{ p.price * (1 - p.discount_percentage/100) | currency:'TND' }})
+                      - PROMO {{ p.discount_percentage }}% OFF
+                      } @else {
+                      ({{ p.price | currency:'TND' }})
+                      }
+                      - {{ p.stock || 0 }} in stock
+                    </option>
                     }
                   </select>
                 </div>
@@ -233,15 +241,31 @@
                 <label>Qty</label>
                 <div class="input-wrap">
                   <span class="material-symbols-rounded prefix">production_quantity_limits</span>
-                  <input type="number" formControlName="quantity" (input)="calculateProductTotal()" min="1" />
+                  <input type="number" formControlName="quantity"
+                    (input)="calculateProductTotal(); checkPotentialDuplicate()" min="1" />
                 </div>
+                @if (isDuplicate() && form.get('id_product')?.value && (form.get('quantity')?.value || 0) >
+                (getSelectedProduct()?.stock || 0)) {
+                <small class="error-text"
+                  style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 4px; display: block;">
+                  Insufficient Stock: Only {{ getSelectedProduct()?.stock || 0 }} left
+                </small>
+                }
               </div>
             </div>
             @if (form.get('id_product')?.value) {
             @if (getSelectedProduct(); as p) {
-            <div class="stock-status-msg mt-2">
-              <span class="dot" [class.low]="(p.stock || 0) < 5"></span>
-              Currently in stock: <strong>{{ p.stock || 0 }} units</strong>
+            <div class="product-info-badges mt-2" style="display: flex; gap: 0.5rem; align-items: center;">
+              <div class="stock-status-msg">
+                <span class="dot" [class.low]="(p.stock || 0) < 5"></span>
+                Stock: <strong>{{ p.stock || 0 }} units</strong>
+              </div>
+              @if (p.discount_percentage > 0) {
+              <div class="promo-badge"
+                style="background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                {{ p.discount_percentage }}% PROMO
+              </div>
+              }
             </div>
             }
             }
@@ -308,9 +332,19 @@
               <div class="input-wrap">
                 <span class="material-symbols-rounded prefix">event</span>
                 <select formControlName="id_event" (change)="onEventSelect($any($event.target).value)">
-                  <option value="">-- Choose Event --</option>
+                  @if (events().length === 0) {
+                  <option value="">No available events found</option>
+                  } @else {
+                  <option value="">-- Choose Event ({{ events().length }} available) --</option>
                   @for (e of events(); track e.id_event || e.id) {
-                  <option [value]="e.id_event || e.id">{{ e.title }} - {{ e.start_date }}</option>
+                  <option [value]="e.id_event || e.id">
+                    {{ e.title }}
+                    ({{ e.price | currency:'TND' }})
+                    @if (e.max_participants > 0) {
+                    - {{ e.max_participants - (e.attendances_count || 0) }} spots left
+                    }
+                  </option>
+                  }
                   }
                 </select>
               </div>

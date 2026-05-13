@@ -40,6 +40,7 @@ class ReceptionistDashboardController extends Controller
         // Total unique members who have ever enrolled
         $membersTotal = Enrollment::query()
             ->whereIn('id_gym', $gymIds)
+            ->whereNotNull('id_plan')
             ->distinct('id_member')
             ->count('id_member');
 
@@ -48,6 +49,7 @@ class ReceptionistDashboardController extends Controller
             ->leftJoin('membership_plans', 'enrollments.id_plan', '=', 'membership_plans.id')
             ->whereIn('enrollments.id_gym', $gymIds)
             ->where('enrollments.status', 'active')
+            ->whereNotNull('enrollments.id_plan')
             ->where(function ($q) use ($today) {
                 // If it has a plan, use plan duration. Otherwise fallback to 30 days (standard) or 90 days (premium)
                 $q->whereRaw('DATE_ADD(enrollments.enrollment_date, INTERVAL COALESCE(membership_plans.duration_days, CASE WHEN enrollments.type = "premium" THEN 90 ELSE 30 END) DAY) >= ?', [$today->toDateString()]);
@@ -60,6 +62,7 @@ class ReceptionistDashboardController extends Controller
             ->leftJoin('membership_plans', 'enrollments.id_plan', '=', 'membership_plans.id')
             ->whereIn('enrollments.id_gym', $gymIds)
             ->where('enrollments.status', 'active')
+            ->whereNotNull('enrollments.id_plan')
             ->where(function ($q) use ($today) {
                 $q->whereRaw('DATE_ADD(enrollments.enrollment_date, INTERVAL COALESCE(membership_plans.duration_days, CASE WHEN enrollments.type = "premium" THEN 90 ELSE 30 END) DAY) BETWEEN ? AND ?', [
                     $today->toDateString(),
@@ -145,7 +148,7 @@ class ReceptionistDashboardController extends Controller
             ->count();
 
         // Recent check-ins list
-        $recentCheckins = Attendance::with(['member:id_user,name,last_name', 'session:id_session,id_course', 'session.course:id_course,name,id_gym'])
+        $recentCheckins = Attendance::with(['member:id_user,name,last_name,profile_picture', 'session:id_session,id_course', 'session.course:id_course,name,id_gym'])
             ->whereHas('session.course', function ($q) use ($gymIds) {
                 $q->whereIn('id_gym', $gymIds);
             })
@@ -164,6 +167,48 @@ class ReceptionistDashboardController extends Controller
                         'id_session' => $a->session?->id_session,
                         'courseName' => $a->session?->course?->name,
                     ],
+                    'avatar' => $a->member?->profile_picture ? (str_starts_with($a->member->profile_picture, 'http') ? $a->member->profile_picture : asset('storage/' . $a->member->profile_picture)) : null,
+                ];
+            })
+            ->values();
+
+        // Recent Transactions
+        $recentTransactions = Payment::with(['user:id_user,name,last_name,profile_picture'])
+            ->whereIn('id_gym', $gymIds)
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get()
+            ->map(function (Payment $p) {
+                $memberName = $p->user ? trim(($p->user->name ?? '').' '.($p->user->last_name ?? '')) : 'Guest/Product';
+                return [
+                    'id_payment' => $p->id_payment,
+                    'memberName' => $memberName,
+                    'amount' => $p->amount,
+                    'type' => $p->type,
+                    'created_at' => $p->created_at,
+                    'avatar' => $p->user?->profile_picture ? (str_starts_with($p->user->profile_picture, 'http') ? $p->user->profile_picture : asset('storage/' . $p->user->profile_picture)) : null,
+                ];
+            })
+            ->values();
+
+        // Expiring Members List
+        $expiringMembers = Enrollment::with(['member:id_user,name,last_name,profile_picture'])
+            ->leftJoin('membership_plans', 'enrollments.id_plan', '=', 'membership_plans.id')
+            ->whereIn('enrollments.id_gym', $gymIds)
+            ->where('enrollments.status', 'active')
+            ->whereNotNull('enrollments.id_plan')
+            ->whereRaw('DATE_ADD(enrollments.enrollment_date, INTERVAL COALESCE(membership_plans.duration_days, 30) DAY) BETWEEN ? AND ?', [
+                $today->toDateString(),
+                $today->copy()->addDays(7)->toDateString()
+            ])
+            ->select('enrollments.*') // Avoid column collision
+            ->take(5)
+            ->get()
+            ->map(function ($e) {
+                return [
+                    'memberName' => $e->member ? trim(($e->member->name ?? '').' '.($e->member->last_name ?? '')) : 'Unknown',
+                    'type' => $e->type,
+                    'avatar' => $e->member?->profile_picture ? (str_starts_with($e->member->profile_picture, 'http') ? $e->member->profile_picture : asset('storage/' . $e->member->profile_picture)) : null,
                 ];
             })
             ->values();
@@ -189,6 +234,8 @@ class ReceptionistDashboardController extends Controller
                 ],
                 'upcomingSessions' => $upcomingSessions,
                 'recentCheckins' => $recentCheckins,
+                'recentTransactions' => $recentTransactions,
+                'expiringMembers' => $expiringMembers,
                 'generatedAt' => Carbon::now()->toIso8601String(),
             ],
         ]);

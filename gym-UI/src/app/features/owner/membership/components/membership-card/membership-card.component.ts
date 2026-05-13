@@ -13,6 +13,7 @@ export class MembershipCardComponent {
   cancelClick = output<string>();
   viewClick = output<any>();
   editClick = output<any>();
+  reactivateClick = output<any>();
 
   isDropdownOpen = signal(false);
 

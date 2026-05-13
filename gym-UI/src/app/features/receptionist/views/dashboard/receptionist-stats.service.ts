@@ -34,6 +34,19 @@ export type ReceptionistDashboardStatsDto = {
       created_at?: string;
       session?: { id_session?: string; courseName?: string };
     }>;
+    recentTransactions: Array<{
+      id_payment: string;
+      memberName: string;
+      amount: number;
+      type: string;
+      created_at: string;
+      avatar: string | null;
+    }>;
+    expiringMembers: Array<{
+      memberName: string;
+      type: string;
+      avatar: string | null;
+    }>;
     generatedAt: string;
   };
   message?: string;
