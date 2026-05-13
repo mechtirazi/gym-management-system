@@ -3,7 +3,11 @@
 namespace App\Services;
 
 use App\Models\Enrollment;
+use App\Models\MembershipPlan;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class EnrollmentService extends BaseService
 {
@@ -14,21 +18,35 @@ class EnrollmentService extends BaseService
     }
 
     /**
-     * Create a new enrollment with duplicate prevention
+     * Create a new enrollment with overlap prevention
      */
-    public function create(array $data): \Illuminate\Database\Eloquent\Model
+    public function create(array $data): Model
     {
-        // Prevent duplicate ACTIVE or PENDING memberships for the same user in the same gym
-        $exists = Enrollment::where('id_member', $data['id_member'])
-            ->where('id_gym', $data['id_gym'])
-            ->whereIn('status', ['active', 'pending'])
-            ->exists();
-
-        if ($exists) {
-            throw new \Exception('Member already has an active or pending subscription in this facility.');
-        }
+        $this->validateMembershipPeriodConflict($data);
 
         return parent::create($data);
+    }
+
+    /**
+     * Update enrollment with overlap prevention when resulting status is active/pending.
+     */
+    public function update(Model $model, array $data): Model
+    {
+        $targetCourseId = $data['id_course'] ?? $model->id_course ?? null;
+        $nextStatus = strtolower((string) ($data['status'] ?? $model->status));
+
+        if (!$targetCourseId && in_array($nextStatus, ['active', 'pending'], true)) {
+            $this->validateMembershipPeriodConflict([
+                'id_member' => $data['id_member'] ?? $model->id_member,
+                'id_gym' => $data['id_gym'] ?? $model->id_gym,
+                'id_plan' => $data['id_plan'] ?? $model->id_plan,
+                'type' => $data['type'] ?? $model->type,
+                'enrollment_date' => $data['enrollment_date'] ?? $model->enrollment_date,
+                'status' => $nextStatus,
+            ], $model->id);
+        }
+
+        return parent::update($model, $data);
     }
 
     /**
@@ -127,5 +145,79 @@ class EnrollmentService extends BaseService
                 $enrollment->update(['status' => 'active']);
             }
         }
+    }
+
+    /**
+     * Prevent overlapping active/pending memberships in the same gym for the same member.
+     */
+    private function validateMembershipPeriodConflict(array $data, ?string $excludeEnrollmentId = null): void
+    {
+        if (!empty($data['id_course'])) {
+            return;
+        }
+
+        $targetStatus = strtolower((string) ($data['status'] ?? 'active'));
+        if (!in_array($targetStatus, ['active', 'pending'], true)) {
+            return;
+        }
+
+        $newStart = Carbon::parse($data['enrollment_date'])->startOfDay();
+        $newEnd = $this->calculateEndDate($newStart, $data['id_plan'] ?? null, $data['type'] ?? null);
+
+        $query = Enrollment::where('id_member', $data['id_member'])
+            ->where('id_gym', $data['id_gym'])
+            ->whereNull('id_course')
+            ->whereIn('status', ['active', 'pending']);
+
+        if ($excludeEnrollmentId) {
+            $query->where('id', '!=', $excludeEnrollmentId);
+        }
+
+        $existingMemberships = $query->get();
+
+        foreach ($existingMemberships as $membership) {
+            if (!$membership->enrollment_date) {
+                continue;
+            }
+
+            $existingStart = Carbon::parse($membership->enrollment_date)->startOfDay();
+            $existingEndDate = $membership->end_date;
+
+            if (!$existingEndDate) {
+                continue;
+            }
+
+            $existingEnd = Carbon::parse($existingEndDate)->startOfDay();
+
+            $hasOverlap = $newStart->lte($existingEnd) && $newEnd->gte($existingStart);
+            if ($hasOverlap) {
+                throw ValidationException::withMessages([
+                    'enrollment_date' => [
+                        "Member already has an active or pending subscription between {$existingStart->toDateString()} and {$existingEnd->toDateString()}."
+                    ]
+                ]);
+            }
+        }
+    }
+
+    private function calculateEndDate(Carbon $startDate, ?string $planId, ?string $type): Carbon
+    {
+        $durationDays = null;
+
+        if ($planId) {
+            $durationDays = MembershipPlan::query()
+                ->where('id', $planId)
+                ->value('duration_days');
+        }
+
+        if (!$durationDays) {
+            $durationDays = match (strtolower((string) $type)) {
+                'premium' => 90,
+                'trial' => 3,
+                default => 30,
+            };
+        }
+
+        return $startDate->copy()->addDays((int) $durationDays)->startOfDay();
     }
 }

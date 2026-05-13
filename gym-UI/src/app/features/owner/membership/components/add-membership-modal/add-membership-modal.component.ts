@@ -2,10 +2,8 @@ import { Component, output, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MembershipService } from '../../services/membership.service';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../../../../../environments/environment';
 import { AuthService } from '../../../../../core/services/auth.service';
-import { finalize, catchError, of, switchMap } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 import { MembershipPlanService, MembershipPlan } from '../../../services/membership-plan.service';
 import { UserService } from '../../../../../core/services/user.service';
 import { ReceptionistPaymentsService } from '../../../../receptionist/views/payments/receptionist-payments.service';
@@ -215,7 +213,9 @@ export class AddMembershipModalComponent implements OnInit {
               id_gym: gymId.toString(),
               amount: amount,
               gateway: 'cash',
-              category: 'membership'
+              category: 'membership',
+              id_plan: formValue.id_plan || null,
+              start_date: formValue.subscribe_date || null
             }))
           );
         }),
@@ -226,7 +226,7 @@ export class AddMembershipModalComponent implements OnInit {
           this.close.emit();
         },
         error: (err) => {
-          this.error.set(err.error?.message || 'Creation failed. Verify details.');
+          this.error.set(this.extractApiError(err, 'Creation failed. Verify details.'));
         }
       });
     } else {
@@ -245,7 +245,9 @@ export class AddMembershipModalComponent implements OnInit {
           id_gym: gymId.toString(),
           amount: amount,
           gateway: 'cash',
-          category: 'membership'
+          category: 'membership',
+          id_plan: formValue.id_plan || null,
+          start_date: formValue.subscribe_date || null
         })),
         finalize(() => this.isSubmitting.set(false))
       ).subscribe({
@@ -254,10 +256,32 @@ export class AddMembershipModalComponent implements OnInit {
           this.close.emit();
         },
         error: (err) => {
-          this.error.set(err.error?.message || 'Failed to enroll member.');
+          this.error.set(this.extractApiError(err, 'Failed to enroll member.'));
         }
       });
     }
+  }
+
+  private extractApiError(err: any, fallbackMessage: string): string {
+    const apiError = err?.error;
+    const fieldErrors = apiError?.errors as Record<string, string[] | string> | undefined;
+
+    if (fieldErrors) {
+      const firstField = Object.keys(fieldErrors)[0];
+      const firstFieldErrors = fieldErrors[firstField];
+      if (Array.isArray(firstFieldErrors) && firstFieldErrors.length > 0) {
+        return firstFieldErrors[0];
+      }
+      if (typeof firstFieldErrors === 'string' && firstFieldErrors.length > 0) {
+        return firstFieldErrors;
+      }
+    }
+
+    if (typeof apiError?.message === 'string' && apiError.message.length > 0) {
+      return apiError.message;
+    }
+
+    return fallbackMessage;
   }
 
   private futureDateValidator(control: any) {

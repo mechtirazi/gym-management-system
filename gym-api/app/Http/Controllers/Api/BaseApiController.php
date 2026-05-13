@@ -243,6 +243,13 @@ abstract class BaseApiController extends Controller
                 'message' => ucfirst($this->modelName) . ' updated successfully',
             ], 200);
         }
+        catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        }
         catch (\Exception $e) {
             return response()->json([
                 'success' => false,

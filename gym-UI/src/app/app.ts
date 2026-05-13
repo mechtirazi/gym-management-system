@@ -16,7 +16,7 @@ export class App {
     this.translate.addLangs(['en', 'fr']);
     const browserLang = this.translate.getBrowserLang() || 'en';
     const defaultLang = localStorage.getItem('language') || (browserLang.match(/en|fr/) ? browserLang : 'en');
-    this.translate.setDefaultLang(defaultLang);
+    this.translate.setFallbackLang(defaultLang);
     this.translate.use(defaultLang);
   }
 }

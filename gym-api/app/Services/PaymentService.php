@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Enrollment;
+use App\Models\MembershipPlan;
 use App\Models\Payment;
 use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class PaymentService extends BaseService
 {
@@ -253,7 +257,7 @@ class PaymentService extends BaseService
                     throw new \Exception('Membership payment requires a valid plan.');
                 }
 
-                $plan = \App\Models\MembershipPlan::query()
+                $plan = MembershipPlan::query()
                     ->where('id', $planId)
                     ->where('id_gym', $payment->id_gym)
                     ->first();
@@ -263,39 +267,89 @@ class PaymentService extends BaseService
                 }
 
                 $enrollmentDate = !empty($context['start_date'])
-                    ? \Illuminate\Support\Carbon::parse($context['start_date'])->toDateString()
+                    ? Carbon::parse($context['start_date'])->toDateString()
                     : now()->toDateString();
 
-                // Check for existing active membership overlap
-                $activeMembership = \App\Models\Enrollment::where('id_member', $payment->id_user)
+                // If an enrollment already exists for this exact membership period, don't create a duplicate.
+                $existingMatchingEnrollment = Enrollment::where('id_member', $payment->id_user)
                     ->where('id_gym', $payment->id_gym)
                     ->whereNull('id_course')
-                    ->where('status', 'active')
+                    ->where('id_plan', $plan->id)
+                    ->whereDate('enrollment_date', $enrollmentDate)
+                    ->whereIn('status', ['active', 'pending'])
                     ->first();
 
-                if ($activeMembership) {
-                    $currentEndDate = $activeMembership->end_date;
-                    if (\Illuminate\Support\Carbon::parse($enrollmentDate)->lt(\Illuminate\Support\Carbon::parse($currentEndDate))) {
-                        throw new \Exception("The member already has an active membership ending on {$currentEndDate}. The new membership must start after that date.");
-                    }
+                if (!$existingMatchingEnrollment) {
+                    $this->assertNoMembershipOverlap(
+                        $payment->id_user,
+                        $payment->id_gym,
+                        $enrollmentDate,
+                        (int) ($plan->duration_days ?? 30),
+                        (string) ($plan->type ?? 'standard')
+                    );
+
+                    $status = Carbon::parse($enrollmentDate)->startOfDay()->gt(now()->startOfDay())
+                        ? 'pending'
+                        : 'active';
+
+                    Enrollment::create([
+                        'id_member' => $payment->id_user,
+                        'id_gym' => $payment->id_gym,
+                        'id_course' => null,
+                        'id_plan' => $plan->id,
+                        'enrollment_date' => $enrollmentDate,
+                        'status' => $status,
+                        'type' => $plan->type ?? 'standard',
+                    ]);
                 }
-
-                $status = \Illuminate\Support\Carbon::parse($enrollmentDate)->startOfDay()->gt(now()->startOfDay()) 
-                    ? 'pending' 
-                    : 'active';
-
-                \App\Models\Enrollment::create([
-                    'id_member' => $payment->id_user,
-                    'id_gym' => $payment->id_gym,
-                    'id_course' => null,
-                    'id_plan' => $plan->id,
-                    'enrollment_date' => $enrollmentDate,
-                    'status' => $status,
-                    'type' => $plan->type ?? 'standard',
-                ]);
             }
 
             return $payment->fresh();
         });
+    }
+
+    private function assertNoMembershipOverlap(
+        string $memberId,
+        string $gymId,
+        string $newStartDate,
+        int $durationDays,
+        string $planType = 'standard'
+    ): void {
+        $newStart = Carbon::parse($newStartDate)->startOfDay();
+        $fallbackDays = $durationDays > 0 ? $durationDays : $this->fallbackDurationDays($planType);
+        $newEnd = $newStart->copy()->addDays($fallbackDays)->startOfDay();
+
+        $existingMemberships = Enrollment::where('id_member', $memberId)
+            ->where('id_gym', $gymId)
+            ->whereNull('id_course')
+            ->whereIn('status', ['active', 'pending'])
+            ->get();
+
+        foreach ($existingMemberships as $membership) {
+            if (!$membership->enrollment_date || !$membership->end_date) {
+                continue;
+            }
+
+            $existingStart = Carbon::parse($membership->enrollment_date)->startOfDay();
+            $existingEnd = Carbon::parse($membership->end_date)->startOfDay();
+            $hasOverlap = $newStart->lte($existingEnd) && $newEnd->gte($existingStart);
+
+            if ($hasOverlap) {
+                throw ValidationException::withMessages([
+                    'start_date' => [
+                        "The member already has an active or pending membership between {$existingStart->toDateString()} and {$existingEnd->toDateString()}."
+                    ]
+                ]);
+            }
+        }
+    }
+
+    private function fallbackDurationDays(string $type): int
+    {
+        return match (strtolower($type)) {
+            'premium' => 90,
+            'trial' => 3,
+            default => 30,
+        };
     }
 }

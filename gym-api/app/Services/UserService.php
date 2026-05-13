@@ -17,7 +17,7 @@ class UserService extends BaseService
     public function __construct()
     {
         $this->setModel(new User());
-        $this->setRelations(['enrollments']);
+        $this->setRelations([]);
     }
 
     /**
