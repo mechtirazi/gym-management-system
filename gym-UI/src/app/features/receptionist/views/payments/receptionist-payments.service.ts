@@ -100,6 +100,7 @@ export class ReceptionistPaymentsService {
     member_id: string;
     id_gym: string;
     amount: number;
+    quantity?: number | null;
     gateway: string;
     category?: string | null;
     id_product?: string | null;

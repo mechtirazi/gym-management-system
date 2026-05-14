@@ -31,9 +31,9 @@ export class StaffProfileModalComponent implements OnInit {
   editForm!: FormGroup;
 
   readonly staffRoles = [
-    { value: 'trainer',       label: 'Trainer'       },
-    { value: 'receptionist',  label: 'Receptionist'  },
-    { value: 'nutritionist',  label: 'Nutritionist'  },
+    { value: 'trainer', label: 'Trainer' },
+    { value: 'receptionist', label: 'Receptionist' },
+    { value: 'nutritionist', label: 'Nutritionist' },
   ];
 
   constructor() {
@@ -93,7 +93,7 @@ export class StaffProfileModalComponent implements OnInit {
       role: formVal.role
     };
 
-    const targetId = this.member()['userId']; 
+    const targetId = this.member()['userId'];
 
     if (!targetId) {
       this.editError.set('Cannot update: User ID is missing.');

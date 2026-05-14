@@ -4,35 +4,39 @@
       <h2>{{ isEditing() ? 'Edit Staff Profile' : 'Staff Profile' }}</h2>
       <button class="close-btn" (click)="closeProfile()">&times;</button>
     </div>
-    
+
     <div class="profile-body">
       @if (editError()) {
-        <div class="alert-banner error animate-slide-down">
-          <div class="alert-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          </div>
-          <div class="alert-content">
-            <p class="alert-title">Update Failed</p>
-            <p class="alert-desc">{{ editError() }}</p>
-          </div>
-          <button class="alert-close" (click)="editError.set(null)">&times;</button>
+      <div class="alert-banner error animate-slide-down">
+        <div class="alert-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
         </div>
+        <div class="alert-content">
+          <p class="alert-title">Update Failed</p>
+          <p class="alert-desc">{{ editError() }}</p>
+        </div>
+        <button class="alert-close" (click)="editError.set(null)">&times;</button>
+      </div>
       }
 
       @if (showSuccess()) {
-        <div class="alert-banner success animate-slide-down">
-          <div class="alert-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-          <div class="alert-content">
-            <p class="alert-title">Profile Synchronized</p>
-            <p class="alert-desc">Staff details have been updated in the cloud.</p>
-          </div>
+      <div class="alert-banner success animate-slide-down">
+        <div class="alert-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         </div>
+        <div class="alert-content">
+          <p class="alert-title">Profile Synchronized</p>
+          <p class="alert-desc">Staff details have been updated in the cloud.</p>
+        </div>
+      </div>
       }
 
       <div class="profile-hero">
@@ -47,82 +51,117 @@
       </div>
 
       @if (!isEditing()) {
-        <div class="profile-grid">
-          <div class="info-item">
-            <label>Email Address</label>
-            <span>{{ member().email || 'N/A' }}</span>
-          </div>
-          <div class="info-item">
-            <label>Phone Number</label>
-            <span>{{ member().phone || '—' }}</span>
-          </div>
-          <div class="info-item">
-            <label>Account Status</label>
-            <span class="status-text capitalized" [class.inactive]="member().status === 'Inactive'">{{ member().status || 'Active' }}</span>
-          </div>
-          <div class="info-item">
-            <label>Member Since</label>
-            <span>{{ member().joinedAt ? (member().joinedAt | date:'longDate') : 'N/A' }}</span>
-          </div>
+      <div class="profile-grid">
+        <div class="info-item">
+          <label>Email Address</label>
+          <span>{{ member().email || 'N/A' }}</span>
         </div>
+        <div class="info-item">
+          <label>Phone Number</label>
+          <span>{{ member().phone || '—' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Account Status</label>
+          <span class="status-text capitalized" [class.inactive]="member().status === 'Inactive'">{{ member().status ||
+            'Active' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Member Since</label>
+          <span>{{ member().joinedAt ? (member().joinedAt | date:'longDate') : 'N/A' }}</span>
+        </div>
+      </div>
       } @else {
-        <form [formGroup]="editForm" (ngSubmit)="submitUpdate()" class="edit-form" style="display: flex; flex-direction: column; gap: 1rem; width: 100%; margin-top: 1rem;">
-          
-          <div class="edit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-              <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">First Name</label>
-              <input type="text" formControlName="firstName" class="form-control" style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-main); font-family: inherit;">
-            </div>
-            
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-              <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Last Name</label>
-              <input type="text" formControlName="lastName" class="form-control" style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-main); font-family: inherit;">
-            </div>
+      <form [formGroup]="editForm" (ngSubmit)="submitUpdate()" class="edit-form"
+        style="display: flex; flex-direction: column; gap: 1rem; width: 100%; margin-top: 1rem;">
+
+        <div class="edit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+            <label
+              style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">First
+              Name</label>
+            <input type="text" formControlName="firstName" class="form-control"
+              style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-main); font-family: inherit;">
+            @if (editForm.get('firstName')?.touched && editForm.get('firstName')?.errors?.['required']) {
+              <span class="error-msg">First name is required.</span>
+            }
           </div>
 
           <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Email Address</label>
-            <input type="email" formControlName="email" class="form-control" readonly style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-main); font-family: inherit;">
+            <label
+              style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Last
+              Name</label>
+            <input type="text" formControlName="lastName" class="form-control"
+              style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-main); font-family: inherit;">
+            @if (editForm.get('lastName')?.touched && editForm.get('lastName')?.errors?.['required']) {
+              <span class="error-msg">Last name is required.</span>
+            }
           </div>
-          
-          <div class="edit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-              <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Phone Number</label>
-              <div class="phone-input-wrapper" style="display: flex; align-items: stretch; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.05);">
-                <div class="country-prefix" style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; background: rgba(255,255,255,0.05); border-right: 1.5px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem; font-weight: 700; user-select: none;">
-                  <img src="https://flagcdn.com/w20/tn.png" alt="Tunisia Flag" style="width: 18px; height: 14px; object-fit: cover; border-radius: 2px;">
-                  <span>+216</span>
-                </div>
-                <input type="tel" formControlName="phone" class="form-control" style="flex: 1; padding: 0.75rem; border: none; background: transparent; color: var(--text-main); font-family: inherit;" maxlength="8">
+        </div>
+
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+          <label
+            style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Email
+            Address</label>
+          <input type="email" formControlName="email" class="form-control" readonly
+            style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-main); font-family: inherit;">
+        </div>
+
+        <div class="edit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+            <label
+              style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Phone
+              Number</label>
+            <div class="phone-input-wrapper"
+              style="display: flex; align-items: stretch; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.05);">
+              <div class="country-prefix"
+                style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; background: rgba(255,255,255,0.05); border-right: 1.5px solid var(--border-color); color: var(--text-muted); font-size: 0.85rem; font-weight: 700; user-select: none;">
+                <img src="https://flagcdn.com/w20/tn.png" alt="Tunisia Flag"
+                  style="width: 18px; height: 14px; object-fit: cover; border-radius: 2px;">
+                <span>+216</span>
               </div>
-              @if (editForm.get('phone')?.touched && editForm.get('phone')?.errors?.['pattern']) {
-                <span class="error-msg" style="color: #ff4b4b; font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem;">Valid 8-digit number required.</span>
+              <input type="tel" formControlName="phone" class="form-control"
+                style="flex: 1; padding: 0.75rem; border: none; background: transparent; color: var(--text-main); font-family: inherit;"
+                maxlength="8">
+            </div>
+            @if (editForm.get('phone')?.touched && editForm.get('phone')?.errors?.['required']) {
+            <span class="error-msg">Phone number is required.</span>
+            }
+            @if (editForm.get('phone')?.touched && editForm.get('phone')?.errors?.['pattern']) {
+            <span class="error-msg">Valid 8-digit number required.</span>
+            }
+          </div>
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
+            <label
+              style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Role</label>
+            <select formControlName="role" class="form-control"
+              style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-main); color: var(--text-main); font-family: inherit;">
+              @for (r of staffRoles; track r.value) {
+              <option [value]="r.value">{{ r.label }}</option>
               }
-            </div>
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left;">
-              <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Role</label>
-              <select formControlName="role" class="form-control" style="padding: 0.75rem; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--bg-main); color: var(--text-main); font-family: inherit;">
-                @for (r of staffRoles; track r.value) {
-                  <option [value]="r.value">{{ r.label }}</option>
-                }
-              </select>
-            </div>
+            </select>
           </div>
-          
-          <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button type="button" class="cancel-btn" (click)="closeProfile()" style="flex: 1; padding: 0.85rem; border-radius: 12px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-main); font-weight: 700; cursor: pointer; transition: all 0.2s;">Close</button>
-            <button type="submit" class="submit-btn" [disabled]="isSubmitting() || editForm.invalid" style="flex: 1; padding: 0.85rem; border-radius: 12px; border: none; background: var(--text-main); color: var(--bg-card); font-weight: 800; cursor: pointer; transition: all 0.2s;" [style.opacity]="isSubmitting() || editForm.invalid ? '0.7' : '1'">
-              {{ isSubmitting() ? 'Saving...' : 'Save Changes' }}
-            </button>
-          </div>
-        </form>
+        </div>
+
+        <div class="form-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+          <button type="button" class="cancel-btn" (click)="closeProfile()"
+            style="flex: 1; padding: 0.85rem; border-radius: 12px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-main); font-weight: 700; cursor: pointer; transition: all 0.2s;">Close</button>
+          <button type="submit" class="submit-btn" [disabled]="isSubmitting() || editForm.invalid"
+            style="flex: 1; padding: 0.85rem; border-radius: 12px; border: none; background: var(--text-main); color: var(--bg-card); font-weight: 800; cursor: pointer; transition: all 0.2s;"
+            [style.opacity]="isSubmitting() || editForm.invalid ? '0.7' : '1'">
+            {{ isSubmitting() ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
       }
 
       @if (!isEditing()) {
-        <div class="profile-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-          <button (click)="closeProfile()" class="secondary-modal-btn" style="flex: 1; padding: 1rem; border-radius: 16px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-main); font-weight: 700; cursor: pointer; transition: all 0.2s;">Close</button>
-          <button (click)="toggleEdit()" class="primary-modal-btn" style="flex: 1; padding: 1rem; border-radius: 16px; border: none; background: var(--text-main); color: var(--bg-card); font-weight: 800; cursor: pointer; transition: all 0.2s;">Edit Data</button>
-        </div>
+      <div class="profile-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button (click)="closeProfile()" class="secondary-modal-btn"
+          style="flex: 1; padding: 1rem; border-radius: 16px; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-main); font-weight: 700; cursor: pointer; transition: all 0.2s;">Close</button>
+        <button (click)="toggleEdit()" class="primary-modal-btn"
+          style="flex: 1; padding: 1rem; border-radius: 16px; border: none; background: var(--text-main); color: var(--bg-card); font-weight: 800; cursor: pointer; transition: all 0.2s;">Edit
+          Data</button>
+      </div>
       }
     </div>
   </div>

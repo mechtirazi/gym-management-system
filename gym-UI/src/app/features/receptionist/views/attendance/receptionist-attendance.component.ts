@@ -19,6 +19,7 @@ export class ReceptionistAttendanceComponent {
   private memberService = inject(MemberService);
 
   isLoading = signal(false);
+  today = new Date();
   error = signal<string | null>(null);
   viewMode = signal<'courses' | 'events'>('courses');
   

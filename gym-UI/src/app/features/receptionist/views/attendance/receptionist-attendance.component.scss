@@ -213,6 +213,106 @@
   gap: 2rem;
 }
 
+.daily-focus-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border-radius: 1.5rem;
+  color: white;
+  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .calendar-icon-wrap {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .material-symbols-rounded {
+      font-size: 28px;
+    }
+
+    .today-tag {
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fbbf24;
+      color: #78350f;
+      font-size: 0.6rem;
+      font-weight: 900;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+  }
+
+  .date-info {
+    display: flex;
+    flex-direction: column;
+
+    .day-name {
+      font-size: 1.25rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .full-date {
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+  }
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  h2 { margin-bottom: 0 !important; }
+}
+
+.daily-only-badge {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  animation: pulse-soft 2s infinite;
+}
+
+@keyframes pulse-soft {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .card-panel {
   background: var(--admin-glass);
   backdrop-filter: blur(var(--admin-glass-blur));
@@ -225,6 +325,12 @@
 
 .selection-card {
   overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:not(.disabled):hover {
+    border-color: var(--admin-accent-indigo);
+    transform: translateY(-3px);
+  }
 
   .step-num {
     position: absolute;

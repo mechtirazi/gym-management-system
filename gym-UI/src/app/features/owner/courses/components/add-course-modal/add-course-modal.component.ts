@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { CourseService } from '../../services/course.service';
 import { SessionService } from '../../services/session.service';
-import { finalize } from 'rxjs';
+import { finalize, merge } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
 
 @Component({
@@ -99,6 +99,37 @@ export class AddCourseModalComponent implements OnInit {
 
     // Initialize validators based on initial state
     this.updateRecurringValidators(this.addForm.get('is_subscription_enabled')?.value);
+
+    // Reactively calculate end time
+    merge(
+      this.addForm.get('recurring_start_time')!.valueChanges,
+      this.addForm.get('duration_hours')!.valueChanges,
+      this.addForm.get('duration_minutes')!.valueChanges
+    ).subscribe(() => this.calculateEndTime());
+  }
+
+  private calculateEndTime() {
+    const startTime = this.addForm.get('recurring_start_time')?.value;
+    if (!startTime) return;
+
+    const hours = this.addForm.get('duration_hours')?.value || 0;
+    const minutes = this.addForm.get('duration_minutes')?.value || 0;
+
+    const [startH, startM] = startTime.split(':').map(Number);
+    
+    let endH = startH + hours;
+    let endM = startM + minutes;
+
+    if (endM >= 60) {
+      endH += Math.floor(endM / 60);
+      endM = endM % 60;
+    }
+    
+    // Wrap around 24 hours if needed
+    endH = endH % 24;
+
+    const formattedEnd = `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
+    this.addForm.get('recurring_end_time')?.setValue(formattedEnd, { emitEvent: false });
   }
 
   private updateRecurringValidators(enabled: boolean) {
@@ -164,6 +195,7 @@ export class AddCourseModalComponent implements OnInit {
       if (rawImage) {
         this.imagePreview.set(this.getImageUrl(rawImage));
       }
+      this.calculateEndTime();
     }
   }
 

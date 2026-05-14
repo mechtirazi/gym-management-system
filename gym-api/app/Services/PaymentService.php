@@ -118,63 +118,84 @@ class PaymentService extends BaseService
      */
     public function createPayment(array $data)
     {
-        $orderId = null;
-        if (!empty($data['category']) && $data['category'] === 'product' && !empty($data['id_product'])) {
-            // Fetch product price or use the payment amount
-            $productPrice = $data['amount'];
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+            $orderId = null;
 
-            // Create an Order
-            $order = \App\Models\Order::create([
-                'order_date' => now(),
-                'status' => \App\Models\Order::STATUS_COMPLETED,
-                'total_amount' => $productPrice,
-                'id_member' => $data['member_id'],
-            ]);
+            if (!empty($data['category']) && $data['category'] === 'product' && !empty($data['id_product'])) {
+                $quantity = max(1, (int) ($data['quantity'] ?? 1));
+                $productPrice = (float) $data['amount'];
+                $unitPrice = round($productPrice / $quantity, 2);
 
-            // Attach Product to Order
-            $order->products()->attach($data['id_product'], [
-                'quantity' => 1,
-                'price' => $productPrice
-            ]);
+                $product = \App\Models\Product::query()
+                    ->where('id_product', $data['id_product'])
+                    ->lockForUpdate()
+                    ->first();
 
-            $orderId = $order->id_order;
-        }
+                if (!$product) {
+                    throw ValidationException::withMessages([
+                        'id_product' => ['Selected product was not found.']
+                    ]);
+                }
 
-        // Map strict contract to DB schema and inject system fields
-        $mappedData = [
-            'amount' => $data['amount'], // Store as decimal units (TND) directly since column is decimal(8,2)
-            'id_user' => $data['member_id'] ?? null,
-            'id_gym' => $data['id_gym'],
-            'type' => $data['category'],
-            'method' => $data['gateway'],
-            'id_transaction' => $data['external_reference'] ?? 'TXN-' . strtoupper(bin2hex(random_bytes(4))),
-            'external_reference' => $data['external_reference'] ?? null,
-            'id_order' => $orderId,
-            'id_course' => $data['id_course'] ?? null,
-            'id_session' => $data['id_session'] ?? null,
-            'id_event' => $data['id_event'] ?? null,
-            'id_nutrition' => $data['id_nutrition'] ?? null,
+                if ($product->stock < $quantity) {
+                    throw ValidationException::withMessages([
+                        'quantity' => ["Insufficient stock. Only {$product->stock} units available."]
+                    ]);
+                }
+
+                // Create an Order
+                $order = \App\Models\Order::create([
+                    'order_date' => now(),
+                    'status' => \App\Models\Order::STATUS_COMPLETED,
+                    'total_amount' => $productPrice,
+                    'id_member' => $data['member_id'],
+                ]);
+
+                // Attach Product to Order
+                $order->products()->attach($data['id_product'], [
+                    'quantity' => $quantity,
+                    'price' => $unitPrice
+                ]);
+
+                $orderId = $order->id_order;
+            }
+
+            // Map strict contract to DB schema and inject system fields
+            $mappedData = [
+                'amount' => $data['amount'], // Store as decimal units (TND) directly since column is decimal(8,2)
+                'id_user' => $data['member_id'] ?? null,
+                'id_gym' => $data['id_gym'],
+                'type' => $data['category'],
+                'method' => $data['gateway'],
+                'id_transaction' => $data['external_reference'] ?? 'TXN-' . strtoupper(bin2hex(random_bytes(4))),
+                'external_reference' => $data['external_reference'] ?? null,
+                'id_order' => $orderId,
+                'id_course' => $data['id_course'] ?? null,
+                'id_session' => $data['id_session'] ?? null,
+                'id_event' => $data['id_event'] ?? null,
+                'id_nutrition' => $data['id_nutrition'] ?? null,
 
 
-            // System overrides (strict enforcement)
-            'status' => \App\Enums\PaymentStatus::Pending,
-            'is_locked' => false,
-            'created_by' => auth()->id(),
-        ];
+                // System overrides (strict enforcement)
+                'status' => \App\Enums\PaymentStatus::Pending,
+                'is_locked' => false,
+                'created_by' => auth()->id(),
+            ];
 
-        // Create the record
-        $payment = $this->create($mappedData);
+            // Create the record
+            $payment = $this->create($mappedData);
 
-        // Logic: Only stay Pending if it's a product and created by a member (from the platform).
-        // If a receptionist/owner records a sale (even product), it's finalized immediately.
-        $user = auth()->user();
-        $isMemberBuyingProduct = ($data['category'] === 'product' && $user?->role === \App\Models\User::ROLE_MEMBER);
+            // Logic: Only stay Pending if it's a product and created by a member (from the platform).
+            // If a receptionist/owner records a sale (even product), it's finalized immediately.
+            $user = auth()->user();
+            $isMemberBuyingProduct = ($data['category'] === 'product' && $user?->role === \App\Models\User::ROLE_MEMBER);
 
-        if (!$isMemberBuyingProduct) {
-            return $this->finalizePayment($payment, $user?->id_user, $data);
-        }
+            if (!$isMemberBuyingProduct) {
+                return $this->finalizePayment($payment, $user?->id_user, $data);
+            }
 
-        return $payment;
+            return $payment;
+        });
     }
 
     /**
@@ -195,6 +216,42 @@ class PaymentService extends BaseService
                 'is_locked' => true,
                 'finalized_by' => $finalizedBy,
             ]);
+
+            // Product stock handling:
+            // Decrement stock only for payments created through PaymentService (created_by set),
+            // because member checkout flow already decrements stock at purchase time.
+            if (
+                $payment->type === \App\Models\Payment::TYPE_PRODUCT
+                && !empty($payment->id_order)
+                && !empty($payment->created_by)
+            ) {
+                $order = $payment->order()->with('products')->first();
+
+                if (!$order || $order->products->isEmpty()) {
+                    throw new \Exception('Product payment is missing order details.');
+                }
+
+                foreach ($order->products as $orderedProduct) {
+                    $quantity = max(1, (int) ($orderedProduct->pivot->quantity ?? 1));
+
+                    $product = \App\Models\Product::query()
+                        ->where('id_product', $orderedProduct->id_product)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$product) {
+                        throw new \Exception('A product in this order no longer exists.');
+                    }
+
+                    if ($product->stock < $quantity) {
+                        throw ValidationException::withMessages([
+                            'quantity' => ["Insufficient stock for {$product->name}. Only {$product->stock} units available."]
+                        ]);
+                    }
+
+                    $product->decrement('stock', $quantity);
+                }
+            }
 
             // Course payments handling
             if ($payment->type === \App\Models\Payment::TYPE_COURSE) {

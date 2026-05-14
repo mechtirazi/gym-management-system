@@ -791,10 +791,12 @@ export class ReceptionistPaymentsComponent {
     }
 
     const raw = this.form.getRawValue();
+    const quantity = Math.max(1, Number(raw.quantity) || 1);
     const payload = {
       member_id: raw.id_user!,
       id_gym: gymId.toString(),
       amount: raw.amount!,
+      quantity: raw.type === 'product' ? quantity : null,
       currency: 'TND',
       gateway: raw.method!,
       category: raw.type ?? 'membership',
@@ -815,6 +817,7 @@ export class ReceptionistPaymentsComponent {
       .subscribe({
         next: () => {
           this.showNewPaymentForm.set(false);
+          this.loadProducts();
           this.clearPaymentsCache();
           this.refresh();
         },
@@ -833,6 +836,7 @@ export class ReceptionistPaymentsComponent {
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: () => {
+          this.loadProducts();
           this.clearPaymentsCache();
           this.refresh();
           if (this.selectedPayment()?.id === p.id) {

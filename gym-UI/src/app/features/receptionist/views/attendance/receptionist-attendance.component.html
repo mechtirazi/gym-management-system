@@ -48,12 +48,24 @@
 
   <div class="attendance-grid">
     <div class="sidebar-stack">
+      <!-- Today's Context Header -->
+      <div class="daily-focus-card">
+        <div class="calendar-icon-wrap">
+          <span class="material-symbols-rounded">calendar_today</span>
+          <div class="today-tag">TODAY</div>
+        </div>
+        <div class="date-info">
+          <span class="day-name">{{ today | date:'EEEE' }}</span>
+          <span class="full-date">{{ today | date:'MMMM d, y' }}</span>
+        </div>
+      </div>
+
       <!-- Step 1: Course/Event Selection -->
       @if (viewMode() === 'courses') {
         <div class="card-panel selection-card">
           <div class="step-num">01</div>
           <h2><span class="material-symbols-rounded">category</span> Select Course</h2>
-          <p class="panel-desc">Choose the course or program to manage.</p>
+          <p class="panel-desc">Choose the course to manage attendance for.</p>
           <select class="modern-select" [value]="selectedCourseId()" (change)="selectCourse(($any($event.target)).value)">
             <option value="">-- Choose an active course --</option>
             @for (c of courses(); track c.id_course) {
@@ -65,13 +77,16 @@
         <!-- Step 2: Session Selection -->
         <div class="card-panel selection-card" [class.disabled]="!selectedCourseId()">
           <div class="step-num">02</div>
-          <h2><span class="material-symbols-rounded">event_note</span> Select Session</h2>
-          <p class="panel-desc">Choose one of today's sessions for this course.</p>
+          <div class="card-header-flex">
+            <h2><span class="material-symbols-rounded">event_note</span> Select Session</h2>
+            <span class="daily-only-badge">DAILY ONLY</span>
+          </div>
+          <p class="panel-desc">Showing available sessions for <strong>today only</strong>.</p>
           <select class="modern-select" [value]="selectedSessionId()" (change)="selectSession(($any($event.target)).value)" [disabled]="!selectedCourseId()">
             <option value="">-- Choose an active session --</option>
             @for (s of sessions(); track s.id_session) {
               <option [value]="s.id_session">
-                {{ s.date_session || 'No Date' }} | {{ s.start_time || 'No Time' }} - {{ s.trainer?.name || 'No Trainer' }}
+                {{ s.start_time || 'No Time' }} - {{ s.trainer?.name || 'No Trainer' }}
               </option>
             }
           </select>
@@ -79,8 +94,11 @@
       } @else {
         <div class="card-panel selection-card">
           <div class="step-num">01</div>
-          <h2><span class="material-symbols-rounded">celebration</span> Select Event</h2>
-          <p class="panel-desc">Choose one of today's active events to record attendance.</p>
+          <div class="card-header-flex">
+            <h2><span class="material-symbols-rounded">celebration</span> Select Event</h2>
+            <span class="daily-only-badge">DAILY ONLY</span>
+          </div>
+          <p class="panel-desc">Choose from events active <strong>today</strong>.</p>
           <select class="modern-select" [value]="selectedEventId()" (change)="selectEvent(($any($event.target)).value)">
             <option value="">-- Choose an active event --</option>
             @for (e of events(); track e.id_event) {
@@ -93,40 +111,6 @@
         </div>
       }
 
-      <!-- Step 3: Quick Mark -->
-      <div class="card-panel selection-card" [class.disabled]="viewMode() === 'courses' ? !selectedSessionId() : !selectedEventId()">
-        <div class="step-num">{{ viewMode() === 'courses' ? '03' : '02' }}</div>
-        <h2><span class="material-symbols-rounded">qr_code_scanner</span> Instant Entrance</h2>
-        <p class="panel-desc">Select a gym member to mark their attendance.</p>
-        <form [formGroup]="form" (ngSubmit)="quickAdd()" class="quick-form">
-          <div class="field">
-            <label>Find Member</label>
-            <div class="search-input-wrapper">
-              <span class="material-symbols-rounded">search</span>
-              <input 
-                type="text" 
-                class="modern-input" 
-                placeholder="Search name, email, or phone..."
-                [value]="searchTerm()"
-                (input)="searchTerm.set($any($event.target).value)"
-              >
-            </div>
-          </div>
-          <div class="field">
-            <label>Select Member</label>
-            <select class="modern-select" formControlName="id_member">
-              <option value="">-- {{ filteredMembers().length }} Members Found --</option>
-              @for (m of filteredMembers(); track m.userId) {
-                <option [value]="m.userId">{{ m.name }} · {{ m.email }}</option>
-              }
-            </select>
-          </div>
-
-          <button class="save-btn" type="submit" [disabled]="isLoading() || (viewMode() === 'courses' ? !selectedSessionId() : !selectedEventId()) || !form.value.id_member">
-            Confirm Entrance
-          </button>
-        </form>
-      </div>
     </div>
 
     <!-- Attendance List -->

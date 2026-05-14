@@ -27,6 +27,7 @@ class StorePaymentRequest extends FormRequest
             'id_gym' => 'required|exists:gyms,id_gym',
             'id_session' => 'nullable|exists:sessions,id_session',
             'id_product' => 'nullable|exists:products,id_product',
+            'quantity' => 'nullable|integer|min:1',
             'id_course' => 'nullable|exists:courses,id_course',
             'id_event' => 'nullable|exists:events,id_event',
             'id_plan' => 'nullable|exists:membership_plans,id|required_if:category,membership',
