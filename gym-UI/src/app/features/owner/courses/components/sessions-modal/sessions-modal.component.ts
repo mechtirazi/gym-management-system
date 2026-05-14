@@ -22,16 +22,17 @@ export class SessionsModalComponent implements OnInit {
   sessionsUpdated = output<void>();
 
   sessions = signal<any[]>([]);
+  allSessions = signal<any[]>([]);
   trainers = signal<any[]>([]);
   attendances = signal<any[]>([]);
   isLoading = signal<boolean>(true);
   isLoadingAttendances = signal<boolean>(false);
-  
+
   // Form visibility and mode
   showForm = signal<boolean>(false);
   isEditing = signal<boolean>(false);
   editingSessionId = signal<string | null>(null);
-  
+
   isSubmitting = signal<boolean>(false);
   submitError = signal<string | null>(null);
 
@@ -52,12 +53,12 @@ export class SessionsModalComponent implements OnInit {
   private futureDateValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value;
     if (!value) return null;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selectedDate = new Date(value);
     selectedDate.setHours(0, 0, 0, 0);
-    
+
     return selectedDate >= today ? null : { pastDate: true };
   }
 
@@ -80,7 +81,7 @@ export class SessionsModalComponent implements OnInit {
       if (control.errors['required']) return 'This field is required';
       if (control.errors['pattern']) return 'Invalid time format (HH:MM:SS)';
     }
-    
+
     // Group-level errors
     if (field === 'timeRange' && this.sessionForm.touched && this.sessionForm.errors?.['timeRange']) {
       return 'Start time must be before end time';
@@ -103,9 +104,14 @@ export class SessionsModalComponent implements OnInit {
       error: () => this.isLoading.set(false)
     });
 
+    this.sessionService.getSessions().subscribe({
+      next: (data) => this.allSessions.set(data),
+      error: () => { }
+    });
+
     this.sessionService.getTrainers().subscribe({
       next: (data) => this.trainers.set(data),
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -155,7 +161,21 @@ export class SessionsModalComponent implements OnInit {
     }
 
     const value = { ...this.sessionForm.value };
-    
+
+    // Simple control: check for overlaps within ALL sessions (cross-course)
+    const hasOverlap = this.allSessions().some(s => 
+      s.id_trainer === value.id_trainer &&
+      s.date_session === value.date_session &&
+      s.status !== 'cancelled' &&
+      s.id_session !== this.editingSessionId() &&
+      (value.start_time < s.end_time && value.end_time > s.start_time)
+    );
+
+    if (hasOverlap) {
+      this.submitError.set('Trainer already has another session at this time on this date.');
+      return;
+    }
+
     // Ensure HH:MM:SS format for backend date_format:H:i:s
     const formatTime = (time: string) => {
       if (!time) return time;
@@ -174,7 +194,7 @@ export class SessionsModalComponent implements OnInit {
     };
 
     this.isSubmitting.set(true);
-    const request = this.isEditing() 
+    const request = this.isEditing()
       ? this.sessionService.updateSession(this.editingSessionId()!, payload)
       : this.sessionService.addSession(payload);
 

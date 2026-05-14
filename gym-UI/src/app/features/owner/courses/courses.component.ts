@@ -34,6 +34,7 @@ export class CourseManagementComponent implements OnInit {
   selectedType = signal<string>('All');
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
+  successMessage = signal<string | null>(null);
   showAddModal = signal<boolean>(false);
 
   // Sessions Modal State
@@ -116,7 +117,7 @@ export class CourseManagementComponent implements OnInit {
     this.loadCourses();
   }
 
-  loadCourses() {
+  loadCourses(showSuccess: boolean = false) {
     this.isLoading.set(true);
     this.error.set(null);
     this.courseService.getCourses()
@@ -125,6 +126,10 @@ export class CourseManagementComponent implements OnInit {
         next: (response) => {
           if (response && response.data) {
             this.allCourses.set(response.data);
+            if (showSuccess) {
+              this.successMessage.set('Gym schedule updated successfully!');
+              setTimeout(() => this.successMessage.set(null), 5000);
+            }
           }
         },
         error: (err) => {

@@ -16,11 +16,14 @@
 
     <form [formGroup]="addForm" (ngSubmit)="submitAddCourse()" class="add-form" novalidate>
       @if (addError()) {
-      <div class="form-error-banner">
-        <span class="error-icon">⚠️</span>
-        <div class="error-content">
+      <div class="message-banner error animate-slide-down">
+        <div class="banner-icon">
+          <span class="material-symbols-rounded">error</span>
+        </div>
+        <div class="banner-content">
           <p>{{ addError() }}</p>
         </div>
+        <button type="button" class="banner-close" (click)="addError.set(null)">&times;</button>
       </div>
       }
 
@@ -174,20 +177,13 @@
         @if (activeTab() === 'schedule') {
         <div class="tab-content animate-fade-in">
           <div class="automation-header">
-            <div class="toggle-group large">
-              <label class="checkbox-label">
-                <input type="checkbox" formControlName="is_recurring">
-                <span class="checkmark"></span>
-                Enable Recurring Weekly Engine
-              </label>
-              <p class="header-desc">Automatically generate sessions for future weeks based on a pattern.</p>
-            </div>
+            <h4 class="sub-title">Weekly Training Schedule</h4>
+            <p class="header-desc">Define the recurring pattern for this course's sessions.</p>
           </div>
 
-          @if (addForm.get('is_recurring')?.value) {
           <div class="automation-grid animate-slide-up">
             <div class="day-picker-section">
-              <label class="group-label">Weekly Training Pattern</label>
+              <label class="group-label">Weekly Training Pattern <span class="required" *ngIf="addForm.get('is_subscription_enabled')?.value">*</span></label>
               <div class="days-flex">
                 @for (day of daysOfWeek; track day) {
                 <button type="button" class="day-chip" [class.active]="isDaySelected(day)"
@@ -202,7 +198,7 @@
               <div class="form-row">
                 <div class="form-group"
                   [class.has-error]="addForm.get('recurring_start_time')?.invalid && addForm.get('recurring_start_time')?.touched">
-                  <label>Start Time <span class="required">*</span></label>
+                  <label>Start Time <span class="required" *ngIf="addForm.get('is_subscription_enabled')?.value">*</span></label>
                   <input type="time" formControlName="recurring_start_time">
                   @if (addForm.get('recurring_start_time')?.invalid && addForm.get('recurring_start_time')?.touched) {
                   <span class="error-text">Required.</span>
@@ -210,7 +206,7 @@
                 </div>
                 <div class="form-group"
                   [class.has-error]="addForm.get('recurring_end_time')?.invalid && addForm.get('recurring_end_time')?.touched">
-                  <label>End Time <span class="required">*</span></label>
+                  <label>End Time <span class="required" *ngIf="addForm.get('is_subscription_enabled')?.value">*</span></label>
                   <input type="time" formControlName="recurring_end_time">
                   @if (addForm.get('recurring_end_time')?.invalid && addForm.get('recurring_end_time')?.touched) {
                   <span class="error-text">Required.</span>
@@ -221,14 +217,15 @@
               <div class="form-row">
                 <div class="form-group"
                   [class.has-error]="addForm.get('recurrence_weeks')?.invalid && addForm.get('recurrence_weeks')?.touched">
-                  <label>Generation Span (Weeks) <span class="required">*</span></label>
+                  <label>Generation Span (Weeks) <span class="required" *ngIf="addForm.get('is_subscription_enabled')?.value">*</span></label>
                   <input type="number" formControlName="recurrence_weeks" min="1" max="52">
                   @if (addForm.get('recurrence_weeks')?.invalid && addForm.get('recurrence_weeks')?.touched) {
                   <span class="error-text">Required (1-52).</span>
                   }
                 </div>
-                <div class="form-group">
-                  <label>Default Instructor</label>
+                <div class="form-group"
+                  [class.has-error]="addForm.get('id_trainer')?.invalid && addForm.get('id_trainer')?.touched">
+                  <label>Default Instructor <span class="required" *ngIf="addForm.get('is_subscription_enabled')?.value">*</span></label>
                   <select formControlName="id_trainer">
                     <option value="">No trainer assigned</option>
                     @for (trainer of trainers(); track (trainer.user?.id_user || trainer.id_user)) {
@@ -237,17 +234,13 @@
                     </option>
                     }
                   </select>
+                  @if (addForm.get('id_trainer')?.invalid && addForm.get('id_trainer')?.touched) {
+                  <span class="error-text">Please select a default trainer.</span>
+                  }
                 </div>
               </div>
             </div>
           </div>
-          } @else {
-          <div class="empty-automation-state">
-            <span class="material-symbols-rounded">smart_toy</span>
-            <p>The system will create the Course without sessions. You can add them manually later using the "Sessions"
-              modal.</p>
-          </div>
-          }
         </div>
         }
       </div>

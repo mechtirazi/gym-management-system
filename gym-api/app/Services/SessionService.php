@@ -59,7 +59,7 @@ class SessionService extends BaseService
                     $q->whereIn('gyms.id_gym', $user->allowedGymIds());
                 });
             }
-            
+
             return $perPage ? $query->paginate($perPage) : $query->get();
         }
 
@@ -81,6 +81,60 @@ class SessionService extends BaseService
     {
         $this->syncSessionStatuses();
         return $this->getBy('id_trainer', $trainerId);
+    }
+
+    /**
+     * Create a new session with trainer availability check
+     */
+    public function create(array $data): Session
+    {
+        $this->validateTrainerAvailability($data);
+        return parent::create($data);
+    }
+
+    /**
+     * Update a session with trainer availability check
+     */
+    public function update(\Illuminate\Database\Eloquent\Model $model, array $data): \Illuminate\Database\Eloquent\Model
+    {
+        $this->validateTrainerAvailability(array_merge($model->toArray(), $data), $model->id_session);
+        return parent::update($model, $data);
+    }
+
+    /**
+     * Validate that the trainer doesn't have an overlapping session
+     */
+    private function validateTrainerAvailability(array $data, ?string $excludeSessionId = null): void
+    {
+        $idTrainer = $data['id_trainer'] ?? null;
+        $dateSession = $data['date_session'] ?? null;
+        $startTime = $data['start_time'] ?? null;
+        $endTime = $data['end_time'] ?? null;
+
+        if (!$idTrainer || !$dateSession || !$startTime || !$endTime) {
+            return;
+        }
+
+        $query = Session::where('id_trainer', $idTrainer)
+            ->where('date_session', $dateSession)
+            ->where('status', '!=', Session::STATUS_CANCELLED);
+
+        if ($excludeSessionId) {
+            $query->where('id_session', '!=', $excludeSessionId);
+        }
+
+        $query->where(function ($q) use ($startTime, $endTime) {
+            $q->where(function ($sq) use ($startTime, $endTime) {
+                $sq->where('start_time', '<', $endTime)
+                  ->where('end_time', '>', $startTime);
+            });
+        });
+
+        if ($query->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'id_trainer' => ['Trainer already has another session at this time on this date.'],
+            ]);
+        }
     }
 
     /**

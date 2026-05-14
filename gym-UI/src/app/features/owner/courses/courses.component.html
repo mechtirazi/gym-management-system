@@ -48,6 +48,18 @@
     </div>
   </header>
 
+  @if (successMessage()) {
+  <div class="message-banner success animate-slide-down">
+    <div class="banner-icon">
+      <span class="material-symbols-rounded">check_circle</span>
+    </div>
+    <div class="banner-content">
+      <p>{{ successMessage() }}</p>
+    </div>
+    <button class="banner-close" (click)="successMessage.set(null)">&times;</button>
+  </div>
+  }
+
   <main class="courses-content">
     @if (isLoading()) {
     <div class="loading-state">
@@ -77,11 +89,11 @@
   </main>
 
   @if (showAddModal()) {
-  <app-add-course-modal [editCourse]="selectedCourseForEdit()" (close)="showAddModal.set(false); selectedCourseForEdit.set(null)" (courseAdded)="loadCourses()">
+  <app-add-course-modal [editCourse]="selectedCourseForEdit()" (close)="showAddModal.set(false); selectedCourseForEdit.set(null)" (courseAdded)="loadCourses(true)">
   </app-add-course-modal>}
   @if (showSessionsModal()) {
   <app-sessions-modal [course]="selectedCourseForSessions()" (close)="showSessionsModal.set(false)"
-    (sessionsUpdated)="loadCourses()">
+    (sessionsUpdated)="loadCourses(true)">
   </app-sessions-modal>
   }
 </div>

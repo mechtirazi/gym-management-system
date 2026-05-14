@@ -56,7 +56,7 @@ export class AddCourseModalComponent implements OnInit {
       subscription_price: [99.99, [Validators.min(0), Validators.max(20000)]],
 
       // Recurring Logic
-      is_recurring: [false],
+      is_recurring: [true],
       recurring_days: this.fb.array([]),
       recurring_start_time: ['10:00'],
       recurring_end_time: ['11:00'],
@@ -76,12 +76,53 @@ export class AddCourseModalComponent implements OnInit {
       }
     });
 
-    // Handle tab redirection if subscription is disabled while on automation tab
+    // Handle tab redirection and conditional validators
     this.addForm.get('is_subscription_enabled')?.valueChanges.subscribe(enabled => {
+      this.updateRecurringValidators(enabled);
       if (!enabled && this.activeTab() === 'schedule') {
         this.setActiveTab('basic');
       }
     });
+
+    // Reactive Error Clearing: Disappear only when the specific field is corrected
+    this.addForm.get('id_trainer')?.valueChanges.subscribe(val => {
+      if (val && this.addError()?.includes('Instructor Required')) {
+        this.addError.set(null);
+      }
+    });
+
+    this.addForm.get('recurring_days')?.valueChanges.subscribe(val => {
+      if (Array.isArray(val) && val.length > 0 && this.addError()?.includes('Training Pattern Required')) {
+        this.addError.set(null);
+      }
+    });
+
+    // Initialize validators based on initial state
+    this.updateRecurringValidators(this.addForm.get('is_subscription_enabled')?.value);
+  }
+
+  private updateRecurringValidators(enabled: boolean) {
+    const startTime = this.addForm.get('recurring_start_time');
+    const endTime = this.addForm.get('recurring_end_time');
+    const weeks = this.addForm.get('recurrence_weeks');
+    const trainer = this.addForm.get('id_trainer');
+
+    if (enabled) {
+      startTime?.setValidators([Validators.required]);
+      endTime?.setValidators([Validators.required]);
+      weeks?.setValidators([Validators.required, Validators.min(1), Validators.max(52)]);
+      trainer?.setValidators([Validators.required]);
+    } else {
+      startTime?.clearValidators();
+      endTime?.clearValidators();
+      weeks?.setValidators([Validators.min(1), Validators.max(52)]);
+      trainer?.clearValidators();
+    }
+
+    startTime?.updateValueAndValidity();
+    endTime?.updateValueAndValidity();
+    weeks?.updateValueAndValidity();
+    trainer?.updateValueAndValidity();
   }
 
   ngOnInit() {
@@ -183,6 +224,24 @@ export class AddCourseModalComponent implements OnInit {
     if (this.addForm.invalid) {
       this.addForm.markAllAsTouched();
       return;
+    }
+
+    // Additional validation for recurring days and trainer if subscription is enabled
+    const isSubscribed = this.addForm.get('is_subscription_enabled')?.value;
+    const daysArray = this.addForm.get('recurring_days') as FormArray;
+    const trainerId = this.addForm.get('id_trainer')?.value;
+
+    if (isSubscribed) {
+      if (daysArray.length === 0) {
+        this.addError.set('📅 Training Pattern Required: Please select at least one day for the weekly schedule.');
+        this.setActiveTab('schedule');
+        return;
+      }
+      if (!trainerId) {
+        this.addError.set('👨‍🏫 Instructor Required: Please assign a default trainer for this subscription program.');
+        this.setActiveTab('schedule');
+        return;
+      }
     }
 
     const totalMinutes = (this.addForm.get('duration_hours')?.value || 0) * 60 + (this.addForm.get('duration_minutes')?.value || 0);

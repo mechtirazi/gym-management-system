@@ -27,6 +27,8 @@ class PaymentController extends BaseApiController
     public function index(\Illuminate\Http\Request $request)
     {
         $perPage = $request->input('per_page') ? (int) $request->input('per_page') : 10;
+        $withSummary = filter_var($request->input('with_summary', '1'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        $withSummary = $withSummary !== false;
         $data = $this->service->getAllScoped(auth()->user(), $perPage);
 
         $resource = \App\Http\Resources\PaymentResource::collection($data);
@@ -34,7 +36,9 @@ class PaymentController extends BaseApiController
         $response = $resource->response()->getData();
         $response->success = true;
         $response->message = 'Payments retrieved successfully';
-        $response->financial_summary = $this->service->getFinancialSummary(auth()->user());
+        if ($withSummary) {
+            $response->financial_summary = $this->service->getFinancialSummary(auth()->user());
+        }
 
         return response()->json($response, 200);
     }
@@ -117,4 +121,3 @@ class PaymentController extends BaseApiController
         ], 403);
     }
 }
-

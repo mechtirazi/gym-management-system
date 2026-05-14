@@ -59,12 +59,14 @@ export class ReceptionistPaymentsService {
     endDate?: string,
     status?: string,
     gateway?: string,
-    search?: string
+    search?: string,
+    includeSummary: boolean = true
   ) {
     let params = new HttpParams()
       .set('id_gym', idGym)
       .set('page', page.toString())
-      .set('per_page', perPage.toString());
+      .set('per_page', perPage.toString())
+      .set('with_summary', includeSummary ? '1' : '0');
 
     if (startDate) params = params.set('start_date', startDate);
     if (endDate) params = params.set('end_date', endDate);

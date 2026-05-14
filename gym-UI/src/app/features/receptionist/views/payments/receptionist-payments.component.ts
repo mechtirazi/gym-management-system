@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, OnInit, effect } from '@angular/core';
+import { Component, computed, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -20,7 +20,7 @@ import { NutritionService } from '../../../owner/nutrition/services/nutrition.se
   templateUrl: './receptionist-payments.component.html',
   styleUrl: './receptionist-payments.component.scss'
 })
-export class ReceptionistPaymentsComponent implements OnInit {
+export class ReceptionistPaymentsComponent {
   private fb = inject(FormBuilder);
   private paymentsService = inject(ReceptionistPaymentsService);
   private authService = inject(AuthService);
@@ -83,6 +83,9 @@ export class ReceptionistPaymentsComponent implements OnInit {
   searchQuery = signal<string>('');
   private searchSubject = new Subject<string>();
   private memberSearchSubject = new Subject<string>();
+  private paymentsRequestId = 0;
+  private paymentsPageCache = new Map<string, { response: any; timestamp: number }>();
+  private readonly paymentsCacheTtlMs = 45000;
 
   // Metrics State
   financialSummary = signal<any>(null);
@@ -132,6 +135,7 @@ export class ReceptionistPaymentsComponent implements OnInit {
 
     effect(() => {
       if (this.currentGymId()) {
+        this.clearPaymentsCache();
         this.refresh();
         this.loadMembers();
         this.loadProducts();
@@ -301,15 +305,6 @@ export class ReceptionistPaymentsComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-    this.refresh();
-    this.loadMembers();
-    this.loadProducts();
-    this.loadPlans();
-    this.loadCourses();
-    this.loadNutritionPlans();
-  }
-
   loadNutritionPlans() {
     this.nutritionService.getNutritionPlans(1, 100).subscribe({
       next: (res: any) => {
@@ -446,6 +441,107 @@ export class ReceptionistPaymentsComponent implements OnInit {
     }
   }
 
+  private buildPaymentsCacheKey(gymId: string, page: number): string {
+    return [
+      gymId,
+      page,
+      this.perPage,
+      this.startDate() || '',
+      this.endDate() || '',
+      this.statusFilter() || '',
+      this.gatewayFilter() || '',
+      this.searchQuery() || ''
+    ].join('|');
+  }
+
+  private clearPaymentsCache() {
+    this.paymentsPageCache.clear();
+  }
+
+  private readCachedPage(gymId: string, page: number): any | null {
+    const key = this.buildPaymentsCacheKey(gymId, page);
+    const entry = this.paymentsPageCache.get(key);
+    if (!entry) return null;
+
+    if (Date.now() - entry.timestamp > this.paymentsCacheTtlMs) {
+      this.paymentsPageCache.delete(key);
+      return null;
+    }
+
+    return entry.response;
+  }
+
+  private writeCachedPage(gymId: string, page: number, response: any) {
+    const key = this.buildPaymentsCacheKey(gymId, page);
+    this.paymentsPageCache.set(key, { response, timestamp: Date.now() });
+  }
+
+  private normalizePaymentsResponse(res: any, fallbackPage: number) {
+    const parsedCurrent = Number(res?.meta?.current_page);
+    const parsedLast = Number(res?.meta?.last_page);
+    const parsedTotal = Number(res?.meta?.total);
+    const parsedPerPage = Number(res?.meta?.per_page);
+
+    const safeCurrent = Number.isFinite(parsedCurrent) && parsedCurrent > 0
+      ? Math.floor(parsedCurrent)
+      : fallbackPage;
+    const safeLast = Number.isFinite(parsedLast) && parsedLast > 0
+      ? Math.floor(parsedLast)
+      : 1;
+    const safeTotal = Number.isFinite(parsedTotal) && parsedTotal >= 0
+      ? Math.floor(parsedTotal)
+      : 0;
+    const safePerPage = Number.isFinite(parsedPerPage) && parsedPerPage > 0
+      ? Math.floor(parsedPerPage)
+      : this.perPage;
+
+    return {
+      data: Array.isArray(res?.data) ? res.data : [],
+      meta: {
+        current_page: safeCurrent,
+        last_page: safeLast,
+        total: safeTotal,
+        per_page: safePerPage
+      },
+      financial_summary: res?.financial_summary || null
+    };
+  }
+
+  private applyPaymentsState(response: any) {
+    this.payments.set(Array.isArray(response?.data) ? response.data : []);
+    this.currentPage.set(response?.meta?.current_page || 1);
+    this.lastPage.set(response?.meta?.last_page || 1);
+    this.totalItems.set(response?.meta?.total || 0);
+
+    if (response?.financial_summary) {
+      this.financialSummary.set(response.financial_summary);
+    }
+  }
+
+  private prefetchPage(gymId: string, page: number) {
+    if (page < 1) return;
+    if (this.lastPage() > 0 && page > this.lastPage()) return;
+    if (this.readCachedPage(gymId, page)) return;
+
+    this.paymentsService.listByGym(
+      gymId,
+      page,
+      this.perPage,
+      this.startDate(),
+      this.endDate(),
+      this.statusFilter(),
+      this.gatewayFilter(),
+      this.searchQuery(),
+      false
+    ).subscribe({
+      next: (res: any) => {
+        const normalized = this.normalizePaymentsResponse(res, page);
+        if (normalized.meta.current_page > normalized.meta.last_page) return;
+        this.writeCachedPage(gymId, page, normalized);
+      }
+    });
+  }
+
   refresh(forceFirstPage = false) {
     const gymId = this.currentGymId();
     if (!gymId) {
@@ -453,46 +549,64 @@ export class ReceptionistPaymentsComponent implements OnInit {
       return;
     }
 
+    const gymIdStr = gymId.toString();
     if (forceFirstPage) {
       this.currentPage.set(1);
+      this.clearPaymentsCache();
     }
+
+    const requestedPage = this.currentPage();
+    const shouldRequestSummary = forceFirstPage || !this.financialSummary();
+    const cached = this.readCachedPage(gymIdStr, requestedPage);
+    if (cached) {
+      this.error.set(null);
+      this.isLoading.set(false);
+      this.applyPaymentsState(cached);
+      this.prefetchPage(gymIdStr, requestedPage + 1);
+      return;
+    }
+
+    const requestId = ++this.paymentsRequestId;
 
     this.isLoading.set(true);
     this.error.set(null);
 
     // Load Payments (Main focus for search/filtering)
     this.paymentsService.listByGym(
-      gymId.toString(),
-      this.currentPage(),
+      gymIdStr,
+      requestedPage,
       this.perPage,
       this.startDate(),
       this.endDate(),
       this.statusFilter(),
       this.gatewayFilter(),
-      this.searchQuery()
-    ).pipe(finalize(() => this.isLoading.set(false)))
+      this.searchQuery(),
+      shouldRequestSummary
+    ).pipe(finalize(() => {
+      if (requestId === this.paymentsRequestId) {
+        this.isLoading.set(false);
+      }
+    }))
       .subscribe({
         next: (res: any) => {
-          this.payments.set(res.data);
-          this.currentPage.set(res.meta.current_page);
-          this.lastPage.set(res.meta.last_page);
-          this.totalItems.set(res.meta.total);
+          if (requestId !== this.paymentsRequestId) return;
 
-          if (res.financial_summary) {
-            this.financialSummary.set(res.financial_summary);
+          const normalized = this.normalizePaymentsResponse(res, requestedPage);
+          if (normalized.meta.current_page > normalized.meta.last_page) {
+            this.currentPage.set(normalized.meta.last_page);
+            this.refresh();
+            return;
           }
-        },
-        error: () => this.error.set('Could not synchronize ledger data. Check connection.')
-      });
 
-    // Load Dashboard Stats (Background task)
-    this.paymentsService.getStats().subscribe({
-      next: (res: any) => {
-        if (res.success) {
-          this.totalRevenue.set(res.data.kpis.revenueTotal);
+          this.writeCachedPage(gymIdStr, normalized.meta.current_page, normalized);
+          this.applyPaymentsState(normalized);
+          this.prefetchPage(gymIdStr, normalized.meta.current_page + 1);
+        },
+        error: () => {
+          if (requestId !== this.paymentsRequestId) return;
+          this.error.set('Could not synchronize ledger data. Check connection.');
         }
-      }
-    });
+      });
   }
 
   onSearch(query: string) {
@@ -695,6 +809,7 @@ export class ReceptionistPaymentsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showNewPaymentForm.set(false);
+          this.clearPaymentsCache();
           this.refresh();
         },
         error: (err) => {
@@ -712,6 +827,7 @@ export class ReceptionistPaymentsComponent implements OnInit {
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: () => {
+          this.clearPaymentsCache();
           this.refresh();
           if (this.selectedPayment()?.id === p.id) {
             this.selectedPayment.set({ ...p, status: { ...p.status, value: 'finalized', label: 'Finalized', is_locked: true } });
