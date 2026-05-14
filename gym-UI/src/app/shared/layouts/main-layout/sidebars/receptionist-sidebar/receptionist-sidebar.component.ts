@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { ToastService } from '../../../../../core/services/toast.service';
+import { AuthService } from '../../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-receptionist-sidebar',
@@ -17,6 +18,7 @@ export class ReceptionistSidebarComponent {
   private sanitizer = inject(DomSanitizer);
   private notificationService = inject(NotificationService);
   private toastService = inject(ToastService);
+  authService = inject(AuthService);
 
   showSupportModal = signal(false);
   supportMessage = signal('');

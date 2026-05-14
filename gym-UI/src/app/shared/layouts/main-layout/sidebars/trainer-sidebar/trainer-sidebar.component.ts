@@ -15,7 +15,7 @@ import { signal, OnInit } from '@angular/core';
   styleUrl: './trainer-sidebar.component.scss'
 })
 export class TrainerSidebarComponent implements OnInit {
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private gymService = inject(GymService);
   private sanitizer = inject(DomSanitizer);
 

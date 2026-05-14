@@ -222,6 +222,30 @@
       animation: pulse-aura 2s infinite;
     }
   }
+
+  .gym-context {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--color-primary-600);
+    background: var(--bg-hover);
+    padding: 0.2rem 0.7rem;
+    border-radius: 40px;
+    letter-spacing: 0.02em;
+    margin-top: 0.25rem;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.5s;
+
+    .sidebar:hover & {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 }
 
 @keyframes pulse-aura {

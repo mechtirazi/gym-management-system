@@ -17,6 +17,10 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.currentUser());
   userRole = computed(() => this.currentUser()?.role);
   connectedGymId = computed(() => this.currentUser()?.gym_id);
+  connectedGym = computed(() => {
+    const id = this.connectedGymId();
+    return this.myGyms().find(g => g.id_gym === id || g.id === id);
+  });
   connectedGymStatus = computed(() => this.currentUser()?.gym_status || 'active');
   connectedGymSuspensionReason = computed(() => this.currentUser()?.gym_suspension_reason);
   isImpersonating = signal<boolean>(!!localStorage.getItem('original_user'));

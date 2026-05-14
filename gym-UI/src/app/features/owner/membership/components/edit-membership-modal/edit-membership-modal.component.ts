@@ -251,6 +251,7 @@ export class EditMembershipModalComponent implements OnInit {
 
     const payload = {
       ...this.editForm.value,
+      enrollment_date: this.editForm.value.start_date,
       id_gym: gymId
     };
 

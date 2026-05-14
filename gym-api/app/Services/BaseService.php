@@ -39,7 +39,7 @@ abstract class BaseService
      */
     protected function query()
     {
-        $query = $this->model;
+        $query = $this->model->newQuery();
 
         if (!empty($this->relations)) {
             $query = $query->with($this->relations);

@@ -13,7 +13,7 @@ import { AuthService } from '../../../../../core/services/auth.service';
 })
 export class NutritionistSidebarComponent {
   private sanitizer = inject(DomSanitizer);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
 
   navItems = [
     { label: 'Overview', isHeader: true },

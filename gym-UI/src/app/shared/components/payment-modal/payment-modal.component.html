@@ -25,8 +25,10 @@
                 <div class="order-recap">
                     <div class="recap-header-row">
                         <div class="item-preview-mini">
-                            <img [src]="itemImage" alt="Item Image"
-                                onerror="this.src='https://ui-avatars.com/api/?name=Hub&background=1e293b&color=10b981&bold=true'">
+                            <div class="image-wrapper">
+                                <img [src]="itemImage" alt="Item Image"
+                                    onerror="this.src='https://ui-avatars.com/api/?name=Hub&background=1e293b&color=10b981&bold=true'">
+                            </div>
                             <div class="preview-text">
                                 <h3>{{ itemTitle }}</h3>
                                 <p>{{ selectedPlan ? selectedPlan.name : itemSubtitle }}</p>
@@ -46,18 +48,19 @@
                     </div>
 
                     <div class="recap-pricing-row">
+                        <h4 class="hub-label">Select Synchronization Tier</h4>
+                        
                         <div class="item-price-pill" *ngIf="!selectedPlan && !totalPrice">VERIFIED</div>
                         <div class="item-price-pill price-dynamic" *ngIf="totalPrice && !selectedPlan">
-                            {{ totalPrice | number:'1.2-2' }} TND
+                            {{ totalPrice | number:'1.2-2' }}
                         </div>
                         <div class="item-price-pill price-dynamic" *ngIf="selectedPlan">
-                            {{ selectedPlan.price }} TND
+                            {{ selectedPlan.price | number:'1.2-2' }}
                         </div>
                     </div>
 
                     <!-- Dynamic Plan Selection Tiers -->
                     <div class="plan-selection-hub" *ngIf="plans && plans.length > 0">
-                        <h4 class="hub-label">Select Synchronization Tier</h4>
                         <div class="plans-grid">
                             <ng-container *ngFor="let plan of plans">
                                 <div class="plan-tier-card" *ngIf="plan"
@@ -65,7 +68,7 @@
                                     (click)="selectPlan(plan)">
                                     <div class="tier-header">
                                         <span class="tier-name">{{ plan?.name }}</span>
-                                        <span class="tier-price">{{ plan?.price }} TND</span>
+                                        <span class="tier-price">{{ plan?.price | number:'1.2-2' }}</span>
                                     </div>
                                     <p class="tier-desc">{{ plan?.description }}</p>
                                     <div class="tier-check"
@@ -84,6 +87,7 @@
                 <button class="btn-primary-glow" (click)="nextStep()">Proceed to Payment</button>
             </div>
 
+            <!-- Step 2: Payment Methods -->
             <div class="step-view" [style.display]="paymentStepper === 2 ? 'block' : 'none'">
                 <div class="payment-method-selector horizontal">
                     <div class="method-card mini" [class.active]="selectedMethod === 'zen_wallet'"
@@ -143,22 +147,47 @@
                     </div>
                 </div>
 
-                <div id="card-errors" role="alert" class="error-message">{{ cardError }}</div>
-
-                <div class="conversion-rate-banner" *ngIf="selectedMethod === 'zen_wallet'">
-                    <div class="rate-info">
-                        <span class="pts">{{ getRequiredPoints() | number:'1.0-0' }} pts</span>
-                        <span class="equals">=</span>
-                        <span class="currency">{{ (selectedPlan ? selectedPlan.price : (totalPrice || 0)) |
-                            number:'1.2-2' }} TND</span>
+                <div id="card-errors" role="alert" class="card-error-toast" *ngIf="cardError">
+                    <div class="toast-icon">
+                        <span class="material-symbols-rounded">credit_card_off</span>
                     </div>
-                    <p class="rate-note">Conversion Protocol: 50 Points = 5.00 TND</p>
+                    <div class="toast-body">
+                        <strong>Card Error</strong>
+                        <p>{{ cardError }}</p>
+                    </div>
+                    <div class="toast-bar"></div>
+                </div>
+
+                <div class="conversion-rate-card" *ngIf="selectedMethod === 'zen_wallet'">
+                    <div class="rate-display">
+                        <div class="rate-unit pts">
+                            <span class="value">{{ getRequiredPoints() | number:'1.0-0' }}</span>
+                            <span class="label">PTS</span>
+                        </div>
+                        <div class="rate-separator">
+                            <span class="material-symbols-rounded">sync_alt</span>
+                        </div>
+                        <div class="rate-unit currency">
+                            <span class="value">{{ (selectedPlan ? selectedPlan.price : (totalPrice || 0)) |
+                                number:'1.2-2' }}</span>
+                            <span class="label">TND</span>
+                        </div>
+                    </div>
+                    <div class="protocol-badge">
+                        <span class="material-symbols-rounded">info</span>
+                        Protocol: 50 Points = 5.00 TND
+                    </div>
                 </div>
 
                 <div class="insufficient-balance-warning"
                     *ngIf="selectedMethod === 'zen_wallet' && !hasSufficientBalance()">
-                    <span class="material-symbols-rounded">warning</span>
-                    Insufficient Zenith Points for this synchronization.
+                    <div class="warn-icon-wrap">
+                        <span class="material-symbols-rounded">account_balance_wallet</span>
+                    </div>
+                    <div class="warn-content">
+                        <strong>Insufficient Zenith Points</strong>
+                        <p>You don't have enough points to complete this transaction.</p>
+                    </div>
                 </div>
 
                 <button class="btn-primary-glow" (click)="nextStep()"
@@ -169,6 +198,7 @@
                 </button>
             </div>
 
+            <!-- Step 3: Success/Error -->
             <div class="step-view centering" [style.display]="paymentStepper === 3 ? 'block' : 'none'">
                 <div class="sync-animation" [class.syncing]="processingPayment"
                     [class.error]="!processingPayment && paymentError"
@@ -184,12 +214,39 @@
                     <ng-container *ngIf="!processingPayment && !paymentError">Transaction Confirmed</ng-container>
                     <ng-container *ngIf="!processingPayment && paymentError">Synchronization Failure</ng-container>
                 </h3>
-                <p class="sync-desc" *ngIf="paymentError" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem;">
-                    {{ paymentError }}
+                <p class="sync-desc" *ngIf="processingPayment">
+                    Please keep this window open while we validate your payment.
                 </p>
 
-                <button *ngIf="!processingPayment && paymentError" (click)="retry()" class="btn-primary-glow"
-                    style="margin-top: 20px;">
+                <div class="payment-alert success" *ngIf="!processingPayment && !paymentError" role="status">
+                    <div class="alert-icon-ring">
+                        <span class="material-symbols-rounded">verified</span>
+                    </div>
+                    <div class="alert-content">
+                        <strong>Payment Approved</strong>
+                        <p>Your membership access has been updated successfully.</p>
+                        <div class="alert-tags">
+                            <span class="tag">Confirmed</span>
+                            <span class="tag">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment-alert error" *ngIf="paymentError" role="alert" aria-live="polite">
+                    <div class="alert-icon-ring">
+                        <span class="material-symbols-rounded">error</span>
+                    </div>
+                    <div class="alert-content">
+                        <strong>Payment Failed</strong>
+                        <p>{{ paymentError }}</p>
+                        <div class="alert-tags">
+                            <span class="tag">Declined</span>
+                            <span class="tag">Action Required</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button *ngIf="!processingPayment && paymentError" (click)="retry()" class="btn-primary-glow retry-btn">
                     Retry Authorization
                 </button>
             </div>

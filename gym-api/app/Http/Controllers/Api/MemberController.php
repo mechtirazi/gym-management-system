@@ -385,6 +385,7 @@ class MemberController extends Controller
         $user = $request->user();
         $wallet = $user->walletForGym($gym->id_gym);
         $method = $request->input('payment_method', 'zen_wallet');
+        $startDateInput = $request->input('start_date');
 
         // Handle Dynamic Plans
         $planId = $request->input('id_plan');
@@ -408,6 +409,21 @@ class MemberController extends Controller
             $price = $pricing[$type] ?? 49.99;
         }
 
+        try {
+            $enrollmentDate = $startDateInput
+                ? Carbon::parse($startDateInput)->toDateString()
+                : now()->toDateString();
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid start date. Please choose a valid date.'
+            ], 422);
+        }
+
+        $enrollmentStatus = Carbon::parse($enrollmentDate)->startOfDay()->gt(now()->startOfDay())
+            ? 'pending'
+            : 'active';
+
         // 2. Logic based on payment method
         if ($method === 'zen_wallet') {
             // Zen points usually have a different conversion, but we'll use same value for now or 1:1 points
@@ -420,7 +436,7 @@ class MemberController extends Controller
             }
         }
 
-        return DB::transaction(function () use ($user, $gym, $wallet, $price, $method, $type, $plan) {
+        return DB::transaction(function () use ($user, $gym, $wallet, $price, $method, $type, $plan, $enrollmentDate, $enrollmentStatus) {
             $transactionId = 'TXN-' . strtoupper(Str::random(12));
 
             if ($method === 'zen_wallet') {
@@ -458,8 +474,8 @@ class MemberController extends Controller
                 ],
                 [
                     'id_plan' => $plan ? $plan->id : null,
-                    'enrollment_date' => now(),
-                    'status' => 'active',
+                    'enrollment_date' => $enrollmentDate,
+                    'status' => $enrollmentStatus,
                     'type' => $type
                 ]
             );

@@ -236,13 +236,14 @@ export class MemberGymsComponent implements OnInit {
     if (!this.selectedGym) return;
 
     const method = event.method;
+    const startDate = event.start_date;
     this.processingPayment = true;
     this.paymentError = null;
 
     const plan = event.plan || { id: 'standard', price: 49.99 };
 
     if (method === 'zen_wallet') {
-      this.memberService.purchaseMembership(this.selectedGym.id_gym, 'zen_wallet', plan.type || 'standard', plan.id).subscribe({
+      this.memberService.purchaseMembership(this.selectedGym.id_gym, 'zen_wallet', plan.type || 'standard', plan.id, startDate).subscribe({
         next: (res: any) => this.handlePurchaseSuccess(res),
         error: (err: any) => this.handlePurchaseError(err)
       });
@@ -259,7 +260,7 @@ export class MemberGymsComponent implements OnInit {
               this.handlePurchaseError({ error: { message: result.error.message } });
             } else if (result.paymentIntent.status === 'succeeded') {
               // 3. Finalize on backend
-              this.memberService.purchaseMembership(this.selectedGym.id_gym, 'credit_card', plan.type || 'standard', plan.id).subscribe({
+              this.memberService.purchaseMembership(this.selectedGym.id_gym, 'credit_card', plan.type || 'standard', plan.id, startDate).subscribe({
                 next: (res: any) => this.handlePurchaseSuccess(res),
                 error: (err: any) => this.handlePurchaseError(err)
               });

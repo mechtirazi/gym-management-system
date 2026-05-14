@@ -154,13 +154,13 @@ class UserService extends BaseService
         }
 
         // Apply role filter if requested
-        if ($role && $role) {
-            $query->where('role', $role);
+        if ($role) {
+            $query = $query->where('role', $role);
         }
 
         // Apply search filter if requested
         if ($search) {
-            $query->where(function ($q) use ($search) {
+            $query = $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");

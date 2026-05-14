@@ -33,11 +33,11 @@ class PaymentService extends BaseService
                     ->orWhere('method', 'like', "%{$search}%")
                     ->orWhere('type', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where(function($nq) use ($search) {
+                        $uq->where(function ($nq) use ($search) {
                             $nq->where('name', 'like', "%{$search}%")
-                               ->orWhere('last_name', 'like', "%{$search}%")
-                               ->orWhere('email', 'like', "%{$search}%")
-                               ->orWhere(\Illuminate\Support\Facades\DB::raw("CONCAT(name, ' ', last_name)"), 'like', "%{$search}%");
+                                ->orWhere('last_name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere(\Illuminate\Support\Facades\DB::raw("CONCAT(name, ' ', last_name)"), 'like', "%{$search}%");
                         });
                     });
             });
@@ -212,8 +212,8 @@ class PaymentService extends BaseService
                         ? \Illuminate\Support\Carbon::parse($context['start_date'])->toDateString()
                         : now()->toDateString();
 
-                    $status = \Illuminate\Support\Carbon::parse($enrollmentDate)->startOfDay()->gt(now()->startOfDay()) 
-                        ? 'pending' 
+                    $status = \Illuminate\Support\Carbon::parse($enrollmentDate)->startOfDay()->gt(now()->startOfDay())
+                        ? 'pending'
                         : 'active';
 
                     \App\Models\Enrollment::updateOrCreate([

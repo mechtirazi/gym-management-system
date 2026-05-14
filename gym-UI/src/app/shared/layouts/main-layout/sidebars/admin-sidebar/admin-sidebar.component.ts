@@ -12,7 +12,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   styleUrl: './admin-sidebar.component.scss'
 })
 export class AdminSidebarComponent {
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
 
   navItems = [

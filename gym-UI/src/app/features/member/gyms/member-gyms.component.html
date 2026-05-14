@@ -126,6 +126,7 @@
   <!-- High-Fidelity Checkout Vault -->
   <app-payment-modal [showModal]="showPaymentModal" [itemTitle]="selectedGym?.name || 'Gym Facility'"
     [itemSubtitle]="'Membership Plan'"
+    [showStartDate]="true"
     [purchaseTerms]="'Joining this gym will grant you full access to the facility and its programs for the selected duration.'"
     [processingPayment]="processingPayment" [paymentError]="paymentError" [stripePublicKey]="stripePublicKey"
     [plans]="membershipPlans" (cancelPayment)="closePaymentModal()" (confirmPayment)="completePurchase($event)">

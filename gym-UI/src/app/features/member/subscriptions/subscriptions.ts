@@ -200,7 +200,7 @@ export class SubscriptionsComponent implements OnInit {
   private handleError(err: any) {
     console.error('PAYMENT FAILURE:', err);
     this.paymentError = err.error?.message || 'Access synchronization failed.';
-    window.alert('PAYMENT DECLINED:\\n\\n' + this.paymentError);
+    this.showToast(this.paymentError || 'Access synchronization failed.', 'error');
     this.isProcessingPayment = false;
     this.cdr.detectChanges();
   }
