@@ -125,7 +125,7 @@ export class AddMembershipModalComponent implements OnInit {
   toggleCreationMode() {
     this.isNewMember.update(val => !val);
     const newUserFields = ['first_name', 'last_name', 'phone', 'password'];
-    
+
     if (this.isNewMember()) {
       newUserFields.forEach(f => {
         if (f === 'phone') {
@@ -138,7 +138,7 @@ export class AddMembershipModalComponent implements OnInit {
     } else {
       newUserFields.forEach(f => this.membershipForm.get(f)?.clearValidators());
     }
-    
+
     newUserFields.forEach(f => this.membershipForm.get(f)?.updateValueAndValidity());
     this.error.set(null);
   }
@@ -205,7 +205,7 @@ export class AddMembershipModalComponent implements OnInit {
             id_gym: gymId,
             status: calculatedStatus,
             id_plan: formValue.id_plan,
-            enrollment_date: formValue.subscribe_date
+            start_date: formValue.subscribe_date
           };
           return this.membershipService.addMembership(payload).pipe(
             switchMap(() => this.paymentsService.create({
@@ -236,7 +236,7 @@ export class AddMembershipModalComponent implements OnInit {
         id_gym: gymId,
         status: calculatedStatus,
         id_plan: formValue.id_plan,
-        enrollment_date: formValue.subscribe_date
+        start_date: formValue.subscribe_date
       };
 
       this.membershipService.addMembership(payload).pipe(

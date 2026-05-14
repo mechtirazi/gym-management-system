@@ -64,7 +64,7 @@
     </div>
     <div class="detail-item">
       <span class="label">Date Enrolled</span>
-      <span class="value">{{ (membership().enrollment_date || membership().created_at) | date:'mediumDate' }}</span>
+      <span class="value">{{ (membership().start_date || membership().enrollment_date || membership().created_at) | date:'mediumDate' }}</span>
     </div>
     <div class="detail-item">
       <span class="label">Membership End</span>

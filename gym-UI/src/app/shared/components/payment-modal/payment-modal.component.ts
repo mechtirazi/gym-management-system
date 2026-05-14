@@ -27,7 +27,10 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
   @Output() confirmPayment = new EventEmitter<any>();
 
   @Input() plans: any[] = [];
+  @Input() showStartDate: boolean = false;
   selectedPlan: any = null;
+  startDate: string = new Date().toISOString().split('T')[0];
+  today: string = new Date().toISOString().split('T')[0];
 
   private cdr = inject(ChangeDetectorRef);
   paymentStepper = 1;
@@ -51,7 +54,8 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
       this.selectedMethod = 'zen_wallet';
       this.isCardValid = false;
       this.cardError = '';
-      
+      this.startDate = new Date().toISOString().split('T')[0];
+
       if (this.plans && this.plans.length > 0) {
         this.selectedPlan = this.plans[0];
       } else {
@@ -126,20 +130,20 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
           } else {
             this.cardBrand = 'unknown';
           }
-          if(event.error) this.cardError = event.error.message;
+          if (event.error) this.cardError = event.error.message;
           else this.cardError = '';
           checkValidity();
         });
 
         this.cardExpiry.on('change', (event: any) => {
           this.cardValidState.expiry = event.complete;
-          if(event.error) this.cardError = event.error.message;
+          if (event.error) this.cardError = event.error.message;
           checkValidity();
         });
 
         this.cardCvc.on('change', (event: any) => {
           this.cardValidState.cvc = event.complete;
-          if(event.error) this.cardError = event.error.message;
+          if (event.error) this.cardError = event.error.message;
           checkValidity();
         });
 
@@ -162,7 +166,7 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
             this.cardNumber.unmount();
             this.cardExpiry.unmount();
             this.cardCvc.unmount();
-            
+
             this.cardNumber.mount('#card-number');
             this.cardExpiry.mount('#card-expiry');
             this.cardCvc.mount('#card-cvc');
@@ -202,19 +206,19 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
     } else if (this.paymentStepper === 2) {
       // Move to Step 3 (Processing)
       this.paymentStepper = 3;
-      
+
+      const emitData: any = {
+        plan: this.selectedPlan,
+        method: this.selectedMethod === 'stripe' ? 'credit_card' : this.selectedMethod,
+        start_date: this.startDate
+      };
+
       if (this.selectedMethod === 'zen_wallet') {
-        this.confirmPayment.emit({ 
-          method: 'zen_wallet',
-          plan: this.selectedPlan
-        });
+        this.confirmPayment.emit(emitData);
       } else {
-        this.confirmPayment.emit({
-          method: 'stripe',
-          stripe: this.stripe,
-          card: this.cardNumber,
-          plan: this.selectedPlan
-        });
+        emitData.stripe = this.stripe;
+        emitData.card = this.cardNumber;
+        this.confirmPayment.emit(emitData);
       }
     }
   }
@@ -224,29 +228,33 @@ export class PaymentModalComponent implements AfterViewInit, OnChanges {
     this.paymentError = null;
     this.cdr.detectChanges();
   }
- 
+
   getActiveWalletBalance(): number {
     if (!this.currentGymId || !this.wallets) return 0;
-    
+
     // Support both id_gym and gym_id for robustness across different model mappings
-    const wallet = this.wallets.find(w => 
+    const wallet = this.wallets.find(w =>
       (w.id_gym == this.currentGymId || w.gym_id == this.currentGymId)
     );
-    
+
     // The wallet balance is stored in currency ($). 
     // The user wants 50 points = $5, which means 10 points = $1.
     // We multiply by 10 for "Zenith Points" display.
     return wallet ? parseFloat(wallet.balance) * 10 : 0;
   }
- 
+
   hasSufficientBalance(): boolean {
     const price = this.selectedPlan ? parseFloat(this.selectedPlan.price) : (this.totalPrice || 0);
     const requiredPoints = price * 10;
     return this.getActiveWalletBalance() >= requiredPoints;
   }
- 
+
   getRequiredPoints(): number {
     const price = this.selectedPlan ? parseFloat(this.selectedPlan.price) : (this.totalPrice || 0);
     return price * 10;
+  }
+
+  onDateChange(event: any) {
+    this.startDate = event.target.value;
   }
 }

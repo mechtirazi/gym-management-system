@@ -154,6 +154,7 @@ export class SubscriptionsComponent implements OnInit {
     this.cdr.detectChanges();
 
     const plan = event.plan;
+    const startDate = event.start_date;
     if (!plan) {
       this.showToast('Validation Error: No synchronization tier selected.', 'error');
       this.isProcessingPayment = false;
@@ -161,7 +162,7 @@ export class SubscriptionsComponent implements OnInit {
     }
 
     if (event.method === 'zen_wallet') {
-      this.memberService.purchaseMembership(this.selectedGymId!, 'zen_wallet', plan.type || plan.id, plan.id).subscribe({
+      this.memberService.purchaseMembership(this.selectedGymId!, 'zen_wallet', plan.type || plan.id, plan.id, startDate).subscribe({
         next: (res: any) => this.handleSuccess(res),
         error: (err: any) => this.handleError(err)
       });
@@ -176,7 +177,7 @@ export class SubscriptionsComponent implements OnInit {
             if (result.error) {
               this.handleError({ error: { message: result.error.message } });
             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-      this.memberService.purchaseMembership(this.selectedGymId!, 'credit_card', plan.type || plan.id, plan.id).subscribe({
+              this.memberService.purchaseMembership(this.selectedGymId!, 'credit_card', plan.type || plan.id, plan.id, startDate).subscribe({
                 next: (res: any) => this.handleSuccess(res),
                 error: (err: any) => this.handleError(err)
               });

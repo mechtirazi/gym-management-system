@@ -59,8 +59,8 @@
               </div>
 
               <div class="form-row">
-                <div class="form-group">
-                  <label>Duration</label>
+                <div class="form-group" [class.has-error]="(addForm.get('duration_hours')?.invalid && addForm.get('duration_hours')?.touched) || (addForm.get('duration_minutes')?.invalid && addForm.get('duration_minutes')?.touched)">
+                  <label>Duration <span class="required">*</span></label>
                   <div class="duration-composite">
                     <div class="duration-part">
                       <input type="number" formControlName="duration_hours" placeholder="1" min="0">
@@ -71,6 +71,9 @@
                       <span>min</span>
                     </div>
                   </div>
+                  @if (((addForm.get('duration_hours')?.invalid && addForm.get('duration_hours')?.touched) || (addForm.get('duration_minutes')?.invalid && addForm.get('duration_minutes')?.touched))) {
+                  <span class="error-text">Duration is required.</span>
+                  }
                 </div>
                 <div class="form-group"
                   [class.has-error]="addForm.get('max_capacity')?.invalid && addForm.get('max_capacity')?.touched">
@@ -163,7 +166,7 @@
                   <input id="subscription_price" type="number" formControlName="subscription_price" min="0" max="20000">
                 </div>
                 @if (addForm.get('subscription_price')?.invalid && addForm.get('subscription_price')?.touched) {
-                <span class="error-text">Valid price required (max 20,000).</span>
+                <span class="error-text">Monthly price is required (max 20,000).</span>
                 }
                 <p class="field-hint">Enabling this adds an "Abonnement" button to the course card.</p>
               </div>

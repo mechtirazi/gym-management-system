@@ -51,7 +51,7 @@ import { CommonModule } from '@angular/common';
               <div class="details-grid">
                 <div class="detail-card">
                   <span class="label">Activation Date</span>
-                  <span class="value">{{ (membership().enrollment_date || membership().created_at) | date:'MMMM d, y' }}</span>
+                  <span class="value">{{ (membership().start_date || membership().enrollment_date || membership().created_at) | date:'MMMM d, y' }}</span>
                 </div>
                 <div class="detail-card">
                   <span class="label">Expiry Date</span>

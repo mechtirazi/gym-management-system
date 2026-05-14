@@ -47,8 +47,8 @@ export class AddCourseModalComponent implements OnInit {
       isFree:       [false],
       price:        [49.99,  [Validators.required, Validators.min(0), Validators.max(10000)]],
       count:        [1, [Validators.required, Validators.min(0)]],
-      duration_hours: [1, [Validators.min(0)]],
-      duration_minutes: [0, [Validators.min(0), Validators.max(59)]],
+      duration_hours: [1, [Validators.required, Validators.min(0)]],
+      duration_minutes: [0, [Validators.required, Validators.min(0), Validators.max(59)]],
       duration:     [60], // Hidden or calculated
       
       // Abonnement Logic
@@ -105,23 +105,27 @@ export class AddCourseModalComponent implements OnInit {
     const startTime = this.addForm.get('recurring_start_time');
     const endTime = this.addForm.get('recurring_end_time');
     const weeks = this.addForm.get('recurrence_weeks');
+    const subscriptionPrice = this.addForm.get('subscription_price');
     const trainer = this.addForm.get('id_trainer');
 
     if (enabled) {
       startTime?.setValidators([Validators.required]);
       endTime?.setValidators([Validators.required]);
       weeks?.setValidators([Validators.required, Validators.min(1), Validators.max(52)]);
+      subscriptionPrice?.setValidators([Validators.required, Validators.min(0), Validators.max(20000)]);
       trainer?.setValidators([Validators.required]);
     } else {
       startTime?.clearValidators();
       endTime?.clearValidators();
       weeks?.setValidators([Validators.min(1), Validators.max(52)]);
+      subscriptionPrice?.setValidators([Validators.min(0), Validators.max(20000)]);
       trainer?.clearValidators();
     }
 
     startTime?.updateValueAndValidity();
     endTime?.updateValueAndValidity();
     weeks?.updateValueAndValidity();
+    subscriptionPrice?.updateValueAndValidity();
     trainer?.updateValueAndValidity();
   }
 

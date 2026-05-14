@@ -38,72 +38,72 @@
             }
 
             <div class="form-row">
-              <div class="form-group" [class.has-error]="getFieldError('date_session') || sessionForm.get('date_session')?.errors?.['pastDate']">
-                <label for="date_session">Date <span class="required">*</span></label>
+              <div class="form-group" [class.has-error]="getFieldError('date_session')">
+                <label>Session Date <span class="required">*</span></label>
                 <input id="date_session" type="date" formControlName="date_session" [min]="todayDate" (click)="openPicker($event)">
                 @if (getFieldError('date_session')) {
                   <span class="error-msg">{{ getFieldError('date_session') }}</span>
                 }
-                @if (sessionForm.get('date_session')?.touched && sessionForm.get('date_session')?.errors?.['pastDate']) {
-                  <span class="error-msg">Date cannot be in the past</span>
-                }
               </div>
 
-              <div class="form-group" [class.has-error]="getFieldError('id_trainer')">
-                <label for="id_trainer">Trainer <span class="required">*</span></label>
-                <select id="id_trainer" formControlName="id_trainer">
-                  <option value="" disabled selected>Select a trainer</option>
-                  @for (t of trainers(); track t.id_user) {
-                  <option [value]="t.user?.id_user || t.id_user">
-                    {{ t.user?.name || t.name }} {{ t.user?.last_name || t.last_name }}
-                  </option>
-                  }
-                </select>
-                @if (getFieldError('id_trainer')) {
-                  <span class="error-msg">{{ getFieldError('id_trainer') }}</span>
-                }
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group" [class.has-error]="getFieldError('start_time')">
-                <label for="start_time">Start Time <span class="required">*</span></label>
-                <input id="start_time" type="time" step="1" formControlName="start_time" placeholder="HH:MM:SS">
-                @if (getFieldError('start_time')) {
-                  <span class="error-msg">{{ getFieldError('start_time') }}</span>
-                }
-              </div>
-
-              <div class="form-group" [class.has-error]="getFieldError('end_time')">
-                <label for="end_time">End Time <span class="required">*</span></label>
-                <input id="end_time" type="time" step="1" formControlName="end_time" placeholder="HH:MM:SS">
-                @if (getFieldError('end_time')) {
-                  <span class="error-msg">{{ getFieldError('end_time') }}</span>
-                }
-              </div>
-            </div>
-
-            @if (getFieldError('timeRange')) {
-              <div class="form-error-banner mini">
-                <span>⚠️</span>
-                <p>{{ getFieldError('timeRange') }}</p>
-              </div>
-            }
-
-            <div class="form-row">
-              <div class="form-group" [class.has-error]="getFieldError('status')">
-                <label for="status">Status <span class="required">*</span></label>
-                <select id="status" formControlName="status">
+              <div class="form-group">
+                <label>Status</label>
+                <select formControlName="status">
                   <option value="upcoming">Upcoming</option>
                   <option value="ongoing">Ongoing</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
-                @if (getFieldError('status')) {
-                  <span class="error-msg">{{ getFieldError('status') }}</span>
-                }
               </div>
             </div>
+
+            <div class="form-group" [class.has-error]="getFieldError('id_trainer')">
+              <label>Lead Trainer <span class="required">*</span></label>
+              <select formControlName="id_trainer">
+                <option value="" disabled selected>Select a trainer</option>
+                @for (t of trainers(); track t.id_user) {
+                <option [value]="t.user?.id_user || t.id_user">
+                  {{ t.user?.name || t.name }} {{ t.user?.last_name || t.last_name }}
+                </option>
+                }
+              </select>
+              @if (getFieldError('id_trainer')) {
+              <span class="error-msg">{{ getFieldError('id_trainer') }}</span>
+              }
+            </div>
+
+            <div class="time-slot-card">
+              <div class="slot-header">
+                <span class="material-symbols-rounded">schedule</span>
+                <span>Time Configuration</span>
+              </div>
+              <div class="slot-body">
+                <div class="time-item" [class.has-error]="getFieldError('start_time')">
+                  <label>Start Time</label>
+                  <input type="time" step="1" formControlName="start_time">
+                </div>
+                <div class="time-arrow">
+                  <span class="material-symbols-rounded">arrow_forward</span>
+                </div>
+                <div class="time-item readonly">
+                  <label>End Time (Auto)</label>
+                  <div class="value">{{ sessionForm.get('end_time')?.value || '--:--:--' }}</div>
+                </div>
+              </div>
+              @if (getFieldError('timeRange') || getFieldError('gymHours')) {
+              <div class="slot-error">
+                <span class="material-symbols-rounded">warning</span>
+                {{ getFieldError('timeRange') || getFieldError('gymHours') }}
+              </div>
+              }
+            </div>
+
+            @if (getFieldError('gymClosed')) {
+              <div class="form-error-banner mini">
+                <span>🚫</span>
+                <p>{{ getFieldError('gymClosed') }}</p>
+              </div>
+            }
 
             <div class="form-actions">
               <button type="button" class="cancel-btn" (click)="showForm.set(false)">Cancel</button>

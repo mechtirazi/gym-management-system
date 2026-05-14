@@ -127,6 +127,7 @@
     <!-- Modals -->
     <app-payment-modal [showModal]="showPaymentPicker" [processingPayment]="isProcessingPayment"
         [paymentError]="paymentError" [stripePublicKey]="stripePublicKey" [plans]="membershipPlans"
+        [showStartDate]="true"
         [headerTitle]="(selectedSubscription?.status?.toLowerCase() === 'expired' || selectedSubscription?.status?.toLowerCase() === 'cancelled') ? 'Renew Plan' : 'Extend Plan'"
         [itemTitle]="selectedSubscription?.gym?.name || 'Gym Facility'"
         [itemSubtitle]="selectedSubscription?.plan?.name || 'Membership Plan'"

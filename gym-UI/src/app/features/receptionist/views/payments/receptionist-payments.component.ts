@@ -441,6 +441,12 @@ export class ReceptionistPaymentsComponent {
     }
   }
 
+  getSelectedSession() {
+    const id = this.form.get('id_session')?.value;
+    if (!id) return null;
+    return this.sessions().find(s => String(s.id_session) === String(id));
+  }
+
   private buildPaymentsCacheKey(gymId: string, page: number): string {
     return [
       gymId,

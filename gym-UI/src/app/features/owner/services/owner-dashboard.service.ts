@@ -46,11 +46,11 @@ export class OwnerDashboardService {
   /**
    * Posts a new member to the backend.
    */
-  addMember(memberData: { 
-    firstName: string, 
-    lastName: string, 
-    email: string, 
-    phone: string, 
+  addMember(memberData: {
+    firstName: string,
+    lastName: string,
+    email: string,
+    phone: string,
     password: string,
     id_plan: string,
     startDate: string
@@ -75,7 +75,7 @@ export class OwnerDashboardService {
       creation_date: creation_date,
       id_gym: gymId,
       id_plan: memberData.id_plan,
-      enrollment_date: memberData.startDate
+      start_date: memberData.startDate
     };
 
     return this.http.post(`${this.apiUrl}/users`, payload);

@@ -316,12 +316,54 @@
                   <select formControlName="id_session">
                     <option value="">-- Choose Session --</option>
                     @for (s of sessions(); track s.id_session) {
-                    <option [value]="s.id_session">{{ s.trainer?.name || 'Trainer' }} - {{ s.date }} ({{ s.start_time
-                      }})</option>
+                    <option [value]="s.id_session">
+                      📅 {{ s.date_session | date:'dd/MM' }} | ⏰ {{ s.start_time.substring(0,5) }} | 👤 {{ s.trainer?.name || s.trainer?.user?.name }} {{ s.trainer?.last_name || s.trainer?.user?.last_name }}
+                    </option>
                     }
                   </select>
                 </div>
               </div>
+
+              @if (getSelectedSession(); as session) {
+              <div class="session-detail-card animate-in">
+                <div class="sd-header">
+                  <div class="header-main">
+                    <span class="material-symbols-rounded">calendar_month</span>
+                    <div class="title-stack">
+                      <h4>{{ session.date_session | date:'EEEE' }}</h4>
+                      <p>{{ session.date_session | date:'MMMM d, y' }}</p>
+                    </div>
+                  </div>
+                  <div class="status-badge" [class]="session.status">{{ session.status }}</div>
+                </div>
+
+                <div class="sd-grid">
+                  <div class="sd-item">
+                    <span class="sd-label">Course Program</span>
+                    <span class="sd-value text-indigo">{{ getSelectedCourse()?.name || 'N/A' }}</span>
+                  </div>
+                  <div class="sd-item">
+                    <span class="sd-label">Lead Instructor</span>
+                    <span class="sd-value">{{ session.trainer?.name || session.trainer?.user?.name }} {{ session.trainer?.last_name || session.trainer?.user?.last_name || '' }}</span>
+                  </div>
+                  <div class="sd-item">
+                    <span class="sd-label">Time Slot</span>
+                    <span class="sd-value">{{ session.start_time.substring(0,5) }} — {{ session.end_time?.substring(0,5) || '?' }}</span>
+                  </div>
+                  <div class="sd-item">
+                    <span class="sd-label">Capacity</span>
+                    <span class="sd-value">{{ getSelectedCourse()?.max_capacity || 'N/A' }} Participants</span>
+                  </div>
+                </div>
+
+                <div class="sd-footer">
+                  <div class="price-tag">
+                    <span class="label">Single Session:</span>
+                    <span class="value">{{ getSelectedCourse()?.price | currency:'TND':'code':'1.3-3' }}</span>
+                  </div>
+                </div>
+              </div>
+              }
               }
             </div>
             }

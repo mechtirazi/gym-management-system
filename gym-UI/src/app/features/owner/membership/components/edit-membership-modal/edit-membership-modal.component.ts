@@ -35,8 +35,8 @@ import { MembershipPlanService, MembershipPlan } from '../../../services/members
           <div class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
               <label>Enrollment Date</label>
-              <input type="date" formControlName="enrollment_date" [min]="todayDate" style="width: 100%; padding: 0.9rem 1.1rem; border-radius: 14px; background: var(--bg-input); border: 2px solid var(--border-color); font-size: 0.95rem; font-weight: 700; color: var(--text-main); transition: all 0.2s;">
-              @if (editForm.get('enrollment_date')?.errors?.['pastDate']) {
+              <input type="date" formControlName="start_date" [min]="todayDate" style="width: 100%; padding: 0.9rem 1.1rem; border-radius: 14px; background: var(--bg-input); border: 2px solid var(--border-color); font-size: 0.95rem; font-weight: 700; color: var(--text-main); transition: all 0.2s;">
+              @if (editForm.get('start_date')?.errors?.['pastDate']) {
                 <span class="error-text" style="color: #ef4444; font-size: 0.8rem; font-weight: 700; margin-top: 0.5rem; margin-left: 0.5rem; display: block;">Date cannot be in the past.</span>
               }
             </div>
@@ -197,7 +197,7 @@ export class EditMembershipModalComponent implements OnInit {
 
 
   editForm = this.fb.group({
-    enrollment_date: ['', [Validators.required, this.futureDateValidator]],
+    start_date: ['', [Validators.required, this.futureDateValidator]],
     status: ['', Validators.required],
     id_plan: ['', Validators.required]
   });
@@ -213,7 +213,7 @@ export class EditMembershipModalComponent implements OnInit {
     const dateString = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : '';
 
     this.editForm.patchValue({
-      enrollment_date: dateString,
+      start_date: dateString,
       status: (this.membership().status || 'active').toLowerCase(),
       id_plan: this.membership().id_plan || ''
     });
@@ -231,7 +231,7 @@ export class EditMembershipModalComponent implements OnInit {
     this.statusSub = this.editForm.get('status')?.valueChanges.subscribe(newStatus => {
       if (newStatus === 'active') {
         const today = new Date().toISOString().split('T')[0];
-        this.editForm.patchValue({ enrollment_date: today });
+        this.editForm.patchValue({ start_date: today });
       }
     });
   }
@@ -271,7 +271,7 @@ export class EditMembershipModalComponent implements OnInit {
     today.setHours(0, 0, 0, 0);
     const selectedDate = new Date(control.value);
     selectedDate.setHours(0, 0, 0, 0);
-    
+
     return selectedDate >= today ? null : { pastDate: true };
   }
 }

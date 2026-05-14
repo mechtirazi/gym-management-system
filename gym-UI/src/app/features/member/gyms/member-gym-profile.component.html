@@ -324,6 +324,7 @@
   <!-- High-Fidelity Checkout Vault -->
   <app-payment-modal [showModal]="showPaymentPicker" [itemTitle]="gym?.name || 'Facility Node'"
     [itemSubtitle]="'Gym Membership'" [itemImage]="''"
+    [showStartDate]="true"
     [purchaseTerms]="'Joining this gym will grant you full access to its high-performance facilities and training courses.'"
     [processingPayment]="isProcessingPayment" [paymentError]="paymentError" [stripePublicKey]="stripePublicKey"
     [plans]="membershipPlans" (cancelPayment)="showPaymentPicker = false" (confirmPayment)="processPurchase($event)">

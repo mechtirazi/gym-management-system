@@ -138,7 +138,7 @@ export class MemberProfileModalComponent implements OnInit {
     this.isSubmitting.set(true);
     this.memberService.updateEnrollment(enrollmentId, { 
       status: 'active',
-      enrollment_date: new Date().toISOString().split('T')[0]
+      start_date: new Date().toISOString().split('T')[0]
     }).pipe(finalize(() => this.isSubmitting.set(false)))
     .subscribe({
       next: () => this.updated.emit(),
@@ -153,7 +153,7 @@ export class MemberProfileModalComponent implements OnInit {
     this.isSubmitting.set(true);
     // Simple extension: reset enrollment date to today
     this.memberService.updateEnrollment(enrollmentId, { 
-      enrollment_date: new Date().toISOString().split('T')[0],
+      start_date: new Date().toISOString().split('T')[0],
       status: 'active'
     }).pipe(finalize(() => this.isSubmitting.set(false)))
     .subscribe({

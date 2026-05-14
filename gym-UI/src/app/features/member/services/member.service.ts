@@ -172,11 +172,12 @@ export class MemberService {
     });
   }
 
-  purchaseMembership(gymId: string, paymentMethod: string = 'zen_wallet', type: string = 'standard', idPlan?: string): Observable<any> {
+  purchaseMembership(gymId: string, paymentMethod: string = 'zen_wallet', type: string = 'standard', idPlan?: string, startDate?: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/member/gyms/${gymId}/purchase`, {
       payment_method: paymentMethod,
       type: type,
-      id_plan: idPlan
+      id_plan: idPlan,
+      start_date: startDate
     });
   }
 

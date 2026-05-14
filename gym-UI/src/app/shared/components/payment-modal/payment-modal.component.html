@@ -23,13 +23,29 @@
             <!-- Step 1: Recap & Plan Selection -->
             <div class="step-view" [style.display]="paymentStepper === 1 ? 'block' : 'none'">
                 <div class="order-recap">
-                    <div class="item-preview-mini">
-                        <img [src]="itemImage" alt="Item Image"
-                            onerror="this.src='https://ui-avatars.com/api/?name=Hub&background=1e293b&color=10b981&bold=true'">
-                        <div class="preview-text">
-                            <h3>{{ itemTitle }}</h3>
-                            <p>{{ selectedPlan ? selectedPlan.name : itemSubtitle }}</p>
+                    <div class="recap-header-row">
+                        <div class="item-preview-mini">
+                            <img [src]="itemImage" alt="Item Image"
+                                onerror="this.src='https://ui-avatars.com/api/?name=Hub&background=1e293b&color=10b981&bold=true'">
+                            <div class="preview-text">
+                                <h3>{{ itemTitle }}</h3>
+                                <p>{{ selectedPlan ? selectedPlan.name : itemSubtitle }}</p>
+                            </div>
                         </div>
+
+                        <!-- Start Date Picker (Optional) -->
+                        <div class="start-date-configuration-compact" *ngIf="showStartDate">
+                            <div class="config-label">
+                                <span class="material-symbols-rounded">calendar_today</span>
+                                <span>START DATE</span>
+                            </div>
+                            <div class="date-input-field-compact">
+                                <input type="date" [value]="startDate" [min]="today" (change)="onDateChange($event)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recap-pricing-row">
                         <div class="item-price-pill" *ngIf="!selectedPlan && !totalPrice">VERIFIED</div>
                         <div class="item-price-pill price-dynamic" *ngIf="totalPrice && !selectedPlan">
                             {{ totalPrice | number:'1.2-2' }} TND

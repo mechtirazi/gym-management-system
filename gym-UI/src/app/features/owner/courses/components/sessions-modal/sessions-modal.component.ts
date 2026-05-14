@@ -41,13 +41,79 @@ export class SessionsModalComponent implements OnInit {
   todayDate = new Date().toISOString().split('T')[0];
 
   constructor() {
+    // Initialize with a basic group to avoid undefined errors in template
+    this.sessionForm = this.fb.group({
+      date_session: [''],
+      start_time: [''],
+      end_time: [''],
+      id_trainer: [''],
+      status: ['']
+    });
+  }
+
+  ngOnInit() {
+    this.initForm();
+    this.loadData();
+
+    // Auto-calculate end time when start time changes
+    this.sessionForm.get('start_time')?.valueChanges.subscribe(startTime => {
+      if (startTime) {
+        this.calculateEndTime(startTime);
+      }
+    });
+  }
+
+  private initForm() {
     this.sessionForm = this.fb.group({
       date_session: [new Date().toISOString().split('T')[0], [Validators.required, this.futureDateValidator]],
       start_time: ['10:00:00', [Validators.required, Validators.pattern(/^([0-2]?[0-9]):[0-5][0-9](:[0-5][0-9])?$/)]],
       end_time: ['11:00:00', [Validators.required, Validators.pattern(/^([0-2]?[0-9]):[0-5][0-9](:[0-5][0-9])?$/)]],
       id_trainer: ['', Validators.required],
       status: ['upcoming', Validators.required]
-    }, { validators: [this.timeRangeValidator] });
+    }, { validators: [this.timeRangeValidator, this.gymHoursValidator.bind(this)] });
+  }
+
+  gymHoursValidator(group: AbstractControl): ValidationErrors | null {
+    const dateStr = group.get('date_session')?.value;
+    const startStr = group.get('start_time')?.value;
+    const endStr = group.get('end_time')?.value;
+    const course = this.course();
+
+    if (!dateStr || !startStr || !endStr || !course || !course.gym) return null;
+
+    const gym = course.gym;
+    const date = new Date(dateStr);
+    const day = date.getDay(); // 0=Sun, 1-5=Mon-Fri, 6=Sat
+
+    let hoursRange: string | undefined;
+    if (day >= 1 && day <= 5) hoursRange = gym.open_mon_fri;
+    else if (day === 6) hoursRange = gym.open_sat;
+    else if (day === 0) hoursRange = gym.open_sun;
+
+    // If "closed" or empty, gym is not operating
+    if (!hoursRange || hoursRange.toLowerCase().trim().includes('closed')) {
+      return { gymClosed: true };
+    }
+
+    // Parse "HH:MM - HH:MM"
+    const times = hoursRange.match(/(\d{2}:\d{2})/g);
+    if (!times || times.length < 2) return null;
+
+    const gymStart = times[0];
+    const gymEnd = times[1];
+
+    const sessionStart = startStr.substring(0, 5);
+    const sessionEnd = endStr.substring(0, 5);
+
+    if (sessionStart < gymStart || sessionEnd > gymEnd) {
+      return { 
+        gymHoursViolation: true, 
+        gymStart, 
+        gymEnd 
+      };
+    }
+
+    return null;
   }
 
   private futureDateValidator(control: AbstractControl): ValidationErrors | null {
@@ -87,11 +153,49 @@ export class SessionsModalComponent implements OnInit {
       return 'Start time must be before end time';
     }
 
+    if (field === 'gymClosed' && this.sessionForm.errors?.['gymClosed']) {
+      return 'The gym is closed on this date';
+    }
+
+    if (field === 'gymHours' && this.sessionForm.errors?.['gymHoursViolation']) {
+      const err = this.sessionForm.errors;
+      return `Gym hours on this day: ${err['gymStart']} - ${err['gymEnd']}`;
+    }
+
     return null;
   }
 
-  ngOnInit() {
-    this.loadData();
+
+
+  calculateEndTime(startTime: string) {
+    const course = this.course();
+    if (!course) return;
+
+    // Calculate total minutes from hours/minutes if they exist, or fallback to the raw 'duration' field (total minutes)
+    // Most existing courses will have 'duration' instead of the split fields.
+    const h = parseInt(course.duration_hours, 10) || 0;
+    const m = parseInt(course.duration_minutes, 10) || 0;
+    const totalMinutes = (h * 60 + m) || parseInt(course.duration, 10) || 60;
+
+    const parts = startTime.split(':');
+    if (parts.length < 2) return;
+
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+
+    if (isNaN(hours) || isNaN(minutes)) return;
+
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    date.setMinutes(date.getMinutes() + totalMinutes);
+
+    const endH = date.getHours().toString().padStart(2, '0');
+    const endM = date.getMinutes().toString().padStart(2, '0');
+    const endS = parts[2] ? parts[2] : '00';
+
+    this.sessionForm.patchValue({
+      end_time: `${endH}:${endM}:${endS}`
+    }, { emitEvent: false });
   }
 
   loadData() {
@@ -124,18 +228,26 @@ export class SessionsModalComponent implements OnInit {
       end_time: '11:00:00',
       status: 'upcoming'
     });
+
+    // Initialize end time based on default start time and duration
+    const defaultStart = this.sessionForm.get('start_time')?.value;
+    if (defaultStart) {
+      this.calculateEndTime(defaultStart);
+    }
+
     this.attendances.set([]);
     this.showForm.set(!this.showForm());
   }
 
   editSession(session: any) {
+    console.log('Editing session:', session);
     this.isEditing.set(true);
     this.editingSessionId.set(session.id_session);
     this.sessionForm.patchValue({
       date_session: session.date_session,
       start_time: session.start_time,
       end_time: session.end_time,
-      id_trainer: session.id_trainer,
+      id_trainer: session.id_trainer || session.id_user,
       status: session.status
     });
     this.fetchAttendances(session.id_session);

@@ -264,6 +264,7 @@ export class MemberGymProfileComponent implements OnInit {
 
     const method = event.method;
     const plan = event.plan;
+    const startDate = event.start_date;
     if (!plan) {
       this.showToast('Validation Error: No synchronization tier selected.', 'error');
       return;
@@ -273,7 +274,7 @@ export class MemberGymProfileComponent implements OnInit {
     this.paymentError = null;
 
     if (method === 'zen_wallet') {
-      this.memberService.purchaseMembership(this.gym.id_gym, 'zen_wallet', plan.type || plan.id, plan.id).subscribe({
+      this.memberService.purchaseMembership(this.gym.id_gym, 'zen_wallet', plan.type || plan.id, plan.id, startDate).subscribe({
         next: (res: any) => this.handlePurchaseSuccess(res),
         error: (err: any) => this.handlePurchaseError(err)
       });
@@ -287,7 +288,7 @@ export class MemberGymProfileComponent implements OnInit {
             if (result.error) {
               this.handlePurchaseError({ error: { message: result.error.message } });
             } else if (result.paymentIntent.status === 'succeeded') {
-              this.memberService.purchaseMembership(this.gym.id_gym, 'credit_card', plan.type || plan.id, plan.id).subscribe({
+              this.memberService.purchaseMembership(this.gym.id_gym, 'credit_card', plan.type || plan.id, plan.id, startDate).subscribe({
                 next: (res: any) => this.handlePurchaseSuccess(res),
                 error: (err: any) => this.handlePurchaseError(err)
               });
