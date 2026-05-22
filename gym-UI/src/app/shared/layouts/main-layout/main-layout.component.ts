@@ -53,16 +53,7 @@ export class MainLayoutComponent {
   };
 
   constructor() {
-    // When role is admin, ensure we are in a premium dark experience for the features
-    effect(() => {
-      const role = this.userRole();
-      if (role === 'super_admin' || role === 'admin') {
-        document.documentElement.classList.add('dark');
-      } else {
-        if (!this.themeService.darkMode()) {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    });
+    // Theme initialization is handled by ThemeService.
+    // We only ensure the correct class is applied if the user switches roles or on initial load.
   }
 }

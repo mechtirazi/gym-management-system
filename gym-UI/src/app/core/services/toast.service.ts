@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { ToastComponent } from '../../shared/components/toast/toast.component';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -13,16 +14,14 @@ export class ToastService {
     duration: 4000,
     horizontalPosition: 'right',
     verticalPosition: 'bottom',
-    panelClass: ['premium-toast']
+    panelClass: ['premium-toast-container']
   };
 
-  show(message: string, type: ToastType = 'info', action: string = 'Close') {
-    const config: MatSnackBarConfig = {
+  show(message: string, type: ToastType = 'info') {
+    return this.snackBar.openFromComponent(ToastComponent, {
       ...this.defaultConfig,
-      panelClass: ['premium-toast', `toast-${type}`]
-    };
-    
-    return this.snackBar.open(message, action, config);
+      data: { message, type }
+    });
   }
 
   success(message: string) {

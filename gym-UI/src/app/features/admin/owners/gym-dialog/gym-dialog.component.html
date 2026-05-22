@@ -57,7 +57,7 @@
                   <img src="https://flagcdn.com/w20/tn.png" alt="Tunisia Flag" class="flag-icon">
                   <span>+216</span>
                </div>
-               <input formControlName="phone" type="tel" placeholder="12 345 678" maxlength="8" />
+               <input formControlName="phone" type="tel" placeholder="12 345 678" maxlength="8" (keypress)="onlyNumbers($event)" />
             </div>
             <span class="error-text"
                *ngIf="gymForm.get('phone')?.touched && gymForm.get('phone')?.errors?.['required']">Phone Number is

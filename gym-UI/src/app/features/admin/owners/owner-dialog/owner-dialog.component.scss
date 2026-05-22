@@ -58,6 +58,7 @@
   .admin-dialog-header {
     margin-bottom: 1.5rem;
     gap: 1rem;
+    position: relative;
 
     .header-icon {
       width: 44px;
@@ -68,6 +69,33 @@
     .header-title-wrap {
       h2 { font-size: 1.25rem; }
       p { font-size: 0.75rem; margin-top: 2px; }
+    }
+
+    .close-header-btn {
+      position: absolute;
+      top: -0.25rem;
+      right: -0.25rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--admin-item-border);
+      color: var(--admin-text-secondary);
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 10;
+
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+      &:hover {
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--admin-accent-rose);
+        border-color: rgba(244, 63, 94, 0.3);
+        transform: rotate(90deg) scale(1.1);
+      }
     }
   }
 

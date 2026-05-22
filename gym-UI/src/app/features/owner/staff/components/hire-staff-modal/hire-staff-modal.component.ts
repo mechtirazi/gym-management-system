@@ -5,6 +5,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { StaffService } from '../../services/staff.service';
 import { environment } from '../../../../../../environments/environment';
 import { finalize } from 'rxjs';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-hire-staff-modal',
@@ -59,7 +60,7 @@ export class HireStaffModalComponent {
     });
   }
 
-  private snackBar = inject(MatSnackBar);
+  private toast = inject(ToastService);
 
   cancelAdd() {
     this.close.emit();
@@ -165,23 +166,9 @@ export class HireStaffModalComponent {
         this.isAdding.set(false);
 
         if (res && res.invitation) {
-          this.snackBar.open(
-            'This user already exists! An invitation has been sent to their notification center.',
-            'Understood',
-            {
-              duration: 5000,
-              horizontalPosition: 'end',
-              verticalPosition: 'bottom',
-              panelClass: ['premium-toast', 'toast-info']
-            }
-          );
+          this.toast.info('Invitation sent! This user already exists in the system.');
         } else {
-          this.snackBar.open('New staff member hired successfully!', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'end',
-            verticalPosition: 'bottom',
-            panelClass: ['premium-toast', 'toast-success']
-          });
+          this.toast.success('New staff member hired successfully!');
         }
 
         this.staffHired.emit();

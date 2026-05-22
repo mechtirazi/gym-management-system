@@ -13,6 +13,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AdminOwnersService } from '../../../../core/services/admin-owners.service';
 import { AdminGymsService } from '../../../../core/services/admin-gyms.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { UserVm, GymDto } from '../../../../core/models/api.models';
 import { CanDirective } from '../../../../shared/directives/can.directive';
 
@@ -67,7 +68,7 @@ export class OwnersListComponent implements OnInit {
   private ownersService = inject(AdminOwnersService);
   private gymsService = inject(AdminGymsService);
   private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
+  private toastService = inject(ToastService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
@@ -229,14 +230,13 @@ export class OwnersListComponent implements OnInit {
 
   openDialog(user?: UserVm) {
     const dialogRef = this.dialog.open(OwnerDialogComponent, {
-      width: '450px',
+      width: '700px',
       disableClose: true,
       data: { user }
     });
 
     dialogRef.afterClosed().subscribe(res => {
       if (res) {
-        this.snackBar.open(user ? 'Owner updated.' : 'Owner created successfully.', 'Dismiss', { duration: 3000 });
         this.loadOwners(); // Re-fetch list
       }
     });
@@ -265,7 +265,7 @@ export class OwnersListComponent implements OnInit {
         this.loading.set(true);
         this.authService.impersonate(ownerObj.id_user, ownerObj.fullName).subscribe({
           error: (err) => {
-            this.snackBar.open(err.error?.message || 'Failed to impersonate owner.', 'Dismiss', { duration: 4000 });
+            this.toastService.error(err.error?.message || 'Failed to impersonate owner.');
             this.loading.set(false);
           }
         });
@@ -294,11 +294,11 @@ export class OwnersListComponent implements OnInit {
         this.loading.set(true);
         this.ownersService.disableAllGyms(ownerObj.id_user).subscribe({
           next: () => {
-            this.snackBar.open(`All ${gymCount} gyms have been disabled.`, 'Dismiss', { duration: 3000 });
+            this.toastService.success(`All ${gymCount} gyms have been disabled.`);
             this.loadOwners();
           },
           error: (err) => {
-            this.snackBar.open(err.error?.message || 'Failed to disable gyms.', 'Dismiss', { duration: 4000 });
+            this.toastService.error(err.error?.message || 'Failed to disable gyms.');
             this.loading.set(false);
           }
         });
@@ -326,11 +326,11 @@ export class OwnersListComponent implements OnInit {
         this.loading.set(true);
         this.ownersService.activateAllGyms(ownerObj.id_user).subscribe({
           next: () => {
-            this.snackBar.open(`All ${gymCount} gyms have been activated.`, 'Dismiss', { duration: 3000 });
+            this.toastService.success(`All ${gymCount} gyms have been activated.`);
             this.loadOwners();
           },
           error: (err) => {
-            this.snackBar.open(err.error?.message || 'Failed to activate gyms.', 'Dismiss', { duration: 4000 });
+            this.toastService.error(err.error?.message || 'Failed to activate gyms.');
             this.loading.set(false);
           }
         });
@@ -356,11 +356,11 @@ export class OwnersListComponent implements OnInit {
         this.loading.set(true);
         this.ownersService.deleteOwner(ownerObj.id_user).subscribe({
           next: () => {
-            this.snackBar.open('Node completely eliminated.', 'Dismiss', { duration: 3000 });
+            this.toastService.success('Node completely eliminated.');
             this.loadOwners();
           },
           error: (err) => {
-            this.snackBar.open(err.error?.message || 'Failed to delete owner node.', 'Dismiss', { duration: 4000 });
+            this.toastService.error(err.error?.message || 'Failed to delete owner node.');
             this.loading.set(false);
           }
         });
@@ -385,11 +385,11 @@ export class OwnersListComponent implements OnInit {
         this.loading.set(true);
         this.gymsService.activateGym(gymRow.id_gym).subscribe({
           next: () => {
-            this.snackBar.open(`Facility ${gymRow.fullName} is now operational.`, 'Dismiss', { duration: 3000 });
+            this.toastService.success(`Facility ${gymRow.fullName} is now operational.`);
             this.loadOwners();
           },
           error: (err) => {
-            this.snackBar.open(err.error?.message || 'Failed to activate gym.', 'Dismiss', { duration: 4000 });
+            this.toastService.error(err.error?.message || 'Failed to activate gym.');
             this.loading.set(false);
           }
         });

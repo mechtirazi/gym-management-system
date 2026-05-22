@@ -7,6 +7,7 @@ import { finalize, switchMap } from 'rxjs';
 import { MembershipPlanService, MembershipPlan } from '../../../services/membership-plan.service';
 import { UserService } from '../../../../../core/services/user.service';
 import { ReceptionistPaymentsService } from '../../../../receptionist/views/payments/receptionist-payments.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-add-membership-modal',
@@ -22,6 +23,7 @@ export class AddMembershipModalComponent implements OnInit {
   private planService = inject(MembershipPlanService);
   private userService = inject(UserService);
   private paymentsService = inject(ReceptionistPaymentsService);
+  private toast = inject(ToastService);
 
   close = output<void>();
   membershipAdded = output<void>();
@@ -222,6 +224,7 @@ export class AddMembershipModalComponent implements OnInit {
         finalize(() => this.isSubmitting.set(false))
       ).subscribe({
         next: () => {
+          this.toast.success('Registration complete: New member enrolled successfully.');
           this.membershipAdded.emit();
           this.close.emit();
         },
@@ -252,6 +255,7 @@ export class AddMembershipModalComponent implements OnInit {
         finalize(() => this.isSubmitting.set(false))
       ).subscribe({
         next: () => {
+          this.toast.success('Member enrollment processed successfully.');
           this.membershipAdded.emit();
           this.close.emit();
         },

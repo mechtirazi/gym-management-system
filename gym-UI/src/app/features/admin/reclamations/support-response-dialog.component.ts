@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angu
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-support-response-dialog',
@@ -65,30 +66,53 @@ import { NotificationService } from '../../../core/services/notification.service
     @import '../admin-shared.scss';
     
     .support-response-dialog {
-      max-width: 600px;
+      max-width: 800px;
       
       .original-claim-preview {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 1.25rem;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
+        background: rgba(129, 140, 248, 0.04);
+        border: 1px solid rgba(129, 140, 248, 0.15);
+        border-radius: 1.5rem;
+        padding: 1rem 1.75rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 4px;
+          background: var(--admin-accent-indigo);
+          opacity: 0.4;
+        }
 
         .label {
-          font-size: 0.65rem;
-          font-weight: 950;
+          font-size: 0.625rem;
+          font-weight: 900;
           color: var(--admin-accent-indigo);
           text-transform: uppercase;
-          letter-spacing: 0.15em;
-          margin-bottom: 0.75rem;
+          letter-spacing: 0.2em;
+          margin-bottom: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          opacity: 0.8;
         }
 
         p {
           margin: 0;
-          font-size: 0.9rem;
-          color: #94a3b8;
-          line-height: 1.6;
-          font-style: italic;
+          font-size: 1.05rem;
+          color: #1e293b; // Deep navy for clear reading in light mode
+          line-height: 1.7;
+          font-weight: 500;
+          position: relative;
+          z-index: 1;
+
+          .dark & {
+            color: #f8fafc; // Off-white for dark mode
+          }
         }
       }
 
@@ -107,17 +131,18 @@ import { NotificationService } from '../../../core/services/notification.service
 export class SupportResponseDialogComponent {
   private fb = inject(FormBuilder);
   private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
   private dialogRef = inject(MatDialogRef<SupportResponseDialogComponent>);
-  
+
   sending = signal(false);
-  
+
   responseForm = this.fb.group({
     message: ['', [Validators.required, Validators.minLength(5)]]
   });
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { ticketId: string, userId: string, senderName: string, description: string }
-  ) {}
+  ) { }
 
   close() {
     this.dialogRef.close();
@@ -125,14 +150,15 @@ export class SupportResponseDialogComponent {
 
   sendResponse() {
     if (this.responseForm.invalid) return;
-    
+
     this.sending.set(true);
     const message = this.responseForm.value.message!;
-    
+
     this.notificationService.sendToUser(this.data.userId, message, 'info').subscribe({
       next: () => {
         this.notificationService.markAsRead(this.data.ticketId);
         this.dialogRef.close(true);
+        this.toastService.success('Resolution message dispatched successfully');
       },
       error: () => {
         this.sending.set(false);

@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminOwnersService } from '../../../../core/services/admin-owners.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-gym-dialog',
@@ -26,6 +27,7 @@ import { AdminOwnersService } from '../../../../core/services/admin-owners.servi
 export class GymDialogComponent {
   private fb = inject(FormBuilder);
   private ownersService = inject(AdminOwnersService);
+  private toastService = inject(ToastService);
   private dialogRef = inject(MatDialogRef<GymDialogComponent>);
 
   // Predefined Prices - Moved to top and made readonly to prevent ExpressionChanged error
@@ -64,6 +66,13 @@ export class GymDialogComponent {
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: { ownerId: number | string; ownerName: string }) { }
 
+  onlyNumbers(event: KeyboardEvent) {
+    const charCode = (event.which) ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      event.preventDefault();
+    }
+  }
+
   onCancel() {
     this.dialogRef.close();
   }
@@ -95,6 +104,7 @@ export class GymDialogComponent {
       next: (res) => {
         this.loading.set(false);
         this.dialogRef.close(true); // Signal success
+        this.toastService.success('Gym created and activation license assigned');
       },
       error: (err) => {
         this.loading.set(false);

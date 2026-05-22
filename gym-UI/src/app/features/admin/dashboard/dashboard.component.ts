@@ -11,6 +11,7 @@ import { StatCardComponent } from '../../../shared/components/stat-card.componen
 import { environment } from '../../../../environments/environment';
 import { AdminOwnersService } from '../../../core/services/admin-owners.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AdminAnalyticsService, PlatformMetrics } from '../../../core/services/admin-analytics.service';
 import { NotificationDto, UserVm } from '../../../core/models/api.models';
@@ -63,7 +64,7 @@ export class DashboardComponent implements OnInit {
   sendingTargeted = signal(false);
 
   private fb = inject(FormBuilder);
-  private snackBar = inject(MatSnackBar);
+  private toastService = inject(ToastService);
 
   broadcastForm = this.fb.group({
     type: ['info', Validators.required],
@@ -170,7 +171,7 @@ export class DashboardComponent implements OnInit {
   async openCreateOwner() {
     const { OwnerDialogComponent } = await import('../owners/owner-dialog/owner-dialog.component');
     const dialogRef = this.dialog.open(OwnerDialogComponent, {
-      width: '600px',
+      width: '700px',
       disableClose: true,
       data: { user: undefined }
     });
@@ -185,13 +186,13 @@ export class DashboardComponent implements OnInit {
     const { type, message } = this.broadcastForm.value;
     this.notificationsService.sendToAllUsers(message!, type!).subscribe({
       next: () => {
-        this.snackBar.open('Announcement broadcasted to all users.', 'Dismiss', { duration: 3000 });
+        this.toastService.success('Announcement broadcasted to all users.');
         this.broadcastForm.reset({ type: 'info', message: '' });
         this.broadcasting.set(false);
         this.refreshData();
       },
       error: () => {
-        this.snackBar.open('Failed to send broadcast.', 'Dismiss', { duration: 4000 });
+        this.toastService.error('Failed to send broadcast.');
         this.broadcasting.set(false);
       }
     });
@@ -227,13 +228,13 @@ export class DashboardComponent implements OnInit {
         const successMsg = isAll
           ? 'Broadcast alert sent to all owners.'
           : 'Direct alert sent to owner.';
-        this.snackBar.open(successMsg, 'Dismiss', { duration: 3000 });
+        this.toastService.success(successMsg);
         this.targetedForm.reset({ ownerId: '', type: 'info', message: '' });
         this.sendingTargeted.set(false);
         this.refreshData();
       },
       error: () => {
-        this.snackBar.open('Failed to send target message.', 'Dismiss', { duration: 4000 });
+        this.toastService.error('Failed to send target message.');
         this.sendingTargeted.set(false);
       }
     });
@@ -241,5 +242,13 @@ export class DashboardComponent implements OnInit {
 
   goToNotifications() {
     this.router.navigate(['/notifications']);
+  }
+
+  goToOwners() {
+    this.router.navigate(['/admin/owners']);
+  }
+
+  getOwnerAvatar(path?: string | null): string {
+    return this.authService.getAvatarUrl(path);
   }
 }

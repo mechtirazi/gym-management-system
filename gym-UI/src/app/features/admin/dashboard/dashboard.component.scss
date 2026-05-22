@@ -45,6 +45,12 @@
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
+
+  .dashboard-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
 }
 
 .command-boards {
@@ -261,6 +267,257 @@
       border-color: var(--admin-accent-rose);
       color: var(--admin-accent-rose);
       box-shadow: 0 4px 12px rgba(244, 63, 94, 0.15);
+    }
+  }
+}
+
+.status-control-card {
+  .card-header-flex {
+    .action-link {
+      font-size: 0.7rem;
+      font-weight: 900;
+      color: var(--admin-accent-indigo);
+      text-decoration: none;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      background: rgba(129, 140, 248, 0.05);
+      border: 1px solid rgba(129, 140, 248, 0.1);
+      border-radius: 999px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &:hover {
+        background: var(--admin-accent-indigo);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.2);
+      }
+    }
+  }
+
+  .owners-scroll-area {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 0.75rem;
+    margin: 1.5rem -0.5rem 0 0;
+    mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--admin-item-border);
+      border-radius: 10px;
+    }
+  }
+
+  .owners-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-bottom: 2rem;
+  }
+
+  .owner-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.125rem;
+    background: var(--admin-item-bg);
+    border: 1px solid var(--admin-item-border);
+    border-radius: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.03));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    &:hover {
+      background: var(--admin-item-bg-hover);
+      border-color: var(--admin-accent-indigo);
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.08);
+
+      &::before {
+        opacity: 1;
+      }
+
+      .owner-avatar {
+        transform: scale(1.05);
+      }
+
+      .owner-actions .gym-count {
+        background: var(--admin-accent-indigo);
+        color: white;
+        border-color: var(--admin-accent-indigo);
+      }
+    }
+
+    .owner-avatar {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+
+      img {
+        width: 100%;
+        height: 100%;
+        border-radius: 1.125rem;
+        object-fit: cover;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 1.125rem;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.125rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .status-indicator {
+        position: absolute;
+        bottom: -3px;
+        right: -3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #94a3b8;
+        border: 3px solid var(--admin-bg-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &::after {
+          content: '';
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.4);
+        }
+
+        &.verified {
+          background: linear-gradient(135deg, #10b981, #059669);
+          box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+      }
+    }
+
+    .owner-info {
+      flex: 1;
+      min-width: 0;
+
+      .name {
+        font-size: 0.9375rem;
+        font-weight: 800;
+        color: var(--admin-text-primary);
+        margin: 0 0 0.125rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: -0.01em;
+      }
+
+      .email {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--admin-text-secondary);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        opacity: 0.7;
+      }
+    }
+
+    .owner-actions {
+      max-width: 180px;
+      display: flex;
+      justify-content: flex-end;
+
+      .gyms-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.4rem;
+      }
+
+      .gym-tag {
+        font-size: 0.65rem;
+        font-weight: 900;
+        color: var(--admin-text-primary);
+        padding: 0.35rem 0.75rem;
+        background: var(--admin-item-bg);
+        border-radius: 0.75rem;
+        border: 1px solid var(--admin-item-border);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover {
+          background: var(--admin-accent-indigo);
+          color: white;
+          border-color: var(--admin-accent-indigo);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(129, 140, 248, 0.2);
+        }
+
+        &.empty {
+          opacity: 0.5;
+          font-style: italic;
+          background: transparent;
+          border-style: dashed;
+        }
+      }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--admin-text-secondary);
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 1.5rem;
+    border: 1px dashed var(--admin-item-border);
+
+    mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    p {
+      font-weight: 800;
+      margin: 0;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
   }
 }

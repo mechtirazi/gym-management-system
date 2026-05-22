@@ -5,6 +5,7 @@ import { CourseService } from '../../services/course.service';
 import { SessionService } from '../../services/session.service';
 import { finalize, merge } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-add-course-modal',
@@ -17,6 +18,7 @@ export class AddCourseModalComponent implements OnInit {
   private courseService = inject(CourseService);
   private sessionService = inject(SessionService);
   private fb = inject(FormBuilder);
+  private toast = inject(ToastService);
 
   /** Pass an existing course to switch the modal to edit mode */
   editCourse = input<any | null>(null);
@@ -314,6 +316,7 @@ export class AddCourseModalComponent implements OnInit {
       const id = existing.id_course || existing.id;
       this.courseService.updateCourse(id, formData).pipe(finalize(() => this.isAdding.set(false))).subscribe({
         next: () => {
+          this.toast.success('Training program updated successfully.');
           this.courseAdded.emit();
           this.close.emit();
         },
@@ -326,6 +329,7 @@ export class AddCourseModalComponent implements OnInit {
       // ADD mode
       this.courseService.createCourse(formData).pipe(finalize(() => this.isAdding.set(false))).subscribe({
         next: () => {
+          this.toast.success('New training program established successfully.');
           this.courseAdded.emit();
           this.close.emit();
         },

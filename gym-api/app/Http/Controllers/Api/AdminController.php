@@ -246,6 +246,7 @@ class AdminController extends Controller
     public function getOwners()
     {
         $owners = User::where('role', User::ROLE_OWNER)
+            ->with(['ownedGyms'])
             ->withCount([
                 'ownedGyms',
                 'ownedGyms as active_gyms_count' => function ($query) {

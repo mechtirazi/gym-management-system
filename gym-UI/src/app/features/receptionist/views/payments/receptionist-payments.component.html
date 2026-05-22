@@ -317,7 +317,9 @@
                     <option value="">-- Choose Session --</option>
                     @for (s of sessions(); track s.id_session) {
                     <option [value]="s.id_session">
-                      📅 {{ s.date_session | date:'dd/MM' }} | ⏰ {{ s.start_time.substring(0,5) }} | 👤 {{ s.trainer?.name || s.trainer?.user?.name }} {{ s.trainer?.last_name || s.trainer?.user?.last_name }}
+                      📅 {{ s.date_session | date:'dd/MM' }} | ⏰ {{ s.start_time.substring(0,5) }} | 👤 {{
+                      s.trainer?.name || s.trainer?.user?.name }} {{ s.trainer?.last_name || s.trainer?.user?.last_name
+                      }}
                     </option>
                     }
                   </select>
@@ -344,11 +346,13 @@
                   </div>
                   <div class="sd-item">
                     <span class="sd-label">Lead Instructor</span>
-                    <span class="sd-value">{{ session.trainer?.name || session.trainer?.user?.name }} {{ session.trainer?.last_name || session.trainer?.user?.last_name || '' }}</span>
+                    <span class="sd-value">{{ session.trainer?.name || session.trainer?.user?.name }} {{
+                      session.trainer?.last_name || session.trainer?.user?.last_name || '' }}</span>
                   </div>
                   <div class="sd-item">
                     <span class="sd-label">Time Slot</span>
-                    <span class="sd-value">{{ session.start_time.substring(0,5) }} — {{ session.end_time?.substring(0,5) || '?' }}</span>
+                    <span class="sd-value">{{ session.start_time.substring(0,5) }} — {{ session.end_time?.substring(0,5)
+                      || '?' }}</span>
                   </div>
                   <div class="sd-item">
                     <span class="sd-label">Capacity</span>

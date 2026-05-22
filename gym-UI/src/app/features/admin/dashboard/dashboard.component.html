@@ -143,13 +143,14 @@
 
     <!-- Content Grid -->
     <div class="main-content-split">
-      <!-- Quick Stats Card -->
+      <!-- Platform Summary Card with Owners List -->
       <div class="status-control-card">
         <div class="card-header-flex">
           <div class="icon-box">
             <mat-icon>shield</mat-icon>
           </div>
           <h3>Platform Summary</h3>
+          <div (click)="goToOwners()" class="action-link" style="margin-left: auto;">VIEW ALL</div>
         </div>
 
         <div class="status-row">
@@ -161,6 +162,53 @@
             <mat-icon>warning</mat-icon>
             {{ unverifiedOwners() }} Unverified
           </div>
+        </div>
+
+        <!-- Available Owners List (Integrated) -->
+        <div class="owners-scroll-area" style="margin-top: 1.5rem;">
+          <div *ngIf="loading(); else ownersList" class="owners-loading">
+            <div class="loading-skeleton" style="width: 100%; height: 64px; margin-bottom: 0.75rem;"></div>
+            <div class="loading-skeleton" style="width: 100%; height: 64px;"></div>
+          </div>
+
+          <ng-template #ownersList>
+            <div class="owners-grid" *ngIf="owners().length > 0; else noOwners">
+              <div *ngFor="let owner of owners()" class="owner-item">
+                <div class="owner-avatar">
+                  <img *ngIf="owner.profile_picture; else noPic" 
+                       [src]="getOwnerAvatar(owner.profile_picture)" 
+                       (error)="owner.profile_picture = null"
+                       [alt]="owner.name">
+                  <ng-template #noPic>
+                    <div class="avatar-placeholder">
+                      {{ owner.name[0] }}{{ owner.last_name[0] }}
+                    </div>
+                  </ng-template>
+                  <div class="status-indicator" [class.verified]="owner.email_verified_at"></div>
+                </div>
+                <div class="owner-info">
+                  <p class="name">{{ owner.name }} {{ owner.last_name }}</p>
+                  <p class="email">{{ owner.email }}</p>
+                </div>
+                <div class="owner-actions">
+                  <div class="gyms-container" *ngIf="owner.owned_gyms && owner.owned_gyms.length > 0">
+                    <span *ngFor="let gym of owner.owned_gyms" class="gym-tag" [title]="gym.name">
+                      {{ gym.name }}
+                    </span>
+                  </div>
+                  <span *ngIf="!owner.owned_gyms || owner.owned_gyms.length === 0" class="gym-tag empty">
+                    No Gyms
+                  </span>
+                </div>
+              </div>
+            </div>
+            <ng-template #noOwners>
+              <div class="empty-state">
+                <mat-icon>person_off</mat-icon>
+                <p>No owners found</p>
+              </div>
+            </ng-template>
+          </ng-template>
         </div>
       </div>
 

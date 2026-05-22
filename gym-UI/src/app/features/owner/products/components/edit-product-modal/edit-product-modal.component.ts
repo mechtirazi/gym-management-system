@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { finalize } from 'rxjs';
 import { Product } from '../../../../../shared/models/product.model';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-edit-product-modal',
@@ -18,6 +19,7 @@ export class EditProductModalComponent implements OnInit {
   productData = input.required<Product>();
   close = output<void>();
   productUpdated = output<void>();
+  private toast = inject(ToastService);
 
   categories = ['Supplements', 'Equipment', 'Apparel', 'Accessories', 'Nutrition'];
 
@@ -113,6 +115,7 @@ export class EditProductModalComponent implements OnInit {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
+          this.toast.success('Product parameters updated successfully.');
           this.productUpdated.emit();
           this.close.emit();
         },

@@ -7,6 +7,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NotificationFeatureService } from './notifications.service';
 import { NotificationLogFilter, StaffInvitation } from './notifications.model';
 import { GymNotification } from '../../../shared/models/notification.model';
+import { ToastService } from '../../../core/services/toast.service';
 
 import { StaffInvitationsComponent } from './components/staff-invitations/staff-invitations.component';
 import { NotificationFiltersComponent } from './components/notification-filters/notification-filters.component';
@@ -169,7 +170,7 @@ import { NotificationDispatcherComponent } from './components/notification-dispa
 export class NotificationsComponent implements OnInit {
   protected featureService = inject(NotificationFeatureService);
   private fb = inject(FormBuilder);
-  private snackBar = inject(MatSnackBar);
+  private toastService = inject(ToastService);
 
   // Expose signals from service
   notifications = this.featureService.notifications;
@@ -260,14 +261,14 @@ export class NotificationsComponent implements OnInit {
 
   handleAcceptInvite(invitation: StaffInvitation) {
     this.featureService.acceptInvitation(invitation).subscribe({
-      next: () => this.snackBar.open('Invitation accepted! Welcome to the gym staff.', 'Awesome', { duration: 3000 }),
-      error: () => this.snackBar.open('Failed to join gym.', 'Close', { duration: 3000 })
+      next: () => this.toastService.success('Invitation accepted! Welcome to the gym staff.'),
+      error: () => this.toastService.error('Failed to join gym.')
     });
   }
 
   handleRejectInvite(id: string) {
     this.featureService.declineInvitation(id).subscribe({
-      next: () => this.snackBar.open('Invitation declined.', 'Close', { duration: 3000 })
+      next: () => this.toastService.success('Invitation declined.')
     });
   }
 
@@ -278,10 +279,10 @@ export class NotificationsComponent implements OnInit {
   handleAcceptFromLog(notif: GymNotification) {
     this.featureService.acceptInviteFromAction(notif).subscribe({
       next: () => {
-        this.snackBar.open('Invitation accepted! Welcome.', 'Awesome', { duration: 3000 });
+        this.toastService.success('Invitation accepted! Welcome.');
         setTimeout(() => window.location.reload(), 1500);
       },
-      error: () => this.snackBar.open('Failed to join gym.', 'Close', { duration: 3000 })
+      error: () => this.toastService.error('Failed to join gym.')
     });
   }
 
@@ -331,13 +332,13 @@ export class NotificationsComponent implements OnInit {
   }
 
   private handleSuccess(msg: string) {
-    this.snackBar.open(msg, 'Dismiss', { duration: 3000 });
+    this.toastService.success(msg);
     this.resetForm();
     this.isDispatching.set(false);
   }
 
   private handleError(msg: string) {
-    this.snackBar.open(msg, 'Dismiss', { duration: 4000 });
+    this.toastService.error(msg);
     this.isDispatching.set(false);
   }
 

@@ -34,6 +34,7 @@ export interface UserVm {
   profile_picture?: string | null;
   owned_gyms_count?: number;
   active_gyms_count?: number;
+  owned_gyms?: GymDto[];
   status?: string;
 }
 

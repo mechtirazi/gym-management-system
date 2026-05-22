@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { finalize } from 'rxjs';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-add-product-modal',
@@ -13,6 +14,8 @@ import { finalize } from 'rxjs';
 })
 export class AddProductModalComponent {
   private productService = inject(ProductService);
+
+  private toast = inject(ToastService);
 
   close = output<void>();
   productAdded = output<void>();
@@ -95,6 +98,7 @@ export class AddProductModalComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
+          this.toast.success('Inventory expanded: New product added successfully.');
           this.productAdded.emit();
           this.close.emit();
         },

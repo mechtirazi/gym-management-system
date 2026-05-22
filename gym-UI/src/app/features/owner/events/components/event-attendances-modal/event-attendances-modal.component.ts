@@ -7,6 +7,7 @@ import { environment } from '../../../../../../environments/environment';
 import { EventModel } from '../../../../../shared/models/event.model';
 
 import { ConfirmDialogService } from '../../../../../shared/services/confirm-dialog.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-event-attendances-modal',
@@ -19,6 +20,7 @@ export class EventAttendancesModalComponent implements OnInit {
   private eventService = inject(EventService);
   private fb = inject(FormBuilder);
   private confirmService = inject(ConfirmDialogService);
+  private toast = inject(ToastService);
 
   /** Pass an existing event to switch to Manage/Edit mode. If null, modal acts as 'Add New Event' */
   eventModel = input<EventModel | null>(null);
@@ -211,6 +213,7 @@ export class EventAttendancesModalComponent implements OnInit {
     request.pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
+          this.toast.success(existing ? 'Event parameters updated.' : 'New event organized successfully.');
           this.eventUpdated.emit();
           this.close.emit();
         },
@@ -223,8 +226,11 @@ export class EventAttendancesModalComponent implements OnInit {
   toggleAttendanceStatus(attendance: any) {
     const nextStatus = attendance.status === 'completed' ? 'cancelled' : 'completed';
     this.eventService.updateEventAttendance(attendance.id_attendance_event, { status: nextStatus }).subscribe({
-      next: () => this.loadAttendances(),
-      error: () => alert('Update failed.')
+      next: () => {
+        this.toast.success(`Attendance marked as ${nextStatus}.`);
+        this.loadAttendances();
+      },
+      error: () => this.toast.error('Failed to update attendance status.')
     });
   }
 
@@ -250,13 +256,11 @@ export class EventAttendancesModalComponent implements OnInit {
         console.log('Reward confirmed. Sending API request...');
         this.eventService.rewardWinnerEvent(attendance.id_attendance_event).subscribe({
           next: (res) => {
-            console.log('Reward success:', res);
-            alert(res.message || 'Reward synchronized successfully!');
+            this.toast.success(res.message || 'Victory reward synchronized successfully!');
             this.loadAttendances();
           },
           error: (err) => {
-            console.error('Reward API error:', err);
-            alert(err.error?.message || 'Reward synchronization failed.');
+            this.toast.error(err.error?.message || 'Reward synchronization failed.');
           }
         });
       }

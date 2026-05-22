@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { AdminOwnersService } from '../../../../core/services/admin-owners.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { OwnerCreatePayload, OwnerUpdatePayload, UserVm } from '../../../../core/models/api.models';
 
 @Component({
@@ -25,89 +26,86 @@ import { OwnerCreatePayload, OwnerUpdatePayload, UserVm } from '../../../../core
              <mat-icon>{{data.user ? 'shield_person' : 'person_add_alt'}}</mat-icon>
           </div>
           <div class="header-title-wrap">
-              <h2>{{ data.user ? 'Edit Owner' : 'Create Owner' }}</h2>
-              <p>{{ data.user ? 'Modify administrative account parameters' : 'Register a new platform owner' }}</p>
+              <h2>{{ data.user ? 'Edit Owner Profile' : 'Register New Owner' }}</h2>
+              <p>{{ data.user ? 'Modify administrative account parameters' : 'Onboard a new gym facility provider' }}</p>
            </div>
+           <button class="close-header-btn" (click)="onCancel()"><mat-icon>close</mat-icon></button>
         </div>
 
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="admin-form-group">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="admin-form-group compact-form">
            <!-- Premium Alert System -->
-           <div *ngIf="errorMessage()" class="admin-alert status-error mb-6">
-              <div class="alert-icon-box" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--admin-accent-rose);">
+           <div *ngIf="errorMessage()" class="admin-alert status-error mb-4">
+              <div class="alert-icon-box">
                  <mat-icon>terminal</mat-icon>
               </div>
               <div class="alert-content">
-                 <span class="alert-tag" style="color: var(--admin-accent-rose);">Error Occurred</span>
-                 <h3>Form Validation Error</h3>
-                 <p style="white-space: pre-line; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">{{ errorMessage() }}</p>
+                 <span class="alert-tag">Security Exception</span>
+                 <p class="error-text">{{ errorMessage() }}</p>
               </div>
            </div>
         
-           <div class="two-col-grid">
+           <div class="two-col-grid mb-4">
               <div class="form-field" [class.has-error]="form.get('name')?.invalid && form.get('name')?.touched">
-                 <label><mat-icon>badge</mat-icon> First Name <span class="required">*</span></label>
+                 <label><mat-icon>badge</mat-icon> First Name</label>
                  <div class="input-glow-wrap">
                     <input formControlName="name" type="text" placeholder="John" />
                  </div>
-                 <p class="field-error" *ngIf="form.get('name')?.hasError('required') && form.get('name')?.touched">Required</p>
               </div>
               <div class="form-field" [class.has-error]="form.get('last_name')?.invalid && form.get('last_name')?.touched">
-                 <label><mat-icon>fingerprint</mat-icon> Last Name <span class="required">*</span></label>
+                 <label><mat-icon>fingerprint</mat-icon> Last Name</label>
                  <div class="input-glow-wrap">
                     <input formControlName="last_name" type="text" placeholder="Doe" />
                  </div>
-                 <p class="field-error" *ngIf="form.get('last_name')?.hasError('required') && form.get('last_name')?.touched">Required</p>
               </div>
            </div>
 
-           <div class="form-field" [class.has-error]="form.get('email')?.invalid && form.get('email')?.touched">
-              <label><mat-icon>alternate_email</mat-icon> Email Address <span class="required">*</span></label>
-              <div class="input-glow-wrap">
-                 <input formControlName="email" type="email" placeholder="owner@gym-nexus.com" />
+           <div class="two-col-grid mb-4">
+              <div class="form-field" [class.has-error]="form.get('email')?.invalid && form.get('email')?.touched">
+                 <label><mat-icon>alternate_email</mat-icon> Email Address</label>
+                 <div class="input-glow-wrap">
+                    <input formControlName="email" type="email" placeholder="owner@gym-nexus.com" />
+                 </div>
+                 <p class="field-error" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">Valid email required</p>
               </div>
-              <p class="field-error" *ngIf="form.get('email')?.hasError('required') && form.get('email')?.touched">Required</p>
-              <p class="field-error" *ngIf="form.get('email')?.hasError('email') && form.get('email')?.touched">Invalid email format</p>
+              
+              <div class="form-field" [class.has-error]="form.get('phone')?.invalid && form.get('phone')?.touched">
+                 <label><mat-icon>contact_phone</mat-icon> Contact Phone</label>
+                 <div class="input-glow-wrap phone-input-wrap">
+                    <div class="country-prefix">
+                       <img src="https://flagcdn.com/w20/tn.png" alt="TN" class="flag-icon">
+                       <span class="country-code-label">TUN</span>
+                    </div>
+                    <input formControlName="phone" type="tel" placeholder="22 123 456" maxlength="8" (keypress)="onlyNumbers($event)" />
+                 </div>
+                 <p class="field-error" *ngIf="form.get('phone')?.invalid && form.get('phone')?.touched">Exactly 8 digits required</p>
+              </div>
            </div>
 
-           <div class="form-field" *ngIf="!data.user">
-              <label><mat-icon>key</mat-icon> Account Password</label>
+           <div class="form-field mb-6" *ngIf="!data.user">
+              <label><mat-icon>key</mat-icon> Security Password</label>
               <div class="input-glow-wrap">
                  <input formControlName="password" type="password" placeholder="••••••••" />
               </div>
-              <p class="field-hint">Secure: Min 8 characters required</p>
-           </div>
-
-           <div class="form-field" [class.has-error]="form.get('phone')?.invalid && form.get('phone')?.touched">
-              <label><mat-icon>contact_phone</mat-icon> Phone Number <span class="required">*</span></label>
-              <div class="input-glow-wrap phone-input-wrap">
-                 <div class="country-prefix">
-                    <img src="https://flagcdn.com/w20/tn.png" alt="TN" class="flag-icon">
-                    <span class="country-code-label">TUN</span>
-                    <mat-icon class="dropdown-arrow">expand_more</mat-icon>
-                 </div>
-                 <input formControlName="phone" type="tel" placeholder="22 123 456" maxlength="8" />
-              </div>
-              <p class="field-hint" *ngIf="!form.get('phone')?.errors">Exactly 8 digits</p>
-              <p class="field-error" *ngIf="form.get('phone')?.hasError('required') && form.get('phone')?.touched">Phone is required</p>
-              <p class="field-error" *ngIf="form.get('phone')?.hasError('pattern') && form.get('phone')?.touched">Exactly 8 digits required</p>
+              <p class="field-hint">Min 8 characters required for platform integrity</p>
            </div>
 
            <div class="admin-dialog-footer">
               <button type="button" (click)="onCancel()" class="admin-btn" [disabled]="loading()">
-                 <mat-icon>close</mat-icon> Cancel
+                 <mat-icon>close</mat-icon> Dismiss
               </button>
               <button type="submit" [disabled]="form.invalid || loading()" class="admin-btn btn-primary">
                  <mat-icon>{{ loading() ? 'sync' : (data.user ? 'published_with_changes' : 'person_add') }}</mat-icon>
-                 {{ loading() ? 'Saving...' : (data.user ? 'Update Owner' : 'Create Owner') }}
+                 {{ loading() ? 'Processing...' : (data.user ? 'Update Parameters' : 'Finalize Registration') }}
               </button>
            </div>
-       </form>
+        </form>
     </div>
   `
 })
 export class OwnerDialogComponent {
   private fb = inject(FormBuilder);
   private ownersService = inject(AdminOwnersService);
+  private toastService = inject(ToastService);
   private dialogRef = inject(MatDialogRef<OwnerDialogComponent>);
   
   loading = signal(false);
@@ -136,6 +134,13 @@ export class OwnerDialogComponent {
        this.form.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
     }
   }
+  
+  onlyNumbers(event: KeyboardEvent) {
+    const charCode = (event.which) ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      event.preventDefault();
+    }
+  }
 
   onCancel() {
     this.dialogRef.close();
@@ -160,6 +165,7 @@ export class OwnerDialogComponent {
       next: (res) => {
         this.loading.set(false);
         this.dialogRef.close(true); // Return success
+        this.toastService.success(isUpdate ? 'Owner account updated' : 'New owner registered successfully');
       },
       error: (err) => {
         this.loading.set(false);

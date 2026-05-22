@@ -11,6 +11,7 @@ import { AdminGymsService, GymDto } from '../../../core/services/admin-gyms.serv
 import { SuspendDialogComponent } from './suspend-dialog.component';
 import { computed } from '@angular/core';
 import { environment } from '../../../../environments/environment';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-gyms-list',
@@ -155,6 +156,7 @@ import { environment } from '../../../../environments/environment';
 export class GymsListComponent implements OnInit {
   private gymsService = inject(AdminGymsService);
   private dialog = inject(MatDialog);
+  private toastService = inject(ToastService);
 
   gyms = signal<GymDto[]>([]);
   loading = signal(true);
@@ -229,6 +231,7 @@ export class GymsListComponent implements OnInit {
         this.gymsService.suspendGym(id_gym, reason).subscribe({
           next: () => {
             this.actionInProgress.set(false);
+            this.toastService.success('Gym facility has been suspended');
             this.loadGyms();
           },
           error: () => this.actionInProgress.set(false)
@@ -242,6 +245,7 @@ export class GymsListComponent implements OnInit {
     this.gymsService.activateGym(gym.id_gym).subscribe({
       next: () => {
         this.actionInProgress.set(false);
+        this.toastService.success('Gym access has been reactivated');
         this.loadGyms();
       },
       error: () => this.actionInProgress.set(false)
