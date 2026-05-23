@@ -10,6 +10,7 @@ export interface MembershipPlan {
   duration_days: number;
   description?: string;
   type: 'trial' | 'standard' | 'premium';
+  features?: string[];
 }
 
 @Injectable({

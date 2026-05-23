@@ -17,7 +17,12 @@ class MembershipPlan extends Model
         'price',
         'duration_days',
         'description',
-        'type'
+        'type',
+        'features',
+    ];
+
+    protected $casts = [
+        'features' => 'array',
     ];
 
     public function gym()

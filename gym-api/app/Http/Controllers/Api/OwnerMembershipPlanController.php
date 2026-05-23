@@ -55,7 +55,9 @@ class OwnerMembershipPlanController extends Controller
             'price' => 'required|numeric|min:0',
             'duration_days' => 'required|integer|min:1',
             'description' => 'nullable|string',
-            'type' => 'required|string|in:trial,standard,premium'
+            'type' => 'required|string|in:trial,standard,premium',
+            'features' => 'nullable|array',
+            'features.*' => 'string|max:120',
         ]);
 
         $plan = $gym->membershipPlans()->create($validated);
@@ -83,7 +85,9 @@ class OwnerMembershipPlanController extends Controller
             'price' => 'sometimes|numeric|min:0',
             'duration_days' => 'sometimes|integer|min:1',
             'description' => 'nullable|string',
-            'type' => 'sometimes|string|in:trial,standard,premium'
+            'type' => 'sometimes|string|in:trial,standard,premium',
+            'features' => 'nullable|array',
+            'features.*' => 'string|max:120',
         ]);
 
         $plan->update($validated);

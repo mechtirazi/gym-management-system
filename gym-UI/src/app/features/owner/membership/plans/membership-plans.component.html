@@ -63,6 +63,11 @@
                 <span>{{ plan.duration_days }} Days Access</span>
               </div>
               <p class="plan-desc">{{ plan.description || 'Verified facility synchronization protocol.' }}</p>
+              <ul class="plan-features-list" *ngIf="plan.features && plan.features.length > 0">
+                @for (feat of plan.features; track feat) {
+                  <li><span class="material-symbols-rounded feat-check">check_circle</span>{{ feat }}</li>
+                }
+              </ul>
             </div>
 
             @if (canManage()) {
@@ -99,65 +104,113 @@
         </div>
 
         <div class="modal-body">
-          <div class="form-grid">
-            <div class="form-group full-width">
-              <label>Tier Name</label>
-              <div class="input-wrapper">
-                <span class="material-symbols-rounded input-icon">badge</span>
-                <input type="text" name="name" [(ngModel)]="currentPlan.name" #name="ngModel" placeholder="e.g. Discovery Pass" required>
-              </div>
-              @if (name.invalid && (name.dirty || name.touched)) {
-                <div class="field-error">* Tier name is required</div>
-              }
-            </div>
-            
-            <div class="form-group">
-              <label>Amount ($)</label>
-              <div class="input-wrapper">
-                <span class="material-symbols-rounded input-icon">attach_money</span>
-                <input type="number" name="price" [(ngModel)]="currentPlan.price" #price="ngModel" min="0" max="99999" placeholder="0.00" required>
-              </div>
-              @if (price.invalid && (price.dirty || price.touched)) {
-                <div class="field-error">
-                  @if (price.errors?.['required']) { <span>* Amount is required</span> }
-                  @if (price.errors?.['min']) { <span>* Minimum is $0</span> }
-                  @if (price.errors?.['max']) { <span>* Maximum is $99,999</span> }
+          <div class="modal-split-layout">
+            <!-- Left Side: Main Form Fields -->
+            <div class="layout-side-main">
+              <div class="form-grid-compact">
+                <!-- Tier Name -->
+                <div class="form-group span-2">
+                  <label>Tier Name</label>
+                  <div class="input-wrapper">
+                    <span class="material-symbols-rounded input-icon">badge</span>
+                    <input type="text" name="name" [(ngModel)]="currentPlan.name" #name="ngModel" placeholder="e.g. Discovery Pass" required>
+                  </div>
+                  @if (name.invalid && (name.dirty || name.touched)) {
+                    <div class="field-error">* Tier name is required</div>
+                  }
                 </div>
-              }
-            </div>
-            
-            <div class="form-group">
-              <label>Duration (Days)</label>
-              <div class="input-wrapper">
-                <span class="material-symbols-rounded input-icon">event</span>
-                <input type="number" name="duration" [(ngModel)]="currentPlan.duration_days" #duration="ngModel" min="1" max="3650" placeholder="30" required>
-              </div>
-              @if (duration.invalid && (duration.dirty || duration.touched)) {
-                <div class="field-error">
-                  @if (duration.errors?.['required']) { <span>* Duration is required</span> }
-                  @if (duration.errors?.['min']) { <span>* Minimum is 1 day</span> }
-                  @if (duration.errors?.['max']) { <span>* Maximum is 3650 days</span> }
+                
+                <!-- Amount -->
+                <div class="form-group">
+                  <label>Amount ($)</label>
+                  <div class="input-wrapper">
+                    <span class="material-symbols-rounded input-icon">attach_money</span>
+                    <input type="number" name="price" [(ngModel)]="currentPlan.price" #price="ngModel" min="0" max="99999" placeholder="0.00" required>
+                  </div>
+                  @if (price.invalid && (price.dirty || price.touched)) {
+                    <div class="field-error">
+                      @if (price.errors?.['required']) { <span>* Required</span> }
+                      @if (price.errors?.['min']) { <span>* Min $0</span> }
+                      @if (price.errors?.['max']) { <span>* Max $99K</span> }
+                    </div>
+                  }
                 </div>
-              }
+                
+                <!-- Duration -->
+                <div class="form-group">
+                  <label>Duration (Days)</label>
+                  <div class="input-wrapper">
+                    <span class="material-symbols-rounded input-icon">event</span>
+                    <input type="number" name="duration" [(ngModel)]="currentPlan.duration_days" #duration="ngModel" min="1" max="3650" placeholder="30" required>
+                  </div>
+                  @if (duration.invalid && (duration.dirty || duration.touched)) {
+                    <div class="field-error">
+                      @if (duration.errors?.['required']) { <span>* Required</span> }
+                      @if (duration.errors?.['min']) { <span>* Min 1</span> }
+                      @if (duration.errors?.['max']) { <span>* Max 3650</span> }
+                    </div>
+                  }
+                </div>
+
+                <!-- Service Type -->
+                <div class="form-group span-2">
+                  <label>Service Type</label>
+                  <div class="input-wrapper">
+                    <span class="material-symbols-rounded input-icon">category</span>
+                    <select [(ngModel)]="currentPlan.type">
+                      <option value="trial">Trial (Discovery)</option>
+                      <option value="standard">Standard (Vanguard)</option>
+                      <option value="premium">Premium (Elite)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group span-2">
+                  <label>Mission Description</label>
+                  <div class="input-wrapper textarea-wrapper">
+                    <span class="material-symbols-rounded input-icon top">description</span>
+                    <textarea [(ngModel)]="currentPlan.description" rows="2" placeholder="Explain the perks of this tier..."></textarea>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="form-group full-width">
-              <label>Service Type</label>
-              <div class="input-wrapper">
-                <span class="material-symbols-rounded input-icon">category</span>
-                <select [(ngModel)]="currentPlan.type">
-                  <option value="trial">Trial (Discovery)</option>
-                  <option value="standard">Standard (Vanguard)</option>
-                  <option value="premium">Premium (Elite)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-group full-width">
-              <label>Mission Description</label>
-              <div class="input-wrapper textarea-wrapper">
-                <span class="material-symbols-rounded input-icon top">description</span>
-                <textarea [(ngModel)]="currentPlan.description" rows="3" placeholder="Explain the perks of this tier..."></textarea>
+            <!-- Right Side: Features List Builder -->
+            <div class="layout-side-features">
+              <div class="form-group" style="height: 100%; display: flex; flex-direction: column;">
+                <label>Plan Features & Perks</label>
+                <div class="features-builder" style="flex: 1; display: flex; flex-direction: column;">
+                  <div class="feature-input-row">
+                    <div class="input-wrapper" style="flex:1">
+                      <span class="material-symbols-rounded input-icon">check_circle</span>
+                      <input
+                        type="text"
+                        [(ngModel)]="newFeature"
+                        placeholder="e.g. Unlimited Gym Access"
+                        (keydown.enter)="$event.preventDefault(); addFeature()"
+                        name="newFeature"
+                      >
+                    </div>
+                    <button type="button" class="btn-add-feature" (click)="addFeature()" [disabled]="!newFeature.trim()">
+                      <span class="material-symbols-rounded">add</span>
+                    </button>
+                  </div>
+                  <div class="feature-chips" *ngIf="currentPlan.features && currentPlan.features.length > 0" style="margin-top: 1rem; flex: 1;">
+                    @for (feat of currentPlan.features; track feat; let i = $index) {
+                      <div class="feature-chip">
+                        <span class="material-symbols-rounded chip-icon">check_circle</span>
+                        <span>{{ feat }}</span>
+                        <button type="button" class="chip-remove" (click)="removeFeature(i)">
+                          <span class="material-symbols-rounded">close</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                  <p class="features-hint" *ngIf="!currentPlan.features || currentPlan.features.length === 0" style="margin-top: 1rem;">
+                    No features added yet. Type a feature above and press Enter or the + button.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

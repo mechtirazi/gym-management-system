@@ -26,6 +26,7 @@ export class MembershipPlansComponent implements OnInit {
   editingPlan = signal<MembershipPlan | null>(null);
 
   gymId: string = '';
+  newFeature: string = '';
 
   currentPlan: MembershipPlan = this.resetPlan();
 
@@ -35,8 +36,6 @@ export class MembershipPlansComponent implements OnInit {
   });
 
   ngOnInit() {
-    console.log('MembershipPlansComponent - Current Role:', this.authService.userRole());
-    // Reactively load plans when the gym context changes
     const gymId = this.authService.connectedGymId();
     if (gymId) {
       this.gymId = gymId.toString();
@@ -57,12 +56,14 @@ export class MembershipPlansComponent implements OnInit {
   openAddModal() {
     this.editingPlan.set(null);
     this.currentPlan = this.resetPlan();
+    this.newFeature = '';
     this.showModal.set(true);
   }
 
   openEditModal(plan: MembershipPlan) {
     this.editingPlan.set(plan);
-    this.currentPlan = { ...plan };
+    this.currentPlan = { ...plan, features: [...(plan.features ?? [])] };
+    this.newFeature = '';
     this.showModal.set(true);
   }
 
@@ -70,8 +71,22 @@ export class MembershipPlansComponent implements OnInit {
     this.showModal.set(false);
   }
 
+  addFeature() {
+    const trimmed = this.newFeature.trim();
+    if (!trimmed) return;
+    if (!this.currentPlan.features) this.currentPlan.features = [];
+    if (!this.currentPlan.features.includes(trimmed)) {
+      this.currentPlan.features = [...this.currentPlan.features, trimmed];
+    }
+    this.newFeature = '';
+  }
+
+  removeFeature(index: number) {
+    this.currentPlan.features = (this.currentPlan.features ?? []).filter((_, i) => i !== index);
+  }
+
   savePlan() {
-    if (!this.currentPlan.name?.trim() || 
+    if (!this.currentPlan.name?.trim() ||
         this.currentPlan.price == null || this.currentPlan.price < 0 || this.currentPlan.price > 99999 ||
         this.currentPlan.duration_days == null || this.currentPlan.duration_days < 1 || this.currentPlan.duration_days > 3650) {
       return;
@@ -82,19 +97,13 @@ export class MembershipPlansComponent implements OnInit {
       this.planService.updatePlan(this.editingPlan()!.id!, this.currentPlan)
         .pipe(finalize(() => this.isSaving.set(false)))
         .subscribe({
-          next: () => {
-            this.loadPlans();
-            this.closeModal();
-          }
+          next: () => { this.loadPlans(); this.closeModal(); }
         });
     } else {
       this.planService.createPlan(this.gymId, this.currentPlan)
         .pipe(finalize(() => this.isSaving.set(false)))
         .subscribe({
-          next: () => {
-            this.loadPlans();
-            this.closeModal();
-          }
+          next: () => { this.loadPlans(); this.closeModal(); }
         });
     }
   }
@@ -111,7 +120,8 @@ export class MembershipPlansComponent implements OnInit {
       price: 0,
       duration_days: 30,
       description: '',
-      type: 'standard'
+      type: 'standard',
+      features: [],
     };
   }
 }

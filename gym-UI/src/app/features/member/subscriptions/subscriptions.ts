@@ -105,6 +105,10 @@ export class SubscriptionsComponent implements OnInit {
   }
 
   getFeatures(sub: any): string[] {
+    const planFeatures: string[] = sub.plan?.features ?? [];
+    if (Array.isArray(planFeatures) && planFeatures.length > 0) {
+      return planFeatures;
+    }
     const type = (sub.plan?.type || sub.type || '').toLowerCase();
     const base = ['Unlimited Gym Access', 'Locker Access'];
     if (type === 'premium') {
