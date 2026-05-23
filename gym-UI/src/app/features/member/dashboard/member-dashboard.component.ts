@@ -8,6 +8,7 @@ import { Observable, forkJoin, map, of, Subject, debounceTime, switchMap, catchE
 import { FormsModule } from '@angular/forms';
 import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-member-dashboard',
@@ -20,6 +21,7 @@ export class MemberDashboardComponent implements OnInit {
   private memberService = inject(MemberService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private translate = inject(TranslateService);
 
   user = this.authService.currentUser; // Use Signal directly
   stats: any = {
@@ -273,9 +275,9 @@ export class MemberDashboardComponent implements OnInit {
 
   getGreeting(): string {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return this.t('MEMBER_DASHBOARD.GREETING_MORNING');
+    if (hour < 18) return this.t('MEMBER_DASHBOARD.GREETING_AFTERNOON');
+    return this.t('MEMBER_DASHBOARD.GREETING_EVENING');
   }
 
   getDaysLeft(endDate: string): number {
@@ -348,9 +350,9 @@ export class MemberDashboardComponent implements OnInit {
 
   getMacroTargetMsg(macro: string): string {
     const percentage = this.getMacroPercentage(macro);
-    if (percentage >= 100) return 'OPTIMAL';
-    if (percentage >= 50) return 'ON TRACK';
-    return 'REPLENISHING';
+    if (percentage >= 100) return this.t('MEMBER_DASHBOARD.MACRO_OPTIMAL');
+    if (percentage >= 50) return this.t('MEMBER_DASHBOARD.MACRO_ON_TRACK');
+    return this.t('MEMBER_DASHBOARD.MACRO_REPLENISHING');
   }
 
   // --- New Interactive Handlers ---
@@ -504,5 +506,10 @@ export class MemberDashboardComponent implements OnInit {
     const id = u?.id_user || u?.id || u?.uuid;
     if (!id) return 'ZEN-MEMBER';
     return String(id).substring(0, 8).toUpperCase();
+  }
+
+  private t(key: string, params?: Record<string, unknown>): string {
+    const translated = this.translate.instant(key, params);
+    return typeof translated === 'string' ? translated : key;
   }
 }

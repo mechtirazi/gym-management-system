@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MembershipPlanService, MembershipPlan } from '../../services/membership-plan.service';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { GymService } from '../../../../core/services/gym.service';
@@ -10,7 +11,7 @@ import { finalize } from 'rxjs';
 @Component({
   selector: 'app-membership-plans',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageHeaderComponent],
+  imports: [CommonModule, FormsModule, PageHeaderComponent, TranslateModule],
   templateUrl: './membership-plans.component.html',
   styleUrl: './membership-plans.component.scss'
 })
@@ -18,6 +19,7 @@ export class MembershipPlansComponent implements OnInit {
   private planService = inject(MembershipPlanService);
   private gymService = inject(GymService);
   private authService = inject(AuthService);
+  private translate = inject(TranslateService);
 
   plans = signal<MembershipPlan[]>([]);
   isLoading = signal<boolean>(true);
@@ -109,8 +111,20 @@ export class MembershipPlansComponent implements OnInit {
   }
 
   deletePlan(id: string) {
-    if (confirm('Decommission this pricing tier?')) {
+    if (confirm(this.t('MEMBERSHIP_PLANS.CONFIRM_DECOMMISSION'))) {
       this.planService.deletePlan(id).subscribe(() => this.loadPlans());
+    }
+  }
+
+  getPlanTypeKey(type: string | undefined): string {
+    switch ((type || '').toLowerCase()) {
+      case 'trial':
+        return 'MEMBERSHIP_PLANS.TYPE_TRIAL';
+      case 'premium':
+        return 'MEMBERSHIP_PLANS.TYPE_PREMIUM';
+      case 'standard':
+      default:
+        return 'MEMBERSHIP_PLANS.TYPE_STANDARD';
     }
   }
 
@@ -123,5 +137,10 @@ export class MembershipPlansComponent implements OnInit {
       type: 'standard',
       features: [],
     };
+  }
+
+  private t(key: string, params?: Record<string, unknown>): string {
+    const translated = this.translate.instant(key, params);
+    return typeof translated === 'string' ? translated : key;
   }
 }

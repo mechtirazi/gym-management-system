@@ -1,6 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from './core/services/language.service';
+import { AutoPageTranslationService } from './core/services/auto-page-translation.service';
 
 @Component({
   selector: 'app-root',
@@ -10,13 +11,11 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class App {
   protected readonly title = signal('gym-ui');
-  private translate = inject(TranslateService);
+  private languageService = inject(LanguageService);
+  private autoPageTranslationService = inject(AutoPageTranslationService);
 
   constructor() {
-    this.translate.addLangs(['en', 'fr']);
-    const browserLang = this.translate.getBrowserLang() || 'en';
-    const defaultLang = localStorage.getItem('language') || (browserLang.match(/en|fr/) ? browserLang : 'en');
-    this.translate.setFallbackLang(defaultLang);
-    this.translate.use(defaultLang);
+    this.languageService.initialize();
+    this.autoPageTranslationService.initialize();
   }
 }

@@ -1,13 +1,13 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { Router } from '@angular/router';
-import { User } from '../../../../shared/models/user.model';
 import { StaffService } from '../../../../features/owner/staff/services/staff.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { LanguageService, AppLanguage } from '../../../../core/services/language.service';
 
 import { FormsModule } from '@angular/forms';
 import { MemberService } from '../../../../features/member/services/member.service';
@@ -29,13 +29,14 @@ export class HeaderComponent {
   private staffService = inject(StaffService);
   private snackBar = inject(MatSnackBar);
   private translate = inject(TranslateService);
+  private languageService = inject(LanguageService);
 
   currentUser = this.authService.currentUser;
   isDarkMode = this.themeService.darkMode;
   showNotifications = signal(false);
   showLangDropdown = signal(false);
   showGymSwitcher = signal(false);
-  currentLang = signal<'en' | 'fr'>(this.translate.currentLang as 'en' | 'fr' || 'en');
+  currentLang = this.languageService.currentLanguage;
   searchTerm = signal('');
   
   // Real-time suggestions from API
@@ -77,7 +78,11 @@ export class HeaderComponent {
     if (firstMatch) {
       this.selectSuggestion(firstMatch);
     } else {
-      this.snackBar.open(`Searching for "${term}" across the Zenith network...`, 'Sync', { duration: 2000 });
+      this.snackBar.open(
+        this.t('HEADER.SEARCHING_FOR', { term }),
+        this.t('HEADER.SNACKBAR_SYNC'),
+        { duration: 2000 }
+      );
     }
   }
 
@@ -85,7 +90,11 @@ export class HeaderComponent {
     this.searchTerm.set('');
     this.suggestions.set([]);
     this.router.navigate([item.route]);
-    this.snackBar.open(`Navigating to ${item.name}`, 'Success', { duration: 2000 });
+    this.snackBar.open(
+      this.t('HEADER.NAVIGATING_TO', { name: item.name }),
+      this.t('HEADER.SNACKBAR_SUCCESS'),
+      { duration: 2000 }
+    );
   }
 
   viewAllNotifications(): void {
@@ -97,10 +106,8 @@ export class HeaderComponent {
     this.showLangDropdown.update(v => !v);
   }
 
-  setLanguage(lang: 'en' | 'fr'): void {
-    this.currentLang.set(lang);
-    this.translate.use(lang);
-    localStorage.setItem('language', lang);
+  setLanguage(lang: AppLanguage): void {
+    this.languageService.setLanguage(lang);
     this.showLangDropdown.set(false);
   }
 
@@ -152,7 +159,11 @@ export class HeaderComponent {
 
     this.staffService.joinGym(payload).subscribe({
       next: () => {
-        this.snackBar.open('Invitation accepted! Welcome.', 'Awesome', { duration: 3000 });
+        this.snackBar.open(
+          this.t('HEADER.INVITATION_ACCEPTED'),
+          this.t('HEADER.SNACKBAR_AWESOME'),
+          { duration: 3000 }
+        );
         this.notificationService.fetchNotifications().subscribe();
         
         // Reload context so the user instantly gains access to the relevant sidebars and routes
@@ -160,16 +171,30 @@ export class HeaderComponent {
           window.location.reload();
         }, 1500);
       },
-      error: () => this.snackBar.open('Failed to join gym.', 'Close', { duration: 3000 })
+      error: () =>
+        this.snackBar.open(
+          this.t('HEADER.INVITATION_FAILED'),
+          this.t('HEADER.SNACKBAR_CLOSE'),
+          { duration: 3000 }
+        )
     });
   }
 
   declineInvite(notif: any): void {
     this.staffService.declineInvitation(notif.id).subscribe({
       next: () => {
-        this.snackBar.open('Invitation declined.', 'Close', { duration: 3000 });
+        this.snackBar.open(
+          this.t('HEADER.INVITATION_DECLINED'),
+          this.t('HEADER.SNACKBAR_CLOSE'),
+          { duration: 3000 }
+        );
         this.notificationService.fetchNotifications().subscribe();
       }
     });
+  }
+
+  private t(key: string, params?: Record<string, unknown>): string {
+    const translated = this.translate.instant(key, params);
+    return typeof translated === 'string' ? translated : key;
   }
 }

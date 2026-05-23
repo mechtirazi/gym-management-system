@@ -7,14 +7,14 @@
           <span class="material-symbols-rounded">price_check</span>
         </div>
         <div class="text-content">
-          <h1>Membership Protocol</h1>
-          <p class="subtitle">Establish and tune your facility's enrollment tiers and subscription structures.</p>
+          <h1>{{ 'MEMBERSHIP_PLANS.TITLE' | translate }}</h1>
+          <p class="subtitle">{{ 'MEMBERSHIP_PLANS.SUBTITLE' | translate }}</p>
         </div>
       </div>
       @if (canManage()) {
         <button class="add-tier-btn" (click)="openAddModal()">
           <span class="material-symbols-rounded">add</span>
-          Initialize Protocol
+          {{ 'MEMBERSHIP_PLANS.INIT_PROTOCOL' | translate }}
         </button>
       }
     </div>
@@ -24,19 +24,19 @@
     @if (isLoading()) {
       <div class="loading-state glass-card">
         <div class="sync-spinner"></div>
-        <p>Accessing pricing plans...</p>
+        <p>{{ 'MEMBERSHIP_PLANS.LOADING' | translate }}</p>
       </div>
     } @else if (plans().length === 0) {
       <div class="empty-state glass-card">
         <div class="empty-icon-wrapper">
           <span class="material-symbols-rounded icon-lg">receipt_long</span>
         </div>
-        <h3>No protocols defined</h3>
-        <p>Set up your first membership tier to authorize member enrollment.</p>
+        <h3>{{ 'MEMBERSHIP_PLANS.EMPTY_TITLE' | translate }}</h3>
+        <p>{{ 'MEMBERSHIP_PLANS.EMPTY_SUBTITLE' | translate }}</p>
         @if (canManage()) {
           <button class="btn-primary-glow" (click)="openAddModal()">
             <span class="material-symbols-rounded">add</span>
-            Initialize Tier
+            {{ 'MEMBERSHIP_PLANS.INIT_TIER' | translate }}
           </button>
         }
       </div>
@@ -45,7 +45,7 @@
         @for (plan of plans(); track plan.id) {
           <div class="plan-card glass-card" [class]="plan.type">
             <div class="card-glow"></div>
-            <div class="tier-badge">{{ plan.type | uppercase }}</div>
+            <div class="tier-badge">{{ getPlanTypeKey(plan.type) | translate | uppercase }}</div>
             
             <div class="plan-header">
               <h3>{{ plan.name }}</h3>
@@ -60,9 +60,9 @@
                 <div class="icon-box">
                   <span class="material-symbols-rounded">schedule</span>
                 </div>
-                <span>{{ plan.duration_days }} Days Access</span>
+                <span>{{ 'MEMBERSHIP_PLANS.DAYS_ACCESS' | translate:{ days: plan.duration_days } }}</span>
               </div>
-              <p class="plan-desc">{{ plan.description || 'Verified facility synchronization protocol.' }}</p>
+              <p class="plan-desc">{{ plan.description || ('MEMBERSHIP_PLANS.DEFAULT_DESCRIPTION' | translate) }}</p>
               <ul class="plan-features-list" *ngIf="plan.features && plan.features.length > 0">
                 @for (feat of plan.features; track feat) {
                   <li><span class="material-symbols-rounded feat-check">check_circle</span>{{ feat }}</li>
@@ -72,11 +72,11 @@
 
             @if (canManage()) {
               <div class="plan-actions">
-                <button class="btn-action edit" (click)="openEditModal(plan)" title="Retune">
+                <button class="btn-action edit" (click)="openEditModal(plan)" [title]="'MEMBERSHIP_PLANS.ACTION_RETUNE' | translate">
                   <span class="material-symbols-rounded">edit_note</span>
-                  <span>Retune</span>
+                  <span>{{ 'MEMBERSHIP_PLANS.ACTION_RETUNE' | translate }}</span>
                 </button>
-                <button class="btn-action delete" (click)="deletePlan(plan.id!)" title="Decommission">
+                <button class="btn-action delete" (click)="deletePlan(plan.id!)" [title]="'MEMBERSHIP_PLANS.ACTION_DECOMMISSION' | translate">
                   <span class="material-symbols-rounded">delete_forever</span>
                 </button>
               </div>
@@ -96,7 +96,7 @@
             <div class="title-icon">
               <span class="material-symbols-rounded">tune</span>
             </div>
-            <h2>{{ editingPlan() ? 'Retune Protocol' : 'New Tier Setup' }}</h2>
+            <h2>{{ editingPlan() ? ('MEMBERSHIP_PLANS.MODAL_TITLE_EDIT' | translate) : ('MEMBERSHIP_PLANS.MODAL_TITLE_NEW' | translate) }}</h2>
           </div>
           <button class="btn-close" (click)="closeModal()">
             <span class="material-symbols-rounded">close</span>
@@ -110,67 +110,67 @@
               <div class="form-grid-compact">
                 <!-- Tier Name -->
                 <div class="form-group span-2">
-                  <label>Tier Name</label>
+                  <label>{{ 'MEMBERSHIP_PLANS.TIER_NAME' | translate }}</label>
                   <div class="input-wrapper">
                     <span class="material-symbols-rounded input-icon">badge</span>
-                    <input type="text" name="name" [(ngModel)]="currentPlan.name" #name="ngModel" placeholder="e.g. Discovery Pass" required>
+                    <input type="text" name="name" [(ngModel)]="currentPlan.name" #name="ngModel" [placeholder]="'MEMBERSHIP_PLANS.TIER_NAME_PLACEHOLDER' | translate" required>
                   </div>
                   @if (name.invalid && (name.dirty || name.touched)) {
-                    <div class="field-error">* Tier name is required</div>
+                    <div class="field-error">{{ 'MEMBERSHIP_PLANS.ERROR_TIER_REQUIRED' | translate }}</div>
                   }
                 </div>
                 
                 <!-- Amount -->
                 <div class="form-group">
-                  <label>Amount ($)</label>
+                  <label>{{ 'MEMBERSHIP_PLANS.AMOUNT_LABEL' | translate }}</label>
                   <div class="input-wrapper">
                     <span class="material-symbols-rounded input-icon">attach_money</span>
-                    <input type="number" name="price" [(ngModel)]="currentPlan.price" #price="ngModel" min="0" max="99999" placeholder="0.00" required>
+                    <input type="number" name="price" [(ngModel)]="currentPlan.price" #price="ngModel" min="0" max="99999" [placeholder]="'MEMBERSHIP_PLANS.AMOUNT_PLACEHOLDER' | translate" required>
                   </div>
                   @if (price.invalid && (price.dirty || price.touched)) {
                     <div class="field-error">
-                      @if (price.errors?.['required']) { <span>* Required</span> }
-                      @if (price.errors?.['min']) { <span>* Min $0</span> }
-                      @if (price.errors?.['max']) { <span>* Max $99K</span> }
+                      @if (price.errors?.['required']) { <span>{{ 'MEMBERSHIP_PLANS.ERROR_REQUIRED' | translate }}</span> }
+                      @if (price.errors?.['min']) { <span>{{ 'MEMBERSHIP_PLANS.ERROR_MIN_ZERO' | translate }}</span> }
+                      @if (price.errors?.['max']) { <span>{{ 'MEMBERSHIP_PLANS.ERROR_MAX_99K' | translate }}</span> }
                     </div>
                   }
                 </div>
                 
                 <!-- Duration -->
                 <div class="form-group">
-                  <label>Duration (Days)</label>
+                  <label>{{ 'MEMBERSHIP_PLANS.DURATION_LABEL' | translate }}</label>
                   <div class="input-wrapper">
                     <span class="material-symbols-rounded input-icon">event</span>
-                    <input type="number" name="duration" [(ngModel)]="currentPlan.duration_days" #duration="ngModel" min="1" max="3650" placeholder="30" required>
+                    <input type="number" name="duration" [(ngModel)]="currentPlan.duration_days" #duration="ngModel" min="1" max="3650" [placeholder]="'MEMBERSHIP_PLANS.DURATION_PLACEHOLDER' | translate" required>
                   </div>
                   @if (duration.invalid && (duration.dirty || duration.touched)) {
                     <div class="field-error">
-                      @if (duration.errors?.['required']) { <span>* Required</span> }
-                      @if (duration.errors?.['min']) { <span>* Min 1</span> }
-                      @if (duration.errors?.['max']) { <span>* Max 3650</span> }
+                      @if (duration.errors?.['required']) { <span>{{ 'MEMBERSHIP_PLANS.ERROR_REQUIRED' | translate }}</span> }
+                      @if (duration.errors?.['min']) { <span>{{ 'MEMBERSHIP_PLANS.ERROR_MIN_1' | translate }}</span> }
+                      @if (duration.errors?.['max']) { <span>{{ 'MEMBERSHIP_PLANS.ERROR_MAX_3650' | translate }}</span> }
                     </div>
                   }
                 </div>
 
                 <!-- Service Type -->
                 <div class="form-group span-2">
-                  <label>Service Type</label>
+                  <label>{{ 'MEMBERSHIP_PLANS.SERVICE_TYPE' | translate }}</label>
                   <div class="input-wrapper">
                     <span class="material-symbols-rounded input-icon">category</span>
                     <select [(ngModel)]="currentPlan.type">
-                      <option value="trial">Trial (Discovery)</option>
-                      <option value="standard">Standard (Vanguard)</option>
-                      <option value="premium">Premium (Elite)</option>
+                      <option value="trial">{{ 'MEMBERSHIP_PLANS.TYPE_TRIAL' | translate }}</option>
+                      <option value="standard">{{ 'MEMBERSHIP_PLANS.TYPE_STANDARD' | translate }}</option>
+                      <option value="premium">{{ 'MEMBERSHIP_PLANS.TYPE_PREMIUM' | translate }}</option>
                     </select>
                   </div>
                 </div>
 
                 <!-- Description -->
                 <div class="form-group span-2">
-                  <label>Mission Description</label>
+                  <label>{{ 'MEMBERSHIP_PLANS.MISSION_DESCRIPTION' | translate }}</label>
                   <div class="input-wrapper textarea-wrapper">
                     <span class="material-symbols-rounded input-icon top">description</span>
-                    <textarea [(ngModel)]="currentPlan.description" rows="2" placeholder="Explain the perks of this tier..."></textarea>
+                    <textarea [(ngModel)]="currentPlan.description" rows="2" [placeholder]="'MEMBERSHIP_PLANS.MISSION_PLACEHOLDER' | translate"></textarea>
                   </div>
                 </div>
               </div>
@@ -179,7 +179,7 @@
             <!-- Right Side: Features List Builder -->
             <div class="layout-side-features">
               <div class="form-group" style="height: 100%; display: flex; flex-direction: column;">
-                <label>Plan Features & Perks</label>
+                <label>{{ 'MEMBERSHIP_PLANS.FEATURES_LABEL' | translate }}</label>
                 <div class="features-builder" style="flex: 1; display: flex; flex-direction: column;">
                   <div class="feature-input-row">
                     <div class="input-wrapper" style="flex:1">
@@ -187,7 +187,7 @@
                       <input
                         type="text"
                         [(ngModel)]="newFeature"
-                        placeholder="e.g. Unlimited Gym Access"
+                        [placeholder]="'MEMBERSHIP_PLANS.FEATURE_PLACEHOLDER' | translate"
                         (keydown.enter)="$event.preventDefault(); addFeature()"
                         name="newFeature"
                       >
@@ -208,7 +208,7 @@
                     }
                   </div>
                   <p class="features-hint" *ngIf="!currentPlan.features || currentPlan.features.length === 0" style="margin-top: 1rem;">
-                    No features added yet. Type a feature above and press Enter or the + button.
+                    {{ 'MEMBERSHIP_PLANS.FEATURES_EMPTY_HINT' | translate }}
                   </p>
                 </div>
               </div>
@@ -217,12 +217,12 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn-secondary" (click)="closeModal()">Abort</button>
+          <button class="btn-secondary" (click)="closeModal()">{{ 'MEMBERSHIP_PLANS.ABORT' | translate }}</button>
           <button class="btn-primary-glow" [disabled]="isSaving()" (click)="savePlan()">
             @if (isSaving()) {
               <span class="sync-spinner small"></span>
             }
-            {{ isSaving() ? 'Syncing...' : (editingPlan() ? 'Update Tier' : 'Establish Tier') }}
+            {{ isSaving() ? ('MEMBERSHIP_PLANS.SYNCING' | translate) : (editingPlan() ? ('MEMBERSHIP_PLANS.UPDATE_TIER' | translate) : ('MEMBERSHIP_PLANS.ESTABLISH_TIER' | translate)) }}
           </button>
         </div>
       </div>

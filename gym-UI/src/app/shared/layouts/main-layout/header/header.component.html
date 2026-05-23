@@ -30,7 +30,7 @@
       </div>
       
       <div class="search-footer" (click)="onSearch()">
-        <span>Full Spectrum: Synchronize for "{{ searchTerm() }}"</span>
+        <span>{{ 'HEADER.FULL_SPECTRUM_SYNC' | translate:{ term: searchTerm() } }}</span>
         <span class="material-symbols-rounded">rocket_launch</span>
       </div>
     </div>
@@ -74,7 +74,7 @@
             <path fill="#FFF" d="M240 0h160v480H240zM0 160h640v160H0z" />
             <path fill="#C8102E" d="M280 0h80v480h-80zM0 200h640v80H0z" />
           </svg>
-          <span>English</span>
+          <span>{{ 'HEADER.ENGLISH' | translate }}</span>
         </div>
         <div class="lang-item" [class.selected]="currentLang() === 'fr'" (click)="setLanguage('fr')">
           <svg viewBox="0 0 640 480" class="flag-icon-small">
@@ -82,7 +82,7 @@
             <path fill="#FFF" d="M213.3 0h213.4v480H213.3z" />
             <path fill="#002395" d="M0 0h213.3v480H0z" />
           </svg>
-          <span>Français</span>
+          <span>{{ 'HEADER.FRENCH' | translate }}</span>
         </div>
       </div>
       }
@@ -165,16 +165,16 @@
             </div>
             <div class="item-actions">
               @if (notif.type.startsWith('staff_invitation')) {
-                <button class="action-link accept" (click)="acceptInvite(notif)">Accept</button>
-                <button class="action-link decline" (click)="declineInvite(notif)">Decline</button>
+                <button class="action-link accept" (click)="acceptInvite(notif)">{{ 'HEADER.ACTION_ACCEPT' | translate }}</button>
+                <button class="action-link decline" (click)="declineInvite(notif)">{{ 'HEADER.ACTION_DECLINE' | translate }}</button>
               } @else {
-                <button class="action-link" (click)="viewAllNotifications()">View</button>
-                <button class="action-link" (click)="markAsRead(notif.id)" *ngIf="notif.unread">Mark as read</button>
+                <button class="action-link" (click)="viewAllNotifications()">{{ 'HEADER.ACTION_VIEW' | translate }}</button>
+                <button class="action-link" (click)="markAsRead(notif.id)" *ngIf="notif.unread">{{ 'HEADER.MARK_AS_READ' | translate }}</button>
               }
             </div>
           </div>
           } @empty {
-          <div class="empty-state">No new notifications</div>
+          <div class="empty-state">{{ 'HEADER.NO_NEW_NOTIFICATIONS' | translate }}</div>
           }
         </div>
 
@@ -187,8 +187,8 @@
 
     @if (isImpersonating()) {
     <div class="impersonation-banner">
-      <span>Impersonating <strong>{{ currentUser()?.name }}</strong></span>
-      <button class="stop-btn" (click)="stopImpersonation()">Return to Admin</button>
+      <span>{{ 'HEADER.IMPERSONATING' | translate:{ name: currentUser()?.name } }}</span>
+      <button class="stop-btn" (click)="stopImpersonation()">{{ 'HEADER.RETURN_TO_ADMIN' | translate }}</button>
     </div>
     }
 
@@ -205,7 +205,7 @@
         {{ (user.name ? user.name.charAt(0) : '') + (user.last_name ? user.last_name.charAt(0) : '') }}
         }
       </div>
-      <button class="logout-btn" (click)="logout()" title="Logout">
+      <button class="logout-btn" (click)="logout()" [title]="'HEADER.LOGOUT' | translate">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
