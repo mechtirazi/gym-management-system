@@ -1,510 +1,677 @@
-// --- ZENITH BRAND: MY GYMS MANAGEMENT (HIGH FIDELITY) ---
+// ─── Design tokens ────────────────────────────────────────────────────────────
 :host {
-  --z-brand-violet: #8b5cf6;
-  --z-brand-blue: #3b82f6;
-  --z-brand-emerald: #10b981;
-  --z-brand-rose: #f43f5e;
-  --z-brand-amber: #f59e0b;
-  --z-brand-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
-  
-  // Default (Dark Mode) Glass
-  --z-glass-bg: rgba(255, 255, 255, 0.03);
-  --z-glass-border: rgba(255, 255, 255, 0.08);
-  --z-glass-blur: blur(20px);
-  --z-text: #ffffff;
-  --z-text-muted: rgba(255, 255, 255, 0.5);
-  --z-card-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
+  --violet: #8b5cf6;
+  --blue:   #3b82f6;
+  --emerald:#10b981;
+  --rose:   #f43f5e;
+  --amber:  #f59e0b;
+  --grad:   linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
 }
 
-:host-context(html:not(.dark)) {
-  --z-glass-bg: rgba(255, 255, 255, 0.7);
-  --z-glass-border: rgba(139, 92, 246, 0.1);
-  --z-text: #0f172a;
-  --z-text-muted: #64748b;
-  --z-card-shadow: 0 20px 40px rgba(139, 92, 246, 0.08);
-}
-
+// ─── Page shell ───────────────────────────────────────────────────────────────
 .my-gyms-page {
-  padding: 4rem;
-  max-width: 1600px;
+  padding: 2.5rem 2rem;
+  max-width: 1400px;
   margin: 0 auto;
   min-height: 100vh;
-  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent 600px),
-              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.05), transparent 600px);
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-:host-context(html:not(.dark)) .my-gyms-page {
-  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.03), transparent 600px),
-              #f8fafc;
-}
-
-// --- HEADER ---
+// ─── Header ───────────────────────────────────────────────────────────────────
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5rem;
-  position: relative;
-
-  .header-content {
-    h1 {
-      font-size: 4.5rem;
-      font-weight: 950;
-      letter-spacing: -4px;
-      margin: 0;
-      background: linear-gradient(135deg, var(--z-text) 0%, #a5b4fc 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.3));
-    }
-
-    .subtitle {
-      font-size: 1.4rem;
-      color: var(--z-text-muted);
-      font-weight: 500;
-      margin-top: 0.75rem;
-      max-width: 600px;
-      line-height: 1.4;
-    }
-  }
-
-  .btn-refresh {
-    background: var(--z-glass-bg);
-    backdrop-filter: var(--z-glass-blur);
-    border: 1px solid var(--z-glass-border);
-    padding: 1.2rem 2.5rem;
-    border-radius: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-weight: 700;
-    color: var(--z-text);
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-
-    svg {
-      width: 20px;
-      height: 20px;
-      color: var(--z-brand-violet);
-    }
-
-    &:hover {
-      transform: translateY(-5px) scale(1.05);
-      border-color: var(--z-brand-violet);
-      box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-}
-
-.spinning {
-  animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-// --- GRID ---
-.gyms-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-  gap: 3.5rem;
-}
-
-.gym-card {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: var(--z-glass-blur);
-  border-radius: 3rem;
-  border: 1px solid var(--z-glass-border);
-  padding: 3rem;
-  position: relative;
-  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-  overflow: hidden;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.05), transparent 70%);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    pointer-events: none;
-  }
-
-  &:hover {
-    transform: translateY(-15px);
-    border-color: rgba(139, 92, 246, 0.3);
-    box-shadow: var(--z-card-shadow);
-    
-    &::after {
-      opacity: 1;
-    }
-  }
-
-  &.suspended {
-    border-color: rgba(244, 63, 94, 0.3);
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--z-brand-rose);
-      box-shadow: 0 0 20px var(--z-brand-rose);
-    }
-  }
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2.5rem;
-  z-index: 1;
-  position: relative;
-
-  .gym-logo {
-    width: 90px;
-    height: 90px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
-    border: 1px solid var(--z-glass-border);
-    border-radius: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 2.5rem;
-    font-weight: 900;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .status-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-
-    .pulse-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      position: relative;
-
-      &.active {
-        background: var(--z-brand-emerald);
-        box-shadow: 0 0 20px var(--z-brand-emerald);
-        &::after {
-          content: '';
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          background: var(--z-brand-emerald);
-          animation: pulse 2s infinite;
-        }
-      }
-
-      &.suspended {
-        background: var(--z-brand-rose);
-        box-shadow: 0 0 20px var(--z-brand-rose);
-      }
-    }
-
-    .status-label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: var(--z-text-muted);
-      text-transform: uppercase;
-    }
-  }
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(3); opacity: 0; }
-}
-
-.card-body {
-  position: relative;
-  z-index: 1;
-
-  h3 {
-    font-size: 2.2rem;
-    font-weight: 900;
-    margin: 0 0 0.75rem;
-    color: var(--z-text);
-    letter-spacing: -1px;
-  }
-
-  .address {
-    color: var(--z-text-muted);
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2.5rem;
-
-    svg {
-      width: 18px;
-      height: 18px;
-      color: var(--z-brand-blue);
-    }
-  }
-}
-
-// --- PROTOCOL BOX (HIGH FIDELITY) ---
-.protocol-box {
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 2rem;
-  border: 1px solid var(--z-glass-border);
-  margin-bottom: 2.5rem;
-
-  .p-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-
-    .p-title {
-      font-size: 0.8rem;
-      font-weight: 800;
-      color: var(--z-text-muted);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .p-tier {
-      font-size: 0.75rem;
-      font-weight: 900;
-      color: #fff;
-      background: var(--z-brand-gradient);
-      padding: 0.4rem 1rem;
-      border-radius: 1rem;
-      box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
-    }
-  }
-
-  .p-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-
-    .meta-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-
-      .m-label {
-        font-size: 0.7rem;
-        color: var(--z-text-muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-
-      .m-value {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--z-text);
-      }
-
-      .expired-text { color: var(--z-brand-rose); }
-      .warning { color: var(--z-brand-amber); }
-    }
-  }
-
-  .sb-bar {
-    height: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    overflow: hidden;
-
-    .sb-fill {
-      height: 100%;
-      background: var(--z-brand-gradient);
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
-      transition: width 1s ease-out;
-    }
-  }
-}
-
-.suspension-info {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(244, 63, 94, 0.05);
-  border: 1px dashed rgba(244, 63, 94, 0.3);
-  border-radius: 1.5rem;
-
-  .reason-label {
-    font-size: 0.75rem;
-    font-weight: 900;
-    color: var(--z-brand-rose);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 0.75rem;
-  }
-
-  .reason-text {
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin: 0;
-    line-height: 1.6;
-  }
-}
-
-.card-footer {
-  position: relative;
-  z-index: 1;
-
-  .action-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-
-  button {
-    padding: 1.2rem;
-    border-radius: 1.5rem;
-    font-size: 1rem;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: none;
-
-    svg {
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  .btn-renew {
-    background: var(--z-text);
-    color: var(--bg-card);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-
-    &:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 30px rgba(139, 92, 246, 0.2);
-      background: var(--z-brand-violet);
-      color: #fff;
-    }
-  }
-
-  .btn-manage {
-    background: var(--z-glass-bg);
-    color: var(--z-text);
-    border: 1px solid var(--z-glass-border);
-
-    &:hover {
-      transform: translateY(-5px);
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--z-brand-violet);
-    }
-  }
-}
-
-// --- MESSAGES ---
-.message {
-  padding: 1.5rem 2.5rem;
-  border-radius: 2rem;
-  margin-bottom: 4rem;
-  display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 950;
+    letter-spacing: -0.04em;
+    margin: 0;
+    color: var(--text-main);
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+.protocol-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--violet);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  width: fit-content;
+
+  mat-icon { font-size: 0.85rem; width: 0.85rem; height: 0.85rem; }
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
   font-weight: 700;
-  font-size: 1.1rem;
-  backdrop-filter: var(--z-glass-blur);
-  border: 1px solid transparent;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 
-  &.success {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--z-brand-emerald);
-    border-color: rgba(16, 185, 129, 0.2);
+  svg { width: 16px; height: 16px; color: var(--violet); }
+
+  &:hover:not(:disabled) {
+    border-color: var(--violet);
+    background: rgba(139, 92, 246, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.15);
   }
 
-  &.error {
-    background: rgba(244, 63, 94, 0.1);
-    color: var(--z-brand-rose);
-    border-color: rgba(244, 63, 94, 0.2);
-  }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.spinning { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+.notification-wrap { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.25rem;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1.5px solid transparent;
+
+  mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
 
   .close-btn {
     margin-left: auto;
     background: none;
     border: none;
-    font-size: 2rem;
+    font-size: 1.4rem;
     cursor: pointer;
     color: inherit;
     opacity: 0.5;
+    line-height: 1;
     &:hover { opacity: 1; }
+  }
+
+  &.success {
+    background: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
+    mat-icon { color: #16a34a; }
+  }
+
+  &.error {
+    background: #fff1f2;
+    color: #be123c;
+    border-color: #fecdd3;
+    mat-icon { color: #e11d48; }
   }
 }
 
+// ─── Grid ─────────────────────────────────────────────────────────────────────
+.gyms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.75rem;
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+.gym-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.24, 1, 0.32, 1),
+              box-shadow 0.35s cubic-bezier(0.24, 1, 0.32, 1),
+              border-color 0.25s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 48px rgba(139, 92, 246, 0.12), 0 4px 16px rgba(0,0,0,0.06);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+
+  &.suspended {
+    border-color: rgba(244, 63, 94, 0.3);
+    .card-hero { filter: grayscale(0.4); }
+  }
+}
+
+// ─── Hero image banner ────────────────────────────────────────────────────────
+.card-hero {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+  background: linear-gradient(135deg,
+    rgba(139, 92, 246, 0.15) 0%,
+    rgba(59, 130, 246, 0.15) 100%);
+
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .gym-card:hover & .hero-img {
+    transform: scale(1.04);
+  }
+
+  .hero-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg,
+      rgba(139, 92, 246, 0.12) 0%,
+      rgba(59, 130, 246, 0.12) 100%);
+
+    .hero-initial {
+      font-size: 5rem;
+      font-weight: 900;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      opacity: 0.75;
+      letter-spacing: -0.05em;
+    }
+  }
+}
+
+// ─── Status pill ──────────────────────────────────────────────────────────────
+.status-pill {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(12px);
+
+  &.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+
+    .pulse-dot {
+      background: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      animation: pulse-ring 2s infinite;
+    }
+  }
+
+  &.suspended {
+    background: rgba(244, 63, 94, 0.15);
+    color: #e11d48;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+
+    .pulse-dot { background: #f43f5e; }
+  }
+
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0   rgba(16, 185, 129, 0.4); }
+  70%  { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(16, 185, 129, 0); }
+}
+
+// ─── Card body ────────────────────────────────────────────────────────────────
+.card-body {
+  padding: 0 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+}
+
+// ─── Gym identity (avatar + name) ─────────────────────────────────────────────
+.gym-identity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.75rem;
+}
+
+.gym-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 3px solid var(--bg-card);
+  background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(59,130,246,0.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  margin-top: -2.5rem; // pulls avatar up over the hero
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 1.4rem;
+    font-weight: 900;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.gym-meta {
+  min-width: 0;
+  flex: 1;
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .address {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    mat-icon {
+      font-size: 0.9rem;
+      width: 0.9rem;
+      height: 0.9rem;
+      color: var(--blue);
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ─── Subscription block ───────────────────────────────────────────────────────
+.sub-block {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sub-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.sub-tier {
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #fff;
+  background: var(--grad);
+  padding: 0.22rem 0.7rem;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+}
+
+.sub-stats {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sub-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  &.align-end { align-items: flex-end; }
+
+  .ss-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .ss-value {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-main);
+
+    &.warning { color: var(--amber); }
+    &.expired  { color: var(--rose); }
+  }
+}
+
+.progress-bar {
+  height: 5px;
+  background: var(--border-color);
+  border-radius: 999px;
+  overflow: hidden;
+
+  .progress-fill {
+    height: 100%;
+    background: var(--grad);
+    border-radius: 999px;
+    transition: width 1s ease-out;
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+
+    &.low { background: linear-gradient(90deg, var(--amber), var(--rose)); }
+  }
+}
+
+// ─── Suspension notice ────────────────────────────────────────────────────────
+.suspension-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  background: rgba(244, 63, 94, 0.06);
+  border: 1px dashed rgba(244, 63, 94, 0.3);
+  border-radius: 12px;
+
+  mat-icon { color: var(--rose); font-size: 1rem; width: 1rem; height: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+}
+
+// ─── Card footer ──────────────────────────────────────────────────────────────
+.card-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+
+  button {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+  }
+
+  .btn-renew {
+    background: var(--grad);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+    }
+  }
+
+  .btn-manage {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border: 1.5px solid var(--border-color);
+
+    &:hover {
+      background: rgba(139, 92, 246, 0.08);
+      border-color: rgba(139, 92, 246, 0.35);
+      color: var(--violet);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+.empty-state {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: var(--bg-card);
+  border: 1.5px dashed var(--border-color);
+  border-radius: 28px;
+
+  .empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 0.5rem;
+  }
+
+  p { color: var(--text-muted); margin: 0 0 2rem; }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.75rem;
+    background: var(--grad);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    transition: all 0.25s ease;
+
+    &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4); }
+  }
+}
+
+// ─── Skeleton loader ──────────────────────────────────────────────────────────
+.skeleton-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: 24px;
+  overflow: hidden;
+
+  .sk-hero {
+    height: 160px;
+    background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border-color) 50%, var(--bg-hover) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+
+  .sk-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .sk-line {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border-color) 50%, var(--bg-hover) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+
+    &.wide   { width: 75%; }
+    &.medium { width: 55%; }
+    &.short  { width: 35%; }
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+// ─── Reveal animation ─────────────────────────────────────────────────────────
 .animate-reveal {
   opacity: 0;
-  transform: translateY(30px);
-  animation: reveal 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  transform: translateY(20px);
+  animation: reveal 0.7s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 @keyframes reveal {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 8rem 2rem;
-  background: var(--z-glass-bg);
-  border-radius: 4rem;
-  border: 1px dashed var(--z-glass-border);
+// ─── Light mode specific polish ───────────────────────────────────────────────
+:host-context(html:not(.dark)) {
+  .gym-card {
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(139,92,246,0.06);
 
-  .empty-icon {
-    font-size: 6rem;
-    margin-bottom: 2rem;
-    filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.3));
+    &:hover {
+      box-shadow: 0 12px 40px rgba(139,92,246,0.14), 0 4px 12px rgba(0,0,0,0.06);
+    }
   }
 
-  h2 {
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 1rem;
+  .card-hero .hero-placeholder {
+    background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%);
   }
 
-  p {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.4);
-    max-width: 500px;
-    margin: 0 auto 3rem;
+  .status-pill.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
   }
+
+  .sub-block {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+  }
+
+  .message.success { background: #f0fdf4; }
+  .message.error   { background: #fff1f2; }
+}
+
+// ─── Dark mode polish ─────────────────────────────────────────────────────────
+:host-context(.dark) {
+  .gym-card {
+    background: #1e293b;
+    border-color: rgba(255,255,255,0.07);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+
+    &:hover {
+      border-color: rgba(139,92,246,0.35);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.4);
+    }
+  }
+
+  .gym-avatar {
+    border-color: #1e293b;
+    background: rgba(139,92,246,0.12);
+  }
+
+  .sub-block {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.07);
+  }
+
+  .progress-bar { background: rgba(255,255,255,0.08); }
+
+  .card-footer {
+    border-color: rgba(255,255,255,0.07);
+
+    .btn-manage {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.1);
+      color: #cbd5e1;
+
+      &:hover {
+        background: rgba(139,92,246,0.12);
+        border-color: rgba(139,92,246,0.4);
+        color: #a78bfa;
+      }
+    }
+  }
+
+  .message.success {
+    background: rgba(16,185,129,0.12);
+    color: #6ee7b7;
+    border-color: rgba(16,185,129,0.25);
+  }
+
+  .message.error {
+    background: rgba(244,63,94,0.12);
+    color: #fda4af;
+    border-color: rgba(244,63,94,0.25);
+  }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .my-gyms-page { padding: 1.5rem 1rem; }
+  .gyms-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; }
 }

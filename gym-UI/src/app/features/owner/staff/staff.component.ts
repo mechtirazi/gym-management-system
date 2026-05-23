@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { StaffService } from './services/staff.service';
 import { StaffMember } from '../../../shared/models/staff-member.model';
+import { environment } from '../../../../environments/environment';
 import { finalize } from 'rxjs';
 
 import { StaffCardComponent } from './components/staff-card/staff-card.component';
@@ -118,7 +119,8 @@ export class StaffManagementComponent implements OnInit {
               email: u.email || 'N/A',
               phone: u.phone || '—',
               status: item.status || u.status || 'Active',
-              joinedAt: item.created_at || u.created_at || new Date().toISOString()
+              joinedAt: item.created_at || u.created_at || new Date().toISOString(),
+              profilePicture: u.profile_picture ? this.getImageUrl(u.profile_picture) ?? undefined : undefined
             };
           }));
         },
@@ -172,9 +174,20 @@ export class StaffManagementComponent implements OnInit {
     this.isEditMode.set(false);
   }
 
+  // ─── Image URL helper ─────────────────────────────────────────────────────
+  getImageUrl(path?: string): string | null {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    let cleanPath = path.replace(/^\//, '');
+    if (!cleanPath.startsWith('storage/')) {
+      cleanPath = `storage/${cleanPath}`;
+    }
+    return `${baseUrl}/${cleanPath}`;
+  }
+
   // ─── Delete ───────────────────────────────────────────────────────────────
-  deleteStaffMember(id: string) {
-    if (!id) return;
+  deleteStaffMember(id: string) {    if (!id) return;
     
     this.confirmService.open({
       title: 'Remove Staff Personnel',

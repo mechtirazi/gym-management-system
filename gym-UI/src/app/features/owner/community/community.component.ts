@@ -4,6 +4,7 @@ import { CommunityService } from '../services/community.service';
 import { Review } from '../../../shared/models/review.model';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-community',
@@ -124,5 +125,16 @@ export class CommunityComponent implements OnInit {
 
   getStars(review: any): number[] {
     return review.starArray || [];
+  }
+
+  getImageUrl(path?: string): string | null {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    let cleanPath = path.replace(/^\//, '');
+    if (!cleanPath.startsWith('storage/')) {
+      cleanPath = `storage/${cleanPath}`;
+    }
+    return `${baseUrl}/${cleanPath}`;
   }
 }

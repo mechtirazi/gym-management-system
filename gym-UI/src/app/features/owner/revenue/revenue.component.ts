@@ -319,10 +319,23 @@ export class OwnerRevenueComponent implements OnInit {
         height: 320,
         toolbar: { show: false },
         fontFamily: 'Inter, sans-serif',
-        background: 'transparent'
+        background: 'transparent',
+        foreColor: '#475569'
       },
       dataLabels: { enabled: false },
       colors: ['#0ea5e9'],
+      plotOptions: {
+        heatmap: {
+          shadeIntensity: 0.65,
+          radius: 4,
+          useFillColorAsStroke: false,
+          colorScale: {
+            ranges: [
+              { from: 0, to: 0, color: '#f1f5f9', name: 'None' }
+            ]
+          }
+        }
+      },
       xaxis: {
         type: 'category',
         categories: this.heatmapTimeSlots,
@@ -569,8 +582,28 @@ export class OwnerRevenueComponent implements OnInit {
       }
     };
 
+    // Dark mode empty-cell color for heatmap
+    const heatmapEmptyColor = isDark ? '#1e293b' : '#f1f5f9';
+
     this.heatmapOptions = {
       ...this.heatmapOptions,
+      chart: {
+        ...this.heatmapOptions.chart,
+        background: 'transparent',
+        foreColor: axisLabelColor
+      },
+      plotOptions: {
+        heatmap: {
+          shadeIntensity: 0.65,
+          radius: 4,
+          useFillColorAsStroke: false,
+          colorScale: {
+            ranges: [
+              { from: 0, to: 0, color: heatmapEmptyColor, name: 'None' }
+            ]
+          }
+        }
+      },
       colors: [isDark ? '#22d3ee' : '#0891b2'],
       xaxis: {
         ...this.heatmapOptions.xaxis,

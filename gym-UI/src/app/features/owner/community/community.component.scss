@@ -213,6 +213,24 @@
             justify-content: center;
             font-weight: 700;
             font-size: 1.25rem;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+
+            .avatar-img {
+              position: absolute;
+              inset: 0;
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              border-radius: 14px;
+              z-index: 1;
+            }
+
+            .avatar-initials {
+              position: relative;
+              z-index: 0;
+            }
           }
 
           .user-details {

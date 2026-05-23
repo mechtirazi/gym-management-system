@@ -29,4 +29,9 @@ export class StaffCardComponent {
       this.deleteStaff.emit(this.member().id!);
     }
   }
+
+  onImgError(event: Event) {
+    // Hide broken image so the initials fallback shows instead
+    (event.target as HTMLImageElement).style.display = 'none';
+  }
 }

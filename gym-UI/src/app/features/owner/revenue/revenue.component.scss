@@ -644,6 +644,38 @@ table {
 
 /* ── Dark Mode Overrides ─────────────────────────────────────────────────── */
 :host-context(.dark) {
+
+  /* Force ALL heatmap cells and backgrounds to match dark theme */
+  ::ng-deep apx-chart {
+    /* Target the main SVG background rect */
+    .apexcharts-canvas > svg > rect[fill="#ffffff"],
+    .apexcharts-canvas > svg > rect[fill="white"],
+    .apexcharts-canvas > svg > rect[fill="#fff"] {
+      fill: #0f172a !important;
+    }
+
+    /* Target the inner plot area background */
+    .apexcharts-inner rect[fill="#ffffff"],
+    .apexcharts-inner rect[fill="white"],
+    .apexcharts-inner rect[fill="#fff"] {
+      fill: transparent !important;
+    }
+
+    /* Target individual heatmap cell rects */
+    .apexcharts-heatmap-rect[fill="#ffffff"],
+    .apexcharts-heatmap-rect[fill="white"],
+    .apexcharts-heatmap-rect[fill="#fff"],
+    .apexcharts-heatmap-rect[fill="rgb(255, 255, 255)"] {
+      fill: #1e293b !important;
+    }
+
+    /* Catch any remaining white fills in the heatmap group */
+    .apexcharts-series rect[fill="#ffffff"],
+    .apexcharts-series rect[fill="white"],
+    .apexcharts-series rect[fill="#fff"] {
+      fill: #1e293b !important;
+    }
+  }
   .hero-eyebrow {
     background: rgba(34, 211, 238, 0.12);
     color: #22d3ee;

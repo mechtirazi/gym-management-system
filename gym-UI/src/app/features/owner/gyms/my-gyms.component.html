@@ -1,160 +1,167 @@
 <div class="my-gyms-page">
-  <!-- Dynamic Background Elements -->
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
 
   <header class="page-header animate-reveal">
     <div class="header-content">
-      <div class="protocol-badge">
+      <span class="protocol-badge">
         <mat-icon>security</mat-icon>
-        SECURE MANAGEMENT
-      </div>
+        Secure Management
+      </span>
       <h1>Facility Management</h1>
       <p class="subtitle">Manage your gym locations and track your subscription status.</p>
     </div>
-    <div class="header-actions">
-      <button class="btn-refresh" (click)="loadGyms()" [disabled]="isLoading()">
-        <svg [class.spinning]="isLoading()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-        </svg>
-        <span>REFRESH LIST</span>
-      </button>
-    </div>
+    <button class="btn-refresh" (click)="loadGyms()" [disabled]="isLoading()">
+      <svg [class.spinning]="isLoading()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+      </svg>
+      Refresh
+    </button>
   </header>
 
-  <!-- Notification System -->
+  <!-- Notifications -->
   <div class="notification-wrap">
-    <div class="message success animate-reveal" *ngIf="successMessage()">
-      <div class="msg-icon"><mat-icon>check_circle</mat-icon></div>
-      <div class="msg-body">
-        <strong>SUCCESS</strong>
-        <span>{{ successMessage() }}</span>
-      </div>
+    <div class="message success" *ngIf="successMessage()">
+      <mat-icon>check_circle</mat-icon>
+      <span>{{ successMessage() }}</span>
       <button class="close-btn" (click)="successMessage.set(null)">×</button>
     </div>
-
-    <div class="message error animate-reveal" *ngIf="errorMessage()">
-      <div class="msg-icon"><mat-icon>report_problem</mat-icon></div>
-      <div class="msg-body">
-        <strong>ERROR</strong>
-        <span>{{ errorMessage() }}</span>
-      </div>
+    <div class="message error" *ngIf="errorMessage()">
+      <mat-icon>report_problem</mat-icon>
+      <span>{{ errorMessage() }}</span>
       <button class="close-btn" (click)="errorMessage.set(null)">×</button>
     </div>
   </div>
 
-  <!-- Main Infrastructure Grid -->
+  <!-- Gym Cards Grid -->
   <div class="gyms-grid" *ngIf="!isLoading() || gyms().length > 0; else loadingState">
-    <div class="gym-card glass animate-reveal" *ngFor="let gym of gyms(); let i = index"
-      [style.animation-delay]="(i * 0.1) + 's'" [class.suspended]="gym.status === 'suspended'">
-      
-      <div class="card-header">
-        <div class="gym-logo-wrap">
-          <div class="gym-logo">
-            <img *ngIf="gym.logo_url" [src]="gym.logo_url" alt="Logo">
+    <article class="gym-card animate-reveal" *ngFor="let gym of gyms(); let i = index"
+      [style.animation-delay]="(i * 0.08) + 's'"
+      [class.suspended]="gym.status === 'suspended'">
+
+      <!-- Hero image / cover banner -->
+      <div class="card-hero">
+        <img *ngIf="gym.logo_url" [src]="gym.logo_url" [alt]="gym.name + ' cover'"
+          class="hero-img" (error)="$any($event.target).style.display='none'" />
+        <div class="hero-placeholder" *ngIf="!gym.logo_url">
+          <span class="hero-initial">{{ gym.name.charAt(0) }}</span>
+        </div>
+
+        <!-- Status pill overlaid on image -->
+        <div class="status-pill" [class.active]="gym.status === 'active'"
+          [class.suspended]="gym.status === 'suspended'">
+          <span class="pulse-dot"></span>
+          {{ gym.status === 'suspended' ? 'Offline' : 'Online' }}
+        </div>
+      </div>
+
+      <!-- Card body -->
+      <div class="card-body">
+        <div class="gym-identity">
+          <!-- Logo avatar (small, overlapping hero) -->
+          <div class="gym-avatar">
+            <img *ngIf="gym.logo_url" [src]="gym.logo_url" [alt]="gym.name"
+              (error)="$any($event.target).style.display='none'" />
             <span *ngIf="!gym.logo_url">{{ gym.name.charAt(0) }}</span>
           </div>
-          <div class="logo-glow"></div>
-        </div>
-        
-        <div class="status-indicator">
-          <div class="pulse-dot" [class.active]="gym.status === 'active'"
-            [class.suspended]="gym.status === 'suspended'"></div>
-          <span class="status-label">{{ gym.status === 'suspended' ? 'OFFLINE' : 'ONLINE' }}</span>
-        </div>
-      </div>
-
-      <div class="card-body">
-        <div class="gym-info-main">
-          <h3 class="premium-text">{{ gym.name }}</h3>
-          <p class="address">
-            <mat-icon>location_on</mat-icon>
-            {{ gym.address }}
-          </p>
-        </div>
-
-        <!-- Protocol Subscription Info (Premium Glass Card) -->
-        <div class="protocol-box">
-          <div class="p-header">
-            <div class="p-title-group">
-              <mat-icon>hub</mat-icon>
-              <span class="p-title">Subscription</span>
-            </div>
-            <span class="p-tier">{{ (gym.platform_subscription_type || 'Monthly') | uppercase }}</span>
+          <div class="gym-meta">
+            <h3>{{ gym.name }}</h3>
+            <p class="address">
+              <mat-icon>location_on</mat-icon>
+              {{ gym.address }}
+            </p>
           </div>
-          
-          <div class="p-meta">
-            <div class="meta-item">
-              <span class="m-label">Expires On</span>
-              <span class="m-value" [class.expired-text]="(gym.days_remaining || 0) <= 0">
-                {{ gym.subscription_expires_at | date:'MMM d, yyyy' }}
+        </div>
+
+        <!-- Subscription block -->
+        <div class="sub-block">
+          <div class="sub-header">
+            <span class="sub-label">Subscription</span>
+            <span class="sub-tier">{{ (gym.platform_subscription_type || 'Monthly') | uppercase }}</span>
+          </div>
+
+          <div class="sub-stats">
+            <div class="sub-stat">
+              <span class="ss-label">Expires</span>
+              <span class="ss-value" [class.expired]="(gym.days_remaining || 0) <= 0">
+                {{ gym.subscription_expires_at | date:'MMM d, y' }}
               </span>
             </div>
-            <div class="meta-item text-right">
-              <span class="m-label">Status</span>
-              <span class="m-value" [class.warning]="(gym.days_remaining || 0) < 7" [class.expired-text]="(gym.days_remaining || 0) <= 0">
-                {{ (gym.days_remaining || 0) > 0 ? gym.days_remaining + ' Days Left' : 'Expired' }}
+            <div class="sub-stat align-end">
+              <span class="ss-label">Remaining</span>
+              <span class="ss-value"
+                [class.warning]="(gym.days_remaining || 0) > 0 && (gym.days_remaining || 0) < 7"
+                [class.expired]="(gym.days_remaining || 0) <= 0">
+                {{ (gym.days_remaining || 0) > 0 ? gym.days_remaining + ' days' : 'Expired' }}
               </span>
             </div>
           </div>
 
-          <!-- High Fidelity Progress Bar -->
-          <div class="sb-bar-wrap">
-            <div class="sb-bar">
-              <div class="sb-fill"
-                [style.width.%]="(gym.days_remaining || 0) > 30 ? 100 : (gym.days_remaining || 0) * 3.33">
-                <div class="sb-glow"></div>
-              </div>
+          <div class="progress-bar">
+            <div class="progress-fill"
+              [style.width.%]="(gym.days_remaining || 0) > 30 ? 100 : (gym.days_remaining || 0) * 3.33"
+              [class.low]="(gym.days_remaining || 0) < 7">
             </div>
           </div>
         </div>
 
-        <div class="suspension-info animate-reveal" *ngIf="gym.status === 'suspended'">
-          <div class="reason-label"><mat-icon>warning</mat-icon> GYM SUSPENDED</div>
-          <p class="reason-text">{{ gym.suspension_reason || 'This gym has been suspended. Please contact support for more information.' }}</p>
+        <!-- Suspension notice -->
+        <div class="suspension-notice" *ngIf="gym.status === 'suspended'">
+          <mat-icon>warning</mat-icon>
+          <p>{{ gym.suspension_reason || 'This gym has been suspended. Contact support for details.' }}</p>
         </div>
       </div>
 
+      <!-- Card footer -->
       <div class="card-footer">
-        <div class="action-buttons">
-          <button *ngIf="(gym.days_remaining || 0) <= 1" class="btn-renew" (click)="openRenewal(gym)" 
-            [title]="'Renew Subscription'">
-            <mat-icon>autorenew</mat-icon>
-            <span>Renew Now</span>
-          </button>
-
-          <button class="btn-manage" [routerLink]="['/owner/gym-profile']" [queryParams]="{id: gym.id_gym}">
-            <mat-icon>settings_input_component</mat-icon>
-            <span>Manage</span>
-          </button>
-        </div>
+        <button *ngIf="(gym.days_remaining || 0) <= 1" class="btn-renew" (click)="openRenewal(gym)">
+          <mat-icon>autorenew</mat-icon>
+          Renew
+        </button>
+        <button class="btn-manage" [routerLink]="['/owner/gym-profile']" [queryParams]="{id: gym.id_gym}">
+          <mat-icon>tune</mat-icon>
+          Manage
+        </button>
       </div>
-    </div>
+
+    </article>
   </div>
 
-  <!-- Platform Renewal Checkout -->
-  <app-payment-modal [showModal]="showRenewalModal()" [itemTitle]="selectedGymForRenewal()?.name || 'Subscription'"
+  <!-- Payment modal -->
+  <app-payment-modal
+    [showModal]="showRenewalModal()"
+    [itemTitle]="selectedGymForRenewal()?.name || 'Subscription'"
     [itemSubtitle]="'Membership Renewal'"
     [purchaseTerms]="'Renewing your subscription keeps your gym active and gives you access to all management tools, member tracking, and operational features.'"
-    [processingPayment]="processingRenewal()" [paymentError]="errorMessage()" [stripePublicKey]="'pk_test_...'"
-    [plans]="platformPlans" (cancelPayment)="closeRenewal()" (confirmPayment)="completeRenewal($event)">
+    [processingPayment]="processingRenewal()"
+    [paymentError]="errorMessage()"
+    [stripePublicKey]="'pk_test_...'"
+    [plans]="platformPlans"
+    (cancelPayment)="closeRenewal()"
+    (confirmPayment)="completeRenewal($event)">
   </app-payment-modal>
 
-  <!-- Empty State -->
-  <div class="empty-state glass animate-reveal" *ngIf="!isLoading() && gyms().length === 0">
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!isLoading() && gyms().length === 0">
     <div class="empty-icon">🏢</div>
     <h2>No Gyms Found</h2>
-    <p>You haven't added any gyms yet. Go to the dashboard to create your first gym.</p>
-    <button class="btn-primary-zenith" routerLink="/owner/dashboard">
+    <p>You haven't added any gyms yet.</p>
+    <button class="btn-primary" routerLink="/owner/dashboard">
       <mat-icon>add_business</mat-icon>
       Add Gym
     </button>
   </div>
 
-  <!-- Loading Grid -->
+  <!-- Loading skeleton -->
   <ng-template #loadingState>
-    <div class="loading-grid">
-      <div class="skeleton-card" *ngFor="let x of [1,2,3,4]"></div>
+    <div class="gyms-grid">
+      <div class="skeleton-card" *ngFor="let x of [1,2,3,4]">
+        <div class="sk-hero"></div>
+        <div class="sk-body">
+          <div class="sk-line wide"></div>
+          <div class="sk-line medium"></div>
+          <div class="sk-line short"></div>
+        </div>
+      </div>
     </div>
   </ng-template>
+
 </div>

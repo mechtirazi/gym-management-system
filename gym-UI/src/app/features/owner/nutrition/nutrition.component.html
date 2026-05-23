@@ -41,7 +41,10 @@
   @if (showModal()) {
     <div class="modal-backdrop" (click)="closeModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
-        <h3>Dietary Plan Details</h3>
+        <h3>
+          <span class="modal-icon">✨</span>
+          Dietary Plan Details
+        </h3>
         
         <form class="modal-form">
           <div class="form-grid">
@@ -69,22 +72,17 @@
               End Date
               <input type="date" [(ngModel)]="planForm().end_date" name="end_date" readonly />
             </label>
-            
+
             <label>
+              Assign Nutritionist
+              <input type="text" [value]="resolvedNutritionistName()" readonly />
+            </label>
+            
+            <label class="multi-select-label">
               Assign Members
               <select [(ngModel)]="planForm().id_members" name="id_members" multiple disabled class="multi-select">
                 @for (member of members(); track member.id_user) {
                   <option [value]="member.id_user">{{ member.name }} {{ member.last_name }}</option>
-                }
-              </select>
-            </label>
-            
-            <label>
-              Assign Nutritionist
-              <select [(ngModel)]="planForm().id_nutritionist" name="id_nutritionist" disabled>
-                <option value="" disabled>Select a nutritionist</option>
-                @for (nutri of nutritionists(); track nutri.id_user) {
-                  <option [value]="nutri.id_user">{{ nutri.name }} {{ nutri.last_name }}</option>
                 }
               </select>
             </label>

@@ -440,6 +440,21 @@
     justify-content: center;
     font-size: 1.5rem;
     box-shadow: 0 4px 15px rgba(217, 70, 239, 0.2);
+    position: relative;
+    overflow: hidden;
+
+    .avatar-image {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .avatar-initials {
+      position: relative;
+      z-index: 0;
+    }
   }
 
   .details {

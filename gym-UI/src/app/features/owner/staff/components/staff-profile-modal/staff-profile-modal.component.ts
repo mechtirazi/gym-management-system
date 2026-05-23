@@ -78,6 +78,10 @@ export class StaffProfileModalComponent implements OnInit {
     this.close.emit();
   }
 
+  onImgError(event: Event) {
+    (event.target as HTMLImageElement).style.display = 'none';
+  }
+
   submitUpdate() {
     if (this.editForm.invalid) {
       this.editForm.markAllAsTouched();

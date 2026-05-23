@@ -1107,10 +1107,174 @@
   }
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+/* ─── LIGHT MODE OVERRIDES ─────────────────────────────────────────────────── */
+:host-context(html:not(.dark)) {
+
+  // Profile strength banner — swap to solid readable colours
+  .profile-strength-banner {
+    background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%);
+    border-color: rgba(139, 92, 246, 0.2);
+
+    &::before {
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.08), transparent 70%);
+    }
+
+    .circular-progress circle.bg {
+      stroke: rgba(139, 92, 246, 0.12);
+    }
+
+    .avatar-wrap {
+      border-color: rgba(139, 92, 246, 0.15);
+      background: #f5f3ff;
+    }
+
+    .alert-content {
+      .content-header h3 {
+        color: #1e1b4b;  // deep indigo — readable on light bg
+      }
+
+      p {
+        color: #64748b;
+      }
+
+      .missing-items-grid .m-item {
+        color: #94a3b8;
+        background: rgba(139, 92, 246, 0.05);
+        border-color: rgba(139, 92, 246, 0.1);
+
+        &.done {
+          color: #15803d;
+          background: rgba(34, 197, 94, 0.08);
+          border-color: rgba(34, 197, 94, 0.2);
+        }
+      }
+    }
   }
+
+  // Next session spotlight — replace dark gradient with clean light card
+  .spotlight-card {
+    background: linear-gradient(135deg, #f5f3ff 0%, #fdf4ff 100%);
+    border-color: rgba(139, 92, 246, 0.2);
+
+    &::after {
+      background: rgba(217, 70, 239, 0.06);
+    }
+
+    .spotlight-badge {
+      background: rgba(217, 70, 239, 0.1);
+      border-color: rgba(217, 70, 239, 0.25);
+      color: #9333ea;
+
+      &::before { background: #a855f7; }
+    }
+  }
+
+  .session-hero {
+    .hero-icon {
+      background: #ffffff;
+      border-color: rgba(139, 92, 246, 0.15);
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.1);
+    }
+
+    h2 { color: #1e1b4b; }
+    p  { color: #64748b; }
+  }
+
+  .countdown-wrap {
+    background: #ffffff;
+    border-color: rgba(139, 92, 246, 0.15);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.08);
+
+    .countdown-label { color: #94a3b8; }
+    .countdown-value { color: #1e1b4b; }
+  }
+
+  .attendance-forecast {
+    .forecast-bar { background: #e2e8f0; }
+    .forecast-text { color: #64748b; }
+  }
+
+  // Stat cards — replace dark glass with clean white cards
+  .stat-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+
+    &:hover {
+      background: #fafafa;
+      border-color: rgba(139, 92, 246, 0.25);
+      box-shadow: 0 12px 32px rgba(139, 92, 246, 0.12);
+    }
+
+    .value { color: #0f172a; }
+    .label { color: #64748b; }
+
+    .card-bg-icon { color: #0f172a; opacity: 0.03; }
+
+    .trend-badge {
+      &.up      { background: rgba(16,185,129,0.08); color: #059669; border-color: rgba(16,185,129,0.2); }
+      &.down    { background: rgba(239,68,68,0.08);  color: #dc2626; border-color: rgba(239,68,68,0.2); }
+      &.neutral { background: #f1f5f9; color: #64748b; border-color: #e2e8f0; }
+    }
+  }
+
+  // Agenda items
+  .agenda-item {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+
+    &:hover {
+      background: #f5f3ff;
+      border-color: rgba(139, 92, 246, 0.25);
+    }
+
+    .time-col {
+      .time   { color: #0f172a; }
+      .date-sm { color: #6366f1; }
+    }
+
+    .info-col {
+      .course-title { color: #0f172a; }
+      .gym-badge    { color: #64748b; }
+    }
+
+    .status-pill {
+      &.upcoming  { background: rgba(99,102,241,0.08); color: #4f46e5; border-color: rgba(99,102,241,0.2); }
+      &.ongoing   { background: rgba(16,185,129,0.08); color: #059669; border-color: rgba(16,185,129,0.2); }
+      &.completed { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+    }
+  }
+
+  // Quick action buttons
+  .action-btn {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #0f172a;
+
+    .txt { color: #0f172a; }
+
+    &:hover {
+      background: #f5f3ff;
+      border-color: rgba(139, 92, 246, 0.3);
+      .icon, .txt { color: #6366f1; }
+    }
+
+    &.active {
+      background: linear-gradient(135deg, rgba(217,70,239,0.08), rgba(99,102,241,0.08));
+      border-color: rgba(139, 92, 246, 0.25);
+      .icon { color: #9333ea; }
+      .txt  { color: #4f46e5; }
+    }
+  }
+
+  // Schedule section header
+  .schedule-section h3,
+  .quick-actions h3 {
+    color: #0f172a;
+  }
+
+  // Empty agenda
+  .empty-agenda p { color: #94a3b8; }
 }
 
 @keyframes gradientMove {
@@ -1177,4 +1341,8 @@
     transform: scale(1) translateY(0);
     opacity: 1;
   }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

@@ -148,10 +148,24 @@ export class NutritionManagementComponent implements OnInit {
   onViewPlan(plan: NutritionPlan) {
     this.modalMode.set('edit');
     const memberIds = (plan as any).id_members || plan.members?.map(m => m.id_user) || [];
+
+    // Normalize dates — API may return ISO timestamps, input[type=date] needs YYYY-MM-DD
+    const toDateStr = (val: string | undefined) => {
+      if (!val) return '';
+      return val.includes('T') ? val.split('T')[0] : val;
+    };
+
+    // Resolve nutritionist ID — coerce to string so <select> option matching works
+    const nutriId = String(
+      plan.id_nutritionist || (plan as any).nutritionist?.id_user || ''
+    );
+
     this.planForm.set({
       ...plan,
-      id_members: Array.isArray(memberIds) ? memberIds : [memberIds].filter(id => id),
-      id_nutritionist: plan.id_nutritionist || (plan as any).nutritionist?.id_user,
+      start_date: toDateStr(plan.start_date),
+      end_date: toDateStr(plan.end_date),
+      id_members: Array.isArray(memberIds) ? memberIds.map(String) : [String(memberIds)].filter(id => id),
+      id_nutritionist: nutriId,
     });
     this.showModal.set(true);
   }
@@ -246,6 +260,30 @@ export class NutritionManagementComponent implements OnInit {
       });
     });
   }
+
+  // Resolves the nutritionist display name for the view modal.
+  // Priority: nested nutritionist object on the plan → lookup in loaded nutritionists list by ID
+  resolvedNutritionistName = computed(() => {
+    const form = this.planForm();
+
+    // 1. Use the nested object if already present (most reliable)
+    if (form.nutritionist?.name) {
+      return `${form.nutritionist.name} ${form.nutritionist.last_name || ''}`.trim();
+    }
+
+    // 2. Fall back to looking up by ID in the loaded nutritionists list
+    const id = form.id_nutritionist;
+    if (id) {
+      const match = this.nutritionists().find(
+        n => String(n.id_user) === String(id)
+      );
+      if (match) {
+        return `${match.name} ${match.last_name || ''}`.trim();
+      }
+    }
+
+    return '—';
+  });
 
   filteredPlans = computed(() => {
     let list = this.allPlans();

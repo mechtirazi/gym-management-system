@@ -93,7 +93,15 @@
       <div class="review-card" *ngFor="let r of filteredReviews">
         <div class="review-header">
           <div class="user-info">
-            <div class="user-avatar">{{r.user?.name?.charAt(0) || 'U'}}</div>
+            <div class="user-avatar">
+              @if (getImageUrl(r.user?.profile_picture); as imgUrl) {
+                <img [src]="imgUrl" [alt]="r.user?.name" class="avatar-img"
+                  (error)="$any($event.target).style.display='none'" />
+                <span class="avatar-initials">{{r.user?.name?.charAt(0) || 'U'}}</span>
+              } @else {
+                <span class="avatar-initials">{{r.user?.name?.charAt(0) || 'U'}}</span>
+              }
+            </div>
             <div class="user-details">
               <h4>{{r.user?.name}} {{r.user?.last_name}}</h4>
               <span class="review-date">{{ r.review_date | date:'MMM d, y' }}</span>

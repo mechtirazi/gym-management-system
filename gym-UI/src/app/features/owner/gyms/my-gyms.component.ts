@@ -5,6 +5,7 @@ import { GymInfo } from '../../../core/models/api.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { RouterModule } from '@angular/router';
 import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
+import { environment } from '../../../../environments/environment';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,9 +47,16 @@ export class MyGymsComponent implements OnInit {
         const processedGyms = gyms.map(gym => {
           const expiryDate = gym.subscription_expires_at;
           const days = this.calculateDaysRemaining(expiryDate);
+          // Resolve logo from all possible field names the API may return
+          const rawLogo = (gym as any).picture
+            || (gym as any).logo
+            || gym.logo_url
+            || (gym as any).image
+            || null;
           return {
             ...gym,
-            days_remaining: days
+            days_remaining: days,
+            logo_url: this.getImageUrl(rawLogo) ?? undefined
           };
         });
         this.gyms.set(processedGyms);
@@ -116,5 +124,13 @@ export class MyGymsComponent implements OnInit {
 
   getAvatarUrl(path?: string): string {
     return this.authService.getAvatarUrl(path);
+  }
+
+  getImageUrl(path?: string | null): string | null {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '');
+    return `${baseUrl}/${cleanPath}`;
   }
 }

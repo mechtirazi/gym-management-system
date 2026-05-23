@@ -171,4 +171,10 @@ export class TrainerSessionsComponent implements OnInit {
     this.broadcastMessage.set(message);
     setTimeout(() => this.broadcastMessage.set(null), 5000);
   }
+
+  getImageUrl(imagePath: string | null | undefined): string | null {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${this.apiUrl}/storage/${imagePath}`;
+  }
 }

@@ -1,7 +1,11 @@
 <article class="staff-card glass-card hover-elevate">
   <div class="card-header">
     <div class="member-avatar">
-      <span class="initials">{{ (member().name || 'S').charAt(0) }}</span>
+      @if (member().profilePicture) {
+        <img class="avatar-img" [src]="member().profilePicture" [alt]="member().name" (error)="onImgError($event)" />
+      } @else {
+        <span class="initials">{{ (member().name || 'S').charAt(0) }}</span>
+      }
       <div class="status-indicator" [class]="(member().status || 'Active').toLowerCase().replace(' ', '-')"></div>
     </div>
     <div class="member-info">

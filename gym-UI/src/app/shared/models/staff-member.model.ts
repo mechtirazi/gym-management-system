@@ -8,6 +8,7 @@ export interface StaffMember {
   phone?: string;
   status?: string;
   avatar?: string;
+  profilePicture?: string;
   joinedAt?: string;
   [key: string]: any;
 }

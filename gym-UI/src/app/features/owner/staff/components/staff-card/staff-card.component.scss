@@ -20,6 +20,14 @@
   .member-avatar {
     width: 64px; height: 64px; background: var(--bg-hover); border-radius: 18px;
     display: flex; align-items: center; justify-content: center; position: relative;
+    overflow: hidden;
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 18px;
+    }
 
     .initials { font-size: 1.75rem; font-weight: 900; color: #0ea5e9; }
     .status-indicator {
