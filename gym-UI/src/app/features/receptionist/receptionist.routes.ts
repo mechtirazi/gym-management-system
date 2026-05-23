@@ -44,6 +44,11 @@ export const receptionistRoutes: Routes = [
         loadComponent: () =>
           import('../owner/community/community.component').then(m => m.CommunityComponent)
       },
+      {
+        path: 'messages',
+        loadComponent: () =>
+          import('../trainer/messages/trainer-messages.component').then(m => m.TrainerMessagesComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

@@ -353,8 +353,11 @@
   <!-- Messaging Overlay -->
   @if (selectedStaffForChat()) {
   <div class="floating-chat-container">
-    <app-nutrition-messages [recipientId]="selectedStaffForChat()!.id_user"
-      [recipientName]="selectedStaffForChat()!.name" (close)="closeStaffChat()">
+    <app-nutrition-messages
+      [recipientId]="selectedStaffForChat()!.id_user"
+      [recipientName]="selectedStaffForChat()!.name"
+      [recipientProfilePicture]="selectedStaffForChat()!.avatar"
+      (close)="closeStaffChat()">
     </app-nutrition-messages>
   </div>
   }

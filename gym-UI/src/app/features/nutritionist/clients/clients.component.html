@@ -129,7 +129,9 @@
   @if (selectedClientForChat()) {
   <div class="floating-chat-container">
     <app-nutrition-messages [recipientId]="selectedClientForChat().id_user"
-      [recipientName]="selectedClientForChat().name + ' ' + selectedClientForChat().last_name" (close)="closeChat()" />
+      [recipientName]="selectedClientForChat().name + ' ' + selectedClientForChat().last_name"
+      [recipientProfilePicture]="selectedClientForChat().profile_picture"
+      (close)="closeChat()" />
   </div>
   }
 

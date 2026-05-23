@@ -1430,11 +1430,15 @@
   .pr-card {
     padding: 1.5rem;
     border-radius: 16px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.05);
-    transition: 0.3s;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    &:hover { background: rgba(255,255,255,0.04); transform: scale(1.02); }
+    &:hover {
+      background: rgba(139, 92, 246, 0.08);
+      border-color: rgba(139, 92, 246, 0.3);
+      transform: scale(1.02);
+    }
     
     .pr-main {
       display: flex;
@@ -1666,11 +1670,31 @@
 
   .activity-summary .mini-stats-grid .m-stat strong { color: #1e293b; }
 
-  .pr-card {
-    background: #f8fafc;
-    border-color: rgba(0, 0, 0, 0.06);
-    &:hover { background: rgba(139, 92, 246, 0.04); }
-    .exercise { color: #1e293b; }
+  .pr-card,
+  .pr-list .pr-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+
+    &:hover {
+      background: #faf5ff;
+      border-color: #8b5cf6;
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.14);
+      transform: scale(1.02);
+    }
+
+    .pr-main {
+      .exercise { color: #1e293b; }
+      .val-group {
+        .weight { color: #f59e0b; text-shadow: none; }
+        .unit   { color: #64748b; }
+      }
+    }
+
+    .pr-meta {
+      .date  { color: #64748b; }
+      .trend { color: #ef4444; &.up { color: #10b981; } }
+    }
   }
 
   .history-item {
@@ -2107,12 +2131,31 @@
   }
 
   /* Physical Tab */
-  .pr-card {
-    background: #f8fafc;
+  .pr-card,
+  .pr-list .pr-card {
+    background: #ffffff;
     border-color: #e2e8f0;
-    .exercise { color: #64748b; }
-    .weight { color: #0f172a; }
-    &:hover { background: #ffffff; border-color: #8b5cf6; }
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+
+    .pr-main {
+      .exercise { color: #1e293b; font-weight: 800; }
+      .val-group {
+        .weight { color: #f59e0b; text-shadow: none; }
+        .unit   { color: #64748b; }
+      }
+    }
+
+    .pr-meta {
+      .date  { color: #64748b; }
+      .trend { color: #ef4444; &.up { color: #10b981; } }
+    }
+
+    &:hover {
+      background: #faf5ff;
+      border-color: #8b5cf6;
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.14);
+      transform: scale(1.02);
+    }
   }
 
   .metrics-visual .metric-row {

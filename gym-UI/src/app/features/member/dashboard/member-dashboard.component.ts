@@ -145,7 +145,23 @@ export class MemberDashboardComponent implements OnInit {
       })
     ).subscribe({
       next: (data: any) => {
-        this.upcomingSessions = data.enrollments?.data || [];
+        const allEnrollments: any[] = data.enrollments?.data || [];
+
+        // Only show sessions whose course starts today or in the future
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        this.upcomingSessions = allEnrollments
+          .filter((e: any) => {
+            const sessionDate = e.course?.start_date || e.start_date || e.created_at;
+            if (!sessionDate) return false;
+            return new Date(sessionDate) >= todayStart;
+          })
+          .sort((a: any, b: any) => {
+            const dateA = new Date(a.course?.start_date || a.start_date || a.created_at).getTime();
+            const dateB = new Date(b.course?.start_date || b.start_date || b.created_at).getTime();
+            return dateA - dateB;
+          });
         this.recentActivity = data.attendances?.data || [];
         this.nutritionPlan = data.nutrition?.data?.[0] || null;
 

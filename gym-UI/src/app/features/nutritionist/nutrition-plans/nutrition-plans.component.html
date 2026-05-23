@@ -299,6 +299,7 @@
       @if (selectedMemberForPlanChat()) {
       <app-nutrition-messages [recipientId]="selectedMemberForPlanChat().id_user"
         [recipientName]="selectedMemberForPlanChat().name + ' ' + selectedMemberForPlanChat().last_name"
+        [recipientProfilePicture]="selectedMemberForPlanChat().profile_picture"
         [fullPage]="true" (close)="closePlanChat()" />
       } @else {
       <div class="viewport-placeholder">

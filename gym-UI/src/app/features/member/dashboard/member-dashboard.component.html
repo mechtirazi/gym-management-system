@@ -57,24 +57,24 @@
           <div class="title-group">
             <div class="header-icon-glow"><span class="material-icons">sensors</span></div>
             <div class="header-text">
-              <h2>Upcoming Synchronization</h2>
-              <p>Real-time training pulse distribution</p>
+              <h2>Upcoming Sessions</h2>
+              <p>Your next scheduled training sessions</p>
             </div>
           </div>
-          <a routerLink="/member/workouts" class="btn-action-outline">Access Gyms</a>
+          <a routerLink="/member/workouts" class="btn-action-outline">View Gyms</a>
         </div>
 
         <div class="timeline-v-list" *ngIf="upcomingSessions.length > 0; else noSessions">
           <div class="timeline-node" *ngFor="let session of upcomingSessions">
             <div class="node-time">
-              <span class="time">{{ session.created_at | date:'HH:mm' }}</span>
-              <span class="date">{{ session.created_at | date:'MMM dd' }}</span>
+              <span class="time">{{ (session.course?.start_date || session.start_date) | date:'HH:mm' }}</span>
+              <span class="date">{{ (session.course?.start_date || session.start_date) | date:'MMM dd' }}</span>
             </div>
             <div class="node-content glass-item">
               <div class="node-icon"><span class="material-icons">fitness_center</span></div>
               <div class="node-details">
                 <h4>{{ session.course?.name || 'Training Session' }}</h4>
-                <p>{{ session.gym?.name || 'Central Facility' }}</p>
+                <p>{{ session.gym?.name || 'Gym' }}</p>
               </div>
             </div>
           </div>
@@ -83,8 +83,8 @@
         <ng-template #noSessions>
           <div class="empty-state-v3">
             <div class="orb-empty-glow">✨</div>
-            <p>No active training pulses detected in your pipeline.</p>
-            <button class="btn-action-primary" routerLink="/member/courses">Initialize Protocols</button>
+            <p>No upcoming sessions found.</p>
+            <button class="btn-action-primary" routerLink="/member/courses">Browse Courses</button>
           </div>
         </ng-template>
       </section>

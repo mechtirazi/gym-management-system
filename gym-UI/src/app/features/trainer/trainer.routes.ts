@@ -33,5 +33,9 @@ export const trainerRoutes: Routes = [
     path: 'calendar',
     loadComponent: () => import('./calendar/trainer-calendar.component').then(m => m.TrainerCalendarComponent)
   },
+  {
+    path: 'messages',
+    loadComponent: () => import('./messages/trainer-messages.component').then(m => m.TrainerMessagesComponent)
+  },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
 ];

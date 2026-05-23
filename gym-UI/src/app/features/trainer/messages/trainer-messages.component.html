@@ -1,0 +1,186 @@
+<div class="messages-page animate-fade-in">
+
+  <!-- ══ Page Header ══════════════════════════════════════════════════════════ -->
+  <header class="msg-header glass-card">
+    <div class="msg-header__inner">
+      <div class="msg-header__left">
+        <div class="msg-header__icon">
+          <span class="material-symbols-rounded">forum</span>
+          <span class="icon-glow"></span>
+        </div>
+        <div class="msg-header__text">
+          <h1>Messages</h1>
+          <p>Chat with your gym owner and team</p>
+        </div>
+      </div>
+
+      <div class="msg-header__right">
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          <span>Live</span>
+        </div>
+        @if (conversations().length > 0) {
+          <div class="conv-badge">
+            <span class="material-symbols-rounded">chat_bubble</span>
+            {{ conversations().length }} active
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Animated accent bar -->
+    <div class="header-accent-bar"></div>
+  </header>
+
+  <!-- ══ Main Layout ══════════════════════════════════════════════════════════ -->
+  <div class="msg-layout">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="msg-sidebar">
+
+      <!-- Sidebar header -->
+      <div class="sidebar-head">
+        <div class="sidebar-head__row">
+          <span class="sidebar-head__title">Conversations</span>
+          @if (conversations().length > 0) {
+            <span class="sidebar-head__count">{{ conversations().length }}</span>
+          }
+        </div>
+
+        <div class="sidebar-search">
+          <span class="material-symbols-rounded sidebar-search__icon">search</span>
+          <input
+            class="sidebar-search__input"
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search conversations…"
+          />
+        </div>
+      </div>
+
+      <!-- Conversation list -->
+      <div class="conv-list">
+
+        @if (isLoading()) {
+          <!-- Skeleton -->
+          @for (n of [1,2,3,4]; track n) {
+            <div class="conv-skeleton">
+              <div class="sk-av"></div>
+              <div class="sk-body">
+                <div class="sk-line sk-line--lg"></div>
+                <div class="sk-line sk-line--sm"></div>
+              </div>
+            </div>
+          }
+
+        } @else if (filteredConversations().length === 0) {
+          <div class="conv-empty">
+            <div class="conv-empty__icon">
+              <span class="material-symbols-rounded">mark_chat_unread</span>
+            </div>
+            <p class="conv-empty__title">No conversations yet</p>
+          <p class="conv-empty__hint">Messages from the owner will appear here</p>
+          </div>
+
+        } @else {
+          @for (conv of filteredConversations(); track conv.id_user) {
+            <div
+              class="conv-item"
+              [class.conv-item--active]="selectedRecipientId() === conv.id_user"
+              (click)="selectConversation(conv)"
+            >
+              <!-- Active indicator bar -->
+              <span class="conv-item__bar"></span>
+
+              <!-- Avatar -->
+              <div class="conv-av">
+                @if (conv.profile_picture) {
+                  <img class="conv-av__img" [src]="getImageUrl(conv.profile_picture)" [alt]="conv.name" />
+                } @else {
+                  <div class="conv-av__fallback">
+                    {{ (conv.name || '?').charAt(0).toUpperCase() }}
+                  </div>
+                }
+                <span class="conv-av__online"></span>
+              </div>
+
+              <!-- Info -->
+              <div class="conv-info">
+                <div class="conv-info__row">
+                  <span class="conv-info__name">{{ conv.name }}</span>
+                  @if (conv.created_at) {
+                    <span class="conv-info__time">{{ conv.created_at | date:'shortTime' }}</span>
+                  }
+                </div>
+                <p class="conv-info__preview">
+                  @if (conv.last_message) {
+                    <span class="preview-you">{{ conv.is_outgoing ? 'You: ' : '' }}</span>{{ conv.last_message }}
+                  } @else {
+                    <span class="preview-new">Start chatting →</span>
+                  }
+                </p>
+              </div>
+            </div>
+          }
+        }
+
+      </div>
+    </aside>
+
+    <!-- ── Chat Viewport ────────────────────────────────────────────────────── -->
+    <main class="msg-chat">
+
+      @if (selectedRecipientId()) {
+        <app-nutrition-messages
+          [recipientId]="selectedRecipientId()!"
+          [recipientName]="selectedRecipientName()"
+          [recipientProfilePicture]="selectedRecipientPicture() ?? undefined"
+          [fullPage]="true"
+          (close)="selectedRecipientId.set(null)"
+        />
+      } @else {
+
+        <!-- Welcome / empty state -->
+        <div class="welcome">
+          <!-- Decorative background rings -->
+          <div class="welcome__bg">
+            <div class="bg-ring bg-ring--1"></div>
+            <div class="bg-ring bg-ring--2"></div>
+            <div class="bg-ring bg-ring--3"></div>
+          </div>
+
+          <!-- Central icon -->
+          <div class="welcome__icon-wrap">
+            <div class="welcome__icon">
+              <span class="material-symbols-rounded">chat</span>
+            </div>
+          </div>
+
+          <h2 class="welcome__title">Your Inbox</h2>
+          <p class="welcome__desc">
+            Select a conversation on the left to read and reply to messages from your gym owner or team.
+          </p>
+
+          <!-- Feature pills -->
+          <div class="welcome__pills">
+            <div class="pill">
+              <span class="material-symbols-rounded">bolt</span>
+              Instant replies
+            </div>
+            <div class="pill">
+              <span class="material-symbols-rounded">history</span>
+              Full history
+            </div>
+            <div class="pill">
+              <span class="material-symbols-rounded">sync</span>
+              Live sync
+            </div>
+          </div>
+        </div>
+
+      }
+    </main>
+
+  </div>
+</div>

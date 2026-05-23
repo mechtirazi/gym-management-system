@@ -35,6 +35,9 @@ export class TrainerSidebarComponent implements OnInit {
     { label: 'Calendar', icon: 'calendar', routePath: '/trainer/calendar', sensitive: true },
     { label: 'Reviews & Feedback', icon: 'star', routePath: '/trainer/community', sensitive: true },
 
+    { label: 'Communication', isHeader: true, sensitive: false },
+    { label: 'Messages', icon: 'message', routePath: '/trainer/messages', sensitive: false },
+
     { label: 'System', isHeader: true, sensitive: false },
     { label: 'Analytics', icon: 'trending-up', routePath: '/trainer/analytics', sensitive: true },
     { label: 'Notifications', icon: 'bell', routePath: '/notifications', sensitive: false },
@@ -73,7 +76,8 @@ export class TrainerSidebarComponent implements OnInit {
       food: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 1 8a7 7 0 0 1-9 10Z"></path><path d="M11 20L11 12"></path></svg>`,
       star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
       'trending-up': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`,
-      bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`
+      bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`,
+      message: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`
     };
     return this.sanitizer.bypassSecurityTrustHtml(icons[name] || '');
   }

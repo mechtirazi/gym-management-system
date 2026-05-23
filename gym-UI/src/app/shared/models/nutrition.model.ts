@@ -67,4 +67,6 @@ export interface NutritionMessage {
   text: string;
   created_at: string;
   sender_name?: string;
+  sender_profile_picture?: string;
+  receiver_profile_picture?: string;
 }
