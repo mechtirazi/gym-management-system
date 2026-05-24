@@ -4,20 +4,13 @@ set -e
 PORT="${PORT:-80}"
 echo "=== Gym API Startup on PORT=$PORT ==="
 
-# Apache reads APACHE_PORT via envvars — set it
-export APACHE_PORT=$PORT
+# Rewrite ports.conf cleanly — no sed, no corruption
+printf "Listen %s\n" "$PORT" > /etc/apache2/ports.conf
 
-# Write a clean ports.conf with just the right port
-cat > /etc/apache2/ports.conf << EOF
-Listen $PORT
-EOF
+# Update VirtualHost port in site config
+sed -i "s/<VirtualHost \*:[0-9]*>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
 
-# Update VirtualHost port
-sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
-sed -i "s/<VirtualHost \*:8080>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf 2>/dev/null || true
-
-echo "ports.conf:"
-cat /etc/apache2/ports.conf
+echo "Apache will listen on port $PORT"
 
 # Generate app key if not set
 if [ -z "$APP_KEY" ]; then

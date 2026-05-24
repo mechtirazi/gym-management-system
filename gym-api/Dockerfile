@@ -17,8 +17,10 @@ RUN apt-get update && apt-get install -y \
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Enable Apache mod_rewrite and headers
+# Enable Apache mod_rewrite and headers, disable extra MPM modules
 RUN a2enmod rewrite headers
+RUN a2dismod mpm_event mpm_worker 2>/dev/null || true
+RUN a2enmod mpm_prefork
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
