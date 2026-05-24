@@ -4,7 +4,7 @@ set -e
 PORT="${PORT:-8080}"
 echo "=== Gym API Startup on PORT=$PORT ==="
 
-# Write nginx config with CORS headers
+# Write nginx config — NO CORS headers here, Laravel handles CORS
 cat > /etc/nginx/sites-available/default << NGINX
 server {
     listen $PORT;
@@ -12,21 +12,7 @@ server {
     root /var/www/html/public;
     index index.php;
 
-    # Handle CORS preflight OPTIONS requests
-    add_header 'Access-Control-Allow-Origin' '*' always;
-    add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS' always;
-    add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, Accept, X-Requested-With' always;
-    add_header 'Access-Control-Expose-Headers' 'Authorization' always;
-
     location / {
-        if (\$request_method = 'OPTIONS') {
-            add_header 'Access-Control-Allow-Origin' '*';
-            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
-            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, Accept, X-Requested-With';
-            add_header 'Content-Length' 0;
-            add_header 'Content-Type' 'text/plain';
-            return 204;
-        }
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
@@ -44,7 +30,6 @@ if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force
 fi
 
-# Run migrations
 echo "Running migrations..."
 php artisan migrate --force
 
@@ -61,7 +46,6 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Start php-fpm in background then nginx in foreground
 echo "Starting php-fpm..."
 php-fpm -D
 
