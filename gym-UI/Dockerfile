@@ -6,18 +6,19 @@ RUN npm install --force
 COPY . .
 RUN npm run build --configuration=production
 
-# Stage 2: Serve application with Nginx
+# Stage 2: Serve with Nginx — Railway compatible
 FROM nginx:alpine
-
-# Install bash and gettext (for envsubst to substitute $PORT in nginx.conf)
 RUN apk add --no-cache bash gettext
 
+# Copy built app
 COPY --from=build /app/dist/gym-ui/browser /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy startup script that injects the API URL at runtime
+# Copy entrypoint that injects API_URL and PORT at runtime
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
+
+# nginx config template — uses $PORT variable
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 ENTRYPOINT ["/docker-entrypoint.sh"]
