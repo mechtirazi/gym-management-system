@@ -9,8 +9,8 @@ RUN npm run build --configuration=production
 # Stage 2: Serve application with Nginx
 FROM nginx:alpine
 
-# Install bash for the startup script
-RUN apk add --no-cache bash
+# Install bash and gettext (for envsubst to substitute $PORT in nginx.conf)
+RUN apk add --no-cache bash gettext
 
 COPY --from=build /app/dist/gym-ui/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
