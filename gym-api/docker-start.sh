@@ -1,20 +1,32 @@
 #!/bin/bash
 set -e
 
-PORT="${PORT:-80}"
+PORT="${PORT:-8080}"
 echo "=== Gym API Startup on PORT=$PORT ==="
 
-# Rewrite ports.conf cleanly — no sed, no corruption
-printf "Listen %s\n" "$PORT" > /etc/apache2/ports.conf
+# Write nginx config pointing to php-fpm
+cat > /etc/nginx/sites-available/default << NGINX
+server {
+    listen $PORT;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
 
-# Update VirtualHost port in site config
-sed -i "s/<VirtualHost \*:[0-9]*>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
 
-echo "Apache will listen on port $PORT"
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+NGINX
 
 # Generate app key if not set
 if [ -z "$APP_KEY" ]; then
-    echo "Generating APP_KEY..."
     php artisan key:generate --force
 fi
 
@@ -22,7 +34,7 @@ fi
 echo "Running migrations..."
 php artisan migrate --force
 
-# Passport keys
+# Passport
 if [ ! -f storage/oauth-public.key ]; then
     php artisan passport:keys --force
 fi
@@ -35,5 +47,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "=== Starting Apache on port $PORT ==="
-exec apache2-foreground
+# Start php-fpm in background then nginx in foreground
+echo "Starting php-fpm..."
+php-fpm -D
+
+echo "Starting nginx on port $PORT..."
+exec nginx -g "daemon off;"
