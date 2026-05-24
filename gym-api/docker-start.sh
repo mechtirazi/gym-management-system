@@ -2,12 +2,17 @@
 set -e
 
 # Railway injects PORT — default to 80
-export PORT="${PORT:-80}"
+PORT="${PORT:-80}"
 echo "=== Gym API Startup on PORT=$PORT ==="
 
-# Make Apache listen on $PORT instead of hardcoded 80
-sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf
-sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/*.conf
+# Update Apache to listen on the correct port
+# Replace "Listen 80" in ports.conf only
+sed -i "s/^Listen 80$/Listen $PORT/" /etc/apache2/ports.conf
+
+# Update VirtualHost port in the site config
+sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
+
+echo "Apache configured to listen on port $PORT"
 
 # Generate app key if not set
 if [ -z "$APP_KEY" ]; then
