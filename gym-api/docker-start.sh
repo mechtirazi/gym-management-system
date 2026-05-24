@@ -1,18 +1,23 @@
 #!/bin/bash
 set -e
 
-# Railway injects PORT — default to 80
 PORT="${PORT:-80}"
 echo "=== Gym API Startup on PORT=$PORT ==="
 
-# Update Apache to listen on the correct port
-# Replace "Listen 80" in ports.conf only
-sed -i "s/^Listen 80$/Listen $PORT/" /etc/apache2/ports.conf
+# Apache reads APACHE_PORT via envvars — set it
+export APACHE_PORT=$PORT
 
-# Update VirtualHost port in the site config
+# Write a clean ports.conf with just the right port
+cat > /etc/apache2/ports.conf << EOF
+Listen $PORT
+EOF
+
+# Update VirtualHost port
 sed -i "s/<VirtualHost \*:80>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf
+sed -i "s/<VirtualHost \*:8080>/<VirtualHost *:$PORT>/" /etc/apache2/sites-available/000-default.conf 2>/dev/null || true
 
-echo "Apache configured to listen on port $PORT"
+echo "ports.conf:"
+cat /etc/apache2/ports.conf
 
 # Generate app key if not set
 if [ -z "$APP_KEY" ]; then
@@ -20,24 +25,19 @@ if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force
 fi
 
-# Run database migrations
+# Run migrations
 echo "Running migrations..."
 php artisan migrate --force
 
-# Generate Passport keys if they don't exist
+# Passport keys
 if [ ! -f storage/oauth-public.key ]; then
-    echo "Generating Passport keys..."
     php artisan passport:keys --force
 fi
-
-# Fix key permissions
 chmod 600 storage/oauth-*.key 2>/dev/null || true
 chown www-data:www-data storage/oauth-*.key 2>/dev/null || true
-
-# Create Passport personal access client if needed
 php artisan passport:client --personal --name="Gym Personal Access Client" --no-interaction 2>/dev/null || true
 
-# Cache config for production
+# Cache
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
