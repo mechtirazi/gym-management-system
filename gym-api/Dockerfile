@@ -44,6 +44,7 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 COPY docker-start.sh /usr/local/bin/docker-start.sh
 RUN chmod +x /usr/local/bin/docker-start.sh
 
+# Railway uses dynamic PORT — expose it
 EXPOSE 80
 
 CMD ["/usr/local/bin/docker-start.sh"]
