@@ -28,31 +28,26 @@ server {
 }
 NGINX
 
-# Write supervisord config
-mkdir -p /var/log/supervisor /var/run
-cat > /etc/supervisor/conf.d/app.conf << SUPERVISOR
-[supervisord]
-nodaemon=true
-logfile=/var/log/supervisor/supervisord.log
-pidfile=/var/run/supervisord.pid
-loglevel=info
+echo "Starting php-fpm..."
+/usr/local/sbin/php-fpm --nodaemonize --fpm-config /usr/local/etc/php-fpm.conf &
+PHP_PID=$!
+echo "php-fpm started with PID $PHP_PID"
 
-[program:php-fpm]
-command=/usr/local/sbin/php-fpm --nodaemonize --fpm-config /usr/local/etc/php-fpm.conf
-autostart=true
-autorestart=true
-priority=1
-stderr_logfile=/var/log/supervisor/php-fpm.err.log
-stdout_logfile=/var/log/supervisor/php-fpm.out.log
+# Wait for socket to be ready
+for i in $(seq 1 10); do
+    if [ -S /var/run/php/php8.2-fpm.sock ]; then
+        echo "php-fpm socket ready"
+        break
+    fi
+    echo "Waiting for php-fpm socket... ($i)"
+    sleep 1
+done
 
-[program:nginx]
-command=/usr/sbin/nginx -g "daemon off;"
-autostart=true
-autorestart=true
-priority=10
-stderr_logfile=/var/log/supervisor/nginx.err.log
-stdout_logfile=/var/log/supervisor/nginx.out.log
-SUPERVISOR
+echo "Starting nginx on port $PORT..."
+/usr/sbin/nginx -g "daemon off;" &
+NGINX_PID=$!
+echo "nginx started with PID $NGINX_PID"
 
-echo "Starting supervisord (nginx + php-fpm)..."
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/app.conf
+echo "Both services running. Waiting..."
+wait $PHP_PID $NGINX_PID
+echo "A process exited. Shutting down."
