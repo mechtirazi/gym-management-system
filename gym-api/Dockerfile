@@ -1,10 +1,10 @@
 FROM php:8.2-fpm
 
-# Install system dependencies + nginx
+# Install system dependencies + nginx + supervisor
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev \
     zip unzip libzip-dev default-mysql-client \
-    nginx \
+    nginx supervisor \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && rm -f /etc/nginx/sites-enabled/default
 
@@ -29,8 +29,8 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 RUN php artisan passport:keys --force 2>/dev/null || true
 RUN chmod 600 storage/oauth-*.key 2>/dev/null || true
 
+# Strip Windows CRLF from startup script and make executable
 COPY docker-start.sh /usr/local/bin/docker-start.sh
-# Strip Windows CRLF line endings and make executable
 RUN sed -i 's/\r$//' /usr/local/bin/docker-start.sh && chmod +x /usr/local/bin/docker-start.sh
 
 EXPOSE 8080
