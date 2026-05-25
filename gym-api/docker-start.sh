@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PORT="${PORT:-8080}"
-echo "=== Gym API Startup on PORT=$PORT ==="
+echo "=== Starting Gym API on PORT=$PORT ==="
 
 # Write nginx config
 cat > /etc/nginx/sites-available/default << NGINX
@@ -52,19 +52,16 @@ autorestart=true
 priority=10
 stderr_logfile=/var/log/supervisor/nginx.err.log
 stdout_logfile=/var/log/supervisor/nginx.out.log
+
+[program:laravel-setup]
+command=/bin/bash -c "sleep 3 && php /var/www/html/artisan migrate --force 2>&1 || true"
+autostart=true
+autorestart=false
+startsecs=0
+priority=5
+stderr_logfile=/var/log/supervisor/setup.err.log
+stdout_logfile=/var/log/supervisor/setup.out.log
 SUPERVISOR
 
-# Laravel setup — all non-fatal
-echo "Running Laravel setup..."
-php artisan key:generate --force 2>/dev/null || true
-php artisan migrate --force 2>/dev/null || echo "Migration warning (continuing)"
-php artisan passport:keys --force 2>/dev/null || true
-chmod 600 storage/oauth-*.key 2>/dev/null || true
-chown www-data:www-data storage/oauth-*.key 2>/dev/null || true
-php artisan passport:client --personal --name="Gym Personal Access Client" --no-interaction 2>/dev/null || true
-php artisan config:cache 2>/dev/null || true
-php artisan route:cache 2>/dev/null || true
-php artisan view:cache 2>/dev/null || true
-
-echo "Starting supervisord on port $PORT..."
+echo "Starting supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/app.conf
