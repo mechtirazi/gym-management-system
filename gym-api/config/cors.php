@@ -1,5 +1,21 @@
 <?php
 
+$defaultOrigins = array_filter([
+    env('FRONTEND_URL'),
+    'http://localhost:4200',
+    'https://gym-ui-production.up.railway.app',
+]);
+
+$allowedOrigins = array_values(array_unique(array_filter(array_map(
+    static fn (string $origin): string => rtrim(trim($origin), '/'),
+    explode(',', env('CORS_ALLOWED_ORIGINS', implode(',', $defaultOrigins)))
+), static fn (string $origin): bool => $origin !== '')));
+
+$allowedOriginPatterns = array_values(array_unique(array_filter(array_map(
+    static fn (string $pattern): string => trim($pattern),
+    explode(',', env('CORS_ALLOWED_ORIGIN_PATTERNS', '#^https://gym-ui(?:-[a-z0-9-]+)?\\.up\\.railway\\.app$#'))
+), static fn (string $pattern): bool => $pattern !== '')));
+
 return [
 
     /*
@@ -19,9 +35,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => $allowedOrigins,
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => $allowedOriginPatterns,
 
     'allowed_headers' => ['*'],
 
