@@ -4,6 +4,7 @@ set -e
 PORT="${PORT:-8080}"
 echo "=== Gym API Startup on PORT=$PORT ==="
 
+# Write nginx config
 cat > /etc/nginx/sites-available/default << NGINX
 server {
     listen $PORT;
@@ -12,7 +13,6 @@ server {
     index index.php;
 
     location / {
-        # Route ALL methods including OPTIONS to Laravel
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
@@ -50,8 +50,18 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+# Start php-fpm in foreground mode in background using & 
+# then start nginx in foreground
 echo "Starting php-fpm..."
-php-fpm -D
+php-fpm --nodaemonize &
+PHP_PID=$!
+
+echo "Waiting for php-fpm to be ready..."
+sleep 2
 
 echo "Starting nginx on port $PORT..."
-exec nginx -g "daemon off;"
+nginx -g "daemon off;" &
+NGINX_PID=$!
+
+# Wait for either process to exit
+wait $PHP_PID $NGINX_PID
