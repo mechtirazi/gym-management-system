@@ -16,7 +16,7 @@ server {
     }
 
     location ~ \.php\$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         fastcgi_param REQUEST_METHOD \$request_method;
@@ -33,15 +33,9 @@ echo "Starting php-fpm..."
 PHP_PID=$!
 echo "php-fpm started with PID $PHP_PID"
 
-# Wait for socket to be ready
-for i in $(seq 1 10); do
-    if [ -S /var/run/php/php8.2-fpm.sock ]; then
-        echo "php-fpm socket ready"
-        break
-    fi
-    echo "Waiting for php-fpm socket... ($i)"
-    sleep 1
-done
+# Wait for php-fpm to start
+echo "Waiting for php-fpm..."
+sleep 2
 
 echo "Starting nginx on port $PORT..."
 /usr/sbin/nginx -g "daemon off;" &
@@ -49,5 +43,5 @@ NGINX_PID=$!
 echo "nginx started with PID $NGINX_PID"
 
 echo "Both services running. Waiting..."
-wait $PHP_PID $NGINX_PID
+wait -n
 echo "A process exited. Shutting down."
