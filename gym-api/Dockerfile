@@ -1,9 +1,10 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies + nginx + supervisor
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev \
-    zip unzip libzip-dev default-mysql-client nginx \
+    zip unzip libzip-dev default-mysql-client \
+    nginx supervisor \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions

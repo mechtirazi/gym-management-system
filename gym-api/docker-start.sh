@@ -17,7 +17,7 @@ server {
     }
 
     location ~ \.php\$ {
-        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         fastcgi_param REQUEST_METHOD \$request_method;
@@ -29,7 +29,30 @@ server {
 }
 NGINX
 
-# Generate app key if not set
+# Write supervisord config
+mkdir -p /var/log/supervisor
+cat > /etc/supervisor/conf.d/app.conf << SUPERVISOR
+[supervisord]
+nodaemon=true
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:php-fpm]
+command=/usr/local/sbin/php-fpm --nodaemonize
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/php-fpm.err.log
+stdout_logfile=/var/log/supervisor/php-fpm.out.log
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/nginx.err.log
+stdout_logfile=/var/log/supervisor/nginx.out.log
+SUPERVISOR
+
+# Laravel setup
 if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force
 fi
@@ -37,7 +60,6 @@ fi
 echo "Running migrations..."
 php artisan migrate --force
 
-# Passport
 if [ ! -f storage/oauth-public.key ]; then
     php artisan passport:keys --force
 fi
@@ -45,23 +67,9 @@ chmod 600 storage/oauth-*.key 2>/dev/null || true
 chown www-data:www-data storage/oauth-*.key 2>/dev/null || true
 php artisan passport:client --personal --name="Gym Personal Access Client" --no-interaction 2>/dev/null || true
 
-# Cache
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Start php-fpm in foreground mode in background using & 
-# then start nginx in foreground
-echo "Starting php-fpm..."
-php-fpm --nodaemonize &
-PHP_PID=$!
-
-echo "Waiting for php-fpm to be ready..."
-sleep 2
-
-echo "Starting nginx on port $PORT..."
-nginx -g "daemon off;" &
-NGINX_PID=$!
-
-# Wait for either process to exit
-wait $PHP_PID $NGINX_PID
+echo "Starting supervisord (nginx + php-fpm) on port $PORT..."
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/app.conf
