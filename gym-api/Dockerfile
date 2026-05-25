@@ -1,11 +1,12 @@
 FROM php:8.2-fpm
 
-# Install system dependencies + nginx + supervisor
+# Install system dependencies + nginx
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev \
     zip unzip libzip-dev default-mysql-client \
-    nginx supervisor \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    nginx \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/nginx/sites-enabled/default
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
@@ -29,7 +30,8 @@ RUN php artisan passport:keys --force 2>/dev/null || true
 RUN chmod 600 storage/oauth-*.key 2>/dev/null || true
 
 COPY docker-start.sh /usr/local/bin/docker-start.sh
-RUN chmod +x /usr/local/bin/docker-start.sh
+# Strip Windows CRLF line endings and make executable
+RUN sed -i 's/\r$//' /usr/local/bin/docker-start.sh && chmod +x /usr/local/bin/docker-start.sh
 
 EXPOSE 8080
 
