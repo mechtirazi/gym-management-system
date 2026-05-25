@@ -52,16 +52,7 @@ autorestart=true
 priority=10
 stderr_logfile=/var/log/supervisor/nginx.err.log
 stdout_logfile=/var/log/supervisor/nginx.out.log
-
-[program:laravel-setup]
-command=/bin/bash -c "sleep 3 && php /var/www/html/artisan migrate --force 2>&1 || true"
-autostart=true
-autorestart=false
-startsecs=0
-priority=5
-stderr_logfile=/var/log/supervisor/setup.err.log
-stdout_logfile=/var/log/supervisor/setup.out.log
 SUPERVISOR
 
-echo "Starting supervisord..."
+echo "Starting supervisord (nginx + php-fpm)..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/app.conf
