@@ -4,7 +4,6 @@ set -e
 PORT="${PORT:-8080}"
 echo "=== Gym API Startup on PORT=$PORT ==="
 
-# Write nginx config — NO CORS headers here, Laravel handles CORS
 cat > /etc/nginx/sites-available/default << NGINX
 server {
     listen $PORT;
@@ -13,13 +12,18 @@ server {
     index index.php;
 
     location / {
+        # Route ALL methods including OPTIONS to Laravel
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    location ~ \.php$ {
+    location ~ \.php\$ {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        fastcgi_param REQUEST_METHOD \$request_method;
+        fastcgi_param HTTP_ORIGIN \$http_origin;
+        fastcgi_param HTTP_ACCESS_CONTROL_REQUEST_METHOD \$http_access_control_request_method;
+        fastcgi_param HTTP_ACCESS_CONTROL_REQUEST_HEADERS \$http_access_control_request_headers;
         include fastcgi_params;
     }
 }
