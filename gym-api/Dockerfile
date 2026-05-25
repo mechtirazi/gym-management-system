@@ -27,7 +27,8 @@ RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Generate passport keys at build time so they exist in the image
 RUN php artisan passport:keys --force 2>/dev/null || true
-RUN chmod 600 storage/oauth-*.key 2>/dev/null || true
+RUN chown www-data:www-data storage/oauth-*.key 2>/dev/null || true
+RUN chmod 640 storage/oauth-*.key 2>/dev/null || true
 
 COPY docker-start.sh /usr/local/bin/docker-start.sh
 # Strip Windows CRLF line endings and make executable

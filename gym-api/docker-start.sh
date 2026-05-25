@@ -4,6 +4,15 @@ set -e
 PORT="${PORT:-8080}"
 echo "=== Starting Gym API on PORT=$PORT ==="
 
+# Ensure Passport keys exist and are readable by php-fpm user.
+if [ ! -f /var/www/html/storage/oauth-public.key ] || [ ! -f /var/www/html/storage/oauth-private.key ]; then
+  echo "Passport keys missing. Generating..."
+  php artisan passport:keys --force || true
+fi
+
+chown www-data:www-data /var/www/html/storage/oauth-*.key 2>/dev/null || true
+chmod 640 /var/www/html/storage/oauth-*.key 2>/dev/null || true
+
 # Remove any conflicting default nginx configs
 rm -f /etc/nginx/conf.d/default.conf
 rm -f /etc/nginx/sites-enabled/default
