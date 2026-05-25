@@ -1,0 +1,1 @@
+{"query":"query{deployments(input:{serviceId:\"54bb8afd-1858-4489-b2c5-ca5f6997f680\",environmentId:\"82278cff-61a0-4d8e-ab0f-8c6ee9dfad29\"},first:1){edges{node{id status}}}}"}

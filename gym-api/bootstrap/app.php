@@ -13,8 +13,6 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
-        // Handle CORS at the beginning so it responds to OPTIONS preflights
-        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
 
         // Exclude session middleware from API routes
         $middleware->api(remove: [

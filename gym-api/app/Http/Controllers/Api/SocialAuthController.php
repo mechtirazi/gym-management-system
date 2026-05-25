@@ -67,8 +67,13 @@ class SocialAuthController extends Controller
 
         // 3. PRELOAD HEADER: Tells the browser to start preparing the Angular Dashboard
         // while the redirect is still happening. This significantly improves LCP.
-        return redirect("http://localhost:4200/auth/callback?token={$token}&u={$userJson}")
-            ->header('Link', '<http://localhost:4200/dashboard>; rel=prefetch');
+        $frontendBase = rtrim((string) config('app.frontend_url', 'http://localhost:4200'), '/');
+        $callbackQuery = http_build_query(['token' => $token, 'u' => $userJson]);
+        $callbackUrl = "{$frontendBase}/auth/callback?{$callbackQuery}";
+        $dashboardUrl = "{$frontendBase}/dashboard";
+
+        return redirect($callbackUrl)
+            ->header('Link', "<{$dashboardUrl}>; rel=prefetch");
 
     } catch (\Exception $e) {
         return response()->json([

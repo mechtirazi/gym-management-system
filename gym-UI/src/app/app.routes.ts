@@ -5,6 +5,11 @@ import { authGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
+  },
+  {
     path: 'auth',
     children: [
       {
@@ -164,6 +169,5 @@ export const routes: Routes = [
       }
     ]
   },
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: 'auth/login' }
 ];

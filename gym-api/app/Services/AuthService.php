@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthService
 {
@@ -23,16 +24,19 @@ class AuthService
             // Set default status to pending
             $data['status'] = 'pending';
 
-            // Create user (email_verified_at is null by default)
+            // Create user (email_verified_at is null by default).
             $user = User::create($data);
 
-            // Send verification email
-            $user->notify(new VerifyEmailNotification());
+            $emailResult = $this->sendVerificationEmail($user);
 
             return [
                 'success'              => true,
                 'user'                 => $user,
-                'email_verification'   => 'A verification email has been sent to your email address.',
+                'email_sent'           => $emailResult['sent'],
+                'mail_error'           => $emailResult['error'],
+                'email_verification'   => $emailResult['sent']
+                    ? 'A verification email has been sent to your email address.'
+                    : 'Account created, but verification email could not be sent right now. Please use "Resend Verification Email".',
             ];
 
         } catch (\Exception $e) {
@@ -108,7 +112,13 @@ class AuthService
                 ];
             }
 
-            $user->notify(new VerifyEmailNotification());
+            $emailResult = $this->sendVerificationEmail($user);
+            if (! $emailResult['sent']) {
+                return [
+                    'success' => false,
+                    'message' => 'Could not send verification email: ' . ($emailResult['error'] ?? 'unknown error'),
+                ];
+            }
 
             return [
                 'success' => true,
@@ -120,6 +130,29 @@ class AuthService
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+        }
+    }
+
+    private function sendVerificationEmail(User $user): array
+    {
+        try {
+            // Send synchronously (bypass queue) to surface errors immediately
+            $notification = new VerifyEmailNotification();
+            $notification->onConnection('sync');
+            $user->notify($notification);
+
+            return ['sent' => true, 'error' => null];
+        } catch (\Throwable $e) {
+            Log::error('Failed to send verification email', [
+                'user_id'        => $user->getKey(),
+                'email'          => $user->email,
+                'mailer'         => config('mail.default'),
+                'resend_key_set' => !empty(config('services.resend.key')),
+                'error'          => $e->getMessage(),
+                'trace'          => $e->getTraceAsString(),
+            ]);
+
+            return ['sent' => false, 'error' => $e->getMessage()];
         }
     }
 

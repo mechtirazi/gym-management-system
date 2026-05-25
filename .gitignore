@@ -30,3 +30,9 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Temp Railway Keys
+gym-api/railway_temp_key*
+_remote_*
+_deploy_*
+_main_deploy/

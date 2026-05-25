@@ -55,6 +55,38 @@ Route::prefix('auth')->group(function () {
         return response()->json(['success' => true, 'status' => 'optimal', 'timestamp' => now()]);
     });
 
+    // Mail diagnostic endpoint — remove after confirming mail works
+    Route::get('mail-test', function (Illuminate\Http\Request $request) {
+        $to = $request->query('to', 'test@example.com');
+        $diagnostics = [
+            'mailer'         => config('mail.default'),
+            'from_address'   => config('mail.from.address'),
+            'resend_key_set' => !empty(config('services.resend.key')),
+            'resend_key_prefix' => substr((string) config('services.resend.key'), 0, 6) . '...',
+            'queue'          => config('queue.default'),
+            'app_url'        => config('app.url'),
+            'frontend_url'   => config('app.frontend_url'),
+            'app_env'        => config('app.env'),
+        ];
+
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                'This is a test email from Gym API at ' . now(),
+                function ($msg) use ($to) {
+                    $msg->to($to)->subject('Gym API Mail Test');
+                }
+            );
+            $diagnostics['status'] = 'sent_ok';
+            $diagnostics['sent_to'] = $to;
+        } catch (\Throwable $e) {
+            $diagnostics['status'] = 'failed';
+            $diagnostics['error'] = $e->getMessage();
+            $diagnostics['error_class'] = get_class($e);
+        }
+
+        return response()->json($diagnostics);
+    });
+
     // Social Media Login
     Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])->name('auth.social.redirect');
     Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])->name('auth.social.callback');

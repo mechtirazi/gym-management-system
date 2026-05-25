@@ -24,6 +24,13 @@
       </div>
       <h3>Action Required: Verify Email</h3>
       <p>{{ successMessage() }}</p>
+      <p class="mt-4" *ngIf="registeredEmail()"><strong>{{ registeredEmail() }}</strong></p>
+      <button type="button" class="submit-btn mt-4" (click)="onResendVerification()" [disabled]="resendLoading()">
+        <ng-container *ngIf="resendLoading()">Sending...</ng-container>
+        <ng-container *ngIf="!resendLoading()">Resend Verification Email</ng-container>
+      </button>
+      <p class="mt-3" *ngIf="resendMessage()">{{ resendMessage() }}</p>
+      <p class="error mt-3" *ngIf="resendError()">{{ resendError() }}</p>
       <button class="submit-btn mt-6" routerLink="/auth/login">Back to Login</button>
     </div>
 

@@ -3,6 +3,25 @@
 PORT="${PORT:-8080}"
 echo "=== Starting Gym API on PORT=$PORT ==="
 
+# Clear any stale config/route/service caches that may have been built
+# with local dev paths or wrong env values, then rebuild from current env vars.
+echo "Clearing and rebuilding Laravel caches..."
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
+php artisan config:cache
+php artisan route:cache
+
+# Ensure Passport keys exist and are readable by php-fpm user.
+if [ ! -f /var/www/html/storage/oauth-public.key ] || [ ! -f /var/www/html/storage/oauth-private.key ]; then
+  echo "Passport keys missing. Generating..."
+  php artisan passport:keys --force || true
+fi
+
+chown www-data:www-data /var/www/html/storage/oauth-*.key 2>/dev/null || true
+chmod 640 /var/www/html/storage/oauth-*.key 2>/dev/null || true
+
 # Remove conflicting nginx default site
 rm -f /etc/nginx/sites-enabled/default
 rm -f /etc/nginx/conf.d/default.conf

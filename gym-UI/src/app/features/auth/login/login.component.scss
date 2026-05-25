@@ -399,3 +399,28 @@ input {
         }
     }
 }
+
+.entry-link-row {
+    margin-bottom: 0.6rem;
+}
+
+.back-home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    color: #7dd3fc;
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition: color 0.2s ease, transform 0.2s ease;
+
+    svg {
+        width: 0.95rem;
+        height: 0.95rem;
+    }
+
+    &:hover {
+        color: #bae6fd;
+        transform: translateX(-1px);
+    }
+}

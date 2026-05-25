@@ -5,6 +5,19 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const userStr = localStorage.getItem('user');
   let gymId: string | number | null = null;
 
+  const isPublicAuthRequest =
+    req.url.includes('/auth/register') ||
+    req.url.includes('/auth/login') ||
+    req.url.includes('/auth/forgot-password') ||
+    req.url.includes('/auth/verify-code') ||
+    req.url.includes('/auth/reset-password') ||
+    req.url.includes('/auth/resend-verification');
+
+  // Public auth routes should not carry potentially stale bearer tokens.
+  if (isPublicAuthRequest) {
+    return next(req);
+  }
+
   if (userStr) {
     try {
       const user = JSON.parse(userStr);
@@ -22,7 +35,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     headers['X-Gym-Id'] = gymId.toString();
   }
 
-  if (token) {
+  if (token && token !== 'null' && token !== 'undefined') {
     const cloned = req.clone({
       setHeaders: headers
     });

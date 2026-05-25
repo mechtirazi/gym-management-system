@@ -1,0 +1,10 @@
+﻿STATUS: DEPLOYING (id: 7693830f-b29f-4d4c-b450-f37d84a12d18)
+[info] Starting Container
+[info] 
+[info]    INFO  Nothing to migrate.  
+[info] 
+[info] Stopping Container
+[info] Starting Container
+[info] 
+[info] 
+[info]    INFO  Encryption keys generated successfully.  

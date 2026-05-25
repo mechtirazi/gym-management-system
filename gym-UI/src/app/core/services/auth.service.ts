@@ -85,6 +85,10 @@ export class AuthService {
     return this.http.get(`${this.API_URL}/auth/verify/${id}/${hash}?${query}`);
   }
 
+  resendVerification(email: string): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/auth/resend-verification`, { email });
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

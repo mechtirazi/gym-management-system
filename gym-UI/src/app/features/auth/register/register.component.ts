@@ -21,6 +21,10 @@ export class RegisterComponent {
   isLoading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
+  registeredEmail = signal('');
+  resendLoading = signal(false);
+  resendMessage = signal('');
+  resendError = signal('');
   showPassword = signal(false);
 
   togglePassword() {
@@ -68,6 +72,7 @@ export class RegisterComponent {
       this.authService.register(registrationData).subscribe({
         next: (res: any) => {
           this.isLoading.set(false);
+          this.registeredEmail.set(this.registerForm.value.email || '');
           this.successMessage.set('Registration successful! You need to do verification. Please check your email inbox (and spam folder) for the verification link.');
         },
         error: (err: any) => {
@@ -76,5 +81,27 @@ export class RegisterComponent {
         }
       });
     }
+  }
+
+  onResendVerification() {
+    const email = this.registeredEmail();
+    if (!email || this.resendLoading()) {
+      return;
+    }
+
+    this.resendLoading.set(true);
+    this.resendMessage.set('');
+    this.resendError.set('');
+
+    this.authService.resendVerification(email).subscribe({
+      next: (res: any) => {
+        this.resendLoading.set(false);
+        this.resendMessage.set(res?.message || 'Verification email sent again. Please check your inbox and spam folder.');
+      },
+      error: (err: any) => {
+        this.resendLoading.set(false);
+        this.resendError.set(err?.error?.message || 'Could not resend verification email right now.');
+      }
+    });
   }
 }

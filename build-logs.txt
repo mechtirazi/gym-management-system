@@ -1,0 +1,51 @@
+﻿[info]   laravel/passport 
+[info] [90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m
+[info]  [32;1mDONE[39;22m
+  laravel/socialite 
+[info] [90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m
+[info]  [32;1mDONE[39;22m
+  laravel/tinker 
+[info] [90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m
+[info]  [32;1mDONE[39;22m
+  nesbot/carbon 
+[info] [90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m
+[info]  [32;1mDONE[39;22m
+  nunomaduro/termwind 
+[info] [90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m[90m.[39m
+[info]  [32;1mDONE[39;22m
+
+
+[info] 59 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+
+[info] [stage-0  7/11] RUN composer install --optimize-autoloader --no-dev --no-interaction
+[info] [stage-0  8/11] RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+[info] [stage-0  8/11] RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+[info] [stage-0  9/11] RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+[info] [stage-0  9/11] RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+[info] [stage-0 10/11] COPY docker-start.sh /usr/local/bin/docker-start.sh
+[info] [stage-0 10/11] COPY docker-start.sh /usr/local/bin/docker-start.sh
+[info] [stage-0 11/11] RUN chmod +x /usr/local/bin/docker-start.sh
+[info] [stage-0 11/11] RUN chmod +x /usr/local/bin/docker-start.sh
+[info] exporting to docker image format
+[info] exporting to docker image format
+[info] containerimage.config.digest: sha256:20cb7188bb53a83e2e92c19ab1e2531b1f16e315b49fac2e9df654ae92239b67
+[info] containerimage.digest: sha256:97ea4cb57d6fa574763703eb6918ae737e5fce0b001c730c91acf66ad74b7c54
+[info] containerimage.descriptor: eyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLm1hbmlmZXN0LnYxK2pzb24iLCJkaWdlc3QiOiJzaGEyNTY6OTdlYTRjYjU3ZDZmYTU3NDc2MzcwM2ViNjkxOGFlNzM3ZTVmY2UwYjAwMWM3MzBjOTFhY2Y2NmFkNzRiN2M1NCIsInNpemUiOjQ0NzEsImFubm90YXRpb25zIjp7Im9yZy5vcGVuY29udGFpbmVycy5pbWFnZS5jcmVhdGVkIjoiMjAyNi0wNS0yNVQxNTowMjo1MloifSwicGxhdGZvcm0iOnsiYXJjaGl0ZWN0dXJlIjoiYW1kNjQiLCJvcyI6ImxpbnV4In19
+[info] image push
+[info] image push
+[info] 
+[info] [35m====================
+Starting Healthcheck
+====================
+[0m
+[info] [37mPath: /up[0m
+[info] [37mRetry window: 5m0s[0m
+[info] 
+[info] [93mAttempt #1 failed with service unavailable. Continuing to retry for 4m49s[0m
+[info] [93mAttempt #2 failed with service unavailable. Continuing to retry for 4m38s[0m
+[info] [93mAttempt #3 failed with service unavailable. Continuing to retry for 4m26s[0m
+[info] [93mAttempt #4 failed with service unavailable. Continuing to retry for 4m12s[0m
+[info] [93mAttempt #5 failed with service unavailable. Continuing to retry for 3m54s[0m
+[info] [93mAttempt #6 failed with service unavailable. Continuing to retry for 3m28s[0m
+[info] [93mAttempt #7 failed with service unavailable. Continuing to retry for 2m48s[0m

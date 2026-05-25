@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\URL;
 class VerifyEmailNotification extends Notification implements ShouldQueue
 {
     use Queueable;
-
     /**
      * Get the notification's delivery channels.
      */
@@ -44,23 +43,23 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
      */
     protected function verificationUrl(object $notifiable): string
     {
+        $id = $notifiable->getKey();
+        $hash = sha1($notifiable->getEmailForVerification());
+
         $verifyUrl = URL::temporarySignedRoute(
             'verification.verify',
             Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
             [
-                'id'   => $notifiable->getKey(),
-                'hash' => sha1($notifiable->getEmailForVerification()),
+                'id'   => $id,
+                'hash' => $hash,
             ]
         );
 
-        $frontendUrl = 'http://localhost:4200/auth/verify';
-        
-        // Find the route path segment to replace it with the frontend URL
-        $backendBase = route('verification.verify', ['id' => 'ID', 'hash' => 'HASH']);
-        $backendBase = str_replace(['ID', 'HASH'], '', $backendBase);
-        $backendBase = rtrim($backendBase, '/');
+        $frontendVerifyBase = rtrim((string) config('app.frontend_url', 'http://localhost:4200'), '/').'/auth/verify';
+        $queryString = parse_url($verifyUrl, PHP_URL_QUERY);
+        $frontendUrl = "{$frontendVerifyBase}/{$id}/{$hash}";
 
-        return str_replace($backendBase, $frontendUrl, $verifyUrl);
+        return $queryString ? "{$frontendUrl}?{$queryString}" : $frontendUrl;
     }
 
     /**

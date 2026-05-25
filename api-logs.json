@@ -1,0 +1,1 @@
+{"query":"query{deploymentLogs(deploymentId:\"4d56ef07-3f9a-4007-ae30-021a76475b13\",limit:30){message severity}}"}

@@ -94,23 +94,23 @@ class AppServiceProvider extends ServiceProvider
         });
 
         VerifyEmail::createUrlUsing(function ($notifiable) {
-            $frontendUrl = 'http://localhost:4200/auth/verify';
+            $id = $notifiable->getKey();
+            $hash = sha1($notifiable->getEmailForVerification());
             
             $verifyUrl = URL::temporarySignedRoute(
                 'verification.verify',
                 Carbon::now()->addMinutes(60),
                 [
-                    'id' => $notifiable->getKey(),
-                    'hash' => sha1($notifiable->getEmailForVerification()),
+                    'id' => $id,
+                    'hash' => $hash,
                 ]
             );
 
-            // Find the route path segment to replace it with the frontend URL
-            $backendBase = route('verification.verify', ['id' => 'ID', 'hash' => 'HASH']);
-            $backendBase = str_replace(['ID', 'HASH'], '', $backendBase);
-            $backendBase = rtrim($backendBase, '/');
+            $frontendVerifyBase = rtrim((string) config('app.frontend_url', 'http://localhost:4200'), '/').'/auth/verify';
+            $queryString = parse_url($verifyUrl, PHP_URL_QUERY);
+            $frontendUrl = "{$frontendVerifyBase}/{$id}/{$hash}";
 
-            return str_replace($backendBase, $frontendUrl, $verifyUrl);
+            return $queryString ? "{$frontendUrl}?{$queryString}" : $frontendUrl;
         });
     }
 }
