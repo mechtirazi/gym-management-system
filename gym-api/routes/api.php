@@ -55,6 +55,45 @@ Route::prefix('auth')->group(function () {
         return response()->json(['success' => true, 'status' => 'optimal', 'timestamp' => now()]);
     });
 
+    // Cloudinary diagnostic — remove after confirming uploads work
+    Route::get('cloudinary-test', function () {
+        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+        $apiKey    = env('CLOUDINARY_API_KEY');
+        $apiSecret = env('CLOUDINARY_API_SECRET');
+
+        $diagnostics = [
+            'cloud_name_set'   => !empty($cloudName),
+            'api_key_set'      => !empty($apiKey),
+            'api_secret_set'   => !empty($apiSecret),
+            'cloud_name_value' => $cloudName ?: 'MISSING',
+            'api_key_prefix'   => $apiKey ? substr($apiKey, 0, 6) . '...' : 'MISSING',
+        ];
+
+        if ($cloudName && $apiKey && $apiSecret) {
+            try {
+                $cloudinary = new \Cloudinary\Cloudinary([
+                    'cloud' => [
+                        'cloud_name' => $cloudName,
+                        'api_key'    => $apiKey,
+                        'api_secret' => $apiSecret,
+                    ],
+                    'url' => ['secure' => true],
+                ]);
+                // Ping Cloudinary by fetching account usage
+                $result = $cloudinary->adminApi()->ping();
+                $diagnostics['status'] = 'connected';
+                $diagnostics['ping']   = $result['status'] ?? 'ok';
+            } catch (\Throwable $e) {
+                $diagnostics['status'] = 'failed';
+                $diagnostics['error']  = $e->getMessage();
+            }
+        } else {
+            $diagnostics['status'] = 'credentials_missing';
+        }
+
+        return response()->json($diagnostics);
+    });
+
     // Mail diagnostic endpoint — remove after confirming mail works
     Route::get('mail-test', function (Illuminate\Http\Request $request) {
         $to = $request->query('to', 'test@example.com');
