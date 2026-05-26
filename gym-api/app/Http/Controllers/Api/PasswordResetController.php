@@ -44,44 +44,15 @@ class PasswordResetController extends Controller
             ]);
 
             try {
-                // Use SendGrid HTTP API directly — works on Railway (no SMTP blocking)
-                $sendgridKey = env('SENDGRID_API_KEY');
-                if (!$sendgridKey) {
-                    throw new \Exception('SENDGRID_API_KEY not configured');
+                $sent = \App\Services\EmailService::sendPasswordReset($input, $code);
+                if (!$sent) {
+                    throw new \Exception('SendGrid rejected the request. Check SENDGRID_API_KEY and sender verification in Railway logs.');
                 }
-
-                $response = \Illuminate\Support\Facades\Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $sendgridKey,
-                    'Content-Type'  => 'application/json',
-                ])->post('https://api.sendgrid.com/v3/mail/send', [
-                    'personalizations' => [['to' => [['email' => $input]]]],
-                    'from'    => [
-                        'email' => env('MAIL_FROM_ADDRESS', 'razzymechti@gmail.com'),
-                        'name'  => env('MAIL_FROM_NAME', 'GymManagement'),
-                    ],
-                    'subject' => 'Your Password Reset Code',
-                    'content' => [[
-                        'type'  => 'text/html',
-                        'value' => '
-                            <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#f9f9f9;border-radius:8px;">
-                                <h2 style="color:#1e293b;">Password Reset Request</h2>
-                                <p>You requested to reset your password. Use the following code:</p>
-                                <div style="font-size:32px;font-weight:bold;letter-spacing:8px;background:#e2e8f0;padding:16px;border-radius:6px;text-align:center;color:#0f172a;">' . $code . '</div>
-                                <p style="margin-top:16px;color:#64748b;font-size:13px;">This code expires in 15 minutes. If you did not request this, ignore this email.</p>
-                            </div>',
-                    ]],
-                ]);
-
-                if (!$response->successful()) {
-                    throw new \Exception('SendGrid API error: ' . $response->body());
-                }
-
-                \Illuminate\Support\Facades\Log::info('SendGrid email sent successfully to: ' . $input . ' | Status: ' . $response->status() . ' | Body: ' . $response->body());
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error('Password reset mail failed: ' . $e->getMessage());
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to send reset email. Please check mail configuration. Erreur : ' . $e->getMessage(),
+                    'message' => 'Failed to send reset email. Erreur : ' . $e->getMessage(),
                 ], 500);
             }
         } else {

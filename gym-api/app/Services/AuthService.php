@@ -136,22 +136,37 @@ class AuthService
     private function sendVerificationEmail(User $user): array
     {
         try {
-            // Send synchronously (bypass queue) to surface errors immediately
-            $notification = new VerifyEmailNotification();
-            $notification->onConnection('sync');
-            $user->notify($notification);
+            // Build verification URL (same logic as VerifyEmailNotification)
+            $id   = $user->getKey();
+            $hash = sha1($user->getEmailForVerification());
+
+            $verifyUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'verification.verify',
+                \Carbon\Carbon::now()->addMinutes(\Illuminate\Support\Facades\Config::get('auth.verification.expire', 60)),
+                ['id' => $id, 'hash' => $hash]
+            );
+
+            $frontendBase = rtrim((string) config('app.frontend_url', 'http://localhost:4200'), '/') . '/auth/verify';
+            $queryString  = parse_url($verifyUrl, PHP_URL_QUERY);
+            $frontendUrl  = "{$frontendBase}/{$id}/{$hash}" . ($queryString ? "?{$queryString}" : '');
+
+            $sent = \App\Services\EmailService::sendVerification($user->email, $user->name, $frontendUrl);
+
+            if (!$sent) {
+                Log::error('Failed to send verification email via SendGrid', [
+                    'user_id' => $user->getKey(),
+                    'email'   => $user->email,
+                ]);
+                return ['sent' => false, 'error' => 'SendGrid rejected the request. Check SENDGRID_API_KEY and sender verification.'];
+            }
 
             return ['sent' => true, 'error' => null];
         } catch (\Throwable $e) {
             Log::error('Failed to send verification email', [
-                'user_id'        => $user->getKey(),
-                'email'          => $user->email,
-                'mailer'         => config('mail.default'),
-                'resend_key_set' => !empty(config('services.resend.key')),
-                'error'          => $e->getMessage(),
-                'trace'          => $e->getTraceAsString(),
+                'user_id' => $user->getKey(),
+                'email'   => $user->email,
+                'error'   => $e->getMessage(),
             ]);
-
             return ['sent' => false, 'error' => $e->getMessage()];
         }
     }
