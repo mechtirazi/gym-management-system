@@ -34,6 +34,11 @@ RUN chmod 640 storage/oauth-*.key 2>/dev/null || true
 COPY docker-start.sh /usr/local/bin/docker-start.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-start.sh && chmod +x /usr/local/bin/docker-start.sh
 
+# Set PHP upload limits at build time
+RUN echo "upload_max_filesize = 20M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 25M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 EXPOSE 8080
 
 CMD ["/usr/local/bin/docker-start.sh"]

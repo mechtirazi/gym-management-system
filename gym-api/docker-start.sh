@@ -3,6 +3,11 @@
 PORT="${PORT:-8080}"
 echo "=== Starting Gym API on PORT=$PORT ==="
 
+# Set PHP upload limits (must be done before php-fpm starts)
+echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini
+echo "post_max_size = 25M" >> /usr/local/etc/php/conf.d/uploads.ini
+echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Clear any stale config/route/service caches that may have been built
 # with local dev paths or wrong env values, then rebuild from current env vars.
 echo "Clearing and rebuilding Laravel caches..."
@@ -30,6 +35,11 @@ chmod 640 /var/www/html/storage/oauth-*.key 2>/dev/null || true
 rm -f /etc/nginx/sites-enabled/default
 rm -f /etc/nginx/conf.d/default.conf
 
+# Set global nginx upload limit (covers Railway proxy passthrough)
+cat > /etc/nginx/conf.d/upload-limit.conf << 'EOF'
+client_max_body_size 25M;
+EOF
+
 # Write nginx config with dynamic PORT
 cat > /etc/nginx/sites-available/gym-api << NGINX
 server {
@@ -50,6 +60,7 @@ server {
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         include fastcgi_params;
+        fastcgi_param PHP_VALUE "upload_max_filesize=20M \n post_max_size=25M";
     }
 }
 NGINX
