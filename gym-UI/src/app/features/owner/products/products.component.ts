@@ -126,8 +126,8 @@ export class ProductManagementComponent implements OnInit {
               let imageUrl = p.image || '';
               if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
                 const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-                const cleanPath = imageUrl.replace(/^\//, '');
-                imageUrl = `${baseUrl}/${cleanPath}`;
+                const cleanPath = imageUrl.replace(/^\//, '').replace(/^storage\//, '');
+                imageUrl = `${baseUrl}/storage/${cleanPath}`;
               }
               return { ...p, imageUrl };
             });

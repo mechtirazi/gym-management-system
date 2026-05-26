@@ -226,14 +226,12 @@ export class GymProfileComponent implements OnInit {
 
   getImageUrl(path?: string): string | null {
     if (!path) return null;
+    // Full URL (Cloudinary or any http/https) — use as-is
     if (path.startsWith('http') || path.startsWith('data:')) return path;
 
-    // Ensure baseUrl doesn't end with slash and cleanPath doesn't start with slash
+    // Relative path stored in local public disk — prepend /storage/
     const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-    const cleanPath = path.replace(/^\//, '');
-
-    const finalUrl = `${baseUrl}/${cleanPath}`;
-    console.log('Resolving Image URL:', finalUrl);
-    return finalUrl;
+    const cleanPath = path.replace(/^\//, '').replace(/^storage\//, '');
+    return `${baseUrl}/storage/${cleanPath}`;
   }
 }

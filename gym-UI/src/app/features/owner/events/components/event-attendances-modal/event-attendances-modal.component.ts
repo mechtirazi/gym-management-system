@@ -141,9 +141,9 @@ export class EventAttendancesModalComponent implements OnInit {
   getImageUrl(path?: string): string {
     if (!path) return '';
     if (path.startsWith('http') || path.startsWith('data:')) return path;
-    const baseUrl = environment.apiUrl.replace('/api', '');
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return `${baseUrl}/${cleanPath}`;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '').replace(/^storage\//, '');
+    return `${baseUrl}/storage/${cleanPath}`;
   }
 
   onFileSelected(event: any) {

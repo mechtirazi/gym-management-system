@@ -110,8 +110,8 @@ export class MemberEventsComponent implements OnInit {
           let imageUrl = event.image;
           if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
             const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-            const cleanPath = imageUrl.replace(/^\//, '');
-            imageUrl = `${baseUrl}/${cleanPath}`;
+            const cleanPath = imageUrl.replace(/^\//, '').replace(/^storage\//, '');
+            imageUrl = `${baseUrl}/storage/${cleanPath}`;
           }
 
           const eventEndDate = new Date(event.end_date || event.start_date);

@@ -38,6 +38,9 @@ server {
     root /var/www/html/public;
     index index.php;
 
+    # Allow uploads up to 20MB (Cloudinary accepts large images)
+    client_max_body_size 20M;
+
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }

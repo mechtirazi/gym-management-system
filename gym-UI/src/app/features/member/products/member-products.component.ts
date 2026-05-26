@@ -114,8 +114,8 @@ export class MemberProductsComponent implements OnInit {
             let imageUrl = product.image;
             if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
               const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-              const cleanPath = imageUrl.replace(/^\//, '');
-              imageUrl = `${baseUrl}/${cleanPath}`;
+              const cleanPath = imageUrl.replace(/^\//, '').replace(/^storage\//, '');
+              imageUrl = `${baseUrl}/storage/${cleanPath}`;
             }
 
             return {
@@ -257,8 +257,8 @@ export class MemberProductsComponent implements OnInit {
   private resolveImageUrl(imageUrl: string): string {
     if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
       const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-      const cleanPath = imageUrl.replace(/^\//, '');
-      return `${baseUrl}/${cleanPath}`;
+      const cleanPath = imageUrl.replace(/^\//, '').replace(/^storage\//, '');
+      return `${baseUrl}/storage/${cleanPath}`;
     }
     return imageUrl || 'https://images.unsplash.com/photo-1583454110551-21f2fa202114?auto=format&fit=crop&q=80&w=800';
   }

@@ -428,15 +428,9 @@ export class MemberGymProfileComponent implements OnInit {
   getImageUrl(path?: string): string {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    const baseUrl = environment.apiUrl.replace('/api', '');
-    let cleanPath = path.startsWith('/') ? path.substring(1) : path;
-
-    // Handle missing 'storage/' prefix for profile pictures and other uploaded assets
-    if (!cleanPath.startsWith('storage/') && !cleanPath.startsWith('assets/')) {
-      cleanPath = 'storage/' + cleanPath;
-    }
-
-    return `${baseUrl}/${cleanPath}`;
+    const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
+    const cleanPath = path.replace(/^\//, '').replace(/^storage\//, '');
+    return `${baseUrl}/storage/${cleanPath}`;
   }
 
   getGymInitials(name?: string): string {

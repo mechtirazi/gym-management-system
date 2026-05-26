@@ -130,7 +130,7 @@ export class MyGymsComponent implements OnInit {
     if (!path) return null;
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     const baseUrl = environment.apiUrl.replace('/api', '').replace(/\/$/, '');
-    const cleanPath = path.replace(/^\//, '');
-    return `${baseUrl}/${cleanPath}`;
+    const cleanPath = path.replace(/^\//, '').replace(/^storage\//, '');
+    return `${baseUrl}/storage/${cleanPath}`;
   }
 }
