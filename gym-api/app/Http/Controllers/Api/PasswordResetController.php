@@ -42,7 +42,16 @@ class PasswordResetController extends Controller
                 'code' => $code,
                 'created_at' => now(),
             ]);
-            \Illuminate\Support\Facades\Mail::to($input)->send(new \App\Mail\PasswordResetMail($code));
+
+            try {
+                \Illuminate\Support\Facades\Mail::to($input)->send(new \App\Mail\PasswordResetMail($code));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Password reset mail failed: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send reset email. Please check mail configuration. Error: ' . $e->getMessage(),
+                ], 500);
+            }
         } else {
             \Illuminate\Support\Facades\DB::table('password_reset_otps')->where('phone', $input)->delete();
             \Illuminate\Support\Facades\DB::table('password_reset_otps')->insert([
@@ -50,7 +59,7 @@ class PasswordResetController extends Controller
                 'code' => $code,
                 'created_at' => now(),
             ]);
-            
+
             // Send WhatsApp message using Twilio API (Free Sandbox)
             $twilioSid = config('services.twilio.sid');
             $twilioToken = config('services.twilio.token');
@@ -66,7 +75,7 @@ class PasswordResetController extends Controller
                         $formattedPhone = '+' . $formattedPhone;
                     }
                 }
-                
+
                 $response = \Illuminate\Support\Facades\Http::withBasicAuth($twilioSid, $twilioToken)
                     ->asForm()
                     ->post("https://api.twilio.com/2010-04-01/Accounts/$twilioSid/Messages.json", [
