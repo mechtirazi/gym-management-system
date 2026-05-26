@@ -55,6 +55,43 @@ Route::prefix('auth')->group(function () {
         return response()->json(['success' => true, 'status' => 'optimal', 'timestamp' => now()]);
     });
 
+    // SendGrid diagnostic — remove after confirming email works
+    Route::get('sendgrid-test', function (Illuminate\Http\Request $request) {
+        $to  = $request->query('to', 'mechtirazi@gmail.com');
+        $key = env('SENDGRID_API_KEY');
+
+        $result = [
+            'sendgrid_key_set'    => !empty($key),
+            'sendgrid_key_prefix' => $key ? substr($key, 0, 8) . '...' : 'MISSING',
+            'mail_from'           => env('MAIL_FROM_ADDRESS', 'NOT SET'),
+            'sending_to'          => $to,
+        ];
+
+        if (!$key) {
+            $result['status'] = 'SENDGRID_API_KEY missing in env';
+            return response()->json($result);
+        }
+
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'Authorization' => 'Bearer ' . $key,
+            'Content-Type'  => 'application/json',
+        ])->post('https://api.sendgrid.com/v3/mail/send', [
+            'personalizations' => [['to' => [['email' => $to]]]],
+            'from'    => [
+                'email' => env('MAIL_FROM_ADDRESS', 'razzymechti@gmail.com'),
+                'name'  => env('MAIL_FROM_NAME', 'GymManagement'),
+            ],
+            'subject' => 'SendGrid Test Email',
+            'content' => [['type' => 'text/plain', 'value' => 'This is a test email from your gym app. Code: 123456']],
+        ]);
+
+        $result['http_status']    = $response->status();
+        $result['sendgrid_body']  = $response->body();
+        $result['success']        = $response->successful();
+
+        return response()->json($result);
+    });
+
     // Cloudinary diagnostic — remove after confirming uploads work
     Route::get('cloudinary-test', function () {
         $cloudName = env('CLOUDINARY_CLOUD_NAME');
