@@ -58,8 +58,8 @@ class GymController extends BaseApiController
 
             // Handle image upload
             if ($request->hasFile('logo')) {
-                $path = $request->file('logo')->store('gym_logos', 'public');
-                $data['picture'] = '/storage/' . $path;
+                $uploaded = $request->file('logo')->storeOnCloudinary('gym_logos');
+                $data['picture'] = $uploaded->getSecurePath();
             }
 
             // Map frontend 'address' to backend 'adress' if provided

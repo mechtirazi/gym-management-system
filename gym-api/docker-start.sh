@@ -13,6 +13,10 @@ php artisan cache:clear
 php artisan config:cache
 php artisan route:cache
 
+# Create storage symlink so /storage/ URLs work
+echo "Creating storage symlink..."
+php artisan storage:link --force 2>/dev/null || true
+
 # Ensure Passport keys exist and are readable by php-fpm user.
 if [ ! -f /var/www/html/storage/oauth-public.key ] || [ ! -f /var/www/html/storage/oauth-private.key ]; then
   echo "Passport keys missing. Generating..."

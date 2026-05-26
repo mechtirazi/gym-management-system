@@ -31,8 +31,8 @@ class CourseController extends BaseApiController
             $validatedData = app(StoreCourseRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('courses', 'public');
-                $validatedData['image'] = '/storage/' . $path;
+                $uploaded = $request->file('image')->storeOnCloudinary('courses');
+                $validatedData['image'] = $uploaded->getSecurePath();
             }
 
             $course = $this->service->create($validatedData);
@@ -117,8 +117,8 @@ class CourseController extends BaseApiController
             $validatedData = app(UpdateCourseRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('courses', 'public');
-                $validatedData['image'] = '/storage/' . $path;
+                $uploaded = $request->file('image')->storeOnCloudinary('courses');
+                $validatedData['image'] = $uploaded->getSecurePath();
             }
 
             $data = $this->service->update($model, $validatedData);

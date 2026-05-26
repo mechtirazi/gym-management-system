@@ -28,8 +28,8 @@ class ProductController extends BaseApiController
             $validatedData = app(StoreProductRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('products', 'public');
-                $validatedData['image'] = '/storage/' . $path;
+                $uploaded = $request->file('image')->storeOnCloudinary('products');
+                $validatedData['image'] = $uploaded->getSecurePath();
             }
 
             $data = $this->service->create($validatedData);
@@ -61,8 +61,8 @@ class ProductController extends BaseApiController
             $validatedData = app(UpdateProductRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('products', 'public');
-                $validatedData['image'] = '/storage/' . $path;
+                $uploaded = $request->file('image')->storeOnCloudinary('products');
+                $validatedData['image'] = $uploaded->getSecurePath();
             }
 
             $data = $this->service->update($model, $validatedData);

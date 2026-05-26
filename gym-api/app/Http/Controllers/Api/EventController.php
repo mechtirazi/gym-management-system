@@ -27,8 +27,8 @@ class EventController extends BaseApiController
             $validatedData = app(StoreEventRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('events', 'public');
-                $validatedData['image'] = '/storage/' . $path;
+                $uploaded = $request->file('image')->storeOnCloudinary('events');
+                $validatedData['image'] = $uploaded->getSecurePath();
             }
 
             $data = $this->service->create($validatedData);
@@ -60,8 +60,8 @@ class EventController extends BaseApiController
             $validatedData = app(UpdateEventRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('events', 'public');
-                $validatedData['image'] = '/storage/' . $path;
+                $uploaded = $request->file('image')->storeOnCloudinary('events');
+                $validatedData['image'] = $uploaded->getSecurePath();
             }
 
             $data = $this->service->update($model, $validatedData);

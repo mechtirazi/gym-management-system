@@ -27,8 +27,8 @@ class UserService extends BaseService
     {
         // Handle file upload if provided
         if (isset($data['profile_picture']) && $data['profile_picture'] instanceof UploadedFile) {
-            $path = $data['profile_picture']->store('profile_pictures', 'public');
-            $data['profile_picture'] = $path;
+            $path = $data['profile_picture']->storeOnCloudinary('profile_pictures');
+            $data['profile_picture'] = $path->getSecurePath();
         }
 
         $newUser = User::create($data);
@@ -106,13 +106,18 @@ class UserService extends BaseService
     {
         // Handle file upload if provided
         if (isset($data['profile_picture']) && $data['profile_picture'] instanceof UploadedFile) {
-            // Delete old profile picture if exists
-            if ($user->profile_picture) {
-                Storage::disk('public')->delete($user->profile_picture);
+            // Delete old profile picture from Cloudinary if it's a Cloudinary URL
+            if ($user->profile_picture && str_contains($user->profile_picture, 'cloudinary.com')) {
+                try {
+                    $publicId = pathinfo(parse_url($user->profile_picture, PHP_URL_PATH), PATHINFO_FILENAME);
+                    \Cloudinary\Cloudinary::destroy('profile_pictures/' . $publicId);
+                } catch (\Throwable $e) {
+                    // ignore cleanup errors
+                }
             }
 
-            $path = $data['profile_picture']->store('profile_pictures', 'public');
-            $data['profile_picture'] = $path;
+            $uploaded = $data['profile_picture']->storeOnCloudinary('profile_pictures');
+            $data['profile_picture'] = $uploaded->getSecurePath();
         }
 
         $user->update($data);
