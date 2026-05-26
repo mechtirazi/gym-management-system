@@ -62,6 +62,8 @@ export class RegisterComponent {
       this.isLoading.set(true);
       this.errorMessage.set('');
       this.successMessage.set('');
+      this.resendMessage.set('');
+      this.resendError.set('');
 
       // Send the full form value including confirmation as expected by backend
       const registrationData = {
@@ -73,7 +75,12 @@ export class RegisterComponent {
         next: (res: any) => {
           this.isLoading.set(false);
           this.registeredEmail.set(this.registerForm.value.email || '');
-          this.successMessage.set('Registration successful! You need to do verification. Please check your email inbox (and spam folder) for the verification link.');
+          this.successMessage.set(
+            res?.message || 'Registration successful! Please check your email inbox (and spam folder) for the verification link.'
+          );
+          if (res?.data?.email_sent === false) {
+            this.resendError.set('Verification email is not sent yet. Use the button below to retry in a moment.');
+          }
         },
         error: (err: any) => {
           this.isLoading.set(false);

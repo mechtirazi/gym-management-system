@@ -75,6 +75,8 @@ class PasswordResetController extends Controller
                 if (!$response->successful()) {
                     throw new \Exception('SendGrid API error: ' . $response->body());
                 }
+
+                \Illuminate\Support\Facades\Log::info('SendGrid email sent successfully to: ' . $input . ' | Status: ' . $response->status() . ' | Body: ' . $response->body());
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error('Password reset mail failed: ' . $e->getMessage());
                 return response()->json([
@@ -125,6 +127,7 @@ class PasswordResetController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Password reset code sent successfully.',
+            'debug'   => app()->environment('production') ? null : 'check logs',
         ], 200);
     }
 
