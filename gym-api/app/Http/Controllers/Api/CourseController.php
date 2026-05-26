@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCourseRequest;
 use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Course;
 use App\Services\CourseService;
+use App\Traits\UploadsToCloudinary;
 use Illuminate\Http\Request;
 use App\Models\Session;
 use App\Models\Enrollment;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 
 class CourseController extends BaseApiController
 {
+    use UploadsToCloudinary;
     public function __construct(CourseService $courseService)
     {
         $this->configureBase(
@@ -31,13 +33,10 @@ class CourseController extends BaseApiController
             $validatedData = app(StoreCourseRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $uploaded = $request->file('image')->storeOnCloudinary('courses');
-                $validatedData['image'] = $uploaded->getSecurePath();
+                $validatedData['image'] = $this->uploadToCloudinary($request->file('image'), 'courses');
             }
 
             $course = $this->service->create($validatedData);
-
-            // Handle Recurring Sessions
             if ($request->boolean('is_recurring') && $request->has('recurring_days')) {
                 $this->generateRecurringSessions($course, $validatedData);
             }
@@ -117,8 +116,7 @@ class CourseController extends BaseApiController
             $validatedData = app(UpdateCourseRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $uploaded = $request->file('image')->storeOnCloudinary('courses');
-                $validatedData['image'] = $uploaded->getSecurePath();
+                $validatedData['image'] = $this->uploadToCloudinary($request->file('image'), 'courses');
             }
 
             $data = $this->service->update($model, $validatedData);

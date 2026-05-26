@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\StoreGymRequest;
 use App\Http\Requests\UpdateGymRequest;
+use App\Traits\UploadsToCloudinary;
 use Illuminate\Http\Request;
 use App\Models\Gym;
 use App\Services\GymService;
 
 class GymController extends BaseApiController
 {
+    use UploadsToCloudinary;
     public function __construct(GymService $gymService)
     {
         $this->configureBase(
@@ -58,8 +60,7 @@ class GymController extends BaseApiController
 
             // Handle image upload
             if ($request->hasFile('logo')) {
-                $uploaded = $request->file('logo')->storeOnCloudinary('gym_logos');
-                $data['picture'] = $uploaded->getSecurePath();
+                $data['picture'] = $this->uploadToCloudinary($request->file('logo'), 'gym_logos');
             }
 
             // Map frontend 'address' to backend 'adress' if provided

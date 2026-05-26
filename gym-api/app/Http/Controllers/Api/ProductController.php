@@ -7,10 +7,12 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
 use App\Services\ProductService;
 use App\Services\AIService;
+use App\Traits\UploadsToCloudinary;
 use Illuminate\Http\Request;
 
 class ProductController extends BaseApiController
 {
+    use UploadsToCloudinary;
     public function __construct(ProductService $productService)
     {
         $this->configureBase(
@@ -28,8 +30,7 @@ class ProductController extends BaseApiController
             $validatedData = app(StoreProductRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $uploaded = $request->file('image')->storeOnCloudinary('products');
-                $validatedData['image'] = $uploaded->getSecurePath();
+                $validatedData['image'] = $this->uploadToCloudinary($request->file('image'), 'products');
             }
 
             $data = $this->service->create($validatedData);
@@ -61,8 +62,7 @@ class ProductController extends BaseApiController
             $validatedData = app(UpdateProductRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $uploaded = $request->file('image')->storeOnCloudinary('products');
-                $validatedData['image'] = $uploaded->getSecurePath();
+                $validatedData['image'] = $this->uploadToCloudinary($request->file('image'), 'products');
             }
 
             $data = $this->service->update($model, $validatedData);

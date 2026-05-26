@@ -6,10 +6,12 @@ use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use App\Services\EventService;
+use App\Traits\UploadsToCloudinary;
 use Illuminate\Http\Request;
 
 class EventController extends BaseApiController
 {
+    use UploadsToCloudinary;
     public function __construct(EventService $eventService)
     {
         $this->configureBase(
@@ -27,8 +29,7 @@ class EventController extends BaseApiController
             $validatedData = app(StoreEventRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $uploaded = $request->file('image')->storeOnCloudinary('events');
-                $validatedData['image'] = $uploaded->getSecurePath();
+                $validatedData['image'] = $this->uploadToCloudinary($request->file('image'), 'events');
             }
 
             $data = $this->service->create($validatedData);
@@ -60,8 +61,7 @@ class EventController extends BaseApiController
             $validatedData = app(UpdateEventRequest::class)->validated();
 
             if ($request->hasFile('image')) {
-                $uploaded = $request->file('image')->storeOnCloudinary('events');
-                $validatedData['image'] = $uploaded->getSecurePath();
+                $validatedData['image'] = $this->uploadToCloudinary($request->file('image'), 'events');
             }
 
             $data = $this->service->update($model, $validatedData);

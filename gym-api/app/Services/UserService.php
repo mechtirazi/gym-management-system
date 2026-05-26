@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Traits\UploadsToCloudinary;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,6 +15,7 @@ use Illuminate\Http\UploadedFile;
 
 class UserService extends BaseService
 {
+    use UploadsToCloudinary;
     public function __construct()
     {
         $this->setModel(new User());
@@ -27,8 +29,7 @@ class UserService extends BaseService
     {
         // Handle file upload if provided
         if (isset($data['profile_picture']) && $data['profile_picture'] instanceof UploadedFile) {
-            $path = $data['profile_picture']->storeOnCloudinary('profile_pictures');
-            $data['profile_picture'] = $path->getSecurePath();
+            $data['profile_picture'] = $this->uploadToCloudinary($data['profile_picture'], 'profile_pictures');
         }
 
         $newUser = User::create($data);
@@ -116,8 +117,8 @@ class UserService extends BaseService
                 }
             }
 
-            $uploaded = $data['profile_picture']->storeOnCloudinary('profile_pictures');
-            $data['profile_picture'] = $uploaded->getSecurePath();
+            $uploaded = $this->uploadToCloudinary($data['profile_picture'], 'profile_pictures');
+            $data['profile_picture'] = $uploaded;
         }
 
         $user->update($data);
