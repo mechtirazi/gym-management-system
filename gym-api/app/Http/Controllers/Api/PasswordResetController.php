@@ -44,12 +44,36 @@ class PasswordResetController extends Controller
             ]);
 
             try {
-                \Illuminate\Support\Facades\Mail::to($input)->send(new \App\Mail\PasswordResetMail($code));
+                // Use Resend HTTP API directly — works on Railway (no SMTP blocking)
+                $resendKey = env('RESEND_API_KEY');
+                if (!$resendKey) {
+                    throw new \Exception('RESEND_API_KEY not configured');
+                }
+
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $resendKey,
+                    'Content-Type'  => 'application/json',
+                ])->post('https://api.resend.com/emails', [
+                    'from'    => env('MAIL_FROM_NAME', 'GymManagement') . ' <' . env('MAIL_FROM_ADDRESS', 'onboarding@resend.dev') . '>',
+                    'to'      => [$input],
+                    'subject' => 'Your Password Reset Code',
+                    'html'    => '
+                        <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;background:#f9f9f9;border-radius:8px;">
+                            <h2 style="color:#1e293b;">Password Reset Request</h2>
+                            <p>You requested to reset your password. Use the following code:</p>
+                            <div style="font-size:32px;font-weight:bold;letter-spacing:8px;background:#e2e8f0;padding:16px;border-radius:6px;text-align:center;color:#0f172a;">' . $code . '</div>
+                            <p style="margin-top:16px;color:#64748b;font-size:13px;">This code expires in 15 minutes. If you did not request this, ignore this email.</p>
+                        </div>',
+                ]);
+
+                if (!$response->successful()) {
+                    throw new \Exception('Resend API error: ' . $response->body());
+                }
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error('Password reset mail failed: ' . $e->getMessage());
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to send reset email. Please check mail configuration. Error: ' . $e->getMessage(),
+                    'message' => 'Failed to send reset email. Please check mail configuration. Erreur : ' . $e->getMessage(),
                 ], 500);
             }
         } else {
