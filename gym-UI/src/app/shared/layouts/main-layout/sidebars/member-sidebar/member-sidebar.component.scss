@@ -578,11 +578,36 @@
     width: 0;
     border: none;
     visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
 
     &.open {
       width: var(--sidebar-width);
       visibility: visible;
       border-right: 1px solid var(--border-color);
+      transform: translateX(0);
+    }
+  }
+}
+
+:host(.open) .sidebar {
+  @media (max-width: 1024px) {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    width: var(--sidebar-width) !important;
+
+    .logo-text,
+    .nav-label,
+    .support-content,
+    .nav-header {
+      opacity: 1;
+      width: auto;
+      transform: translateX(0);
+    }
+
+    .support-btn span {
+      display: inline;
+      opacity: 1;
     }
   }
 }

@@ -409,3 +409,30 @@ body {
     padding: 0 !important;
   }
 }
+
+/* ─── Global Mobile Responsive Fixes ─── */
+@media (max-width: 768px) {
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Toast: full-width on mobile */
+  .premium-toast {
+    min-width: unset !important;
+    width: calc(100vw - 2rem) !important;
+    margin-right: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Angular Material dialogs: full-width on mobile */
+  .mat-mdc-dialog-container {
+    max-width: 95vw !important;
+  }
+
+  /* Tables: horizontal scroll wrapper */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

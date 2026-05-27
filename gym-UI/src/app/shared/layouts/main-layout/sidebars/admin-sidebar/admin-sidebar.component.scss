@@ -543,3 +543,23 @@
     }
   }
 }
+
+:host(.open) .sidebar {
+  transform: translateX(0) !important;
+  visibility: visible !important;
+  width: var(--sidebar-width) !important;
+
+  .logo-text,
+  .nav-label,
+  .support-content,
+  .nav-header {
+    opacity: 1;
+    width: auto;
+    transform: translateX(0);
+  }
+
+  .support-btn span {
+    display: inline;
+    opacity: 1;
+  }
+}

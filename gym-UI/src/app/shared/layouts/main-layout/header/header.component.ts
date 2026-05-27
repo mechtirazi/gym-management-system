@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { StaffService } from '../../../../features/owner/staff/services/staff.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { LanguageService, AppLanguage } from '../../../../core/services/language.service';
+import { SidebarService } from '../../../../core/services/sidebar.service';
 
 import { FormsModule } from '@angular/forms';
 import { MemberService } from '../../../../features/member/services/member.service';
@@ -30,6 +31,7 @@ export class HeaderComponent {
   private snackBar = inject(MatSnackBar);
   private translate = inject(TranslateService);
   private languageService = inject(LanguageService);
+  sidebarService = inject(SidebarService);
 
   currentUser = this.authService.currentUser;
   isDarkMode = this.themeService.darkMode;

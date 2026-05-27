@@ -1,4 +1,11 @@
 <header class="header">
+  <!-- Hamburger menu button — visible only on mobile -->
+  <button class="hamburger-btn" (click)="sidebarService.toggle()" [class.active]="sidebarService.isOpen()" aria-label="Toggle navigation menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
   <div class="search-bar">
     <div class="search-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"

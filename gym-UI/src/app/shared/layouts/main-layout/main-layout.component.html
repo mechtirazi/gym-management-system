@@ -1,16 +1,24 @@
 <div class="layout-container" [class.is-admin]="userRole() === 'super_admin' || userRole() === 'admin'">
+
+  <!-- Mobile sidebar overlay backdrop -->
+  <div class="sidebar-overlay"
+       [class.active]="sidebarService.isOpen()"
+       (click)="closeSidebar()"
+       aria-hidden="true">
+  </div>
+
   @if (userRole() === 'super_admin' || userRole() === 'admin') {
-  <app-admin-sidebar></app-admin-sidebar>
+  <app-admin-sidebar [class.open]="sidebarService.isOpen()"></app-admin-sidebar>
   } @else if (userRole() === 'owner') {
-    <app-owner-sidebar></app-owner-sidebar>
+    <app-owner-sidebar [class.open]="sidebarService.isOpen()"></app-owner-sidebar>
   } @else if (userRole() === 'receptionist') {
-    <app-receptionist-sidebar></app-receptionist-sidebar>
+    <app-receptionist-sidebar [class.open]="sidebarService.isOpen()"></app-receptionist-sidebar>
   } @else if (userRole() === 'nutritionist') {
-  <app-nutritionist-sidebar></app-nutritionist-sidebar>
+  <app-nutritionist-sidebar [class.open]="sidebarService.isOpen()"></app-nutritionist-sidebar>
   } @else if (userRole() === 'trainer') {
-  <app-trainer-sidebar></app-trainer-sidebar>
+  <app-trainer-sidebar [class.open]="sidebarService.isOpen()"></app-trainer-sidebar>
   } @else {
-  <app-member-sidebar></app-member-sidebar>
+  <app-member-sidebar [class.open]="sidebarService.isOpen()"></app-member-sidebar>
   }
 
   <div class="main-content">

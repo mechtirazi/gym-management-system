@@ -716,6 +716,82 @@
   .search-bar {
     display: none;
   }
+
+  .header {
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .notifications-dropdown {
+    width: calc(100vw - 2rem);
+    right: -1rem;
+    left: auto;
+  }
+
+  .lang-dropdown {
+    right: 0;
+  }
+}
+
+/* ─── Hamburger Button ─── */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-input);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 8px;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+
+  span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text-muted);
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+  }
+
+  &:hover {
+    background: var(--bg-hover);
+
+    span {
+      background: var(--text-main);
+    }
+  }
+
+  &.active {
+    span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    span:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+
+    span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .hamburger-btn {
+    display: flex;
+  }
 }
 
 /* Global Workspace Switcher Styles */
@@ -878,4 +954,4 @@
 @keyframes swFadeIn {
   from { opacity: 0; transform: translateY(10px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
-}
+}

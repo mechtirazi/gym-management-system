@@ -1,6 +1,6 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { HeaderComponent } from './header/header.component';
 import { OwnerSidebarComponent } from './sidebars/owner-sidebar/owner-sidebar.component';
 import { MemberSidebarComponent } from './sidebars/member-sidebar/member-sidebar.component';
@@ -10,7 +10,8 @@ import { ReceptionistSidebarComponent } from './sidebars/receptionist-sidebar/re
 import { TrainerSidebarComponent } from './sidebars/trainer-sidebar/trainer-sidebar.component';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/services/auth.service';
-import { ThemeService } from '../../../core/services/theme.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-main-layout',
@@ -32,11 +33,23 @@ import { ThemeService } from '../../../core/services/theme.service';
 })
 export class MainLayoutComponent {
   private authService = inject(AuthService);
-  private themeService = inject(ThemeService);
+  private router = inject(Router);
+  sidebarService = inject(SidebarService);
 
   userRole = this.authService.userRole;
   gymStatus = this.authService.connectedGymStatus;
   suspensionReason = this.authService.connectedGymSuspensionReason;
+
+  constructor() {
+    // Close sidebar on navigation (mobile UX)
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => this.sidebarService.close());
+  }
+
+  closeSidebar() {
+    this.sidebarService.close();
+  }
 
   shouldShowSuspensionBanner = () => {
     const role = this.userRole();
@@ -51,9 +64,4 @@ export class MainLayoutComponent {
     const role = this.userRole();
     return role === 'owner' ? 'Administrative Action Required' : 'Limited Access Enabled';
   };
-
-  constructor() {
-    // Theme initialization is handled by ThemeService.
-    // We only ensure the correct class is applied if the user switches roles or on initial load.
-  }
 }

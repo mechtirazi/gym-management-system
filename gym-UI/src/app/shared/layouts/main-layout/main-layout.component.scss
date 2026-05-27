@@ -224,6 +224,25 @@
   }
 }
 
+/* ─── Mobile Sidebar Overlay ─── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 99; /* just below sidebar z-index of 100 */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 @media (max-width: 1024px) {
   .main-content {
     margin-left: 80px;
@@ -232,7 +251,25 @@
 }
 
 @media (max-width: 768px) {
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+
   .page-content {
-    padding: 1.5rem 1rem;
+    padding: 1rem 0.75rem;
+  }
+
+  .suspension-banner-global {
+    margin: 1rem 0.75rem 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .banner-actions {
+      width: 100%;
+    }
   }
 }
